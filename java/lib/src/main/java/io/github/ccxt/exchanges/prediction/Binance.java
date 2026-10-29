@@ -278,14 +278,18 @@ public class Binance extends BinanceApi
                 maxTopicsResolved = this.parseToInt(maxTopics);
             }
             Long pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
-            Object pageLimit = ((((pageLimitOption != null && pageLimitOption > 100)))) ? 100 : pageLimitOption;
+            Long pageLimit = this.parseToInt(100);
+            if (((pageLimitOption == null || pageLimitOption < 100)))
+            {
+                pageLimit = this.parseToInt(pageLimitOption);
+            }
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Object offset = 0;
             while (true)
             {
                 Integer collectedLength = ((List<?>)collected).size();
                 Object remaining = (maxTopicsResolved - ((long) collectedLength));
-                Object reqLimit = (((((pageLimit != null && !(((Number) remaining).doubleValue() >= ((Number) pageLimit).doubleValue())))))) ? remaining : pageLimit;
+                Object reqLimit = (((((pageLimit != null && !(((Number) remaining).doubleValue() >= pageLimit)))))) ? remaining : pageLimit;
                 if ((reqLimit == null || (!(((Number) reqLimit).doubleValue() > 0))))
                 {
                     break;
@@ -2052,41 +2056,41 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
-            Map<String, Object> quoteRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("tokenId", outcomeObj.get("id"));
-                j39v3.put("side", sideUpper);
-                j39v3.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
-                yield j39v3; } }));
+            Map<String, Object> quoteRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("tokenId", outcomeObj.get("id"));
+                j39v2.put("side", sideUpper);
+                j39v2.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
+                yield j39v2; } }));
             Map<String, Object> quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
-            Map<String, Object> orderRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("walletId", Helpers.GetValue(wallet, "walletId"));
-                j39v2.put("quoteId", quoteId);
-                j39v2.put("timeInForce", timeInForce);
-                j39v2.put("accountType", accountType);
-                yield j39v2; } }));
-            Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("id", this.safeString(response, "orderId"));
-            mapLiteral6.put("clientOrderId", null);
-            mapLiteral6.put("info", response);
-            mapLiteral6.put("timestamp", null);
-            mapLiteral6.put("datetime", null);
-            mapLiteral6.put("status", null);
-            mapLiteral6.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-            mapLiteral6.put("outcomeId", this.safeString(outcomeObj, "id"));
-            mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-            mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
-            mapLiteral6.put("type", type);
-            mapLiteral6.put("side", side);
-            mapLiteral6.put("price", price);
-            mapLiteral6.put("amount", amount);
-            mapLiteral6.put("filled", null);
-            mapLiteral6.put("remaining", null);
-            mapLiteral6.put("cost", null);
-            mapLiteral6.put("fee", null);
-            mapLiteral6.put("trades", new ArrayList<Object>(Arrays.asList()));
-            return this.safePredictionOrder(mapLiteral6, market);
+            mapLiteral6.put("walletId", this.safeString(wallet, "walletId"));
+            mapLiteral6.put("quoteId", quoteId);
+            mapLiteral6.put("timeInForce", timeInForce);
+            mapLiteral6.put("accountType", accountType);
+            Map<String, Object> orderRequest = this.extend(commonRequest, mapLiteral6);
+            Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("id", this.safeString(response, "orderId"));
+            mapLiteral7.put("clientOrderId", null);
+            mapLiteral7.put("info", response);
+            mapLiteral7.put("timestamp", null);
+            mapLiteral7.put("datetime", null);
+            mapLiteral7.put("status", null);
+            mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+            mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "id"));
+            mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+            mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+            mapLiteral7.put("type", type);
+            mapLiteral7.put("side", side);
+            mapLiteral7.put("price", price);
+            mapLiteral7.put("amount", amount);
+            mapLiteral7.put("filled", null);
+            mapLiteral7.put("remaining", null);
+            mapLiteral7.put("cost", null);
+            mapLiteral7.put("fee", null);
+            mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
+            return this.safePredictionOrder(mapLiteral7, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2161,7 +2165,7 @@ public class Binance extends BinanceApi
             Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
-                put( "walletId", Helpers.GetValue(wallet, "walletId") );
+                put( "walletId", Binance.this.safeString(wallet, "walletId") );
             }};
             // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
             for (var i = 0; i < ((List<?>)ids).size(); i++)

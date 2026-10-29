@@ -637,14 +637,6 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         orderbookSide.storeArray(bidAsk);
     }
 
-    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
-    {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
-        {
-            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
-        }
-    }
-
     /**
      * @method
      * @name bithumb#watchTrades
@@ -1264,12 +1256,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handlePong(client, message);
             return;
         }
-        if (((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("pong"); case Map<?, ?> j39v8 -> j39v8.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v7 -> j39v7.contains("PINGPONG"); case Map<?, ?> j39v6 -> j39v6.containsKey("PINGPONG"); case null, default -> false; })))
+        if (((switch ((Object)(message)) { case List<?> j39v6 -> j39v6.contains("pong"); case Map<?, ?> j39v5 -> j39v5.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v4 -> j39v4.contains("PINGPONG"); case Map<?, ?> j39v3 -> j39v3.containsKey("PINGPONG"); case null, default -> false; })))
         {
             this.handlePong(client, message);
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v5 -> j39v5.contains("ping"); case Map<?, ?> j39v4 -> j39v4.containsKey("ping"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v2 -> j39v2.contains("ping"); case Map<?, ?> j39v1 -> j39v1.containsKey("ping"); case null, default -> false; }))
         {
             this.handlePing(client, message);
             return;

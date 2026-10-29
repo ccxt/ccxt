@@ -1848,20 +1848,15 @@ public class Deribit extends DeribitApi
             }};
             if (!java.util.Objects.equals(type, null))
             {
-                String requestType = null;
                 if (java.util.Objects.equals(type, "spot"))
                 {
-                    requestType = "spot";
+                    request.put("kind", "spot");
                 } else if (java.util.Objects.equals(type, "future") || (java.util.Objects.equals(type, "contract")))
                 {
-                    requestType = "future";
+                    request.put("kind", "future");
                 } else if (java.util.Objects.equals(type, "option"))
                 {
-                    requestType = "option";
-                }
-                if (!java.util.Objects.equals(requestType, null))
-                {
-                    request.put("kind", requestType);
+                    request.put("kind", "option");
                 }
             }
             Map<String, Object> response = (this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted))).join();
@@ -3406,43 +3401,42 @@ public class Deribit extends DeribitApi
         //
         String contract = this.safeString(position, "instrument_name");
         Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
-        String side = this.safeString(position, "direction");
-        side = (((java.util.Objects.equals(side, "buy")))) ? "long" : "short";
+        String side = (((java.util.Objects.equals(this.safeString(position, "direction"), "buy")))) ? "long" : "short";
         String unrealizedPnl = this.safeString(position, "floating_profit_loss");
         String initialMarginString = this.safeString(position, "initial_margin");
         String notionalString = this.safeString(position, "size_currency");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         String maintenanceMarginString = this.safeString(position, "maintenance_margin");
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", position);
-        mapLiteral5.put("id", null);
-        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral5.put("timestamp", null);
-        mapLiteral5.put("datetime", null);
-        mapLiteral5.put("lastUpdateTimestamp", null);
-        mapLiteral5.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral5.put("initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")));
-        mapLiteral5.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
-        mapLiteral5.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")));
-        mapLiteral5.put("entryPrice", this.safeNumber(position, "average_price", (Object) null));
-        mapLiteral5.put("notional", this.parseNumber(notionalStringAbs));
-        mapLiteral5.put("leverage", this.safeInteger(position, "leverage"));
-        mapLiteral5.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
-        mapLiteral5.put("realizedPnl", this.safeNumber(position, "realized_profit_loss", (Object) null));
-        mapLiteral5.put("contracts", this.safeNumber(position, "size", (Object) null));
-        mapLiteral5.put("contractSize", this.safeNumber(position, "contractSize", (Object) null));
-        mapLiteral5.put("marginRatio", null);
-        mapLiteral5.put("liquidationPrice", this.safeNumber(position, "estimated_liquidation_price", (Object) null));
-        mapLiteral5.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral5.put("lastPrice", null);
-        mapLiteral5.put("collateral", null);
-        mapLiteral5.put("marginMode", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("percentage", null);
-        mapLiteral5.put("hedged", null);
-        mapLiteral5.put("stopLossPrice", null);
-        mapLiteral5.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral5);
+        return this.safePosition(new HashMap<String, Object>() {{
+            put( "info", position );
+            put( "id", null );
+            put( "symbol", Deribit.this.safeString(marketResolved, "symbol") );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "lastUpdateTimestamp", null );
+            put( "initialMargin", Deribit.this.parseNumber(initialMarginString) );
+            put( "initialMarginPercentage", Deribit.this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")) );
+            put( "maintenanceMargin", Deribit.this.parseNumber(maintenanceMarginString) );
+            put( "maintenanceMarginPercentage", Deribit.this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")) );
+            put( "entryPrice", Deribit.this.safeNumber(position, "average_price", (Object) null) );
+            put( "notional", Deribit.this.parseNumber(notionalStringAbs) );
+            put( "leverage", Deribit.this.safeInteger(position, "leverage") );
+            put( "unrealizedPnl", Deribit.this.parseNumber(unrealizedPnl) );
+            put( "realizedPnl", Deribit.this.safeNumber(position, "realized_profit_loss", (Object) null) );
+            put( "contracts", Deribit.this.safeNumber(position, "size", (Object) null) );
+            put( "contractSize", Deribit.this.safeNumber(position, "contractSize", (Object) null) );
+            put( "marginRatio", null );
+            put( "liquidationPrice", Deribit.this.safeNumber(position, "estimated_liquidation_price", (Object) null) );
+            put( "markPrice", Deribit.this.safeNumber(position, "mark_price", (Object) null) );
+            put( "lastPrice", null );
+            put( "collateral", null );
+            put( "marginMode", null );
+            put( "side", side );
+            put( "percentage", null );
+            put( "hedged", null );
+            put( "stopLossPrice", null );
+            put( "takeProfitPrice", null );
+        }});
     }
 
     /**
@@ -4748,14 +4742,14 @@ public class Deribit extends DeribitApi
         {
             openInterestValue = openInterest;
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-        mapLiteral6.put("openInterestAmount", openInterestAmount);
-        mapLiteral6.put("openInterestValue", openInterestValue);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("info", interest);
-        return this.safeOpenInterest(mapLiteral6, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+        mapLiteral5.put("openInterestAmount", openInterestAmount);
+        mapLiteral5.put("openInterestValue", openInterestValue);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("info", interest);
+        return this.safeOpenInterest(mapLiteral5, marketResolved);
     }
 
     public Long nonce()

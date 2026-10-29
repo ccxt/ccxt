@@ -3557,11 +3557,7 @@ public class Kucoin extends KucoinApi
             put( "margin", "MARGIN" );
             put( "swap", "FUTURES" );
         }};
-        if (java.util.Objects.equals(type, null))
-        {
-            return null;
-        }
-        return this.safeString(tradeTypes, ((String)type), type);
+        return this.safeString(tradeTypes, type, type);
     }
 
     /**

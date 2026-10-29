@@ -1166,11 +1166,11 @@ public class Hollaex extends HollaexApi
             put( "timestamp", timestamp );
             put( "datetime", Hollaex.this.iso8601(timestamp) );
         }};
-        Object currenciesById = this.currencies_by_id;
-        if (java.util.Objects.equals(currenciesById, null))
+        if (java.util.Objects.equals(this.currencies_by_id, null))
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
+        Object currenciesById = this.currencies_by_id;
         List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
