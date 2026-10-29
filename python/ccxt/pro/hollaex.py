@@ -347,20 +347,17 @@ class hollaex(ccxt.async_support.hollaex):
         #       }
         #
         channel = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data', {})
+        dataDict = self.safe_dict(message, 'data')
+        rawOrders = self.safe_list(message, 'data', [])
+        if dataDict is not None:
+            rawOrders = [dataDict]
         # usually the first message is an empty array
-        dataLength = len(data)
-        if dataLength == 0:
+        if len(rawOrders) == 0:
             return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        rawOrders = None
-        if not isinstance(data, list):
-            rawOrders = [data]
-        else:
-            rawOrders = data
         marketIds = {}
         for i in range(0, len(rawOrders)):
             order = self.safe_value(rawOrders, i)
@@ -413,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
         data = self.safe_dict(message, 'data', {})
         keys = list(data.keys())
         timestamp = self.safe_timestamp(message, 'time')
-        self.balance['info'] = self.safe_dict(message, 'data', {})
+        self.balance['info'] = data
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(keys)):

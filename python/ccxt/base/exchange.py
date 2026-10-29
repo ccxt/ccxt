@@ -5122,7 +5122,6 @@ class BaseExchange(object):
         return result
 
     def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
-        errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
@@ -5131,16 +5130,14 @@ class BaseExchange(object):
                 return None
             maxRetries = self.safe_integer(options, 'webApiRetries', 10)
             response = None
-            retry = 0
             shouldBreak = False
-            while(retry < maxRetries):
+            for retry in range(0, maxRetries):
                 try:
                     response = getattr(self, endpointMethod)({})
                     shouldBreak = True
                     break
                 except Exception as e:
-                    retry = retry + 1
-                    if retry == maxRetries:
+                    if retry + 1 >= maxRetries:
                         raise e
                 if shouldBreak:
                     break  # this is needed because of GO
@@ -5164,11 +5161,9 @@ class BaseExchange(object):
             else:
                 return content
         except Exception as e:
-            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure:
-            return None
-        else:
-            raise BadResponse(errorMessage)
+            if not muteOnFailure:
+                raise BadResponse(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.')
+        return None
 
     def market_ids(self, symbols: Strings = None):
         """
@@ -8709,7 +8704,7 @@ class Exchange(BaseExchange):
         return self.safe_string(order, 'status')
 
     def fetch_unified_order(self, order: object, params: dict = {}):
-        return self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')

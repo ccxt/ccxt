@@ -747,10 +747,12 @@ class binance(ccxt.async_support.binance):
             watchOrderBookRate = '500'
         subParams = []
         messageHashes = []
+        subscribeHashes = []
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
             messageHashes.append('orderbook::' + symbol)
+            subscribeHashes.append('orderbook::' + symbol)
             subscriptionHash = self.safe_string(market, 'lowercaseId', '') + '@' + name
             if watchOrderBookRate is None:
                 raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() watchOrderBookRate is required')
@@ -773,7 +775,7 @@ class binance(ccxt.async_support.binance):
             'type': type,
             'params': paramsRpi,
         }
-        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, paramsRpi), messageHashes, subscription)
+        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, paramsRpi), subscribeHashes, subscription)
         return orderbook.limit()
 
     async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
@@ -1192,6 +1194,7 @@ class binance(ccxt.async_support.binance):
         elif firstMarket['contract'] is True:
             type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
         messageHashes = []
+        subscribeHashes = []
         subParams = []
         if isOption is True:
             # eOptions: always subscribe per-underlying (<underlying>@optionTrade)
@@ -1201,6 +1204,7 @@ class binance(ccxt.async_support.binance):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 messageHashes.append('trade::' + symbol)
+                subscribeHashes.append('trade::' + symbol)
                 baseIdLower = self.safe_string_lower(market, 'baseId', '')
                 quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
                 underlying = baseIdLower + '' + quoteIdLower
@@ -1212,6 +1216,7 @@ class binance(ccxt.async_support.binance):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 messageHashes.append('trade::' + symbol)
+                subscribeHashes.append('trade::' + symbol)
                 rawHash = self.safe_string(market, 'lowercaseId', '') + '@' + name
                 subParams.append(rawHash)
         query = self.omit(paramsOmitted, 'type')
@@ -1226,7 +1231,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        trades = await self.watch_multiple(url, messageHashes, self.extend(request, query), messageHashes, subscribe)
+        trades = await self.watch_multiple(url, messageHashes, self.extend(request, query), subscribeHashes, subscribe)
         first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
@@ -1628,6 +1633,7 @@ class binance(ccxt.async_support.binance):
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         messageHashes = []
+        subscribeHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             symAndTf = symbolsAndTimeframes[i]
             symbolString = self.safe_string(symAndTf, 0, '')
@@ -1647,6 +1653,7 @@ class binance(ccxt.async_support.binance):
                 utcSuffix = suffix
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + self.safe_string(market, 'symbol', '') + '::' + timeframeString)
+            subscribeHashes.append('ohlcv::' + self.safe_string(market, 'symbol', '') + '::' + timeframeString)
         url = self.get_ws_url(wsUrlType, self.get_future_ws_category(klineType)) + '/' + self.stream(wsUrlType, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
@@ -1658,7 +1665,7 @@ class binance(ccxt.async_support.binance):
             'id': requestId,
         }
         paramsOmitted = self.omit(paramsTimezone, 'callerMethodName')
-        res = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes, subscribe)
+        res = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), subscribeHashes, subscribe)
         symbol, timeframe, candles = res
         limitResolved = limit
         if self.newUpdates:

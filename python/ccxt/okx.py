@@ -3210,7 +3210,8 @@ class okx(Exchange, ImplicitAPI):
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(orderParams, 'tgtCcy', defaultTgtCcy)
-        if (contract is not True) and (not margin):
+        # conditional sell orders must not carry tgtCcy
+        if (contract is not True) and (not margin) and (trigger or (not conditional) or (side != 'sell')):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
@@ -3334,9 +3335,7 @@ class okx(Exchange, ImplicitAPI):
             # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
-            if side == 'sell':
-                request = self.omit(request, 'tgtCcy')
-            if self.safe_string(request, 'tdMode') == 'cash':
+            if (spot is True) and (not margin):
                 # for some reason tdMode = cash throws
                 # {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode

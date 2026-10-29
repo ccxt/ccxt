@@ -933,7 +933,6 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
-        errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
@@ -942,16 +941,14 @@ class BaseExchange(SyncExchange):
                 return None
             maxRetries = self.safe_integer(options, 'webApiRetries', 10)
             response = None
-            retry = 0
             shouldBreak = False
-            while(retry < maxRetries):
+            for retry in range(0, maxRetries):
                 try:
                     response = await getattr(self, endpointMethod)({})
                     shouldBreak = True
                     break
                 except Exception as e:
-                    retry = retry + 1
-                    if retry == maxRetries:
+                    if retry + 1 >= maxRetries:
                         raise e
                 if shouldBreak:
                     break  # this is needed because of GO
@@ -975,11 +972,9 @@ class BaseExchange(SyncExchange):
             else:
                 return content
         except Exception as e:
-            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure:
-            return None
-        else:
-            raise BadResponse(errorMessage)
+            if not muteOnFailure:
+                raise BadResponse(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.')
+        return None
 
     async def load_trading_limits(self, symbols: Strings = None, reload=False, params: dict = {}):
         if self.has['fetchTradingLimits'] is not None and self.has['fetchTradingLimits'] is not False:
@@ -2232,7 +2227,7 @@ class Exchange(BaseExchange):
         return self.safe_string(order, 'status')
 
     async def fetch_unified_order(self, order: object, params: dict = {}):
-        return await self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')

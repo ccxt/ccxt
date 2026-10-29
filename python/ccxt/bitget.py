@@ -3982,7 +3982,7 @@ class bitget(Exchange, ImplicitAPI):
                     request['symbol'] = self.safe_string(market, 'id')
             if isStock:
                 request['category'] = 'SPOT'
-            elif not ('category' in request):
+            else:
                 request['category'] = productType
             response = self.publicUtaGetV3MarketTickers(self.extend(request, paramsUTA))
         elif type == 'spot' and passedSubType is None:

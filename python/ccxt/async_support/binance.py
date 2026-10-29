@@ -3927,30 +3927,30 @@ class binance(Exchange, ImplicitAPI):
         if isPortfolioMargin:
             for i in range(0, len(response)):
                 entry = self.safe_dict(response, i)
-                account = self.account()
+                accountPapi = self.account()
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
                 if type == 'linear':
-                    account['free'] = self.safe_string(entry, 'umWalletBalance')
-                    account['used'] = self.safe_string(entry, 'umUnrealizedPNL')
+                    accountPapi['free'] = self.safe_string(entry, 'umWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'umUnrealizedPNL')
                 elif type == 'inverse':
-                    account['free'] = self.safe_string(entry, 'cmWalletBalance')
-                    account['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
+                    accountPapi['free'] = self.safe_string(entry, 'cmWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
                 elif cross:
                     borrowed = self.safe_string(entry, 'crossMarginBorrowed')
                     interest = self.safe_string(entry, 'crossMarginInterest')
-                    account['debt'] = Precise.string_add(borrowed, interest)
-                    account['free'] = self.safe_string(entry, 'crossMarginFree')
-                    account['used'] = self.safe_string(entry, 'crossMarginLocked')
-                    account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                    accountPapi['debt'] = Precise.string_add(borrowed, interest)
+                    accountPapi['free'] = self.safe_string(entry, 'crossMarginFree')
+                    accountPapi['used'] = self.safe_string(entry, 'crossMarginLocked')
+                    accountPapi['total'] = self.safe_string(entry, 'crossMarginAsset')
                 else:
                     usedLinear = self.safe_string(entry, 'umUnrealizedPNL')
                     usedInverse = self.safe_string(entry, 'cmUnrealizedPNL')
                     totalUsed = Precise.string_add(usedLinear, usedInverse)
                     totalWalletBalance = self.safe_string(entry, 'totalWalletBalance')
-                    account['total'] = Precise.string_add(totalUsed, totalWalletBalance)
+                    accountPapi['total'] = Precise.string_add(totalUsed, totalWalletBalance)
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountPapi
         elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_list_2(response, 'balances', 'userAssets', [])
@@ -3958,15 +3958,15 @@ class binance(Exchange, ImplicitAPI):
                 balance = self.safe_dict(balances, i)
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'free')
-                account['used'] = self.safe_string(balance, 'locked')
+                accountSpot = self.account()
+                accountSpot['free'] = self.safe_string(balance, 'free')
+                accountSpot['used'] = self.safe_string(balance, 'locked')
                 if cross:
                     debt = self.safe_string(balance, 'borrowed')
                     interest = self.safe_string(balance, 'interest')
-                    account['debt'] = Precise.string_add(debt, interest)
+                    accountSpot['debt'] = Precise.string_add(debt, interest)
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountSpot
         elif isolated:
             assets = self.safe_list(response, 'assets', [])
             for i in range(0, len(assets)):
@@ -3985,25 +3985,25 @@ class binance(Exchange, ImplicitAPI):
                 entry = self.safe_dict(positionAmountVos, i)
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
+                accountSavings = self.account()
                 usedAndTotal = self.safe_string(entry, 'amount')
-                account['total'] = usedAndTotal
-                account['used'] = usedAndTotal
+                accountSavings['total'] = usedAndTotal
+                accountSavings['used'] = usedAndTotal
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountSavings
         elif type == 'funding':
             for i in range(0, len(response)):
                 entry = self.safe_dict(response, i)
-                account = self.account()
+                accountFunding = self.account()
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account['free'] = self.safe_string(entry, 'free')
+                accountFunding['free'] = self.safe_string(entry, 'free')
                 frozen = self.safe_string(entry, 'freeze')
                 withdrawing = self.safe_string(entry, 'withdrawing')
                 locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
+                accountFunding['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountFunding
         else:
             balances = response
             if not isinstance(response, list):
@@ -4016,12 +4016,12 @@ class binance(Exchange, ImplicitAPI):
                     continue
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'availableBalance')
-                account['used'] = self.safe_string(balance, 'initialMargin')
-                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
+                accountFutures = self.account()
+                accountFutures['free'] = self.safe_string(balance, 'availableBalance')
+                accountFutures['used'] = self.safe_string(balance, 'initialMargin')
+                accountFutures['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountFutures
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)

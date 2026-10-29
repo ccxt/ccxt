@@ -1325,11 +1325,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1649,7 +1645,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: Str, symbol: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def edit_order_request(self, id: Str, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id
