@@ -2755,9 +2755,7 @@ impl Exchange {
             }
         };
         let sanitized_str = sanitized.to_string_lossy();
-        let temp_dir = std::env::temp_dir();
-        let in_temp_dir = sanitized.starts_with(&temp_dir);
-        if in_temp_dir && allowed_extensions.iter().any(|ext| sanitized_str.ends_with(ext)) {
+        if allowed_extensions.iter().any(|ext| sanitized_str.ends_with(ext)) {
             return;
         }
         panic!("invalid file path: {}, allowed extensions are: {}", raw, allowed_extensions.join(", "));
