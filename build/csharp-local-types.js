@@ -16442,6 +16442,7 @@ function csharpArgumentAssignable (target, source, argument) {
 // every call site of the parameter's method must prove: the name occurs in no other corpus
 // file, and each checker-resolved site passes a provable argument at this position
 function csharpParameterCallSitesProve (csharp, parameter, target) {
+    const literalOnly = hx11w8AsyncStringAlias (parameter.type?.getText?.(), parameter) !== undefined;
     const owner = parameter.parent;
     const name = owner.name.text;
     const position = owner.parameters.indexOf (parameter);
@@ -16492,7 +16493,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
         || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
         || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
-    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || hx4C09CalledParameterTarget (target))
+    if ((literalOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || hx4C09CalledParameterTarget (target))
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
     }
@@ -16501,11 +16502,17 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (site.declarations.indexOf (owner) < 0) {
             continue; // a site binding another class's method
         }
-        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !hx4C09CalledParameterTarget (target)) {
+        if (!literalOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !hx4C09CalledParameterTarget (target)) {
             return false; // a called method's value-type parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
+        if (literalOnly) {
+            if (!ts.isStringLiteralLike (argument)) {
+                return false; // hx11 w8: only a string literal is a provably non-null string
+            }
+            continue;
+        }
         if (argument === undefined) {
             if (!csharpParameterDefaultPrintsNull (parameter.initializer)) {
                 return false; // a call omits the argument and the emitted parameter has no default
@@ -16521,6 +16528,24 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     return resolved >= (occurrences?.get (declaringRel) ?? 0);
 }
 
+// hx11 w8: a required `string` parameter of an exchange-local async helper whose every call site
+// passes a string literal prints `string` (non-null), so `add (add (p, "@"), x)` on it prints native
+// concatenation. Same corpus proof as the Dict rule; the alias only exists for such parameters.
+function hx11w8AsyncStringAlias (alias, parameter) {
+    if ((alias !== 'string') || (parameter?.initializer !== undefined) || (parameter?.questionToken !== undefined)
+        || (parameter?.dotDotDotToken !== undefined)) {
+        return undefined;
+    }
+    return { 'type': 'string', 'value': false, 'literalOnly': true };
+}
+
+// the parameter is a proven non-null `string` (the async literal-callers rule above)
+function hx11w8NonNullStringParam (csharp, identifier) {
+    const declaration = csharpIdentifierDeclaration (csharp, identifier);
+    return (declaration?.kind === ts.SyntaxKind.Parameter) && (hx11w8AsyncStringAlias (declaration.type?.getText?.(), declaration) !== undefined)
+        && (csharpParameterDecision (csharp, declaration) === 'string');
+}
+
 const csharpParameterTypeDecisions = new WeakMap (); // ParameterDeclaration -> string | null
 const csharpParameterDecisionsInProgress = new Set ();
 
@@ -16534,7 +16559,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return (cached === null) ? undefined : cached;
     }
     const alias = (parameter.type?.getText !== undefined) ? parameter.type.getText () : undefined;
-    const mapped = (alias === undefined) ? undefined : CSHARP_PARAMETER_ALIAS_TYPES[alias];
+    const mapped = (alias === undefined) ? undefined : (CSHARP_PARAMETER_ALIAS_TYPES[alias] ?? hx11w8AsyncStringAlias (alias, parameter));
     if (mapped === undefined) {
         csharpParameterTypeDecisions.set (parameter, null);
         return undefined;
@@ -16549,7 +16574,8 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict'))
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true))
+        || ((mapped.literalOnly === true) && !csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
@@ -18563,6 +18589,9 @@ function hx4C10NonNullValue (csharp, node, self, seen, depth) {
         if (declaration !== undefined && self !== undefined && hx4C10Key (declaration) === self) {
             return true; // the running value of the local being proven
         }
+        if (hx11w8NonNullStringParam (csharp, value)) {
+            return true;
+        }
         return hx4C10NonNullLocal (csharp, value, seen, depth + 1);
     }
     case ts.SyntaxKind.AsExpression:
@@ -18683,7 +18712,7 @@ function hx4C10StaticString (csharp, node) {
     case ts.SyntaxKind.ConditionalExpression:
         return (hx4C10StaticString (csharp, value.whenTrue) === 'string' && hx4C10StaticString (csharp, value.whenFalse) === 'string') ? 'string' : undefined;
     case ts.SyntaxKind.Identifier:
-        return hx4C10PrintedStringLocal (csharp, value) ? 'string' : undefined;
+        return (hx4C10PrintedStringLocal (csharp, value) || hx11w8NonNullStringParam (csharp, value)) ? 'string' : undefined;
     case ts.SyntaxKind.PropertyAccessExpression: {
         if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
             return undefined;
