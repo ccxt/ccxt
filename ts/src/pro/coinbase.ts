@@ -68,18 +68,14 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol: Str | Strings = undefined, params: Dict = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            productIds = this.marketIds (symbols);
-            messageHash = name + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
@@ -110,7 +106,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str | Strings = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -122,12 +118,7 @@ export default class coinbase extends coinbaseRest {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            productIds = this.marketIds (symbols);
-            watchMessageHash = name + '::' + symbols.join (',');
-            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
