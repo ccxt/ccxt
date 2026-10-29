@@ -876,6 +876,10 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (/^\w+$/.test (text)) {
         return scalarLocals.has (text) || safeLocal (text);
     }
+    // an endpoint receive's Raw is decoded JSON or untyped nil: no scalar pointer, no typed nil
+    if (/^(?:r\d+|\(<-this\.\w+\(.*\)\))\.Raw$/.test (text) && (text.indexOf ('(<-') !== 0 || goCallArgsSpanningText (text.slice (3, -5), text.slice (3, -5).indexOf ('(')) !== undefined)) {
+        return true;
+    }
     // the ws subscriptions table (exchange_client.go) hands back a dereferenced scalar, a dictionary or nil
     if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionSafe|SubscriptionsSnapshot|FutureGet)\(.*\)$/.test (text)) {
         return true;
