@@ -5882,8 +5882,7 @@ export default class xt extends Exchange {
         let signedBody: Str = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
-            const defaultRecvWindow = this.safeString (this.options, 'recvWindow', '5000');
-            const recvWindow = this.safeString (query, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString (query, 'recvWindow', this.safeString (this.options, 'recvWindow', '5000'));
             const timestamp = this.numberToString (this.nonce ());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
@@ -5897,7 +5896,8 @@ export default class xt extends Exchange {
             if ((method === 'PUT') && (endpoint === 'spot')) {
                 isUndefinedBody = false;
             }
-            signedBody = isUndefinedBody ? undefined : this.json (query);
+            const jsonBody = this.json (query);
+            signedBody = isUndefinedBody ? undefined : jsonBody;
             let payloadString = '';
             if ((endpoint === 'spot') || (endpoint === 'user')) {
                 const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
@@ -5909,7 +5909,7 @@ export default class xt extends Exchange {
                         payloadString = spotPrefix + '#' + method + '#' + payload;
                     }
                 } else {
-                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + signedBody;
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + jsonBody;
                 }
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
@@ -5923,7 +5923,7 @@ export default class xt extends Exchange {
                         payloadString = futurePrefix + '#' + payload;
                     }
                 } else {
-                    payloadString = futurePrefix + '#' + payload + '#' + signedBody;
+                    payloadString = futurePrefix + '#' + payload + '#' + jsonBody;
                 }
             }
             headersValue['xt-validate-appkey'] = this.apiKey;
