@@ -1437,7 +1437,7 @@ export default class aster extends asterRest {
         }
         const type: Str = undefined;
         const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
-        if (type === undefined) {
+        if (typeMarketType === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBalance() requires a market type');
         }
         await this.authenticate (typeMarketType, paramsMarketType);
@@ -1477,7 +1477,28 @@ export default class aster extends asterRest {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        this.balance[type] = this.safeDict (this.balance, type, {});
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance[type])) {
+                this.balance[type][key] = response[key];
+            }
+        }
+        if (!('info' in this.balance[type])) {
+            this.balance[type]['info'] = response['info'];
+            this.balance[type]['timestamp'] = response['timestamp'];
+            this.balance[type]['datetime'] = response['datetime'];
+        }
+        this.balance[type] = this.safeBalance (this.balance[type]);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1542,9 +1563,7 @@ export default class aster extends asterRest {
         //
         const accountType = this.getAccountTypeFromUrl (client.url);
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
-            this.balance[accountType] = {};
-        }
+        this.balance[accountType] = this.safeDict (this.balance, accountType, {});
         this.balance[accountType]['info'] = message;
         const messageValue: Dict = this.safeDict (message, 'a', message);
         const B: Dict[] = this.safeList (messageValue, 'B', []);
