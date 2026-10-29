@@ -1970,7 +1970,7 @@ class xt(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 's')
         marketType = self.safe_string(market, 'type')
-        hasSpotKeys = ('cv' in ticker) or ('aq' in ticker)
+        hasSpotKeys = (self.safe_string(ticker, 'cv') is not None) or (self.safe_string(ticker, 'aq') is not None)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         marketResolved = self.safe_market(marketId, market, '_', marketType)
@@ -2300,7 +2300,7 @@ class xt(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(trade, 's', 'symbol')
         marketType = self.safe_string(market, 'type')
-        hasSpotKeys = ('b' in trade) or ('bizType' in trade) or ('oi' in trade)
+        hasSpotKeys = (self.safe_bool(trade, 'b') is not None) or (self.safe_string(trade, 'bizType') is not None) or (self.safe_string(trade, 'oi') is not None)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         marketResolved = self.safe_market(marketId, market, '_', marketType)
@@ -4187,7 +4187,7 @@ class xt(Exchange, ImplicitAPI):
         #         "id": 950898
         #     }
         #
-        type = 'deposit' if ('fromAddr' in transaction) else 'withdraw'
+        type = 'deposit' if (self.safe_string(transaction, 'fromAddr') is not None) else 'withdraw'
         timestamp = self.safe_integer(transaction, 'createdTime')
         address = self.safe_string(transaction, 'address')
         memo = self.safe_string(transaction, 'memo')

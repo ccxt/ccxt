@@ -1454,7 +1454,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, ['price', 'until'])
-        limitValue = defaultLimit if (limit is None) else min(limit, maxLimit)
+        limitValue = defaultLimit
+        if limit is not None:
+            limitValue = min(limit, maxLimit)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitValue,
@@ -1813,9 +1815,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         initialUppercaseType = typeResolved.upper()
         uppercaseType = initialUppercaseType
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        triggerKeys = ['triggerPrice', 'stopPrice'] if (triggerPrice is not None) else []
-        paramsRequest = self.omit(paramsPostOnly, self.array_concat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys))
+        paramsRequest = self.omit(paramsPostOnly, ['clientId', 'clientOrderId', 'timeInForce'])
         if triggerPrice is not None:
+            paramsRequest = self.omit(paramsRequest, ['triggerPrice', 'stopPrice'])
             if postOnly:
                 raise InvalidOrder(self.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type')
             if uppercaseType == 'MARKET':

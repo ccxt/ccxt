@@ -2442,16 +2442,16 @@ class ndax(Exchange, ImplicitAPI):
         #         "NotionalProductId": 0
         #     }
         #
-        id = None
+        id = self.safe_string(transaction, 'DepositId')
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
         type = None
-        if 'DepositId' in transaction:
-            id = self.safe_string(transaction, 'DepositId')
+        if id is not None:
             type = 'deposit'
-        elif 'WithdrawId' in transaction:
+        else:
             id = self.safe_string(transaction, 'WithdrawId')
-            type = 'withdrawal'
+            if id is not None:
+                type = 'withdrawal'
         templateForm = self.parse_json(self.safe_value_2(transaction, 'TemplateForm', 'DepositInfo'))
         updated = self.safe_integer(transaction, 'LastUpdateTimeStamp')
         if templateForm is not None:
