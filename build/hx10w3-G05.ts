@@ -57,7 +57,7 @@ const G05_LIST_SINKS = [ 'GetValue', 'GetArrayLength', 'SafeList', 'SafeList2', 
 // every return path of these prints a fresh container (no `return nil`, no parameter handed
 // back), so a local that holds it can never turn a nil box into a typed nil: every use may hold
 // the type, a hand-out included
-const G05_NEVER_ABSENT = [ 'Sign', 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
+const G05_NEVER_ABSENT = [ 'Sign', 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'ParseTrades', 'FilterBySinceLimit', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
 
 const isMapType = (type: string) => type === 'map[string]any';
 const isListType = (type: string) => type === '[]any';
@@ -221,6 +221,10 @@ export function g05Locals (content: string): string {
                 }
                 if (!new RegExp ('(?<![\\w.])' + name + '(?![\\w])').test (masked[j])) {
                     continue;
+                }
+                if (new RegExp ('(?<![\\w.])' + name + '\\.\\(').test (masked[j])) {
+                    safe = false; // a type assertion or switch needs the interface
+                    break;
                 }
                 if ((G05_NEVER_ABSENT.indexOf (callee) < 0) && !g05UseIsReader (masked[j], name, type)) {
                     safe = false;
