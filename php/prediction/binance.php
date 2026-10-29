@@ -219,7 +219,10 @@ class binance extends Exchange {
             $maxTopicsResolved = $this->parse_to_int($maxTopics);
         }
         $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
-        $pageLimit = ($pageLimitOption > 100) ? 100 : $pageLimitOption;
+        $pageLimit = $this->parse_to_int(100);
+        if ($pageLimitOption < 100) {
+            $pageLimit = $this->parse_to_int($pageLimitOption);
+        }
         $collected = array();
         $offset = 0;
         while (true) {
@@ -1820,7 +1823,7 @@ class binance extends Exchange {
         $quote = Async\await($this->fetch_quote($quoteRequest, $paramsOmitted));
         $quoteId = $this->safe_string($quote, 'quoteId');
         $orderRequest = $this->extend($commonRequest, array(
-            'walletId' => $wallet['walletId'],
+            'walletId' => $this->safe_string($wallet, 'walletId'),
             'quoteId' => $quoteId,
             'timeInForce' => $timeInForce,
             'accountType' => $accountType,
@@ -1914,7 +1917,7 @@ class binance extends Exchange {
         $wallet = Async\await($this->fetch_wallet('cancelOrders', $params));
         $request = array(
             'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
-            'walletId' => $wallet['walletId'],
+            'walletId' => $this->safe_string($wallet, 'walletId'),
         );
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for ($i = 0; $i < count($ids); $i++) {

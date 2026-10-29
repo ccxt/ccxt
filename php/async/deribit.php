@@ -1471,16 +1471,12 @@ class deribit extends Exchange {
             'currency' => $currency['id'],
         );
         if ($type !== null) {
-            $requestType = null;
             if ($type === 'spot') {
-                $requestType = 'spot';
+                $request['kind'] = 'spot';
             } elseif ($type === 'future' || ($type === 'contract')) {
-                $requestType = 'future';
+                $request['kind'] = 'future';
             } elseif ($type === 'option') {
-                $requestType = 'option';
-            }
-            if ($requestType !== null) {
-                $request['kind'] = $requestType;
+                $request['kind'] = 'option';
             }
         }
         $response = Async\await($this->publicGetGetBookSummaryByCurrency($this->extend($request, $paramsOmitted)));
@@ -2900,8 +2896,7 @@ class deribit extends Exchange {
         //
         $contract = $this->safe_string($position, 'instrument_name');
         $marketResolved = $this->safe_market($contract, $market);
-        $side = $this->safe_string($position, 'direction');
-        $side = ($side === 'buy') ? 'long' : 'short';
+        $side = ($this->safe_string($position, 'direction') === 'buy') ? 'long' : 'short';
         $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');

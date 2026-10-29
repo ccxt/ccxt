@@ -1002,10 +1002,10 @@ class hollaex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $currenciesById = $this->currencies_by_id;
-        if ($currenciesById === null) {
+        if ($this->currencies_by_id === null) {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
+        $currenciesById = $this->currencies_by_id;
         $currencyIds = is_array($currenciesById) ? array_keys($currenciesById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $this->safe_string($currencyIds, $i, '');

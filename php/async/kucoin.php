@@ -2981,15 +2981,12 @@ class kucoin extends Exchange {
         ), $marketResolved);
     }
 
-    public function type_to_trade_type(?string $type): ?string {
+    public function type_to_trade_type(string $type): ?string {
         $tradeTypes = array(
             'spot' => 'SPOT',
             'margin' => 'MARGIN',
             'swap' => 'FUTURES',
         );
-        if ($type === null) {
-            return null;
-        }
         return $this->safe_string($tradeTypes, $type, $type);
     }
 

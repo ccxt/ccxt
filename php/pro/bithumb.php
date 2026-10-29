@@ -561,12 +561,6 @@ class bithumb extends \ccxt\async\bithumb {
         $orderbookSide->storeArray($bidAsk);
     }
 
-    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_book_delta($orderbook, $deltas[$i]);
-        }
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }

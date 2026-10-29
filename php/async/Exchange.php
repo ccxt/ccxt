@@ -975,7 +975,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' handleDelta not supported yet');
     }
 
-    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_book_delta($orderbook, $this->safe_value($deltas, $i));
         }

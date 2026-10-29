@@ -1605,7 +1605,7 @@ class bybit extends \ccxt\async\bybit {
             $execTypes = $execTypeOption;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+            $rawTrade = $this->safe_dict($data, $i, array());
             $parsed = null;
             if ($spot && !$executionFast) {
                 $parsed = $this->parse_ws_trade($rawTrade);
