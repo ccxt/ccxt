@@ -13,7 +13,7 @@
 
 const M43_DECL = /^(\s*)var (\w+) any = this\.(SafeDict2?)\((.*)\)$/;
 
-function m43Mask (content: string): string {
+export function m43Mask (content: string): string {
     const out = content.split ('');
     let state = 'code';
     let escaped = false;
@@ -60,7 +60,7 @@ function m43SplitArgs (text: string, masked: string): string[] | undefined {
     return parts;
 }
 
-function m43Declarations (maskedFunc: string, signature: string, name: string): number {
+export function m43Declarations (maskedFunc: string, signature: string, name: string): number {
     const vars = (maskedFunc.match (new RegExp ('\\bvar\\s+' + name + '\\b', 'g')) ?? []).length;
     const shorts = (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? []).length;
     const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + name + '\\b').test (m[1])).length;
@@ -70,7 +70,7 @@ function m43Declarations (maskedFunc: string, signature: string, name: string): 
 }
 
 // false when this occurrence of the local (masked line, column) needs the `any` box
-function m43UseKeepsMap (s: string, col: number, name: string): boolean {
+export function m43UseKeepsMap (s: string, col: number, name: string): boolean {
     const before = s.slice (0, col);
     const after = s.slice (col + name.length);
     const lhs = /^(\s*)((?:[\w.[\]]+\s*,\s*)*[\w.[\]]+)\s*(:=|=(?!=)|\+=|-=)/.exec (s);
