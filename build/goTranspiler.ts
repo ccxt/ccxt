@@ -3598,6 +3598,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4G12TupleSlotReads (content, filePath);  // hx4 G12, again: async []any producers are received as rN.Value only after GOCHAN3
     content = hx11w8PromiseAllSlotReads (content);  // hx11 w8 M40: promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = hx11w8PromiseAllLoopReads (content);  // hx11 w8 r16: loop-built task lists read back under the same len() bound
+    content = hx11w8PromiseAllSelfBoundReads (content);  // hx11 w8: GetValue(h, i) inside `for i < len(h)`
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
     content = g09Pass (content);  // hx10w2 G09: Options is a plain map
     content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
@@ -10365,7 +10366,7 @@ function nativeAsyncTupleHolderReads (content: string): string {
 // single unwritten `var P []any = []any{..}`) holds exactly len(P) results (promiseAll returns `results` or panics on error),
 // so a bare `x := GetValue(h, N)` slot read with N < len(P) is `x := h[N]`. Any rewritten holder/task list keeps GetValue.
 function hx11w8PromiseAllSlotReads (content: string): string {
-    if (content.indexOf ('<-promiseAll(') < 0) {
+    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -10375,7 +10376,7 @@ function hx11w8PromiseAllSlotReads (content: string): string {
     }
     const { 'blocks': blocks } = goTextBlocks (masked);
     const literalArity = (text: string): number => {
-        const lit = /^(?:ccxt\.)?\[\]any\{(.*)\}$/.exec (text.trim ());
+        const lit = /^(?:ccxt\.)?\[\]any\{([\s\S]*)\}$/.exec (text.trim ());
         if (lit === null) {
             return -1;
         }
@@ -10392,6 +10393,24 @@ function hx11w8PromiseAllSlotReads (content: string): string {
             }
         }
         return ((depth === 0) && (lit[1].trim ().slice (-1) !== ',')) ? count : -1;
+    };
+    // the declaration's initialiser, joined over the lines of a multi-line literal
+    const initText = (first: string, j: number, limit: number): string => {
+        let text = first;
+        let depth = 0;
+        for (let q = j; q < limit; q++) {
+            const part = (q === j) ? first : masked[q];
+            if (q > j) {
+                text += '\n' + part;
+            }
+            for (const c of part) {
+                depth += ('([{'.indexOf (c) >= 0 ? 1 : 0) - (')]}'.indexOf (c) >= 0 ? 1 : 0);
+            }
+            if (depth <= 0) {
+                break;
+            }
+        }
+        return text;
     };
     let changed = false;
     for (let d = 0; d < lines.length; d++) {
@@ -10413,7 +10432,7 @@ function hx11w8PromiseAllSlotReads (content: string): string {
             if (k === d) {
                 continue;
             }
-            const take = new RegExp ('^\\s*' + res + ' := <-promiseAll\\((.+)\\)$').exec (masked[k]);
+            const take = new RegExp ('^\\s*' + res + ' := <-(?:ccxt\\.)?[pP]romiseAll\\((.+)\\)$').exec (masked[k]);
             if (take !== null) {
                 if ((resLine >= 0) || (k > d)) {
                     ok = false;
@@ -10422,23 +10441,35 @@ function hx11w8PromiseAllSlotReads (content: string): string {
                 resLine = k;
                 const arg = take[1].trim ();
                 if (/^\w+$/.test (arg)) {
+                    // len(P) >= its literal size + the appends made in the declaring block before the receive
                     let found = -1;
+                    let extra = 0;
+                    let jumps = false;
                     for (let j = fn.open + 1; j < fn.close; j++) {
                         const pd = new RegExp ('^\\s*var ' + arg + ' \\[\\]any = (.+)$').exec (masked[j]);
+                        if (/\bgoto\b/.test (masked[j])) {
+                            jumps = true;
+                        }
                         if (pd !== null) {
                             if ((found >= 0) || (j > k)) {
                                 found = -2;
                                 break;
                             }
                             found = j;
-                            arity = literalArity (pd[1]);
+                            arity = literalArity (initText (pd[1], j, fn.close));
+                        } else if (new RegExp ('^\\s*' + arg + ' = append\\(' + arg + ', ').test (masked[j])) {
+                            if ((found >= 0) && (j < k) && (goTextEnclosingBlock (blocks, j) === goTextEnclosingBlock (blocks, found))) {
+                                extra++;
+                            }
                         } else if (goTextWritesName (masked[j], arg)) {
                             found = -2;
                             break;
                         }
                     }
-                    if (found < 0) {
+                    if ((found < 0) || (arity < 0) || (jumps && (extra > 0))) {
                         arity = -1;
+                    } else {
+                        arity += extra;
                     }
                 } else {
                     arity = literalArity (arg);
@@ -10451,14 +10482,74 @@ function hx11w8PromiseAllSlotReads (content: string): string {
         if (!ok || (resLine < 0) || (arity < 0)) {
             continue;
         }
+        const readRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(' + holder + ', (\\d+)\\)', 'g');
         for (let k = d + 1; k < fn.close; k++) {
-            if (!((declBlock.open < k) && (k <= declBlock.close))) {
+            if (!((declBlock.open < k) && (k <= declBlock.close)) || (masked[k].indexOf ('GetValue(') < 0)) {
                 continue;
             }
-            const read = new RegExp ('^(\\s*\\w+ := )(?:ccxt\\.)?GetValue\\(' + holder + ', (\\d+)\\)$').exec (lines[k]);
-            if ((read !== null) && (masked[k] === lines[k]) && (Number (read[2]) < arity)) {
-                lines[k] = read[1] + holder + '[' + read[2] + ']';
+            lines[k] = lines[k].replace (readRx, (match: string, slot: string, offset: number) => {
+                if ((masked[k].substr (offset, match.length) !== match) || (Number (slot) >= arity)) {
+                    return match;
+                }
                 changed = true;
+                return holder + '[' + slot + ']';
+            });
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// w8: inside `for i := 0; i < len(h); i++` (i, h unwritten in the body) `GetValue(h, i)` of a promiseAll holder is `h[i]`.
+function hx11w8PromiseAllSelfBoundReads (content: string): string {
+    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const { 'blocks': blocks } = goTextBlocks (masked);
+    const forRx = /^\s*for (\w+) := 0; \1 < len\((\w+)\); \1\+\+ \{$/;
+    let changed = false;
+    for (let d = 0; d < lines.length; d++) {
+        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
+        const fn = (decl === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
+        const declBlock = (decl === null) ? undefined : goTextEnclosingBlock (blocks, d);
+        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) {
+            continue;
+        }
+        const holder = decl[1];
+        let ok = true;
+        let takes = 0;
+        for (let k = fn.open + 1; k < fn.close; k++) {
+            if (new RegExp ('^\\s*' + decl[2] + ' := <-(?:ccxt\\.)?[pP]romiseAll\\(').test (masked[k])) {
+                takes++;
+            } else if ((k !== d) && (goTextWritesName (masked[k], holder) || goTextWritesName (masked[k], decl[2]))) {
+                ok = false;
+            }
+        }
+        if (!ok || (takes !== 1)) {
+            continue;
+        }
+        for (const b of blocks) {
+            const h = forRx.exec (masked[b.open]);
+            if ((h === null) || (h[2] !== holder) || !((declBlock.open < b.open) && (b.open > d) && (b.close <= declBlock.close))) {
+                continue;
+            }
+            const body = masked.slice (b.open + 1, b.close + 1).join ('\n');
+            if (goTextWritesName (body, h[1]) || goTextWritesName (body, holder)) {
+                continue;
+            }
+            const readRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(' + holder + ', ' + h[1] + '\\)', 'g');
+            for (let k = b.open + 1; k < b.close; k++) {
+                lines[k] = lines[k].replace (readRx, (match: string, offset: number) => {
+                    if (masked[k].substr (offset, match.length) !== match) {
+                        return match;
+                    }
+                    changed = true;
+                    return holder + '[' + h[1] + ']';
+                });
             }
         }
     }
@@ -10593,10 +10684,16 @@ function hx11w8PromiseAllSlotSelfTest (): string[] {
     ok (hx11w8PromiseAllSlotReads (fn (take + '\tz := GetValue(hVariable, 2)\n')).includes ('GetValue(hVariable, 2)'), 'slot past the arity keeps GetValue');
     const named = '\tvar promises []any = []any{a, b}\n' + take.replace ('[]any{a, this.G(p)}', 'promises');
     ok (hx11w8PromiseAllSlotReads (fn (named + reads)).includes ('y := hVariable[1]'), 'named literal list reads natively');
-    ok (hx11w8PromiseAllSlotReads (fn (named + '\tpromises = append(promises, c)\n' + reads)).includes ('GetValue(hVariable, 1)'), 'appended task list keeps GetValue');
+    ok (hx11w8PromiseAllSlotReads (fn (named + '\tpromises = append(promises, c)\n' + reads + '\tw := GetValue(hVariable, 2)\n')).includes ('GetValue(hVariable, 2)'), 'append after the receive does not grow the results');
     ok (hx11w8PromiseAllSlotReads (fn ('\tvar promises []any = []any{}\n\tif p != nil {\n\t\tpromises = append(promises, a)\n\t}\n' + take.replace ('[]any{a, this.G(p)}', 'promises') + reads)).includes ('GetValue(hVariable, 0)'), 'conditionally built list keeps GetValue');
     ok (hx11w8PromiseAllSlotReads (fn (take + '\thVariable = nil\n' + reads)).includes ('GetValue(hVariable, 0)'), 'rewritten holder keeps GetValue');
     ok (formatGoSource ('selftest.go', 'package ccxt\n\n' + fn (take + reads)).includes ('y := hVariable[1]'), 'wired into formatGoSource');
+    const built = '\tvar promises []any = []any{}\n\tpromises = append(promises, a)\n\tif p != nil {\n\t\tpromises = append(promises, b)\n\t}\n' + take.replace ('[]any{a, this.G(p)}', 'promises');
+    const mixed = hx11w8PromiseAllSlotReads (fn (built + '\tx := GetValue(hVariable, 0)\n\ty := GetValue(hVariable, 1)\n\tz := f(GetValue(hVariable, 0), 3)\n'));
+    ok (mixed.includes ('x := hVariable[0]') && mixed.includes ('y := GetValue(hVariable, 1)') && mixed.includes ('f(hVariable[0], 3)'), 'unconditional appends bound the slot, conditional ones do not; nested reads');
+    const loopHeld = hx11w8PromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\tv := f(GetValue(hVariable, i))\n\t}\n'));
+    ok (loopHeld.includes ('f(hVariable[i])'), 'read under len(holder) loop is native');
+    ok (hx11w8PromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\ti++\n\t\tv := f(GetValue(hVariable, i))\n\t}\n')).includes ('GetValue(hVariable, i)'), 'counter written keeps GetValue');
     return problems;
 }
 
