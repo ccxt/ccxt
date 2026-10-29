@@ -711,6 +711,21 @@ func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 	if res != nil {
 		return res
 	}
+	// Go struct fields are exported PascalCase (WalletAddress, RequiredCredentials, ...) while the
+	// harness reads camelCase names — retry capitalized, like SetExchangeProp does. An empty string
+	// is the zero value of an unset string field, which the harness treats as "not set" (undefined in ts)
+	if propName, ok := prop2.(string); ok && propName != "" {
+		capitalized := strings.ToUpper(propName[:1]) + propName[1:]
+		if capitalized != propName {
+			res = exchange.GetProperty(exchange, capitalized)
+			if str, isStr := res.(string); isStr && str == "" {
+				res = nil
+			}
+			if res != nil {
+				return res
+			}
+		}
+	}
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
 	}
@@ -891,8 +906,10 @@ func splitEnv(env string) [2]string {
 	return pair
 }
 
-func GetEnvVars() map[string]string {
-	envMap := make(map[string]string)
+// GetEnvVars returns the environment as map[string]any, the shape InOp/GetValue understand
+// (a map[string]string is invisible to InOp, which silently disabled --loadKeys)
+func GetEnvVars() map[string]any {
+	envMap := make(map[string]any)
 	for _, env := range os.Environ() {
 		pair := splitEnv(env)
 		envMap[pair[0]] = pair[1]
