@@ -8896,7 +8896,7 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
                 const typedCall = /^this\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // hx11w8 baseexchange-map-writes: MarketInterface view over a fresh deepExtend LinkedHashMap
                 const typedView = typedCall !== null && j26Close (rhs, typedCall[0].length - 1) === rhs.length - 1
-                    && !new RegExp (`public (?!(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
+                    && !new RegExp (`public (?!(?:io\\.github\\.ccxt\\.types\\.)?(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
                 const isFresh = /^new (?:java\.util\.)?(?:Linked)?HashMap<String, Object>\(\) \{\{/.test (rhs)
                     || /^Helpers\.newMap\(/.test (rhs)
                     || typedView
