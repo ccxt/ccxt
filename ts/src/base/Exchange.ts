@@ -5636,7 +5636,6 @@ export class BaseExchange {
     }
 
     async fetchWebEndpoint (method: string, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
-        let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
@@ -5646,16 +5645,14 @@ export class BaseExchange {
             }
             const maxRetries = this.safeInteger (options, 'webApiRetries', 10);
             let response: any = undefined;
-            let retry = 0;
             let shouldBreak = false;
-            while (retry < maxRetries) {
+            for (let retry = 0; retry < maxRetries; retry++) {
                 try {
                     response = await this[endpointMethod] ({});
                     shouldBreak = true;
                     break;
                 } catch (e) {
-                    retry = retry + 1;
-                    if (retry === maxRetries) {
+                    if (retry + 1 >= maxRetries) {
                         throw e;
                     }
                 }
@@ -5689,13 +5686,11 @@ export class BaseExchange {
                 return content;
             }
         } catch (e) {
-            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
+            if (!muteOnFailure) {
+                throw new BadResponse (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.');
+            }
         }
-        if (muteOnFailure) {
-            return undefined;
-        } else {
-            throw new BadResponse (errorMessage);
-        }
+        return undefined;
     }
 
     marketIds (symbols: string[]): string[];
