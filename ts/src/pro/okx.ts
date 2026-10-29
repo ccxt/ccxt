@@ -1806,10 +1806,11 @@ export default class okx extends okxRest {
         const balance = this.parseTradingBalance (message);
         if (this.balance === undefined) {
             this.balance = {};
+            this.options['balanceWireAccounts'] = {};
         }
-        // compare before merging: OKX resends unchanged balances (metadata-only
-        // frames, #26704), and resolving those wakes consumers for nothing
-        const balanceChanged = this.isBalanceChanged (this.balance, balance);
+        // OKX resends unchanged balances (metadata-only frames, #26704), and
+        // resolving those wakes consumers for nothing
+        const balanceChanged = this.isBalanceChanged (message);
         const reserved = [ 'free', 'used', 'total' ];
         const keys = Object.keys (balance);
         for (let i = 0; i < keys.length; i++) {
@@ -1823,6 +1824,47 @@ export default class okx extends okxRest {
         if (balanceChanged) {
             client.resolve (this.balance, channel);
         }
+    }
+
+    isBalanceChanged (message: Dict): boolean {
+        /**
+         * @ignore
+         * @method
+         * @description checks whether an account channel message changes any cached currency amount, and caches its amounts
+         * @param {object} message the account channel message
+         * @returns {boolean} true if the message adds a currency or changes an amount
+         */
+        // compare the wire strings, not the values parsed by safeBalance: a parsed
+        // float stringifies differently per language (PHP keeps 14 significant
+        // digits), which could hide a real change at 15 or more digits
+        const cachedAccounts: Dict = this.safeDict (this.options, 'balanceWireAccounts', {});
+        const cachedCodes = Object.keys (cachedAccounts);
+        const cachedCodesLength = cachedCodes.length;
+        let changed = (cachedCodesLength === 0);
+        const data = this.safeList (message, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        const details = this.safeList (first, 'details', []);
+        const wireKeys = [ 'eq', 'availEq', 'availBal', 'frozenBal' ];
+        for (let i = 0; i < details.length; i++) {
+            const detail = this.safeDict (details, i, {});
+            const code = this.safeCurrencyCode (this.safeString (detail, 'ccy'));
+            if (code === undefined) {
+                continue;
+            }
+            const cachedAccount = this.safeDict (cachedAccounts, code);
+            const wireAccount: Dict = {};
+            for (let j = 0; j < wireKeys.length; j++) {
+                const key = wireKeys[j];
+                const value = this.safeString (detail, key);
+                wireAccount[key] = value;
+                if ((cachedAccount === undefined) || (this.safeString (cachedAccount, key) !== value)) {
+                    changed = true;
+                }
+            }
+            cachedAccounts[code] = wireAccount;
+        }
+        this.options['balanceWireAccounts'] = cachedAccounts;
+        return changed;
     }
 
     orderToTrade (order: Dict, market: Market = undefined): Trade {
