@@ -8892,9 +8892,11 @@ export class BaseExchange {
                 }
                 const responseLength: number = response.length;
                 if (this.verbose) {
-                    const cursorString = (cursorValue === undefined) ? '' : cursorValue;
-                    const iteration = (i + 1);
-                    const cursorMessage = 'Cursor pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorString;
+                    let cursorString = '';
+                    if (cursorValue !== undefined) {
+                        cursorString = cursorValue.toString ();
+                    }
+                    const cursorMessage = 'Cursor pagination call ' + (i + 1).toString () + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorString;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -8911,7 +8913,9 @@ export class BaseExchange {
                         const index = responseLength - j - 1;
                         const entry = this.safeDict (response, index);
                         const info = this.safeDict (entry, 'info');
-                        cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
+                        if (cursorReceived !== undefined) {
+                            cursorValue = this.safeValue (info, cursorReceived);
+                        }
                     }
                 }
                 if (cursorValue === undefined) {
