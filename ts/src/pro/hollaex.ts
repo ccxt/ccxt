@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, NullableList } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
@@ -374,10 +374,13 @@ export default class hollaex extends hollaexRest {
         //       }
         //
         const channel = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data', {});
+        const dataDict = this.safeDict (message, 'data');
+        let rawOrders = this.safeList (message, 'data', []);
+        if (dataDict !== undefined) {
+            rawOrders = [ dataDict ];
+        }
         // usually the first message is an empty array
-        const dataLength: number = data.length;
-        if (dataLength === 0) {
+        if (rawOrders.length === 0) {
             return;
         }
         if (this.orders === undefined) {
@@ -385,12 +388,6 @@ export default class hollaex extends hollaexRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        let rawOrders: NullableList = undefined;
-        if (!Array.isArray (data)) {
-            rawOrders = [ data ];
-        } else {
-            rawOrders = data;
-        }
         const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.safeValue (rawOrders, i);
@@ -449,7 +446,7 @@ export default class hollaex extends hollaexRest {
         const data = this.safeDict (message, 'data', {});
         const keys = Object.keys (data);
         const timestamp = this.safeTimestamp (message, 'time');
-        this.balance['info'] = this.safeDict (message, 'data', {});
+        this.balance['info'] = data;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < keys.length; i++) {
