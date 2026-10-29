@@ -8894,9 +8894,9 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain
                 // raw.put on that LinkedHashMap/HashMap (safeTrade already puts natively into it), never a ConcurrentHashMap, so the helper's null-remove arm cannot fire.
                 // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
-                const typedCall = /^this\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade)\(/.exec (rhs);
+                const typedCall = /^this\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // hx11w8 baseexchange-map-writes: MarketInterface view over a fresh deepExtend LinkedHashMap
                 const typedView = typedCall !== null && j26Close (rhs, typedCall[0].length - 1) === rhs.length - 1
-                    && !new RegExp (`public (?!(?:Order|Trade)\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
+                    && !new RegExp (`public (?!(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
                 const isFresh = /^new (?:java\.util\.)?(?:Linked)?HashMap<String, Object>\(\) \{\{/.test (rhs)
                     || /^Helpers\.newMap\(/.test (rhs)
                     || typedView
@@ -8994,6 +8994,8 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'reassigned from safeDict', 'Object o, Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
         [ 'typed order view put', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);', '        o.put(\"type\", v);' ],
         [ 'typed trade view put', 'Object v', '        Map<String, Object> t = this.parseWsTrade((Map<String, Object>) (v), null);\n        Helpers.addElementToObject(t, \"datetime\", v);', '        t.put(\"datetime\", v);' ],
+        [ 'market structure view put', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);', '        m.put("baseId", v);' ],
+        [ 'market structure venue override keeps helper', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);\n        return m;\n    }\n    public Object safeMarketStructure(Object x)\n    {\n        return x;', undefined ],
         [ 'typed balance view keeps helper', 'Object v', '        Map<String, Object> b = (Map<String, Object>) this.parseBalance(v);\n        Helpers.addElementToObject(b, \"timestamp\", v);', undefined ],
         [ 'order view reassigned from safeDict', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        o = (Map<String, Object>) this.safeDict(v, \"x\");\n        Helpers.addElementToObject(o, \"type\", v);', undefined ],
         [ 'order view venue override returns Object', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);\n        return o;\n    }\n    public Object parseOrder(Object order, Map<String, Object> market)\n    {\n        return order;', undefined ],
