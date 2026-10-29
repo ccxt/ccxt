@@ -216,14 +216,39 @@ function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string
     return undefined;
 }
 
-function hx10G10PlainValue (value: string, decls: Map<string, Decl>): boolean {
+// an `any` local whose declaration and every rebinding is a cache-object producer (never a boxed
+// scalar pointer) and whose address is never taken: derefScalar leaves it alone, so the store is native
+const CACHE_OBJECT_PRODUCER = /^(?:nil|(?:ccxt\.)?New[A-Z]\w*\(.*\)|this\.(?:OrderBook|IndexedOrderBook|CountedOrderBook)\(.*\)|(?:ccxt\.)?(?:this\.SafeValue\(this\.(?:Orderbooks|Trades|FundingRates), \*?\w+\)|GetValue\(this\.(?:Orderbooks|Trades|FundingRates), \*?\w+\))|this\.(?:Orderbooks|Trades|FundingRates)\[\*?\w+\])$/;
+
+function hx10G10CacheObjectLocal (name: string, decl: Decl, maskedBody: string[]): boolean {
+    if ((decl.type !== 'any') || !/^\w+$/.test (name) || (decl.init === undefined) || !CACHE_OBJECT_PRODUCER.test (decl.init.trim ())) {
+        return false;
+    }
+    const rebound = new RegExp ('(?:^|[^\\w.&*])' + name + '\\s*(=(?!=)|:=)\\s*(.*)$');
+    const taken = new RegExp ('&\\s*' + name + '\\b');
+    return maskedBody.every ((line, index) => {
+        if ((index === decl.line) || (line.indexOf (name) < 0)) {
+            return true;
+        }
+        const m = rebound.exec (line);
+        if (taken.test (line) || (m !== null && (m[1] === ':=' || !CACHE_OBJECT_PRODUCER.test (m[2].trim ())))) {
+            return false;
+        }
+        return !new RegExp ('\\b' + name + '\\s*,[^=:]*:?=').test (line);
+    });
+}
+
+function hx10G10PlainValue (value: string, decls: Map<string, Decl>, maskedBody: string[] = []): boolean {
     const text = value.trim ();
     if (/^(?:map\[|\[\])/.test (text) || /^(?:ccxt\.)?New[A-Z]\w*\(/.test (text)
         || /^this\.(?:OrderBook|IndexedOrderBook|CountedOrderBook|SafeDict|Extend|DeepExtend)\(/.test (text)) {
         return true;
     }
     const decl = decls.get (text);
-    return (decl !== undefined) && PLAIN_VALUE_TYPES.test (decl.type);
+    if (decl === undefined) {
+        return false;
+    }
+    return PLAIN_VALUE_TYPES.test (decl.type) || hx10G10CacheObjectLocal (text, decl, maskedBody);
 }
 
 type Call = { at: number, name: string, open: number, close: number, args: Span[] };
@@ -261,7 +286,7 @@ function hx10G10Statement (line: string, maskedLine: string, decls: Map<string, 
     if (name === 'Remove') {
         return (call.args.length === 2) ? indent + 'delete(' + args[0] + ', ' + key + ')' : undefined;
     }
-    if ((call.args.length !== 3) || !hx10G10PlainValue (args[2] ?? '', decls)) {
+    if ((call.args.length !== 3) || !hx10G10PlainValue (args[2] ?? '', decls, maskedBody)) {
         return undefined;
     }
     return indent + args[0] + '[' + key + '] = ' + args[2];
@@ -482,7 +507,7 @@ function hx10G10GuardedWrite (line: string, maskedLine: string, decls: Map<strin
     if (head[2] === 'Remove') {
         return (call.args.length === 2) ? [ indent + 'if ' + key + ' != nil {', indent + '\tdelete(' + receiver + ', *' + key + ')', indent + '}' ] : undefined;
     }
-    if ((call.args.length !== 3) || !hx10G10PlainValue (args[2] ?? '', decls)) {
+    if ((call.args.length !== 3) || !hx10G10PlainValue (args[2] ?? '', decls, maskedBody)) {
         return undefined;
     }
     return [ indent + 'if ' + key + ' != nil {', indent + '\t' + receiver + '[*' + key + '] = ' + args[2], indent + '}' ];
@@ -557,8 +582,13 @@ export function hx10G10SelfTest (): string[] {
     ok (f ('', '\tRemove(this.Orderbooks, "bids")\n').indexOf ('\tdelete(this.Orderbooks, "bids")') >= 0, 'Remove goes native');
     ok (f ('symbol string', '\tccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})\n').indexOf ('\tthis.Ohlcvs[symbol] = map[string]any{}') >= 0,
         'map-literal write goes native');
-    ok (f ('symbol string', '\tvar orderbook any = this.OrderBook()\n\tccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)\n').indexOf ('AddElementToObject(this.Orderbooks') >= 0,
+    ok (f ('symbol string', '\tvar orderbook any = this.ParseThing()\n\tccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)\n').indexOf ('AddElementToObject(this.Orderbooks') >= 0,
         'boxed write value keeps AddElementToObject');
+    // an `any` local bound only to cache-object producers (never rebound, address never taken) stores natively
+    const cacheLocal = (tail: string) => f ('symbol string', '\tvar orderbook any = this.SafeValue(this.Orderbooks, symbol)\n' + tail + '\tccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)\n');
+    ok (cacheLocal ('\tif ccxt.IsEqual(orderbook, nil) {\n\t\torderbook = this.OrderBook(map[string]any{})\n\t}\n').indexOf ('\tthis.Orderbooks[symbol] = orderbook') >= 0, 'a cache-object any local stores natively');
+    ok (cacheLocal ('\torderbook = this.ParseThing()\n').indexOf ('AddElementToObject(this.Orderbooks') >= 0, 'a rebind to an unproven producer keeps the helper');
+    ok (cacheLocal ('\tfoo(&orderbook)\n').indexOf ('AddElementToObject(this.Orderbooks') >= 0, 'an address-taken any local keeps the helper');
     // membership: the comma-ok of the helper's map branch, negated and compound
     ok (f ('sym string', '\tif ccxt.InOp(this.Orderbooks, sym) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; ok {') >= 0, 'InOp goes native');
     ok (f ('sym string', '\tif !(ccxt.InOp(this.Orderbooks, sym)) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; !ok {') >= 0, 'negated InOp goes native');
