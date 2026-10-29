@@ -33,6 +33,10 @@ class blofin(ccxt.async_support.blofin):
                 'watchOrders': True,
                 'watchOrdersForSymbols': True,
                 'watchPositions': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -111,6 +115,31 @@ class blofin(ccxt.async_support.blofin):
             limitResolved = trades.getLimit(firstSymbol, limit)
         result = self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
+
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unWatches the list of most recent trades for a particular symbol
+
+        https://docs.blofin.com/index.html#ws-trades-channel
+
+        :param str symbol: unified symbol of the market to unwatch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        params['callerMethodName'] = 'unWatchTrades'
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
+        """
+        unWatches the list of most recent trades for a list of symbols
+
+        https://docs.blofin.com/index.html#ws-trades-channel
+
+        :param str[] symbols: unified symbols of the markets to unwatch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.unsubscribe_multiple_wrapper('trades', 'unWatchTradesForSymbols', symbols, params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -392,6 +421,35 @@ class blofin(ccxt.async_support.blofin):
             limitResolved = candles.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(candles, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.blofin.com/index.html#ws-candlesticks-channel
+
+        :param str symbol: unified symbol of the market to unwatch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        params['callerMethodName'] = 'unWatchOHLCV'
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params: dict = {}) -> object:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.blofin.com/index.html#ws-candlesticks-channel
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        symbolsLength = len(symbolsAndTimeframes)
+        if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
+        return await self.unsubscribe_multiple_wrapper('candle', 'unWatchOHLCVForSymbols', symbolsAndTimeframes, params)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -711,6 +769,66 @@ class blofin(ccxt.async_support.blofin):
         url = (self.urls['api'])['ws'][marketType][privateOrPublic]
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
 
+    async def unsubscribe_multiple_wrapper(self, channelName: str, callerMethodName: str, symbolsArray: object, params: dict = {}) -> object:
+        # underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        if self.markets is None:
+            await self.load_markets()
+        callerMethodNameOption, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', callerMethodName)
+        isOHLCV = (channelName == 'candle')
+        symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
+        symbols = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.market(symbols[0])
+        marketType, paramsMarketType = self.handle_market_type_and_params(callerMethodNameOption, firstMarket, paramsCallerMethodName)
+        if marketType != 'swap':
+            raise NotSupported(self.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet')
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            channel = channelName
+            if isOHLCV:
+                tfArray = symbolsArray[i]
+                tf = tfArray[1]
+                interval = self.safe_string(self.timeframes, tf, tf)
+                channel += interval
+            topic = {
+                'channel': channel,
+                'instId': market['id'],
+            }
+            topics.append(topic)
+            messageHashes.append('unsubscribe:' + channel + ':' + market['symbol'])
+        request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = (self.urls['api'])['ws'][marketType]['public']
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
+
+    def handle_unsubscription(self, client: Client, message: dict):
+        #
+        #     {
+        #         "event": "unsubscribe",
+        #         "arg": {
+        #             "channel": "candle1m",
+        #             "instId": "BTC-USDT"
+        #         }
+        #     }
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        channel = self.safe_string(arg, 'channel', '')
+        marketId = self.safe_string(arg, 'instId')
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        subMessageHash = channel + ':' + symbol
+        if channel == 'trades':
+            self.clean_cache({'topic': 'trades', 'symbols': [symbol]})
+            self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
+        elif channel.startswith('candle'):
+            timeframe = self.find_timeframe(channel.replace('candle', ''))
+            if timeframe is not None:
+                self.clean_cache({'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]]})
+            self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
+
     def get_subscription_request(self, args: list) -> dict:
         return {
             'op': 'subscribe',
@@ -751,6 +869,9 @@ class blofin(ccxt.async_support.blofin):
         else:
             event = self.safe_string(message, 'event')
             if event == 'subscribe':
+                return
+            elif event == 'unsubscribe':
+                self.handle_unsubscription(client, message)
                 return
             elif event == 'login':
                 future = self.safe_value(client.futures, 'authenticate_hash')

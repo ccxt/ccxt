@@ -29,6 +29,9 @@ class poloniex extends \ccxt\async\poloniex {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchStatus' => false,
                 'watchOrders' => true,
@@ -200,6 +203,31 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $request = $this->extend($subscribe, $params);
         return Async\await($this->watch($url, $symbolsHash, $request, $symbolsHash));
+    }
+
+    public function un_subscribe(string $name, array $symbols, array $messageHashes, $params = array()) {
+        return Async\async(self::do_un_subscribe(...))($name, $symbols, $messageHashes, $params);
+    }
+
+    private function do_un_subscribe(string $name, array $symbols, array $messageHashes, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from a public websocket channel
+         * @param {string} $name name of the channel
+         * @param {string[]} $symbols CCXT market $symbols
+         * @param {string[]} $messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+         * @param {array} [$params] extra parameters specific to the poloniex api
+         * @return {array} true once the exchange acknowledges the unsubscribe
+         */
+        $url = $this->urls['api']['ws']['public'];
+        $request = array(
+            'event' => 'unsubscribe',
+            'channel' => array(
+                $name,
+            ),
+            'symbols' => $this->market_ids($symbols),
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
     public function trade_request(string $name, $params = array()) {
@@ -432,6 +460,34 @@ class poloniex extends \ccxt\async\poloniex {
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
+        if ($channel === null) {
+            throw new BadRequest($this->id . ' unWatchOHLCV cannot take a timeframe of ' . $timeframe);
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'unsubscribe:' . $channel . '::' . $market['symbol'];
+        return Async\await($this->un_subscribe($channel, array( $market['symbol'] ), array( $messageHash ), $params));
+    }
+
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
@@ -540,6 +596,49 @@ class poloniex extends \ccxt\async\poloniex {
             $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a list of $symbols
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
+        $name = 'trades';
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $messageHashes[] = 'unsubscribe:' . $name . '::' . $symbolsNormalized[$i];
+        }
+        return Async\await($this->un_subscribe($name, $symbolsNormalized, $messageHashes, $params));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1404,6 +1503,10 @@ class poloniex extends \ccxt\async\poloniex {
         if ($event === 'pong') {
             $client->lastPong = $this->milliseconds();
         }
+        if ($event === 'unsubscribe') {
+            $this->handle_unsubscription($client, $message);
+            return;
+        }
         $methods = array(
             'candles_minute_1' => array($this, 'handle_ohlcv'),
             'candles_minute_5' => array($this, 'handle_ohlcv'),
@@ -1440,6 +1543,31 @@ class poloniex extends \ccxt\async\poloniex {
             $dataLength = count($data);
             if ($dataLength > 0) {
                 $method($client, $message);
+            }
+        }
+    }
+
+    public function handle_unsubscription(Client $client, array $message) {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $marketIds = $this->safe_list($message, 'symbols', array());
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $timeframe = $this->find_timeframe($channel, $timeframes);
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $symbol = $this->safe_symbol($this->safe_string($marketIds, $i));
+            $subMessageHash = $channel . '::' . $symbol;
+            if ($channel === 'trades') {
+                $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+                $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+            } elseif ($timeframe !== null) {
+                $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+                $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
             }
         }
     }

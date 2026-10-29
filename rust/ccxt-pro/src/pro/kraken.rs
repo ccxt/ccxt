@@ -188,12 +188,16 @@ impl crate::exchange_generated::ExchangeBase for KrakenCore {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_system_status" => self.handle_system_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_markets" => self.load_markets(&args[..]).await,
                 "order_request_ws" => self.order_request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => self.request_id(),
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_bids_asks" => self.watch_bids_asks(&args[..]).await,
                 "watch_heartbeat" => self.watch_heartbeat(&args[..]).await,
@@ -244,12 +248,16 @@ impl KrakenCore {
             "handle_system_status" => self.handle_system_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "load_markets" => { crate::exchange_stubs::enqueue_spawn("load_markets", args.to_vec()); crate::Value::Null },
             "order_request_ws" => self.order_request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => self.request_id(),
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
+            "un_watch_trades_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades_for_symbols", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
             "watch_heartbeat" => { crate::exchange_stubs::enqueue_spawn("watch_heartbeat", args.to_vec()); crate::Value::Null },
@@ -296,6 +304,9 @@ impl KrakenCore {
         m.insert("watchBidsAsks".to_string(), Value::Bool(true));
         m.insert("watchTrades".to_string(), Value::Bool(true));
         m.insert("watchTradesForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTradesForSymbols".to_string(), Value::Bool(true));
         m.insert("createOrderWs".to_string(), Value::Bool(true));
         m.insert("editOrderWs".to_string(), Value::Bool(true));
         m.insert("cancelOrderWs".to_string(), Value::Bool(true));
@@ -995,8 +1006,8 @@ impl KrakenCore {
         let mut parsed: Value = self.parse_trades(data, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_428 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
+            let mut __for_first_429: bool = true;
+            while { if !__for_first_429 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_429 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             stored.append(parsed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1054,8 +1065,8 @@ impl KrakenCore {
         let mut ohlcvsLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_429 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_430 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut datetime: Value = self.safe_string_k(candle.clone(), "interval_begin", &[]);
             let mut timestamp: Value = self.parse8601(datetime);
@@ -1212,11 +1223,73 @@ impl KrakenCore {
         let mut trades: Value = self.watch_multi_helper(Value::Str("trade".into()), Value::Str("trade".into()), &[symbols, Value::Null, params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            let mut first: Value = self.safe_list(trades.clone(), Value::Int(0), &[]);
+            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
             let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
             limitResolved = trades.get_limit(tradeSymbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name kraken#unWatchTrades
+ * @description stop watching the list of most recent trades for a particular symbol
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string} symbol unified symbol of the market to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol]), &[params]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name kraken#unWatchTradesForSymbols
+ * @description stop watching the list of most recent trades for a list of symbols
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
+        let mut unsubMessageHashes: Value = Value::from(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_431 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            if let Value::Arr(__a) = &mut unsubMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into())); }
+        }
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), Value::Str("trade".into()));
+        m.insert("symbol".to_string(), symbolsNormalized);
+    m
+}));
+                m.insert("req_id".to_string(), self.request_id());
+            m
+        });
+        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), __be_tmp); } }
+        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
+        return self.watch_multiple(url, unsubMessageHashes.clone(), &[request, unsubMessageHashes.clone()]).await;
 
     Value::Null
 }
@@ -1330,6 +1403,47 @@ impl KrakenCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name kraken#unWatchOHLCV
+ * @description stop watching historical candlestick data for a market
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+ * @param {string} symbol unified symbol of the market to stop watching the candles for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut unsubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[interval, symbolValue.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
+        let mut unsubscribe: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), Value::Str("ohlc".into()));
+        m.insert("symbol".to_string(), Value::from(vec![symbolValue]));
+        m.insert("interval".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+    m
+}));
+                m.insert("req_id".to_string(), self.request_id());
+            m
+        });
+        let mut request: Value = self.deep_extend(unsubscribe, &[params]);
+        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
+        return self.watch(url, unsubMessageHash.clone(), &[request, unsubMessageHash.clone()]).await;
+
+    Value::Null
+}
+
     pub async fn load_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -1347,8 +1461,8 @@ impl KrakenCore {
             if (symbols != Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_430: bool = true;
-                    while { if !__for_first_430 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_430 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                    let mut __for_first_432: bool = true;
+                    while { if !__for_first_432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_432 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                     let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol);
                     let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
@@ -1536,8 +1650,8 @@ impl KrakenCore {
             let mut keys: Value = Value::from(vec![Value::Str("asks".into()), Value::Str("bids".into())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_431 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_433: bool = true;
+                while { if !__for_first_433 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_433 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
                 let mut bookside: Value = get_value(&orderbook, &key);
@@ -1560,8 +1674,8 @@ impl KrakenCore {
                 let mut checkBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_432: bool = true;
-                    while { if !__for_first_432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_432 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                    let mut __for_first_434: bool = true;
+                    while { if !__for_first_434 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_434 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentAsk: Value = self.safe_value(checkAsks.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1572,8 +1686,8 @@ impl KrakenCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_433: bool = true;
-                    while { if !__for_first_433 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_433 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                    let mut __for_first_435: bool = true;
+                    while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentBid: Value = self.safe_value(checkBids.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1599,8 +1713,8 @@ impl KrakenCore {
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_434 = false; j.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_436 = false; j.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             let mut delta: Value = self.safe_dict(deltas.clone(), j.clone(), &[]);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
             let mut amount: Value = self.safe_number_k(delta, "qty", &[]);
@@ -1814,8 +1928,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_435: bool = true;
-                while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < ((allTrades.len() as i64) as f64) } {
+                let mut __for_first_437: bool = true;
+                while { if !__for_first_437 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_437 = false; i.as_f64().unwrap_or(f64::NAN) < ((allTrades.len() as i64) as f64) } {
                 let mut trade: Value = self.safe_dict(allTrades.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1831,8 +1945,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_436: bool = true;
-                while { if !__for_first_436 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_436 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_438: bool = true;
+                while { if !__for_first_438 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_438 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
                 client.resolve(&[self.myTrades.clone(), messageHash]);
             }
@@ -1985,8 +2099,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_437: bool = true;
-                while { if !__for_first_437 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_437 = false; i.as_f64().unwrap_or(f64::NAN) < ((allOrders.len() as i64) as f64) } {
+                let mut __for_first_439: bool = true;
+                while { if !__for_first_439 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_439 = false; i.as_f64().unwrap_or(f64::NAN) < ((allOrders.len() as i64) as f64) } {
                 let mut order: Value = self.safe_dict(allOrders.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2024,8 +2138,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_438: bool = true;
-                while { if !__for_first_438 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_438 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_440: bool = true;
+                while { if !__for_first_440 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_440 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
                 client.resolve(&[self.orders.clone(), messageHash]);
             }
@@ -2128,8 +2242,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_439: bool = true;
-            while { if !__for_first_439 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_439 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_441: bool = true;
+            while { if !__for_first_441 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_441 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut eventTrigger: Option<String> = self.safe_string_k(params.clone(), "event_trigger", &[]).as_str().map(str::to_owned);
             if (eventTrigger.is_some()) {
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
@@ -2237,8 +2351,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_440: bool = true;
-            while { if !__for_first_440 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_440 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_442: bool = true;
+            while { if !__for_first_442 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_442 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut currencyId: Value = self.safe_string(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("asset".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -2300,6 +2414,54 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (channelId != Value::Null) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &channelId, message);
         }
+}
+
+    pub fn handle_unsubscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut channel: Option<String> = self.safe_string_k(result.clone(), "channel", &[]).as_str().map(str::to_owned);
+        let mut symbol: Value = self.safe_symbol(self.safe_string_k(result.clone(), "symbol", &[]), &[]);
+        if (channel.as_deref() == Some("trade")) {
+            let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            self.clean_cache(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("topic".to_string(), Value::Str("trades".into()));
+                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
+                m
+            }));
+            self.clean_unsubscription(client.clone(), subMessageHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
+        }  else if (channel.as_deref() == Some("ohlc")) {
+            let mut interval: Value = self.safe_integer_k(result, "interval", &[]);
+            let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
+            let mut subMessageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            let mut unsubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[self.number_to_string(interval), symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
+            self.clean_cache(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("topic".to_string(), Value::Str("ohlcv".into()));
+                    m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol, timeframe])]));
+                m
+            }));
+            self.clean_unsubscription(client, subMessageHash, unsubMessageHash, &[]);
+        }
+        return message;
+
+    Value::Null
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -2380,6 +2542,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("heartbeat".to_string(), Value::Str("handle_heartbeat".into()).clone());
                     m.insert("systemStatus".to_string(), Value::Str("handle_system_status".into()).clone());
                     m.insert("subscriptionStatus".to_string(), Value::Str("handle_subscription_status".into()).clone());
+                    m.insert("unsubscribe".to_string(), Value::Str("handle_unsubscription_status".into()).clone());
                     m.insert("add_order".to_string(), Value::Str("handle_create_edit_order".into()).clone());
                     m.insert("amend_order".to_string(), Value::Str("handle_create_edit_order".into()).clone());
                     m.insert("cancel_order".to_string(), Value::Str("handle_cancel_order".into()).clone());

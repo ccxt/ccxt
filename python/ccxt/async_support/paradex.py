@@ -14,6 +14,8 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -32,7 +34,7 @@ class paradex(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -367,6 +369,10 @@ class paradex(Exchange, ImplicitAPI):
                     '40110': AuthenticationError,  # Malformed Bearer Token
                     '40111': AuthenticationError,  # Invalid Bearer Token
                     '40112': PermissionDenied,  # Geo IP blocked
+                    '40300': PermissionDenied,  # Permission denied
+                    '40301': NotSupported,  # SBE encoding required
+                    '42900': OperationRejected,  # Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': RateLimitExceeded,  # Rate limited
                 },
                 'broad': {
                     'missing or malformed jwt': AuthenticationError,
@@ -380,7 +386,16 @@ class paradex(Exchange, ImplicitAPI):
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': None,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        # spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                    },
+                },
                 'forSwap': {
                     'sandbox': True,
                     'createOrder': {
@@ -619,24 +634,49 @@ class paradex(Exchange, ImplicitAPI):
         #     ]
         #  }
         #
+        # spot
+        #
+        #     {
+        #         "symbol": "ETH-USD",
+        #         "base_currency": "ETH",
+        #         "quote_currency": "USD",
+        #         "settlement_currency": "USDC",
+        #         "order_size_increment": "0.0001",
+        #         "price_tick_size": "0.01",
+        #         "min_notional": "10",
+        #         "asset_kind": "SPOT",
+        #         "market_kind": "cross",
+        #         ...
+        #     }
+        #
         assetKind = self.safe_string(market, 'asset_kind')
+        isSpot = (assetKind == 'SPOT')
         isOptionPerpetual = (assetKind == 'PERP_OPTION')
         isOptionDelivery = (assetKind == 'OPTION')
         isOption = isOptionPerpetual or isOptionDelivery
         type = 'swap'
-        if isOption:
+        if isSpot:
+            type = 'spot'
+        elif isOption:
             type = 'option'
         isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
         baseId = self.safe_string(market, 'base_currency')
+        settleId = self.safe_string(market, 'settlement_currency')
+        if isSpot:
+            # spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            # a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId
+            settleId = None
         quote = self.safe_currency_code(quoteId)
         base = self.safe_currency_code(baseId)
         if (base is None) or (quote is None):
             return None
-        settleId = self.safe_string(market, 'settlement_currency')
         settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote + ':' + settle
+        symbol = base + '/' + quote
+        if not isSpot:
+            symbol = symbol + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
         optionType = self.safe_string(market, 'option_type')
         strikePrice = self.safe_string(market, 'strike_price')
@@ -660,18 +700,18 @@ class paradex(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': False,
+            'spot': isSpot,
             'margin': None,
             'swap': isSwap,
             'future': False,
             'option': isOption,
             'active': self.safe_bool(market, 'enableTrading'),
-            'contract': True,
-            'linear': True,
-            'inverse': False,
+            'contract': not isSpot,
+            'linear': None if (isSpot) else True,
+            'inverse': None if (isSpot) else False,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': self.parse_number('1'),
+            'contractSize': None if (isSpot) else self.parse_number('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': self.parse_number(strikePrice),
@@ -830,7 +870,7 @@ class paradex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param str [params.price]: "last", "mark", "index", default is "last"
+        :param str [params.price]: "last", "mark", "index"(sent as "underlying"), default is "last"
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -843,7 +883,8 @@ class paradex(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         price = self.safe_string(params, 'price')
         if price is not None:
-            request['price_kind'] = price
+            # the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = 'underlying' if (price == 'index') else price
         requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
         hasEnd = ('end_at' in request)
         paramsOmitted = self.omit(paramsUntil, ['price'])
@@ -1884,37 +1925,44 @@ class paradex(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         response = await self.privatePostOrdersBatch(ordersRequests)
         #
-        # {
-        #     "errors": [
-        #         {
-        #             "error": "VALIDATION_ERROR",
-        #             "message": "Invalid order"
-        #         }
-        #     ],
-        #     "orders": [
-        #         {
-        #             "id": "123456",
-        #             "market": "BTC-USD-PERP",
-        #             "side": "BUY",
-        #             "type": "LIMIT",
-        #             "price": "26000",
-        #             "size": "0.05",
-        #             "status": "NEW"
-        #         }
-        #     ]
-        # }
+        # orders and errors are index-aligned with the request, null where the other array has the entry
+        #
+        #     {
+        #         "errors": [
+        #             null,
+        #             {
+        #                 "error": "DUPLICATED_CLIENT_ID",
+        #                 "message": "duplicated client order id"
+        #             }
+        #         ],
+        #         "orders": [
+        #             {
+        #                 "id": "123456",
+        #                 "market": "BTC-USD-PERP",
+        #                 "side": "BUY",
+        #                 "type": "LIMIT",
+        #                 "price": "26000",
+        #                 "size": "0.05",
+        #                 "status": "NEW"
+        #             },
+        #             null
+        #         ]
+        #     }
         #
         responseOrders = self.safe_list(response, 'orders', [])
-        parsedOrders = self.parse_orders(responseOrders)
         errors = self.safe_list(response, 'errors', [])
-        rejected = []
-        for i in range(0, len(errors)):
-            error = errors[i]
-            rejected.append(self.safe_order({
-                'info': error,
-                'status': 'rejected',
-            }))
-        return self.array_concat(parsedOrders, rejected)
+        result = []
+        for i in range(0, len(orders)):
+            responseOrder = self.safe_dict(responseOrders, i)
+            if responseOrder is not None:
+                result.append(self.parse_order(responseOrder))
+            else:
+                error = self.safe_dict(errors, i)
+                result.append(self.safe_order({
+                    'info': error,
+                    'status': 'rejected',
+                }))
+        return result
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -3315,6 +3363,21 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         errorCode = self.safe_string(response, 'error')
+        if (errorCode is None) and (httpCode == 400):
+            #
+            # a batch where every order was rejected, errors are index-aligned with the request
+            #
+            #     {
+            #         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            #         "orders": [ null ]
+            #     }
+            #
+            batchErrors = self.safe_list(response, 'errors', [])
+            for i in range(0, len(batchErrors)):
+                batchErrorCode = self.safe_string(batchErrors[i], 'error')
+                if batchErrorCode is not None:
+                    errorCode = batchErrorCode
+                    break
         if errorCode is not None:
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

@@ -441,8 +441,8 @@ impl ToobitCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_644: bool = true;
-                while { if !__for_first_644 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_644 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&message).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_651: bool = true;
+                while { if !__for_first_651 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_651 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&message).as_f64().unwrap_or(f64::NAN) } {
                 let mut item: Value = get_value(&message, &i);
                 let mut item: Value = get_value(&message, &i);
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
@@ -509,8 +509,8 @@ impl ToobitCore {
         let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_645 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_652 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())); }
@@ -578,8 +578,8 @@ impl ToobitCore {
         let mut parsed: Value = self.parse_ws_trades(data, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_646 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_653 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut trade: Value = get_value(&parsed, &i);
             add_element_to_object(&mut trade, &Value::Str("symbol".into()), symbol.clone());
             crate::set_value(&mut parsed, &i, trade.clone());
@@ -657,8 +657,8 @@ impl ToobitCore {
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_647 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_654 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolStr: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolStr.clone());
@@ -750,8 +750,8 @@ impl ToobitCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_648 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_ws_ohlcv(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed);
         }
@@ -831,8 +831,8 @@ impl ToobitCore {
         let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_649: bool = true;
-            while { if !__for_first_649 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_649 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_656 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())); }
@@ -915,8 +915,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_650 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut ticker: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ticker(ticker, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -994,8 +994,8 @@ impl ToobitCore {
         let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_651: bool = true;
-            while { if !__for_first_651 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_651 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel).into())); }
@@ -1054,8 +1054,8 @@ impl ToobitCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_652 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into())).into());
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1119,8 +1119,8 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_653 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "s", &[]);
             let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -1262,8 +1262,8 @@ impl ToobitCore {
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("datetime".into()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_654 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_661: bool = true;
+            while { if !__for_first_661 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_661 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1633,8 +1633,8 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &type_var);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_662 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
@@ -1693,8 +1693,8 @@ impl ToobitCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_656 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawPositions).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_663 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawPositions).as_f64().unwrap_or(f64::NAN) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -1712,8 +1712,8 @@ impl ToobitCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", accountType, Value::Str(":positions::".into())).into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1840,8 +1840,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_658: bool = true;
-                while { if !__for_first_658 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+                let mut __for_first_665: bool = true;
+                while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 client.reject(&[Value::from(error.clone()), messageHash]);
             }

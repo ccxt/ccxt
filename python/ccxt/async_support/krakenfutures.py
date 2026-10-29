@@ -723,22 +723,32 @@ class krakenfutures(Exchange, ImplicitAPI):
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
-        #        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        #        "pair": "ETH:USD",
-        #        "symbol": "fi_ethusd_220624",
-        #        "markPrice": "2925.72",
-        #        "bid": "2923.8",
-        #        "bidSize": "16804",
-        #        "ask": "2928.65",
-        #        "askSize": "1339",
-        #        "vol24h": "860493",
-        #        "openInterest": "3023363.00000000",
-        #        "open24h": "3021.25",
-        #        "indexPrice": "2893.71",
-        #        "last": "2942.25",
-        #        "lastTime": "2022-02-18T14:08:15.578Z",
-        #        "lastSize": "151",
-        #        "suspended": false
+        #        "symbol": "PF_XBTUSD",
+        #        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        #        "pair": "XBT:USD",
+        #        "last": 80462,
+        #        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        #        "lastSize": 0.0043,
+        #        "markPrice": 80460.58444719581,
+        #        "indexPrice": 80454.68,
+        #        "bid": 80462,
+        #        "bidSize": 0.2292,
+        #        "ask": 80463,
+        #        "askSize": 0.1758,
+        #        "open24h": 80424,
+        #        "high24h": 80938,
+        #        "low24h": 79983,
+        #        "vwap24h": 80525.59286860962,
+        #        "vol24h": 2431.0631,
+        #        "volumeQuote": 195762797.4285,
+        #        "change24h": 0.05,
+        #        "openInterest": 2629.0003,
+        #        "fundingRate": 0.8337156123064435,
+        #        "fundingRatePrediction": 0.6968080809793065,
+        #        "relativeFundingRate": 1.0348054166667e-05,
+        #        "relativeFundingRatePrediction": 8.656733333333e-06,
+        #        "suspended": false,
+        #        "postOnly": false
         #    }
         #
         #    {
@@ -757,25 +767,30 @@ class krakenfutures(Exchange, ImplicitAPI):
         percentage = Precise.string_mul(Precise.string_div(change, open), '100')
         average = Precise.string_div(Precise.string_add(open, last), '2')
         volume = self.safe_string(ticker, 'vol24h')
+        quoteVolume = self.safe_string(ticker, 'volumeQuote')
+        vwap = self.safe_string(ticker, 'vwap24h')
+        # vol24h counts contracts: base units on linear markets, quote (usd) units
+        # on inverse ones, where the base side has to come from vwap24h instead
         baseVolume = None
-        quoteVolume = None
         isIndex = self.safe_bool(marketResolved, 'index', False)
         if not isIndex:
             if marketResolved['linear'] is True:
                 baseVolume = volume
             elif marketResolved['inverse'] is True:
-                quoteVolume = volume
+                baseVolume = Precise.string_div(quoteVolume, vwap)
+        high = self.safe_string(ticker, 'high24h')
+        low = self.safe_string(ticker, 'low24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': None,
-            'low': None,
+            'high': high,
+            'low': low,
             'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': self.safe_string(ticker, 'bidSize'),
             'ask': self.safe_string(ticker, 'ask'),
             'askVolume': self.safe_string(ticker, 'askSize'),
-            'vwap': None,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,

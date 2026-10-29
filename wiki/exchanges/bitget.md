@@ -9,6 +9,7 @@
 * [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
+* [parseMarket](#parsemarket)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [fetchDeposits](#fetchdeposits)
@@ -173,6 +174,25 @@ retrieves data on all markets for bitget
 
 ```javascript
 bitget.fetchMarkets (params?)
+```
+
+
+<a name="parseMarket" id="parsemarket"></a>
+
+### parseMarket{docsify-ignore}
+parses a classic or uta instrument into a unified market
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [market structure](https://docs.ccxt.com/?id=market-structure)
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| market | <code>object</code> | the exchange instrument |
+
+
+```javascript
+bitget.parseMarket (market)
 ```
 
 
@@ -413,7 +433,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock order books |
 
 
 ```javascript
@@ -441,7 +460,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock tickers |
 
 
 ```javascript
@@ -525,7 +543,6 @@ get the list of most recent trades for a particular symbol
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock trades |
 | params.until | <code>int</code> | No | *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for |
 | params.paginate | <code>boolean</code> | No | *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times |
 
@@ -619,7 +636,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock candlesticks |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.useHistoryEndpoint | <code>boolean</code> | No | whether to force to use historical endpoint (it has max limit of 200, 100 for uta) |
 | params.useHistoryEndpointForPagination | <code>boolean</code> | No | whether to force to use historical endpoint for pagination (default true) |
@@ -744,7 +760,6 @@ create a trade order
 | params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false |
 | params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to place tokenized stock orders |
 | params.posSide | <code>string</code> | No | *uta only* hedged two-way position side, long or short |
 
 
@@ -863,7 +878,6 @@ cancels an open order
 | params.planType | <code>string</code> | No | *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan |
 | params.trailing | <code>boolean</code> | No | set to true if you want to cancel a trailing order |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true if you would like to cancel tokenized stock orders |
 | params.clientOrderId | <code>string</code> | No | the clientOrderId of the order, id does not need to be provided if clientOrderId is provided |
 
 
@@ -2217,7 +2231,6 @@ watches historical candlestick data containing the open, high, low, close price,
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2246,7 +2259,6 @@ unsubscribe from the ohlcv channel
 | timeframe | <code>string</code> | No | the period for the ratio, default is 1 minute |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2275,7 +2287,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2304,7 +2315,6 @@ unsubscribe from the orderbook channel
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | orderbook limit, default is undefined |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2333,7 +2343,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
-| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript

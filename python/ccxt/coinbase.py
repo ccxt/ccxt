@@ -112,7 +112,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
-                'fetchL2OrderBook': False,
+                'fetchL2OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverages': False,
@@ -4917,6 +4917,15 @@ class coinbase(Exchange, ImplicitAPI):
             parsedPositions.append(positionData)
         return parsedPositions
 
+    def is_eddsa_api_key(self) -> bool:
+        """
+ @ignore
+        checks whether the secret is a v2(Ed25519) CDP api key secret
+        :returns boolean: True if the secret is an Ed25519 key
+        """
+        # using the size might be fragile, so we add an option to force v2 cloud api key if needed
+        return len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
+
     def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False) -> str:
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -5006,8 +5015,7 @@ class coinbase(Exchange, ImplicitAPI):
                 # v2: 'GET' require payload in the signature
                 # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
-                # using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                isV2CloudAPiKey = len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
+                isV2CloudAPiKey = self.is_eddsa_api_key()
                 if isCloudAPiKey or isV2CloudAPiKey:
                     if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
                         raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')

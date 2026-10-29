@@ -250,21 +250,22 @@ class coinbase(ccxt.async_support.coinbase):
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+        isV2CloudAPiKey = self.isEddsaApiKey()
         auth = timestamp + name + ','.join(productIds)
-        if not isCloudAPiKey:
+        if not isCloudAPiKey and not isV2CloudAPiKey:
             subscribe['api_key'] = self.apiKey
             subscribe['timestamp'] = timestamp
             subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         else:
-            if self.apiKey.startswith('-----BEGIN'):
+            if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
                 raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
             currentToken = self.safe_string(self.options, 'wsToken')
             tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
             seconds = self.seconds()
-            tokenExpiry = tokenTimestamp + 120
+            tokenExpiry = tokenTimestamp + 90
             if currentToken is None or tokenExpiry < seconds:
                 # we should generate new token
-                token = self.create_auth_token(seconds)
+                token = self.create_auth_token(seconds, None, None, self.isEddsaApiKey())
                 self.options['wsToken'] = token
                 self.options['wsTokenTimestamp'] = seconds
             subscribe['jwt'] = self.safe_string(self.options, 'wsToken')

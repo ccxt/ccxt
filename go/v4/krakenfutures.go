@@ -918,22 +918,32 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[map[string]Ticke
 func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//    {
-	//        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-	//        "pair": "ETH:USD",
-	//        "symbol": "fi_ethusd_220624",
-	//        "markPrice": "2925.72",
-	//        "bid": "2923.8",
-	//        "bidSize": "16804",
-	//        "ask": "2928.65",
-	//        "askSize": "1339",
-	//        "vol24h": "860493",
-	//        "openInterest": "3023363.00000000",
-	//        "open24h": "3021.25",
-	//        "indexPrice": "2893.71",
-	//        "last": "2942.25",
-	//        "lastTime": "2022-02-18T14:08:15.578Z",
-	//        "lastSize": "151",
-	//        "suspended": false
+	//        "symbol": "PF_XBTUSD",
+	//        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+	//        "pair": "XBT:USD",
+	//        "last": 80462,
+	//        "lastTime": "2026-10-25T19:54:36.877639161Z",
+	//        "lastSize": 0.0043,
+	//        "markPrice": 80460.58444719581,
+	//        "indexPrice": 80454.68,
+	//        "bid": 80462,
+	//        "bidSize": 0.2292,
+	//        "ask": 80463,
+	//        "askSize": 0.1758,
+	//        "open24h": 80424,
+	//        "high24h": 80938,
+	//        "low24h": 79983,
+	//        "vwap24h": 80525.59286860962,
+	//        "vol24h": 2431.0631,
+	//        "volumeQuote": 195762797.4285,
+	//        "change24h": 0.05,
+	//        "openInterest": 2629.0003,
+	//        "fundingRate": 0.8337156123064435,
+	//        "fundingRatePrediction": 0.6968080809793065,
+	//        "relativeFundingRate": 1.0348054166667e-05,
+	//        "relativeFundingRatePrediction": 8.656733333333e-06,
+	//        "suspended": false,
+	//        "postOnly": false
 	//    }
 	//
 	//    {
@@ -954,27 +964,32 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var percentage *string = Precise.StringMul(Precise.StringDiv(change, open), "100")
 	var average *string = Precise.StringDiv(Precise.StringAdd(open, last), "2")
 	var volume *string = this.SafeString(ticker, "vol24h")
+	var quoteVolume *string = this.SafeString(ticker, "volumeQuote")
+	var vwap *string = this.SafeString(ticker, "vwap24h")
+	// vol24h counts contracts: base units on linear markets, quote (usd) units
+	// on inverse ones, where the base side has to come from vwap24h instead
 	var baseVolume *string = nil
-	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(marketResolved, "index", false)
 	if !(isIndex != nil && *isIndex) {
 		if marketResolved["linear"] == true {
 			baseVolume = volume
 		} else if marketResolved["inverse"] == true {
-			quoteVolume = volume
+			baseVolume = Precise.StringDiv(quoteVolume, vwap)
 		}
 	}
+	var high *string = this.SafeString(ticker, "high24h")
+	var low *string = this.SafeString(ticker, "low24h")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
-		"high":          nil,
-		"low":           nil,
+		"high":          high,
+		"low":           low,
 		"bid":           this.SafeString(ticker, "bid"),
 		"bidVolume":     this.SafeString(ticker, "bidSize"),
 		"ask":           this.SafeString(ticker, "ask"),
 		"askVolume":     this.SafeString(ticker, "askSize"),
-		"vwap":          nil,
+		"vwap":          vwap,
 		"open":          open,
 		"close":         last,
 		"last":          last,
@@ -1171,11 +1186,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes91719 []any = r1.Value
-		if retRes91719 == nil {
+		var retRes93219 []any = r1.Value
+		if retRes93219 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes91719)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes93219)}
 		}
 		return nil
 	}
@@ -1305,11 +1320,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes101219 []any = r1.Value
-		if retRes101219 == nil {
+		var retRes102719 []any = r1.Value
+		if retRes102719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes101219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102719)}
 		}
 		return nil
 	}
@@ -4579,11 +4594,11 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], c
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes364415 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
-	if retRes364415 == nil {
+	var retRes365915 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
+	if retRes365915 == nil {
 		ch <- AsyncResult[TransferEntry]{}
 	} else {
-		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes364415)}
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes365915)}
 	}
 	return nil
 }

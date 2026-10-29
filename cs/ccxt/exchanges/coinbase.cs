@@ -89,7 +89,7 @@ public partial class coinbase : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
-                { "fetchL2OrderBook", false },
+                { "fetchL2OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", false },
                 { "fetchLeverages", false },
@@ -5802,6 +5802,19 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
+    /**
+     * @method
+     * @name coinbase#isEddsaApiKey
+     * @ignore
+     * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+     * @returns {boolean} true if the secret is an Ed25519 key
+     */
+    public virtual bool isEddsaApiKey()
+    {
+        // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+        return (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
+    }
+
     public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
@@ -5947,8 +5960,7 @@ public partial class coinbase : Exchange
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                bool isV2CloudAPiKey = (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
+                bool isV2CloudAPiKey = this.isEddsaApiKey();
                 if (isCloudAPiKey || isV2CloudAPiKey)
                 {
                     if (isCloudAPiKey && this.apiKey.StartsWith("-----BEGIN"))

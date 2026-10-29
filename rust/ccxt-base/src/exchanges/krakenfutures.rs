@@ -1255,22 +1255,32 @@ impl KrakenfuturesCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
-        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair": "ETH:USD",
-        //        "symbol": "fi_ethusd_220624",
-        //        "markPrice": "2925.72",
-        //        "bid": "2923.8",
-        //        "bidSize": "16804",
-        //        "ask": "2928.65",
-        //        "askSize": "1339",
-        //        "vol24h": "860493",
-        //        "openInterest": "3023363.00000000",
-        //        "open24h": "3021.25",
-        //        "indexPrice": "2893.71",
-        //        "last": "2942.25",
-        //        "lastTime": "2022-02-18T14:08:15.578Z",
-        //        "lastSize": "151",
-        //        "suspended": false
+        //        "symbol": "PF_XBTUSD",
+        //        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        //        "pair": "XBT:USD",
+        //        "last": 80462,
+        //        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        //        "lastSize": 0.0043,
+        //        "markPrice": 80460.58444719581,
+        //        "indexPrice": 80454.68,
+        //        "bid": 80462,
+        //        "bidSize": 0.2292,
+        //        "ask": 80463,
+        //        "askSize": 0.1758,
+        //        "open24h": 80424,
+        //        "high24h": 80938,
+        //        "low24h": 79983,
+        //        "vwap24h": 80525.59286860962,
+        //        "vol24h": 2431.0631,
+        //        "volumeQuote": 195762797.4285,
+        //        "change24h": 0.05,
+        //        "openInterest": 2629.0003,
+        //        "fundingRate": 0.8337156123064435,
+        //        "fundingRatePrediction": 0.6968080809793065,
+        //        "relativeFundingRate": 1.0348054166667e-05,
+        //        "relativeFundingRatePrediction": 8.656733333333e-06,
+        //        "suspended": false,
+        //        "postOnly": false
         //    }
         //
         //    {
@@ -1289,28 +1299,33 @@ impl KrakenfuturesCore {
         let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change, &open), &Value::Str("100".into()));
         let mut average: Value = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &last), &Value::Str("2".into()));
         let mut volume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
+        let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "volumeQuote", &[]);
+        let mut vwap: Value = self.safe_string_k(ticker.clone(), "vwap24h", &[]);
+        // vol24h counts contracts: base units on linear markets, quote (usd) units
+        // on inverse ones, where the base side has to come from vwap24h instead
         let mut baseVolume: Value = Value::Null;
-        let mut quoteVolume: Value = Value::Null;
         let mut isIndex: Value = self.safe_bool_k(marketResolved.clone(), "index", &[Value::Bool(false)]);
         if !(isIndex.as_bool() == Some(true)) {
             if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                baseVolume = volume.clone();
+                baseVolume = volume;
             }  else if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                quoteVolume = volume;
+                baseVolume = crate::precise::Precise::stringDiv(&quoteVolume, &vwap);
             }
         }
+        let mut high: Value = self.safe_string_k(ticker.clone(), "high24h", &[]);
+        let mut low: Value = self.safe_string_k(ticker.clone(), "low24h", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), Value::Null);
-        m.insert("low".to_string(), Value::Null);
+        m.insert("high".to_string(), high);
+        m.insert("low".to_string(), low);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSize", &[]));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSize", &[]));
-        m.insert("vwap".to_string(), Value::Null);
+        m.insert("vwap".to_string(), vwap);
         m.insert("open".to_string(), open);
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);

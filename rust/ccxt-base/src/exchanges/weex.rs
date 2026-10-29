@@ -1476,8 +1476,8 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1134: bool = true;
-            while { if !__for_first_1134 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1134 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
+            let mut __for_first_1136: bool = true;
+            while { if !__for_first_1136 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1136 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1893,8 +1893,8 @@ impl WeexCore {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1135: bool = true;
-            while { if !__for_first_1135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1135 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1137: bool = true;
+            while { if !__for_first_1137 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1137 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut rawTicker: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             let mut marketId: Value = self.safe_string_k(rawTicker.clone(), "symbol", &[]);
@@ -2889,8 +2889,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1136: bool = true;
-            while { if !__for_first_1136 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1136 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_1138: bool = true;
+            while { if !__for_first_1138 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1138 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             if sandboxMode.as_bool() == Some(true) && (currencyId.as_str() == Some("SUSDT")) {

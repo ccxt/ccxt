@@ -34,6 +34,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
+                'unWatchOHLCV' => true,
                 'watchOHLCVForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
@@ -42,6 +43,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchTickers' => true,
                 'watchBidsAsks' => true,
                 'watchTrades' => true,
+                'unWatchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchPositions' => true,
             ),
@@ -551,7 +553,6 @@ class bitget extends \ccxt\async\bitget {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @param {boolean} [$params->stock] set to true for tokenized $stock symbols, defaults to $market['stock']
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -563,9 +564,10 @@ class bitget extends \ccxt\async\bitget {
         $interval = $this->safe_string($timeframes, $timeframe);
         $messageHash = null;
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
-        $stockDefault = $this->safe_bool($market, 'stock', false);
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsUta, 'watchOHLCV', 'stock', $stockDefault);
-        $isStockOrUta = (($stock === true) || ($uta === true));
+        $isStock = $market['stock'];
+        $paramsStock = $this->omit($paramsUta, 'stock');
+        $isStockSpot = $isStock && $market['spot'];
+        $isStockOrUta = ($isStockSpot || ($uta === true));
         list($instType, $paramsInstType) = $this->get_inst_type('watchOHLCV', $market, $isStockOrUta, $paramsStock);
         $paramsRequest = $paramsInstType;
         if ($isStockOrUta) {
@@ -608,7 +610,6 @@ class bitget extends \ccxt\async\bitget {
          * @param {string} [$timeframe] the period for the ratio, default is 1 minute
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @param {boolean} [$params->stock] set to true for tokenized $stock symbols, defaults to $market['stock']
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         if ($this->markets === null) {
@@ -621,9 +622,10 @@ class bitget extends \ccxt\async\bitget {
         $messageHash = null;
         $values = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         $uta = $values[0];
-        $stockDefault = $this->safe_bool($market, 'stock', false);
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'stock', $stockDefault);
-        $isStockOrUta = (($stock === true) || ($uta === true));
+        $isStock = $market['stock'];
+        $paramsStock = $this->omit($params, 'stock');
+        $isStockSpot = $isStock && $market['spot'];
+        $isStockOrUta = ($isStockSpot || ($uta === true));
         list($instType, $paramsInstType) = $this->get_inst_type('watchOHLCV', $market, $isStockOrUta, $paramsStock);
         $paramsRequest = $paramsInstType;
         if ($isStockOrUta) {
@@ -729,7 +731,8 @@ class bitget extends \ccxt\async\bitget {
         if ($timeframe === null) {
             return;
         }
-        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
+        $ohlcvs = $this->safe_dict($this->ohlcvs, $symbol);
+        $stored = $this->safe_value($ohlcvs, $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -779,13 +782,19 @@ class bitget extends \ccxt\async\bitget {
         if ($isInverse === true) {
             $volumeIndex = 6;
         }
+        $timestamp = $this->safe_integer_2($ohlcv, 'start', 0);
+        $open = $this->safe_number_2($ohlcv, 'open', 1);
+        $high = $this->safe_number_2($ohlcv, 'high', 2);
+        $low = $this->safe_number_2($ohlcv, 'low', 3);
+        $close = $this->safe_number_2($ohlcv, 'close', 4);
+        $volume = $this->safe_number_2($ohlcv, 'volume', $volumeIndex);
         return array(
-            $this->safe_integer_2($ohlcv, 'start', 0),
-            $this->safe_number_2($ohlcv, 'open', 1),
-            $this->safe_number_2($ohlcv, 'high', 2),
-            $this->safe_number_2($ohlcv, 'low', 3),
-            $this->safe_number_2($ohlcv, 'close', 4),
-            $this->safe_number_2($ohlcv, 'volume', $volumeIndex),
+            $timestamp,
+            $open,
+            $high,
+            $low,
+            $close,
+            $volume,
         );
     }
 
@@ -801,7 +810,6 @@ class bitget extends \ccxt\async\bitget {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
-         * @param {boolean} [$params->stock] set to true for tokenized stock symbols, defaults to market['stock']
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
@@ -823,17 +831,17 @@ class bitget extends \ccxt\async\bitget {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->limit] orderbook $limit, default is null
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @param {boolean} [$params->stock] set to true for tokenized $stock symbols, defaults to $market['stock']
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $stockDefault = $this->safe_bool($market, 'stock', false);
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'unWatchOrderBook', 'stock', $stockDefault);
+        $isStock = $market['stock'];
+        $paramsStock = $this->omit($params, 'stock');
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsStock, 'unWatchOrderBook', 'uta', false);
-        $isStockOrUta = (($stock === true) || ($uta === true));
+        $isStockSpot = $isStock && $market['spot'];
+        $isStockOrUta = ($isStockSpot || ($uta === true));
         $paramsRequest = $paramsUta;
         if ($isStockOrUta) {
             $paramsRequest = $this->extend($paramsUta, array( 'uta' => true ));
@@ -903,7 +911,6 @@ class bitget extends \ccxt\async\bitget {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @param {boolean} [$params->stock] set to true for tokenized $stock $symbols, defaults to $market['stock']
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -911,14 +918,15 @@ class bitget extends \ccxt\async\bitget {
         }
         $symbolsNormalized = $this->market_symbols($symbols);
         $symbolsLength = count($symbolsNormalized);
-        $firstMarket = null;
+        $isStockSpot = false;
         if ($symbolsLength > 0) {
-            $firstMarket = $this->market($symbolsNormalized[0]);
+            $market = $this->market($symbolsNormalized[0]);
+            $isStock = $market['stock'];
+            $isStockSpot = $isStock && $market['spot'];
         }
-        $stockDefault = $this->safe_bool($firstMarket, 'stock', false);
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchOrderBookForSymbols', 'stock', $stockDefault);
+        $paramsStock = $this->omit($params, 'stock');
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        $isStockOrUta = (($stock === true) || ($uta === true));
+        $isStockOrUta = ($isStockSpot || ($uta === true));
         $channel = 'books';
         $incrementalFeed = true;
         if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
@@ -1038,7 +1046,8 @@ class bitget extends \ccxt\async\bitget {
                 $this->orderbooks[$symbol] = $ob;
             }
             $storedOrderBook = $this->orderbooks[$symbol];
-            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            $action = $this->safe_string($message, 'action');
+            $isSnapshot = ($action === 'snapshot'); // snapshot does not have a checksum
             if ($isSnapshot) {
                 // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
                 $storedOrderBook->reset(array( 'symbol' => $symbol ));
@@ -1419,8 +1428,9 @@ class bitget extends \ccxt\async\bitget {
         if ($first !== null) {
             $feeCurrencyId = $this->safe_string($first, 'feeCoin');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $feeCost = $this->safe_string_2($first, 'totalFee', 'fee');
             $fee = array(
-                'cost' => Precise::string_abs($this->safe_string_2($first, 'totalFee', 'fee')),
+                'cost' => Precise::string_abs($feeCost),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -2188,8 +2198,10 @@ class bitget extends \ccxt\async\bitget {
         $avgPrice = ($avgPriceString === null) ? null : $this->omit_zero($avgPriceString);
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
-        $accBaseVolume = $this->omit_zero($this->safe_string_2($order, 'accBaseVolume', 'cumExecQty'));
-        $newSizeValue = $this->omit_zero($this->safe_string_2($order, 'newSize', 'cumExecValue'));
+        $accBaseVolumeString = $this->safe_string_2($order, 'accBaseVolume', 'cumExecQty');
+        $accBaseVolume = $this->omit_zero($accBaseVolumeString);
+        $newSizeString = $this->safe_string_2($order, 'newSize', 'cumExecValue');
+        $newSizeValue = $this->omit_zero($newSizeString);
         $isMarketOrder = ($type === 'market');
         $isBuy = ($side === 'buy');
         $totalAmount = null;
@@ -3210,7 +3222,8 @@ class bitget extends \ccxt\async\bitget {
         //
         $argsList = $this->safe_list($message, 'args');
         if ($argsList === null) {
-            $argsList = array( $this->safe_dict($message, 'arg', array()) );
+            $arg = $this->safe_dict($message, 'arg', array());
+            $argsList = array( $arg );
         }
         for ($i = 0; $i < count($argsList); $i++) {
             $arg = $this->safe_dict($argsList, $i);

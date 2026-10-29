@@ -262,7 +262,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
-        const first = this.safeList (trades, 0);
+        const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
         const limitResolved = this.safeInteger (cacheRead, 'limit');

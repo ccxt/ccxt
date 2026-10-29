@@ -245,7 +245,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         trades = await self.watch_multi_helper('trade', 'trade', symbols, None, params)
-        first = self.safe_list(trades, 0)
+        first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
         if self.newUpdates:

@@ -22,6 +22,7 @@ public partial class bitget : ccxt.bitget
                 { "watchBalance", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
+                { "unWatchOHLCV", true },
                 { "watchOHLCVForSymbols", false },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
@@ -30,6 +31,7 @@ public partial class bitget : ccxt.bitget
                 { "watchTickers", true },
                 { "watchBidsAsks", true },
                 { "watchTrades", true },
+                { "unWatchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchPositions", true },
             } },
@@ -572,7 +574,6 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -592,11 +593,10 @@ public partial class bitget : ccxt.bitget
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        bool? stockDefault = this.safeBool(market, "stock", false);
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUta, "watchOHLCV", "stock", stockDefault);
-        bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
-        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
+        Dictionary<string, object> paramsStock = this.omit(paramsUta, "stock");
+        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockOrUta = (isStockSpot || ((uta == true)));
         var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
@@ -642,7 +642,6 @@ public partial class bitget : ccxt.bitget
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
@@ -661,11 +660,10 @@ public partial class bitget : ccxt.bitget
         object messageHash = null;
         (bool?, object) values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         bool? uta = values.Item1;
-        bool? stockDefault = this.safeBool(market, "stock", false);
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "stock", stockDefault);
-        bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
-        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
+        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockOrUta = (isStockSpot || ((uta == true)));
         var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
@@ -784,7 +782,8 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+        IDictionary<string, object> ohlcvs = this.safeDict(this.ohlcvs, symbol);
+        object stored = this.safeValue(ohlcvs, timeframe);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -795,7 +794,7 @@ public partial class bitget : ccxt.bitget
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i], market);
-            stored.append(parsed);
+            ccxt.pro.BaseCache.appendTo(stored, parsed);
         }
         string? messageHash = null;
         if ((isUta == true))
@@ -840,7 +839,13 @@ public partial class bitget : ccxt.bitget
         {
             volumeIndex = 6;
         }
-        return new List<object> {this.safeInteger2(ohlcv, "start", 0), this.safeNumber2(ohlcv, "open", 1), this.safeNumber2(ohlcv, "high", 2), this.safeNumber2(ohlcv, "low", 3), this.safeNumber2(ohlcv, "close", 4), this.safeNumber2(ohlcv, "volume", volumeIndex)};
+        Int64? timestamp = this.safeInteger2(ohlcv, "start", 0);
+        double? open = this.safeNumber2(ohlcv, "open", 1);
+        double? high = this.safeNumber2(ohlcv, "high", 2);
+        double? low = this.safeNumber2(ohlcv, "low", 3);
+        double? close = this.safeNumber2(ohlcv, "close", 4);
+        double? volume = this.safeNumber2(ohlcv, "volume", volumeIndex);
+        return new List<object>() {timestamp, open, high, low, close, volume};
     }
 
     /**
@@ -854,7 +859,6 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -874,7 +878,6 @@ public partial class bitget : ccxt.bitget
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
@@ -885,14 +888,13 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool? stockDefault = this.safeBool(market, "stock", false);
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "unWatchOrderBook", "stock", stockDefault);
-        bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
-        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        object paramsUta = utaparamsUtaVariable.Item2;
+        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockOrUta = (isStockSpot || ((uta == true)));
         object paramsRequest = paramsUta;
         if (isStockOrUta)
         {
@@ -974,7 +976,6 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
@@ -986,19 +987,18 @@ public partial class bitget : ccxt.bitget
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
-        Dictionary<string, object> firstMarket = null;
+        bool isStockSpot = false;
         if (symbolsLength > 0)
         {
-            firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
+            isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
         }
-        bool? stockDefault = this.safeBool(firstMarket, "stock", false);
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "stock", stockDefault);
-        bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
-        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        object paramsUta = utaparamsUtaVariable.Item2;
+        bool isStockOrUta = (isStockSpot || ((uta == true)));
         string channel = "books";
         bool incrementalFeed = true;
         if (((limit == 1)) || ((limit == 5)) || ((limit == 15)) || ((limit == 50)))
@@ -1133,7 +1133,8 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
-            bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
+            string? action = this.safeString(message, "action");
+            bool isSnapshot = (action == "snapshot"); // snapshot does not have a checksum
             if (isSnapshot)
             {
                 // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
@@ -1549,8 +1550,9 @@ public partial class bitget : ccxt.bitget
         {
             string? feeCurrencyId = this.safeString(first, "feeCoin");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            string? feeCost = this.safeString2(first, "totalFee", "fee");
             fee = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(this.safeString2(first, "totalFee", "fee")) },
+                { "cost", Precise.stringAbs(feeCost) },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -2396,8 +2398,10 @@ public partial class bitget : ccxt.bitget
         string? avgPrice = ((avgPriceString == null)) ? null : this.omitZero(avgPriceString);
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");
-        string? accBaseVolume = ((string)this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty")));
-        string? newSizeValue = ((string)this.omitZero(this.safeString2(order, "newSize", "cumExecValue")));
+        string? accBaseVolumeString = this.safeString2(order, "accBaseVolume", "cumExecQty");
+        string? accBaseVolume = ((string)this.omitZero(accBaseVolumeString));
+        string? newSizeString = this.safeString2(order, "newSize", "cumExecValue");
+        string? newSizeValue = ((string)this.omitZero(newSizeString));
         bool isMarketOrder = (type == "market");
         bool isBuy = (side == "buy");
         string? totalAmount = null;
@@ -3537,7 +3541,8 @@ public partial class bitget : ccxt.bitget
         List<object> argsList = this.safeList(message, "args");
         if ((argsList == null))
         {
-            argsList = new List<object> {this.safeDict(message, "arg", new Dictionary<string, object>() {})};
+            IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+            argsList = new List<object>() {arg};
         }
         for (int i = 0; i < (argsList?.Count ?? 0); i++)
         {

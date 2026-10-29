@@ -96,7 +96,7 @@ class gemini(ccxt.async_support.gemini):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         trades = await self.helper_for_watch_multiple_construct('trades', symbols, params)
-        first = self.safe_list(trades, 0)
+        first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
         if self.newUpdates:

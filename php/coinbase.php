@@ -97,7 +97,7 @@ class coinbase extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
-                'fetchL2OrderBook' => false,
+                'fetchL2OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverages' => false,
@@ -5213,6 +5213,16 @@ class coinbase extends Exchange {
         return $parsedPositions;
     }
 
+    public function is_eddsa_api_key(): bool {
+        /**
+         * @ignore
+         * checks whether the secret is a v2 (Ed25519) CDP api key secret
+         * @return {boolean} true if the secret is an Ed25519 key
+         */
+        // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+        return strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
+    }
+
     public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false): string {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -5320,8 +5330,7 @@ class coinbase extends Exchange {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                $isV2CloudAPiKey = strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
+                $isV2CloudAPiKey = $this->is_eddsa_api_key();
                 if ($isCloudAPiKey || $isV2CloudAPiKey) {
                     if ($isCloudAPiKey && str_starts_with($this->apiKey, '-----BEGIN')) {
                         throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');

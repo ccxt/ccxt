@@ -568,9 +568,6 @@ class toobit(Exchange, ImplicitAPI):
     def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
-
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
-
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
@@ -1431,7 +1428,7 @@ class toobit(Exchange, ImplicitAPI):
         fetches the last price for multiple markets
 
         https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
 
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1474,7 +1471,7 @@ class toobit(Exchange, ImplicitAPI):
         fetches the bid and ask price and volume for multiple markets
 
         https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
 
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint

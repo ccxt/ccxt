@@ -28,6 +28,10 @@ class blofin extends blofin$1["default"] {
                 'watchOrders': true,
                 'watchOrdersForSymbols': true,
                 'watchPositions': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -108,6 +112,31 @@ class blofin extends blofin$1["default"] {
         }
         const result = this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
         return this.sortBy(result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
+    }
+    /**
+     * @method
+     * @name blofin#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        params['callerMethodName'] = 'unWatchTrades';
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name blofin#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        return await this.unsubscribeMultipleWrapper('trades', 'unWatchTradesForSymbols', symbols, params);
     }
     handleTrades(client, message) {
         //
@@ -414,6 +443,36 @@ class blofin extends blofin$1["default"] {
         }
         const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+    /**
+     * @method
+     * @name blofin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        params['callerMethodName'] = 'unWatchOHLCV';
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    }
+    /**
+     * @method
+     * @name blofin#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
+            throw new errors.ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        return await this.unsubscribeMultipleWrapper('candle', 'unWatchOHLCVForSymbols', symbolsAndTimeframes, params);
     }
     handleOHLCV(client, message) {
         //
@@ -761,6 +820,73 @@ class blofin extends blofin$1["default"] {
         const url = (this.urls['api'])['ws'][marketType][privateOrPublic];
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
+    async unsubscribeMultipleWrapper(channelName, callerMethodName, symbolsArray, params = {}) {
+        // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [callerMethodNameOption, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', callerMethodName);
+        const isOHLCV = (channelName === 'candle');
+        let symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        symbols = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.market(symbols[0]);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
+        if (marketType !== 'swap') {
+            throw new errors.NotSupported(this.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet');
+        }
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            let channel = channelName;
+            if (isOHLCV) {
+                const tfArray = symbolsArray[i];
+                const tf = tfArray[1];
+                const interval = this.safeString(this.timeframes, tf, tf);
+                channel += interval;
+            }
+            const topic = {
+                'channel': channel,
+                'instId': market['id'],
+            };
+            topics.push(topic);
+            messageHashes.push('unsubscribe:' + channel + ':' + market['symbol']);
+        }
+        const request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = (this.urls['api'])['ws'][marketType]['public'];
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
+    }
+    handleUnsubscription(client, message) {
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "channel": "candle1m",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const channel = this.safeString(arg, 'channel', '');
+        const marketId = this.safeString(arg, 'instId');
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
+        const subMessageHash = channel + ':' + symbol;
+        if (channel === 'trades') {
+            this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+            this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+        }
+        else if (channel.startsWith('candle')) {
+            const timeframe = this.findTimeframe(channel.replace('candle', ''));
+            if (timeframe !== undefined) {
+                this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+            }
+            this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+        }
+    }
     getSubscriptionRequest(args) {
         return {
             'op': 'subscribe',
@@ -802,6 +928,10 @@ class blofin extends blofin$1["default"] {
         else {
             const event = this.safeString(message, 'event');
             if (event === 'subscribe') {
+                return;
+            }
+            else if (event === 'unsubscribe') {
+                this.handleUnsubscription(client, message);
                 return;
             }
             else if (event === 'login') {

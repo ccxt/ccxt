@@ -554,8 +554,8 @@ impl DeriveCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_311: bool = true;
-            while { if !__for_first_311 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsResolved.len() as i64) as f64) } {
+            let mut __for_first_312: bool = true;
+            while { if !__for_first_312 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsResolved.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".100".into())).into()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
@@ -842,8 +842,8 @@ impl DeriveCore {
             let mut topics: Value = object_keys(&status);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_312: bool = true;
-                while { if !__for_first_312 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((topics.len() as i64) as f64) } {
+                let mut __for_first_313: bool = true;
+                while { if !__for_first_313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((topics.len() as i64) as f64) } {
                 let mut topic: Value = topics.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
                 let mut suffix: Option<String> = self.safe_string(parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -938,8 +938,8 @@ impl DeriveCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_314: bool = true;
+            while { if !__for_first_314 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
             tradesArray.append(trade);
         }
@@ -1120,8 +1120,8 @@ impl DeriveCore {
         let mut rawOrders: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
+            let mut __for_first_315: bool = true;
+            while { if !__for_first_315 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
             let mut data: Value = rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_order(data, &[]);
             let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
@@ -1281,8 +1281,8 @@ impl DeriveCore {
         let mut rawTrades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_316: bool = true;
+            while { if !__for_first_316 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
@@ -1473,8 +1473,8 @@ impl DeriveCore {
             let mut cache: Value = get_value(&self.positions, &subaccountIdKey);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_316: bool = true;
-                while { if !__for_first_316 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((positionsSnapshot.len() as i64) as f64) } {
+                let mut __for_first_317: bool = true;
+                while { if !__for_first_317 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < ((positionsSnapshot.len() as i64) as f64) } {
                 cache.append(positionsSnapshot.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1595,8 +1595,8 @@ impl DeriveCore {
         let mut positionUpdates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_318: bool = true;
+            while { if !__for_first_318 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1721,8 +1721,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut matched: bool = false;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_318: bool = true;
-                while { if !__for_first_318 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
+                let mut __for_first_319: bool = true;
+                while { if !__for_first_319 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

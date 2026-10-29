@@ -49,7 +49,7 @@ class bitget(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'borrowCrossMargin': True,
@@ -2147,7 +2147,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.stock]: set to True if you would like to fetch tokenized stock markets
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
+        adjustForTimeDifference = self.safe_bool(self.options, 'adjustForTimeDifference', False)
+        if adjustForTimeDifference:
             await self.load_time_difference()
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchMarkets', 'stock', False)
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchMarkets', False)
@@ -2180,11 +2181,21 @@ class bitget(Exchange, ImplicitAPI):
                 promises.append(self.publicMarginGetV2MarginCurrencies(params))
             else:
                 raise NotSupported(self.id + ' does not support ' + type + ' market')
+        spotInstrumentsIndex = len(promises)
+        if fetchMargins:
+            promises.append(self.publicUtaGetV3MarketInstruments({'category': 'SPOT'}))
         results = await asyncio.gather(*promises)
+        spotInstruments = {}
+        if fetchMargins:
+            instrumentsResponse = self.safe_dict(results, spotInstrumentsIndex)
+            instruments = self.safe_list(instrumentsResponse, 'data', [])
+            spotInstruments = self.index_by(instruments, 'symbol')
         markets = []
         self.options['crossMarginPairsData'] = []
         self.options['isolatedMarginPairsData'] = []
         for i in range(0, len(results)):
+            if i == spotInstrumentsIndex:
+                continue
             res = self.safe_dict(results, i)
             data = self.safe_list(res, 'data', [])
             firstData = self.safe_dict(data, 0, {})
@@ -2200,7 +2211,8 @@ class bitget(Exchange, ImplicitAPI):
                     entry = self.safe_dict(data, j, {})
                     entrySymbol = self.safe_string(entry, 'symbol')
                     entryBorrowable = self.safe_bool(entry, 'isBorrowable', True)
-                    if (entryBorrowable) and self.safe_bool(entry, 'isCrossBorrowable', True):
+                    isCrossBorrowable = self.safe_bool(entry, 'isCrossBorrowable', True)
+                    if entryBorrowable and isCrossBorrowable:
                         crossKeys.append(entrySymbol)
                     isolatedBase = self.safe_bool(entry, 'isIsolatedBaseBorrowable', True)
                     isolatedQuote = self.safe_bool_2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', True)
@@ -2270,150 +2282,185 @@ class bitget(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            marketId = self.safe_string(market, 'symbol')
             quoteId = self.safe_string(market, 'quoteCoin')
             baseId = self.safe_string(market, 'baseCoin')
             quote = self.safe_currency_code(quoteId)
             base = self.safe_currency_code(baseId)
             if (base is None) or (quote is None):
                 continue
-            supportMarginCoins = self.safe_list(market, 'supportMarginCoins', [])
-            settleId = None
-            if self.in_array(baseId, supportMarginCoins):
-                settleId = baseId
-            elif self.in_array(quoteId, supportMarginCoins):
-                settleId = quoteId
-            else:
-                settleId = self.safe_string(supportMarginCoins, 0)
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote
-            type = None
-            swap = False
-            spot = False
-            future = False
-            contract = False
-            pricePrecision = None
-            amountPrecision = None
-            linear = None
-            inverse = None
-            expiry = None
-            expiryDatetime = None
-            symbolType = self.safe_string(market, 'symbolType')
-            marginModes = None
-            isMarginTradingAllowed = False
-            if symbolType is None:
-                type = 'spot'
-                spot = True
-                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
-                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
-                hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
-                hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
-                marginModes = {
-                    'cross': hasCrossMargin,
-                    'isolated': hasIsolatedMargin,
-                }
-                isMarginTradingAllowed = hasCrossMargin or hasIsolatedMargin
-            else:
-                if symbolType == 'perpetual':
-                    type = 'swap'
-                    swap = True
-                    symbol = symbol + ':' + settle
-                elif symbolType == 'delivery':
-                    expiry = self.safe_integer(market, 'deliveryTime')
-                    expiryIso = self.iso8601(expiry)
-                    expiryDatetime = expiryIso
-                    expiryParts = expiryIso.split('-')
-                    yearPart = self.safe_string(expiryParts, 0, '')
-                    dayPart = self.safe_string(expiryParts, 2, '')
-                    year = yearPart[2:4]
-                    month = self.safe_string(expiryParts, 1)
-                    day = dayPart[0:2]
-                    expiryString = year + month + day
-                    type = 'future'
-                    future = True
-                    symbol = symbol + ':' + settle + '-' + expiryString
-                contract = True
-                inverse = (base == settle)
-                linear = not inverse
-                priceDecimals = self.safe_integer(market, 'pricePlace')
-                amountDecimals = self.safe_integer(market, 'volumePlace')
-                priceStep = self.safe_string(market, 'priceEndStep')
-                amountStep = self.safe_string(market, 'sizeMultiplier')
-                precise = Precise(priceStep)
-                precise.decimals = max(precise.decimals, priceDecimals)
-                precise.reduce()
-                priceString = str(precise)
-                pricePrecision = self.parse_number(priceString)
-                preciseAmount = Precise(amountStep)
-                preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
-                preciseAmount.reduce()
-                amountString = str(preciseAmount)
-                amountPrecision = self.parse_number(amountString)
-                marginModes = {
-                    'cross': True,
-                    'isolated': True,
-                }
-            status = self.safe_string_2(market, 'status', 'symbolStatus')
-            active = None
-            if status is not None:
-                active = ((status == 'online') or (status == 'normal'))
-            minCost = None
-            if quote == 'USDT':
-                minCost = self.safe_number(market, 'minTradeUSDT')
-            contractSize = 1 if contract else None
-            result.append(self.safe_market_structure({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': spot and isMarginTradingAllowed,
-                'marginModes': marginModes,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': self.safe_number(market, 'takerFeeRate'),
-                'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.safe_number(market, 'minLever'),
-                        'max': self.safe_number(market, 'maxLever'),
-                    },
-                    'amount': {
-                        'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
-                        'max': self.safe_number(market, 'maxTradeAmount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
-                },
-                'created': self.safe_integer(market, 'launchTime'),
-                'info': market,
-            }))
+            parsedMarket = self.parse_market(market)
+            if (parsedMarket is not None) and parsedMarket['spot']:
+                marketId = parsedMarket['id']
+                instrument = self.safe_dict(spotInstruments, marketId)
+                if instrument is not None:
+                    parsedInstrument = self.parse_market(instrument)
+                    if parsedInstrument is not None:
+                        parsedMarket['stock'] = parsedInstrument['stock']
+            result.append(parsedMarket)
         return result
+
+    def parse_market(self, market: dict) -> Market:
+        """
+        parses a classic or uta instrument into a unified market
+        :param dict market: the exchange instrument
+        :returns dict: a `market structure <https://docs.ccxt.com/?id=market-structure>`
+        """
+        assetType = self.safe_string_lower(market, 'symbolType')
+        reality = self.safe_string_lower(market, 'isReality')
+        isReality = (reality == 'yes')
+        stock = (assetType == 'stock') or ((assetType is None) and isReality)
+        category = self.safe_string(market, 'category')
+        if category is not None:
+            utaMarket = self.parse_uta_market(market, stock)
+            return self.safe_market_structure(self.extend({}, utaMarket))
+        marketId = self.safe_string(market, 'symbol')
+        quoteId = self.safe_string(market, 'quoteCoin')
+        baseId = self.safe_string(market, 'baseCoin')
+        quote = self.safe_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        supportMarginCoins = self.safe_list(market, 'supportMarginCoins', [])
+        settleId = None
+        if self.in_array(baseId, supportMarginCoins):
+            settleId = baseId
+        elif self.in_array(quoteId, supportMarginCoins):
+            settleId = quoteId
+        else:
+            settleId = self.safe_string(supportMarginCoins, 0)
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        type = None
+        swap = False
+        spot = False
+        future = False
+        contract = False
+        pricePrecision = None
+        amountPrecision = None
+        linear = None
+        inverse = None
+        expiry = None
+        expiryDatetime = None
+        symbolType = self.safe_string(market, 'symbolType')
+        marginModes = None
+        isMarginTradingAllowed = False
+        if (symbolType is None) or (symbolType == 'stock') or (symbolType == 'crypto'):
+            type = 'spot'
+            spot = True
+            priceDecimals = self.safe_string(market, 'pricePrecision')
+            amountDecimals = self.safe_string(market, 'quantityPrecision')
+            priceStep = self.parse_precision(priceDecimals)
+            amountStep = self.parse_precision(amountDecimals)
+            pricePrecision = self.parse_number(priceStep)
+            amountPrecision = self.parse_number(amountStep)
+            crossMarginPairs = self.safe_list(self.options, 'crossMarginPairsData', [])
+            isolatedMarginPairs = self.safe_list(self.options, 'isolatedMarginPairsData', [])
+            hasCrossMargin = self.in_array(marketId, crossMarginPairs)
+            hasIsolatedMargin = self.in_array(marketId, isolatedMarginPairs)
+            marginModes = {
+                'cross': hasCrossMargin,
+                'isolated': hasIsolatedMargin,
+            }
+            isMarginTradingAllowed = hasCrossMargin or hasIsolatedMargin
+        else:
+            if symbolType == 'perpetual':
+                type = 'swap'
+                swap = True
+                symbol = symbol + ':' + settle
+            elif symbolType == 'delivery':
+                expiry = self.safe_integer(market, 'deliveryTime')
+                expiryIso = self.iso8601(expiry)
+                expiryDatetime = expiryIso
+                expiryParts = expiryIso.split('-')
+                yearPart = self.safe_string(expiryParts, 0, '')
+                dayPart = self.safe_string(expiryParts, 2, '')
+                year = yearPart[2:4]
+                month = self.safe_string(expiryParts, 1)
+                day = dayPart[0:2]
+                expiryString = year + month + day
+                type = 'future'
+                future = True
+                symbol = symbol + ':' + settle + '-' + expiryString
+            contract = True
+            inverse = (base == settle)
+            linear = not inverse
+            priceDecimals = self.safe_integer(market, 'pricePlace')
+            amountDecimals = self.safe_integer(market, 'volumePlace')
+            priceStep = self.safe_string(market, 'priceEndStep')
+            amountStep = self.safe_string(market, 'sizeMultiplier')
+            precise = Precise(priceStep)
+            precise.decimals = max(precise.decimals, priceDecimals)
+            precise.reduce()
+            priceString = str(precise)
+            pricePrecision = self.parse_number(priceString)
+            preciseAmount = Precise(amountStep)
+            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
+            preciseAmount.reduce()
+            amountString = str(preciseAmount)
+            amountPrecision = self.parse_number(amountString)
+            marginModes = {
+                'cross': True,
+                'isolated': True,
+            }
+        status = self.safe_string_2(market, 'status', 'symbolStatus')
+        active = None
+        if status is not None:
+            active = ((status == 'online') or (status == 'normal'))
+        minCost = None
+        if quote == 'USDT':
+            minCost = self.safe_number(market, 'minTradeUSDT')
+        contractSize = 1 if contract else None
+        return self.safe_market_structure({
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': spot and isMarginTradingAllowed,
+            'marginModes': marginModes,
+            'swap': swap,
+            'future': future,
+            'option': False,
+            'stock': stock,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': self.safe_number(market, 'takerFeeRate'),
+            'maker': self.safe_number(market, 'makerFeeRate'),
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': self.safe_number(market, 'minLever'),
+                    'max': self.safe_number(market, 'maxLever'),
+                },
+                'amount': {
+                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                    'max': self.safe_number(market, 'maxTradeAmount'),
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+            },
+            'created': self.safe_integer(market, 'launchTime'),
+            'info': market,
+        })
 
     async def fetch_uta_markets(self, params: object) -> list[Market]:
         subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
@@ -2451,7 +2498,8 @@ class bitget(Exchange, ImplicitAPI):
         #         "maintainTime": "",
         #         "areaSymbol": "yes",
         #         "maxPositionNum": "200",
-        #         "isReality": "yes",
+        #         "isReality": "no",
+        #         "symbolType": "crypto",
         #         "launchTime": "1786698824814"
         #     }
         #
@@ -2525,143 +2573,158 @@ class bitget(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            category = self.safe_string(market, 'category')
-            marketId = self.safe_string(market, 'symbol')
             quoteId = self.safe_string(market, 'quoteCoin')
             baseId = self.safe_string(market, 'baseCoin')
             quote = self.safe_currency_code(quoteId)
             base = self.safe_currency_code(baseId)
             if (base is None) or (quote is None):
                 continue
-            isRealityValue = self.safe_string_lower(market, 'isReality', '')
-            isReality = (isRealityValue == 'yes')
-            settleId = None
-            if category == 'USDT-FUTURES':
-                settleId = 'USDT'
-            elif category == 'USDC-FUTURES':
-                settleId = 'USDC'
-            elif category == 'COIN-FUTURES':
-                settleId = base
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote
-            type = None
-            swap = False
-            spot = False
-            stock = False
-            future = False
-            contract = False
-            pricePrecision = None
-            amountPrecision = None
-            linear = None
-            inverse = None
-            expiry = None
-            expiryDatetime = None
-            symbolType = self.safe_string(market, 'type')
-            marginModes = None
-            isMarginTradingAllowed = False
-            isUtaMargin = (category == 'MARGIN')
-            if isReality or isUtaMargin or (category == 'SPOT'):
-                type = 'spot'
-                spot = True
-                stock = isReality
-                if isUtaMargin:
-                    isolatedBase = self.safe_string(market, 'isIsolatedBaseBorrowable')
-                    isolatedQuote = self.safe_string(market, 'isIsolatedQuotedBorrowable')
-                    isolated = (isolatedBase == 'YES') or (isolatedQuote == 'YES')
-                    maxCrossLeverage = self.safe_string(market, 'maxCrossedLeverage')
-                    cross = (maxCrossLeverage != '0')
-                    marginModes = {
-                        'cross': cross,
-                        'isolated': isolated,
-                    }
-                    isMarginTradingAllowed = True
-            else:
-                if symbolType == 'perpetual':
-                    type = 'swap'
-                    swap = True
-                    symbol = symbol + ':' + settle
-                elif symbolType == 'delivery':
-                    expiry = self.safe_integer(market, 'deliveryTime')
-                    expiryIso = self.iso8601(expiry)
-                    expiryDatetime = expiryIso
-                    expiryParts = expiryIso.split('-')
-                    yearPart = self.safe_string(expiryParts, 0, '')
-                    dayPart = self.safe_string(expiryParts, 2, '')
-                    year = yearPart[2:4]
-                    month = self.safe_string(expiryParts, 1)
-                    day = dayPart[0:2]
-                    expiryString = year + month + day
-                    type = 'future'
-                    future = True
-                    symbol = symbol + ':' + settle + '-' + expiryString
-                contract = True
-                inverse = (base == settle)
-                linear = not inverse
-                marginModes = {
-                    'cross': True,
-                    'isolated': True,
-                }
-            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
-            status = self.safe_string(market, 'status')
-            active = None
-            if status is not None:
-                active = ((status == 'online') or (status == 'normal'))
-            contractSize = 1 if contract else None
-            result.append(self.safe_market_structure({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': spot and isMarginTradingAllowed,
-                'marginModes': marginModes,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'stock': stock,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': self.safe_number(market, 'takerFeeRate'),
-                'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.safe_number(market, 'minLeverage'),
-                        'max': self.safe_number(market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'minOrderQty'),
-                        'max': self.safe_number(market, 'maxOrderQty'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'minOrderAmount'),
-                        'max': None,
-                    },
-                },
-                'created': self.safe_integer(market, 'launchTime'),
-                'info': market,
-            }))
+            parsedMarket = self.parse_market(market)
+            result.append(parsedMarket)
         return result
+
+    def parse_uta_market(self, market: dict, stock: bool) -> dict:
+        """
+ @ignore
+        parses a uta instrument
+        :param dict market: the exchange instrument
+        :param boolean stock: whether the instrument has a stock underlying
+        :returns dict: a unified market
+        """
+        category = self.safe_string(market, 'category')
+        marketId = self.safe_string(market, 'symbol')
+        quoteId = self.safe_string(market, 'quoteCoin')
+        baseId = self.safe_string(market, 'baseCoin')
+        quote = self.safe_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        settleId = None
+        if category == 'USDT-FUTURES':
+            settleId = 'USDT'
+        elif category == 'USDC-FUTURES':
+            settleId = 'USDC'
+        elif category == 'COIN-FUTURES':
+            settleId = base
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        type = None
+        swap = False
+        spot = False
+        future = False
+        contract = False
+        pricePrecision = None
+        amountPrecision = None
+        linear = None
+        inverse = None
+        expiry = None
+        expiryDatetime = None
+        symbolType = self.safe_string(market, 'type')
+        marginModes = None
+        isMarginTradingAllowed = False
+        isUtaMargin = (category == 'MARGIN')
+        if isUtaMargin or (category == 'SPOT'):
+            type = 'spot'
+            spot = True
+            if isUtaMargin:
+                isolatedBase = self.safe_string(market, 'isIsolatedBaseBorrowable')
+                isolatedQuote = self.safe_string(market, 'isIsolatedQuotedBorrowable')
+                isolated = (isolatedBase == 'YES') or (isolatedQuote == 'YES')
+                maxCrossLeverage = self.safe_string(market, 'maxCrossedLeverage')
+                cross = (maxCrossLeverage != '0')
+                marginModes = {
+                    'cross': cross,
+                    'isolated': isolated,
+                }
+                isMarginTradingAllowed = True
+        else:
+            if symbolType == 'perpetual':
+                type = 'swap'
+                swap = True
+                symbol = symbol + ':' + settle
+            elif symbolType == 'delivery':
+                expiry = self.safe_integer(market, 'deliveryTime')
+                expiryIso = self.iso8601(expiry)
+                expiryDatetime = expiryIso
+                expiryParts = expiryIso.split('-')
+                yearPart = self.safe_string(expiryParts, 0, '')
+                dayPart = self.safe_string(expiryParts, 2, '')
+                year = yearPart[2:4]
+                month = self.safe_string(expiryParts, 1)
+                day = dayPart[0:2]
+                expiryString = year + month + day
+                type = 'future'
+                future = True
+                symbol = symbol + ':' + settle + '-' + expiryString
+            contract = True
+            inverse = (base == settle)
+            linear = not inverse
+            marginModes = {
+                'cross': True,
+                'isolated': True,
+            }
+        priceDecimals = self.safe_string(market, 'pricePrecision')
+        amountDecimals = self.safe_string(market, 'quantityPrecision')
+        priceStep = self.parse_precision(priceDecimals)
+        amountStep = self.parse_precision(amountDecimals)
+        pricePrecision = self.parse_number(priceStep)
+        amountPrecision = self.parse_number(amountStep)
+        status = self.safe_string(market, 'status')
+        active = None
+        if status is not None:
+            active = ((status == 'online') or (status == 'normal'))
+        contractSize = 1 if contract else None
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': spot and isMarginTradingAllowed,
+            'marginModes': marginModes,
+            'swap': swap,
+            'future': future,
+            'option': False,
+            'stock': stock,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': self.safe_number(market, 'takerFeeRate'),
+            'maker': self.safe_number(market, 'makerFeeRate'),
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': self.safe_number(market, 'minLeverage'),
+                    'max': self.safe_number(market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': self.safe_number(market, 'minOrderQty'),
+                    'max': self.safe_number(market, 'maxOrderQty'),
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'minOrderAmount'),
+                    'max': None,
+                },
+            },
+            'created': self.safe_integer(market, 'launchTime'),
+            'info': market,
+        }
 
     async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
@@ -2729,10 +2792,14 @@ class bitget(Exchange, ImplicitAPI):
             if network is None:
                 raise ArgumentsRequired(self.id + ' requires a network argument')
             network = network.upper()
-            withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
-            rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+            withdrawableString = self.safe_string(chain, 'withdrawable')
+            rechargeableString = self.safe_string(chain, 'rechargeable')
+            withdrawable = (withdrawableString == 'true')
+            rechargeable = (rechargeableString == 'true')
             withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
             deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
+            withdrawMinScale = self.safe_string(chain, 'withdrawMinScale')
+            precision = self.parse_precision(withdrawMinScale)
             networks[network] = {
                 'info': chain,
                 'id': networkId,
@@ -2751,7 +2818,7 @@ class bitget(Exchange, ImplicitAPI):
                 'withdraw': withdrawable,
                 'deposit': rechargeable,
                 'fee': self.safe_number(chain, 'withdrawFee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
+                'precision': self.parse_number(precision),
             }
         active = (withdraw is True) and (deposit is True)
         isFiat = self.in_array(code, fiatCurrencies)
@@ -2970,7 +3037,8 @@ class bitget(Exchange, ImplicitAPI):
                 minNotional = minimumNotional
             maxNotional = self.safe_number_n(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue'])
             marginCurrency = self.safe_string_2(item, 'coin', 'baseCoin')
-            currencyId = marginCurrency if (marginCurrency is not None) else self.safe_string(market, 'base')
+            base = self.safe_string(market, 'base')
+            currencyId = marginCurrency if (marginCurrency is not None) else base
             marketId = self.safe_string(item, 'symbol')
             tiers.append({
                 'tier': self.safe_integer_2(item, 'level', 'tier'),
@@ -3353,6 +3421,7 @@ class bitget(Exchange, ImplicitAPI):
         if feeCostAbsString is not None:
             fee = {'currency': code, 'cost': self.parse_number(feeCostAbsString)}
             amountString = Precise.string_sub(amountString, feeCostAbsString)
+        transactionType = self.safe_string(transaction, 'type')
         return {
             'id': self.safe_string(transaction, 'orderId'),
             'info': transaction,
@@ -3364,7 +3433,7 @@ class bitget(Exchange, ImplicitAPI):
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
             'amount': self.parse_number(amountString),
-            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
+            'type': self.parse_transaction_type(transactionType),
             'currency': code,
             'status': self.parse_transaction_status(status),
             'updated': self.safe_integer_2(transaction, 'uTime', 'updatedTime'),
@@ -3476,7 +3545,6 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock order books
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -3489,12 +3557,12 @@ class bitget(Exchange, ImplicitAPI):
             request['limit'] = limit
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         response = None
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(paramsProductType, 'fetchOrderBook', 'stock', stockDefault)
+        isStock = market['stock']
+        paramsStock = self.omit(paramsProductType, 'stock')
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchOrderBook', False)
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
-        if isStock:
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or (uta is True))
+        if isStockSpot:
             if limit is not None:
                 raise BadRequest(self.id + ' fetchOrderBook() does not support limit for tokenized stock markets')
             if not self.check_required_credentials(False):
@@ -3657,7 +3725,8 @@ class bitget(Exchange, ImplicitAPI):
         else:
             marketType = 'spot'
         # both fields are ratios, and a ticker reports (change/open) * 100
-        percentage = Precise.string_mul(self.safe_string_2(ticker, 'price24hPcnt', 'change24h'), '100')
+        changeRatio = self.safe_string_2(ticker, 'price24hPcnt', 'change24h')
+        percentage = Precise.string_mul(changeRatio, '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
             'timestamp': timestamp,
@@ -3694,7 +3763,6 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -3705,11 +3773,10 @@ class bitget(Exchange, ImplicitAPI):
         }
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         response = None
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(paramsProductType, 'fetchTicker', 'stock', stockDefault)
+        isStock = market['stock']
+        paramsStock = self.omit(paramsProductType, 'stock')
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchTicker', False)
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
+        isStockOrUta = ((isStock and market['spot']) or (uta is True))
         if isStockOrUta:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, paramsUTA))
@@ -4178,12 +4245,14 @@ class bitget(Exchange, ImplicitAPI):
         isFeeStructure = (posMode is not None) or (category is not None)
         feeStructure = feeDetail[0] if isFeeStructure else feeDetail
         if feeStructure is not None:
-            currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
+            feeCoin = self.safe_string(feeStructure, 'feeCoin')
+            currencyCode = self.safe_currency_code(feeCoin)
             fee = {
                 'currency': currencyCode,
             }
             feeCostString = self.safe_string_2(feeStructure, 'totalFee', 'fee')
-            deduction = self.safe_string(feeStructure, 'deduction') is True if 'yes' else False
+            deductionString = self.safe_string(feeStructure, 'deduction')
+            deduction = (deductionString == 'yes')
             if deduction:
                 fee['cost'] = feeCostString
             else:
@@ -4220,7 +4289,6 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock trades
         :param int [params.until]: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
         :param boolean [params.paginate]: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
@@ -4231,22 +4299,19 @@ class bitget(Exchange, ImplicitAPI):
         paramsPaginate = None
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         market = self.market(symbol)
-        stockDefault = self.safe_bool(market, 'stock', False)
+        isStock = market['stock']
+        isStockSpot = isStock and market['spot']
+        paramsPaginate = self.omit(paramsPaginate, 'stock')
         if paginate:
-            # the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            stockForPagination = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)[0]
-            if stockForPagination is True:
+            if isStockSpot:
                 raise BadRequest(self.id + ' fetchTrades() does not support paginate for tokenized stock markets')
             return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan')
         request = {
             'symbol': market['id'],
         }
-        stock = None
-        stock, paramsPaginate = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)
         uta = None
         uta, paramsPaginate = await self.handle_uta_and_params(paramsPaginate, 'fetchTrades', False)
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
+        isStockOrUta = (isStockSpot or (uta is True))
         if limit is not None:
             if isStockOrUta:
                 request['limit'] = min(limit, 100)
@@ -4258,7 +4323,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         productType = None
         productType, paramsPaginate = self.handle_product_type_and_params(market, paramsPaginate)
-        if isStock:
+        if isStockSpot:
             if since is not None:
                 raise BadRequest(self.id + ' fetchTrades() does not support since for tokenized stock markets')
             if not self.check_required_credentials(False):
@@ -4636,7 +4701,6 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock candlesticks
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200, 100 for uta)
         :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
@@ -4663,13 +4727,13 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(paramsUTA, 'fetchOHLCV', 'stock', stockDefault)
+        isStock = market['stock']
+        isStockSpot = isStock and market['spot']
+        paramsStock = self.omit(paramsUTA, 'stock')
         marketType = None
         timeframes = None
         timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
+        isStockOrUta = (isStockSpot or (uta is True))
         if isStockOrUta:
             timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
@@ -4679,7 +4743,8 @@ class bitget(Exchange, ImplicitAPI):
             request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
         msInDay = 86400000
         now = self.milliseconds()
-        duration = self.parse_timeframe(timeframe) * 1000
+        timeframeSeconds = self.parse_timeframe(timeframe)
+        duration = timeframeSeconds * 1000
         until = self.safe_integer(paramsStock, 'until')
         limitDefined = limit is not None
         paramsOmitted = self.omit(paramsStock, ['until'])
@@ -4747,7 +4812,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         priceType, paramsPrice = self.handle_param_string(paramsOmitted, 'price')
         productType, paramsProductType = self.handle_product_type_and_params(market, paramsPrice)
-        if isStock and (priceType is not None):
+        if isStockSpot and (priceType is not None):
             raise BadRequest(self.id + ' fetchOHLCV() for stock markets supports only market-price candles')
         if isStockOrUta:
             if priceType is not None:
@@ -5372,7 +5437,8 @@ class bitget(Exchange, ImplicitAPI):
                 'currency': marketResolved['settle'],
             }
         feeDetail = self.safe_value(order, 'feeDetail')
-        uta = self.safe_string(order, 'category') is not None
+        category = self.safe_string(order, 'category')
+        uta = (category is not None)
         if uta:
             feeResult = self.safe_dict(feeDetail, 0, {})
             utaFee = self.safe_string(feeResult, 'fee')
@@ -5387,12 +5453,16 @@ class bitget(Exchange, ImplicitAPI):
                 feeObject = None
                 for i in range(0, len(feeValues)):
                     feeValue = feeValues[i]
-                    if self.safe_string(feeValue, 'feeCoinCode') is not None:
+                    feeValueCoinCode = self.safe_string(feeValue, 'feeCoinCode')
+                    if feeValueCoinCode is not None:
                         feeObject = feeValue
                         break
+                totalFee = self.safe_string(feeObject, 'totalFee')
+                feeCost = Precise.string_neg(totalFee)
+                feeCoinCode = self.safe_string(feeObject, 'feeCoinCode')
                 fee = {
-                    'cost': self.parse_number(Precise.string_neg(self.safe_string(feeObject, 'totalFee'))),
-                    'currency': self.safe_currency_code(self.safe_string(feeObject, 'feeCoinCode')),
+                    'cost': self.parse_number(feeCost),
+                    'currency': self.safe_currency_code(feeCoinCode),
                 }
         postOnly = None
         timeInForce = self.safe_string_upper_2(order, 'force', 'timeInForce')
@@ -5529,7 +5599,6 @@ class bitget(Exchange, ImplicitAPI):
         :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode, default is False
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to place tokenized stock orders
         :param str [params.posSide]: *uta only* hedged two-way position side, long or short
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5538,8 +5607,9 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marginParams = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = marginParams[0]
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'createOrder', 'stock', stockDefault)
+        isStock = market['stock']
+        isStockSpot = isStock and market['spot']
+        paramsStock = self.omit(params, 'stock')
         triggerPrice = self.safe_number_2(paramsStock, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_number(paramsStock, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(paramsStock, 'takeProfitPrice')
@@ -5555,14 +5625,13 @@ class bitget(Exchange, ImplicitAPI):
         hasTakeProfit = takeProfit is not None
         response = None
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'createOrder', False)
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
-        if isStock:
+        isStockOrUta = (isStockSpot or (uta is True))
+        if isStockSpot:
             if isTriggerOrder or isStopLossOrTakeProfitTrigger or hasStopLoss or hasTakeProfit or isTrailingPercentOrder:
                 raise InvalidOrder(self.id + ' createOrder() only supports market and limit orders for tokenized stock markets')
         if isStockOrUta:
             request = self.create_uta_order_request(symbol, type, side, amount, price, paramsUTA)
-            if isStock:
+            if isStockSpot:
                 response = await self.privateUtaPostV3TradePlaceRealityOrder(request)
             elif isStopLossOrTakeProfitTrigger:
                 response = await self.privateUtaPostV3TradePlaceStrategyOrder(request)
@@ -5921,7 +5990,8 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
-        symbol = self.safe_string(self.safe_dict(orders, 0), 'symbol')
+        firstOrder = self.safe_dict(orders, 0)
+        symbol = self.safe_string(firstOrder, 'symbol')
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -5987,7 +6057,8 @@ class bitget(Exchange, ImplicitAPI):
         if uta is True:
             return await self.create_uta_orders(orders, paramsUTA)
         ordersRequests = []
-        symbol = self.safe_string(self.safe_dict(orders, 0), 'symbol')
+        firstOrder = self.safe_dict(orders, 0)
+        symbol = self.safe_string(firstOrder, 'symbol')
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -6290,7 +6361,6 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.planType]: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
         :param boolean [params.trailing]: set to True if you want to cancel a trailing order
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True if you would like to cancel tokenized stock orders
         :param str [params.clientOrderId]: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -6303,9 +6373,9 @@ class bitget(Exchange, ImplicitAPI):
         response = {}
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelOrder', params)
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock = None
-        stock, paramsMarginMode = self.handle_option_bool_and_params(paramsMarginMode, 'cancelOrder', 'stock', stockDefault)
+        isStock = market['stock']
+        isStockSpot = isStock and market['spot']
+        paramsMarginMode = self.omit(paramsMarginMode, 'stock')
         request = {}
         trailing = self.safe_bool(paramsMarginMode, 'trailing')
         trigger = self.safe_bool_2(paramsMarginMode, 'stop', 'trigger')
@@ -6314,13 +6384,12 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         uta = None
         uta, paramsMarginMode = await self.handle_uta_and_params(paramsMarginMode, 'cancelOrder', False)
-        isStock = (stock is True)
-        isStockOrUta = (isStock or (uta is True))
+        isStockOrUta = (isStockSpot or (uta is True))
         isPlanOrder = (trigger is True) or (trailing is True)
         isContract = (market['swap'] is True) or (market['future'] is True)
         isContractTriggerEndpoint = isContract and isPlanOrder and not isStockOrUta
         clientOrderId = self.safe_string_2(paramsMarginMode, 'clientOrderId', 'clientOid')
-        if isStock and isPlanOrder:
+        if isStockSpot and isPlanOrder:
             raise InvalidOrder(self.id + ' cancelOrder() does not support trigger or trailing orders for tokenized stock markets')
         if isContractTriggerEndpoint:
             orderIdList = []
@@ -6338,7 +6407,7 @@ class bitget(Exchange, ImplicitAPI):
                 request['clientOid'] = clientOrderId
             else:
                 request['orderId'] = id
-        if isStock:
+        if isStockSpot:
             response = await self.privateUtaPostV3TradeCancelRealityOrder(self.extend(request, paramsMarginMode))
         elif isStockOrUta:
             if trigger is True:
@@ -6629,14 +6698,13 @@ class bitget(Exchange, ImplicitAPI):
                 timestamp = self.safe_integer(response, 'requestTime')
                 responseData = self.safe_dict(response, 'data')
                 marketId = self.safe_string(responseData, 'symbol')
-                return [
-                    self.safe_order({
-                        'info': response,
-                        'symbol': self.safe_symbol(marketId, None, None, 'spot'),
-                        'timestamp': timestamp,
-                        'datetime': self.iso8601(timestamp),
-                    }),
-                ]
+                parsedOrder = self.safe_order({
+                    'info': response,
+                    'symbol': self.safe_symbol(marketId, None, None, 'spot'),
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                })
+                return [parsedOrder]
         else:
             request['productType'] = productType
             if trigger is True:
@@ -6900,7 +6968,8 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         trailing = self.safe_bool(paramsMarginMode, 'trailing')
         trigger = self.safe_bool_2(paramsMarginMode, 'stop', 'trigger')
-        planTypeDefined = self.safe_string(paramsMarginMode, 'planType') is not None
+        planTypeValue = self.safe_string(paramsMarginMode, 'planType')
+        planTypeDefined = (planTypeValue is not None)
         isTrigger = (trigger is True) or planTypeDefined
         request, paramsMarginMode = self.handle_until_option('endTime', request, paramsMarginMode)
         if since is not None:
@@ -7375,7 +7444,8 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, paramsUTA = self.handle_product_type_and_params(market, paramsUTA)
             request['productType'] = productType
-            planTypeDefined = self.safe_string(paramsUTA, 'planType') is not None
+            planTypeValue = self.safe_string(paramsUTA, 'planType')
+            planTypeDefined = (planTypeValue is not None)
             if trailing is True:
                 planType = self.safe_string(paramsUTA, 'planType', 'track_plan')
                 request['planType'] = planType
@@ -7568,9 +7638,11 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         if marketType == 'spot':
             if (marginMode is not None) or (trigger is True):
-                return self.parse_orders(self.safe_list(data, 'orderList'), market, sinceResolved, limit)
+                orderList = self.safe_list(data, 'orderList')
+                return self.parse_orders(orderList, market, sinceResolved, limit)
         else:
-            return self.parse_orders(self.safe_list(data, 'entrustedList'), market, sinceResolved, limit)
+            entrustedList = self.safe_list(data, 'entrustedList')
+            return self.parse_orders(entrustedList, market, sinceResolved, limit)
         if isinstance(response, str):
             response = json.loads(response)
         orders = self.safe_list(response, 'data', [])
@@ -7957,6 +8029,7 @@ class bitget(Exchange, ImplicitAPI):
         direction = 'in'
         if amountRaw.find('-') >= 0:
             direction = 'out'
+        businessType = self.safe_string_n(item, ['businessType', 'groupType', 'type'])
         return self.safe_ledger_entry({
             'info': item,
             'id': self.safe_string_2(item, 'billId', 'id'),
@@ -7966,7 +8039,7 @@ class bitget(Exchange, ImplicitAPI):
             'account': None,
             'referenceId': None,
             'referenceAccount': None,
-            'type': self.parse_ledger_type(self.safe_string_n(item, ['businessType', 'groupType', 'type'])),
+            'type': self.parse_ledger_type(businessType),
             'currency': code,
             'amount': amount,
             'before': before,
@@ -8665,7 +8738,8 @@ class bitget(Exchange, ImplicitAPI):
             position = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(position)):
-            result.append(self.parse_position(position[i], market))
+            parsedPosition = self.parse_position(position[i], market)
+            result.append(parsedPosition)
         symbolsNormalized = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
@@ -8808,7 +8882,8 @@ class bitget(Exchange, ImplicitAPI):
         marginString = None
         initialMargin = None
         unrealizedPnl = self.safe_string_2(position, 'unrealizedPL', 'unrealisedPnl')
-        rawCollateral = self.omit_zero(self.safe_string_2(position, 'marginSize', 'positionBalance'))
+        collateralString = self.safe_string_2(position, 'marginSize', 'positionBalance')
+        rawCollateral = self.omit_zero(collateralString)
         if marginMode == 'isolated':
             collateral = Precise.string_add(rawCollateral, unrealizedPnl) if (unrealizedPnl is not None) else rawCollateral
             initialMargin = rawCollateral
@@ -8838,8 +8913,11 @@ class bitget(Exchange, ImplicitAPI):
         markPrice = self.safe_string(position, 'markPrice')
         notional = Precise.string_mul(baseAmount, markPrice)
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
-        rawLiquidationPrice = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
-        liquidationPrice = self.parse_number(rawLiquidationPrice) if ((rawLiquidationPrice is not None) and Precise.string_gt(rawLiquidationPrice, '0')) else None
+        liquidationPriceString = self.safe_string(position, 'liquidationPrice')
+        rawLiquidationPrice = self.omit_zero(liquidationPriceString)
+        liquidationPrice = None
+        if (rawLiquidationPrice is not None) and Precise.string_gt(rawLiquidationPrice, '0'):
+            liquidationPrice = self.parse_number(rawLiquidationPrice)
         calcTakerFeeRate = self.safe_string(marketResolved, 'taker', '0.0006')
         calcTakerFeeMult = Precise.string_sub('1', calcTakerFeeRate)
         if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
@@ -8983,7 +9061,8 @@ class bitget(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
+        marketSymbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, marketSymbol, since, limit)
 
     async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -9415,7 +9494,8 @@ class bitget(Exchange, ImplicitAPI):
             # if (business !== 'contract_settle_fee') {
             #     continue;
             # }
-            result.append(self.parse_funding_history(contract, market))
+            parsedFunding = self.parse_funding_history(contract, market)
+            result.append(parsedFunding)
         sorted = self.sort_by(result, 'timestamp')
         symbol = None
         if market is not None:
@@ -9445,7 +9525,8 @@ class bitget(Exchange, ImplicitAPI):
         #         "data": ""
         #     }
         #
-        return self.extend(self.parse_margin_modification(response, market), {
+        marginModification = self.parse_margin_modification(response, market)
+        return self.extend(marginModification, {
             'amount': self.parse_number(amount),
             'type': type,
         })
@@ -9564,7 +9645,8 @@ class bitget(Exchange, ImplicitAPI):
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        isCrossMarginMode = self.safe_string(leverage, 'marginMode') == 'crossed'
+        marginMode = self.safe_string(leverage, 'marginMode')
+        isCrossMarginMode = (marginMode == 'crossed')
         longLevKey = 'isolatedLongLever'
         if isCrossMarginMode:
             longLevKey = 'crossedMarginLeverage'
@@ -10817,10 +10899,11 @@ class bitget(Exchange, ImplicitAPI):
         if marketId is not None:
             marginMode = 'isolated'
         timestamp = self.safe_integer(info, 'cTime')
+        interestCoin = self.safe_string(info, 'interestCoin')
         return {
             'info': info,
             'symbol': self.safe_string(marketResolved, 'symbol'),
-            'currency': self.safe_currency_code(self.safe_string(info, 'interestCoin')),
+            'currency': self.safe_currency_code(interestCoin),
             'interest': self.safe_number(info, 'interestAmount'),
             'interestRate': self.safe_number(info, 'dailyInterestRate'),
             'amountBorrowed': None,

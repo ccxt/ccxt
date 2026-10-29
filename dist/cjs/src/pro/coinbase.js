@@ -262,23 +262,24 @@ class coinbase extends coinbase$1["default"] {
         const timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
+        const isV2CloudAPiKey = this.isEddsaApiKey();
         const auth = timestamp + name + productIds.join(',');
-        if (!isCloudAPiKey) {
+        if (!isCloudAPiKey && !isV2CloudAPiKey) {
             subscribe['api_key'] = this.apiKey;
             subscribe['timestamp'] = timestamp;
             subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         else {
-            if (this.apiKey.startsWith('-----BEGIN')) {
+            if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                 throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString(this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds();
-            const tokenExpiry = tokenTimestamp + 120;
+            const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken(seconds);
+                const token = this.createAuthToken(seconds, undefined, undefined, this.isEddsaApiKey());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }

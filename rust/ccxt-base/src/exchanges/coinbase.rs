@@ -165,6 +165,7 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "find_account_id" => self.find_account_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "is_eddsa_api_key" => self.is_eddsa_api_key(),
                 "nonce" => self.nonce(),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_contract_market" => self.parse_contract_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -292,7 +293,7 @@ impl CoinbaseCore {
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedPositions".to_string(), Value::Bool(false));
-        m.insert("fetchL2OrderBook".to_string(), Value::Bool(false));
+        m.insert("fetchL2OrderBook".to_string(), Value::Bool(true));
         m.insert("fetchLedger".to_string(), Value::Bool(true));
         m.insert("fetchLeverage".to_string(), Value::Bool(false));
         m.insert("fetchLeverages".to_string(), Value::Bool(false));
@@ -6916,6 +6917,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
+/*
+ * @method
+ * @name coinbase#isEddsaApiKey
+ * @ignore
+ * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+ * @returns {boolean} true if the secret is an Ed25519 key
+ */
+    pub fn is_eddsa_api_key(&self) -> Value {
+        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
+
+    Value::Null
+}
+
     pub fn create_auth_token(&self, mut seconds: Value, optional_args: &[Value]) -> Value {
         let mut method = get_arg(optional_args, 0, Value::Null);
         let mut url = get_arg(optional_args, 1, Value::Null);
@@ -7049,9 +7063,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                let mut isV2CloudAPiKey: Value = Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
-                if isCloudAPiKey || matches!(&isV2CloudAPiKey, Value::Bool(true)) {
+                let mut isV2CloudAPiKey: Value = self.is_eddsa_api_key();
+                if isCloudAPiKey || isV2CloudAPiKey.as_bool() == Some(true) {
                     if isCloudAPiKey && (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
                     }
@@ -7073,7 +7086,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //     'uri': uri,
                     //     'iat': seconds,
                     // }
-                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), isV2CloudAPiKey.clone()]);
+                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), isV2CloudAPiKey]);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into());
                 }  else {
