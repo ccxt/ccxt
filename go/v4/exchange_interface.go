@@ -55,7 +55,7 @@ type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IFetchOrder interface {
-	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
+	FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[Order]
