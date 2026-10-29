@@ -1427,16 +1427,12 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType: Str = undefined;
             if (type === 'spot') {
-                requestType = 'spot';
+                request['kind'] = 'spot';
             } else if (type === 'future' || (type === 'contract')) {
-                requestType = 'future';
+                request['kind'] = 'future';
             } else if (type === 'option') {
-                requestType = 'option';
-            }
-            if (requestType !== undefined) {
-                request['kind'] = requestType;
+                request['kind'] = 'option';
             }
         }
         const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, paramsOmitted));
@@ -2796,8 +2792,7 @@ export default class deribit extends Exchange {
         //
         const contract = this.safeString (position, 'instrument_name');
         const marketResolved: Market = this.safeMarket (contract, market);
-        let side = this.safeString (position, 'direction');
-        side = (side === 'buy') ? 'long' : 'short';
+        const side = (this.safeString (position, 'direction') === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
         const notionalString = this.safeString (position, 'size_currency');
