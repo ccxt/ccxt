@@ -10260,7 +10260,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async fetchUnifiedOrder (order: any, params: Dict = {}): Promise<Order> {
-        return await this.fetchOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
+        return await this.fetchOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
