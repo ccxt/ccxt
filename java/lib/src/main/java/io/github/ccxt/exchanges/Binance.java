@@ -5643,36 +5643,36 @@ public class Binance extends BinanceApi
             for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
-                Map<String, Object> account = this.account();
+                Map<String, Object> accountPapi = this.account();
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 if (java.util.Objects.equals(type, "linear"))
                 {
-                    account.put("free", this.safeString(entry, "umWalletBalance"));
-                    account.put("used", this.safeString(entry, "umUnrealizedPNL"));
+                    accountPapi.put("free", this.safeString(entry, "umWalletBalance"));
+                    accountPapi.put("used", this.safeString(entry, "umUnrealizedPNL"));
                 } else if (java.util.Objects.equals(type, "inverse"))
                 {
-                    account.put("free", this.safeString(entry, "cmWalletBalance"));
-                    account.put("used", this.safeString(entry, "cmUnrealizedPNL"));
+                    accountPapi.put("free", this.safeString(entry, "cmWalletBalance"));
+                    accountPapi.put("used", this.safeString(entry, "cmUnrealizedPNL"));
                 } else if (Boolean.TRUE.equals(cross))
                 {
                     String borrowed = this.safeString(entry, "crossMarginBorrowed");
                     String interest = this.safeString(entry, "crossMarginInterest");
-                    account.put("debt", Precise.stringAdd(borrowed, interest));
-                    account.put("free", this.safeString(entry, "crossMarginFree"));
-                    account.put("used", this.safeString(entry, "crossMarginLocked"));
-                    account.put("total", this.safeString(entry, "crossMarginAsset"));
+                    accountPapi.put("debt", Precise.stringAdd(borrowed, interest));
+                    accountPapi.put("free", this.safeString(entry, "crossMarginFree"));
+                    accountPapi.put("used", this.safeString(entry, "crossMarginLocked"));
+                    accountPapi.put("total", this.safeString(entry, "crossMarginAsset"));
                 } else
                 {
                     String usedLinear = this.safeString(entry, "umUnrealizedPNL");
                     String usedInverse = this.safeString(entry, "cmUnrealizedPNL");
                     String totalUsed = Precise.stringAdd(usedLinear, usedInverse);
                     String totalWalletBalance = this.safeString(entry, "totalWalletBalance");
-                    account.put("total", Precise.stringAdd(totalUsed, totalWalletBalance));
+                    accountPapi.put("total", Precise.stringAdd(totalUsed, totalWalletBalance));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    ((Map<String, Object>)result).put(code, accountPapi);
                 }
             }
         } else if (!Boolean.TRUE.equals(isolated) && ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(cross)))
@@ -5684,18 +5684,18 @@ public class Binance extends BinanceApi
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
-                account.put("free", this.safeString(balance, "free"));
-                account.put("used", this.safeString(balance, "locked"));
+                Map<String, Object> accountSpot = this.account();
+                accountSpot.put("free", this.safeString(balance, "free"));
+                accountSpot.put("used", this.safeString(balance, "locked"));
                 if (Boolean.TRUE.equals(cross))
                 {
                     String debt = this.safeString(balance, "borrowed");
                     String interest = this.safeString(balance, "interest");
-                    account.put("debt", Precise.stringAdd(debt, interest));
+                    accountSpot.put("debt", Precise.stringAdd(debt, interest));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    ((Map<String, Object>)result).put(code, accountSpot);
                 }
             }
         } else if (Boolean.TRUE.equals(isolated))
@@ -5725,13 +5725,13 @@ public class Binance extends BinanceApi
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(positionAmountVos, i, (Object) null);
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
+                Map<String, Object> accountSavings = this.account();
                 String usedAndTotal = this.safeString(entry, "amount");
-                account.put("total", usedAndTotal);
-                account.put("used", usedAndTotal);
+                accountSavings.put("total", usedAndTotal);
+                accountSavings.put("used", usedAndTotal);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    ((Map<String, Object>)result).put(code, accountSavings);
                 }
             }
         } else if (java.util.Objects.equals(type, "funding"))
@@ -5739,17 +5739,17 @@ public class Binance extends BinanceApi
             for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
-                Map<String, Object> account = this.account();
+                Map<String, Object> accountFunding = this.account();
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                account.put("free", this.safeString(entry, "free"));
+                accountFunding.put("free", this.safeString(entry, "free"));
                 String frozen = this.safeString(entry, "freeze");
                 String withdrawing = this.safeString(entry, "withdrawing");
                 String locked = this.safeString(entry, "locked");
-                account.put("used", Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing)));
+                accountFunding.put("used", Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing)));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    ((Map<String, Object>)result).put(code, accountFunding);
                 }
             }
         } else
@@ -5770,13 +5770,13 @@ public class Binance extends BinanceApi
                 }
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
-                account.put("free", this.safeString(balance, "availableBalance"));
-                account.put("used", this.safeString(balance, "initialMargin"));
-                account.put("total", this.safeString2(balance, "marginBalance", "balance"));
+                Map<String, Object> accountFutures = this.account();
+                accountFutures.put("free", this.safeString(balance, "availableBalance"));
+                accountFutures.put("used", this.safeString(balance, "initialMargin"));
+                accountFutures.put("total", this.safeString2(balance, "marginBalance", "balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    ((Map<String, Object>)result).put(code, accountFutures);
                 }
             }
         }

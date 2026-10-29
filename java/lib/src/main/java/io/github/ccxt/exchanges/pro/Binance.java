@@ -917,11 +917,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("orderbook::" + symbol));
+                subscribeHashes.add(("orderbook::" + symbol));
                 String subscriptionHash = ((this.safeString(market, "lowercaseId", "") + "@") + name);
                 if (java.util.Objects.equals(watchOrderBookRate, null))
                 {
@@ -946,7 +948,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             subscription.put("limit", limit);
             subscription.put("type", type);
             subscription.put("params", paramsRpi);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, paramsRpi), messageHashes, subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, paramsRpi), subscribeHashes, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1526,6 +1528,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(isOption, true))
             {
@@ -1537,6 +1540,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
                     messageHashes.add(("trade::" + symbol));
+                    subscribeHashes.add(("trade::" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     String underlying = ((baseIdLower + "") + quoteIdLower);
@@ -1553,6 +1557,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
                     messageHashes.add(("trade::" + symbol));
+                    subscribeHashes.add(("trade::" + symbol));
                     String rawHash = ((this.safeString(market, "lowercaseId", "") + "@") + name);
                     ((List<Object>)subParams).add(rawHash);
                 }
@@ -1569,7 +1574,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, this.extend(request, query), subscribeHashes, subscribe)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -2085,6 +2090,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
@@ -2111,6 +2117,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
                 messageHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
+                subscribeHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             }
             String url = ((this.getWsUrl(wsUrlType, (String) (this.getFutureWsCategory(klineType))) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
             Long requestId = this.requestId(url);
@@ -2123,7 +2130,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "id", requestId );
             }};
             Map<String, Object> paramsOmitted = this.omit(paramsTimezone, "callerMethodName");
-            Object res = (this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes, subscribe)).join();
+            Object res = (this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), subscribeHashes, subscribe)).join();
             var symboltimeframecandlesVariable = res;
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);

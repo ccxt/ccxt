@@ -1187,7 +1187,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 // const ob = this.orderBook ({});
                 io.github.ccxt.ws.WsOrderBook.CountedOrderBook ob = this.countedOrderBook(new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(ob, "symbol", symbol);
+                ob.put("symbol", symbol);
                 this.orderbooks.put(symbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);

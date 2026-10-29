@@ -440,10 +440,14 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //       }
         //
         String channel = this.safeString(message, "topic");
-        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        if (!java.util.Objects.equals(dataDict, null))
+        {
+            rawOrders = new ArrayList<Object>(Arrays.asList(dataDict));
+        }
         // usually the first message is an empty array
-        Integer dataLength = (switch ((Object)(data)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
-        if ((dataLength != null && dataLength == 0))
+        if ((((List<?>)rawOrders).size() == 0))
         {
             return;
         }
@@ -453,14 +457,6 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Object rawOrders = null;
-        if (!(data instanceof List))
-        {
-            rawOrders = new ArrayList<Object>(Arrays.asList(data));
-        } else
-        {
-            rawOrders = data;
-        }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
@@ -530,7 +526,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
         Long timestamp = this.safeTimestamp(message, "time");
-        this.balance.put("info", this.safeDict(message, "data", new HashMap<String, Object>() {{}}));
+        this.balance.put("info", data);
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)keys).size(); i++)

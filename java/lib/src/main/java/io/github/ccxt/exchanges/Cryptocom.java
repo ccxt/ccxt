@@ -1751,14 +1751,6 @@ public class Cryptocom extends CryptocomApi
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        if (java.util.Objects.equals(type, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
-        }
-        if (java.util.Objects.equals(side, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
-        }
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();

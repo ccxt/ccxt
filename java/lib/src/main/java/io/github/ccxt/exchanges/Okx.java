@@ -4484,7 +4484,8 @@ public class Okx extends OkxApi
         Boolean marketIOC = (Boolean.TRUE.equals(isMarketOrder) && Boolean.TRUE.equals(ioc)) || (java.util.Objects.equals(type, "optimal_limit_ioc"));
         String defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         String tgtCcy = this.safeString(orderParams, "tgtCcy", defaultTgtCcy);
-        if ((!java.util.Objects.equals(contract, true)) && (!Boolean.TRUE.equals(margin)))
+        // conditional sell orders must not carry tgtCcy
+        if ((!java.util.Objects.equals(contract, true)) && (!Boolean.TRUE.equals(margin)) && (Boolean.TRUE.equals(trigger) || (!Boolean.TRUE.equals(conditional)) || (!java.util.Objects.equals(side, "sell"))))
         {
             request.put("tgtCcy", tgtCcy);
         }
@@ -4683,11 +4684,7 @@ public class Okx extends OkxApi
             {
                 request.put("ordType", "oco");
             }
-            if (java.util.Objects.equals(side, "sell"))
-            {
-                request = this.omit(request, "tgtCcy");
-            }
-            if (java.util.Objects.equals(this.safeString(request, "tdMode"), "cash"))
+            if ((java.util.Objects.equals(spot, true)) && (!Boolean.TRUE.equals(margin)))
             {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}

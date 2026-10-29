@@ -6003,7 +6003,7 @@ public class Bitget extends BitgetApi
                 if (Boolean.TRUE.equals(isStock))
                 {
                     request.put("category", "SPOT");
-                } else if (!(request.containsKey("category")))
+                } else
                 {
                     request.put("category", productType);
                 }

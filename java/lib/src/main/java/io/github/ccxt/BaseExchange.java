@@ -7857,7 +7857,6 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            String errorMessage = "";
             Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
             Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
             try
@@ -7869,9 +7868,8 @@ public Map<String, Object> describe()
                 }
                 Long maxRetries = this.safeInteger(options, "webApiRetries", 10);
                 Object response = null;
-                long retry = 0;
                 Boolean shouldBreak = false;
-                while ((maxRetries != null && retry < maxRetries))
+                for (var retry = 0; (maxRetries != null && retry < maxRetries); retry++)
                 {
                     try
                     {
@@ -7880,8 +7878,7 @@ public Map<String, Object> describe()
                         break;
                     } catch(Exception e)
                     {
-                        retry = (retry + 1L);
-                        if ((maxRetries != null && retry == maxRetries))
+                        if (((maxRetries == null || (((long) retry) + 1L) >= maxRetries)))
                         {
                             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
@@ -7926,15 +7923,12 @@ public Map<String, Object> describe()
                 }
             } catch(Exception e)
             {
-                errorMessage = (((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
+                if (!Boolean.TRUE.equals(muteOnFailure))
+                {
+                    throw new BadResponse((((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")) ;
+                }
             }
-            if (Boolean.TRUE.equals(muteOnFailure))
-            {
-                return null;
-            } else
-            {
-                throw new BadResponse(errorMessage) ;
-            }
+            return null;
         });
 
     }
