@@ -10,6 +10,7 @@ import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler } from "./transpile.js";
+import { hx11w8BasePinnedListParams } from './hx11w8-base-pinned-list-params.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import os from 'os';
@@ -6110,7 +6111,7 @@ function j03IntIndex (lines: string[], i: number, key: string): { guard: string,
     if (/^\d+$/.test(key)) {
         return { guard: '', idx: key };
     }
-    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key)) {
+    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key) || /^\(\(\(\(Number\) [A-Za-z_]\w*\)\.longValue\(\)\) - 1L\)$/.test(key)) {
         return { guard: '', idx: '((int) ' + key + ')' };
     }
     if (!/^[A-Za-z_]\w*$/.test(key)) {
@@ -6131,7 +6132,7 @@ export function nativeJavaJ03ElementReads (content: string): string {
         return content;
     }
     const lines = content.split('\n');
-    const call = /Helpers\.GetValue\(([A-Za-z_]\w*), (\d+|[A-Za-z_]\w*|\(\(\(long\) [A-Za-z_]\w*\) - 1L\))\)/g;
+    const call = /Helpers\.GetValue\(([A-Za-z_]\w*), (\d+|[A-Za-z_]\w*|\(\(\(long\) [A-Za-z_]\w*\) - 1L\)|\(\(\(\(Number\) [A-Za-z_]\w*\)\.longValue\(\)\) - 1L\))\)/g;
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -7585,6 +7586,7 @@ function j20ParamCompareSelfTest (): string[] {
 function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
+    content = hx11w8BasePinnedListParams(content);
     content = nativeJavaDeclaredElementReads(content);
     content = nativeJavaJ03ElementReads(content);
     content = nativeJavaJ02ElementReads(content, sourcePath); // hx10 w2 J02

@@ -5234,7 +5234,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public List<Object> filterByLimit(Object array, Long limit, Object key, Object fromStart)
+    public List<Object> filterByLimit(List<Object> array, Long limit, Object key, Object fromStart)
     {
         if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null))
         {
@@ -5245,7 +5245,7 @@ public Map<String, Object> describe()
                 if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
                 {
                     Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
-                    Double last = this.safeFloat(Helpers.GetValue(array, ((((Number) arrayLength).longValue()) - 1L)), java.util.Objects.requireNonNullElse(key, "timestamp"));
+                    Double last = this.safeFloat((array == null || ((int) ((((Number) arrayLength).longValue()) - 1L)) < 0 || ((int) ((((Number) arrayLength).longValue()) - 1L)) >= array.size() ? null : array.get(((int) ((((Number) arrayLength).longValue()) - 1L)))), java.util.Objects.requireNonNullElse(key, "timestamp"));
                     if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
                     {
                         ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
@@ -7417,7 +7417,7 @@ public Map<String, Object> describe()
         return fee;
     }
 
-    public Object findNearestCeiling(Object arr, Object providedValue)
+    public Object findNearestCeiling(List<Object> arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         Integer length = ((List<?>)arr).size();
@@ -7429,7 +7429,7 @@ public Map<String, Object> describe()
                 return current;
             }
         }
-        return Helpers.GetValue(arr, (((long) length) - 1L));
+        return (arr == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= arr.size() ? null : arr.get(((int) (((long) length) - 1L))));
     }
 
     public Object addKeyInArrayItems(Object obj, Object keyName)
