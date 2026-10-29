@@ -1280,7 +1280,7 @@ public class Lighter extends LighterApi
             {
                 // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
                 // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
-                Object groupOrderExpiry = this.sum(this.milliseconds(), 2419200000L); // 28 days
+                Long groupOrderExpiry = (Long) this.sum(this.milliseconds(), 2419200000L); // 28 days
                 for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
                 {
                     if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))

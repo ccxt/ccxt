@@ -869,7 +869,7 @@ public class Sxbet extends SxbetApi
             // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
             String lengthHex = (hex == null ? null : ((String)hex).substring(Math.min(64, ((String)hex).length()), Math.min(128, ((String)hex).length())));
             Long length = this.parseToInt(this.hexToInt(lengthHex));
-            Object dataEnd = this.sum(128, (length * 2L));
+            Long dataEnd = (Long) this.sum(128, (length * 2L));
             String dataHex = Helpers.slice(hex, 128, dataEnd);
             return this.decode(this.base16ToBinary(dataHex));
         }).thenApply(res -> (String) res);

@@ -3698,7 +3698,7 @@ public class Lbank extends LbankApi
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)
         {
             Long start = (((long) i) * 64L);
-            Object end = this.sum(start, 64);
+            Long end = (Long) this.sum(start, 64);
             pem = (pem + (Helpers.slice(this.secret, start, end) + "\n")); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");

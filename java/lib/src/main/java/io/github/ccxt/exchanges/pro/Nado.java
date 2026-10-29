@@ -1429,7 +1429,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
             Long id = this.requestId();
             String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Object expiration = this.sum(this.milliseconds(), recvWindow);
+            Long expiration = (Long) this.sum(this.milliseconds(), recvWindow);
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "expiration", Nado.this.numberToString(expiration) );

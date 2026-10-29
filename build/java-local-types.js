@@ -19241,6 +19241,66 @@ export function nativeJavaJ27Arithmetic (content) {
     return out;
 }
 
+// hx11 w8: `Object x = this.sum(<integral>, <integral>)` locals -> `Long x = (Long) this.sum(..)`.
+// Generic.sum maps null to 0 and answers (long) for any whole sum, so integral args always give a Long box.
+function sumLongLocalsMember (lines, from, to) {
+    const ctx = j04MemberCtx (lines, from, to).ctx;
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (this\.sum\(.*)\);(\s*\/\/.*)?$/;
+    let changed = false;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, name ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const writeLines = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) {
+                writeLines.push ([ j, w[2].trim () ]);
+                if (!j24UseOk (j === i ? `${iden}j24w = ${d[3]});` : lines[j], name, false)) ok = false;
+            } else if (assign.test (code)) ok = false;
+            else if (!j24UseOk (lines[j], name, false)) ok = false;
+        }
+        if (!ok) continue;
+        // every write is a Long-box producer (the sum call itself included)
+        const boxes = writeLines.map (([ , v ]) => j27Box (ctx, v));
+        if (boxes.includes (undefined) || boxes.some ((b) => b !== 'Long' && b !== 'null')) continue;
+        if (j27Box (ctx, `${d[3]})`) !== 'Long') continue;
+        lines[i] = `${iden}Long ${name} = (Long) ${d[3]});${d[4] ?? ''}`;
+        for (const [ j, v ] of writeLines) {
+            if (j === i || !/^this\.sum\(/.test (v)) continue;
+            lines[j] = lines[j].replace (new RegExp (`(?<![\\w$.])${name} = (?=this\\.sum\\()`), `${name} = (Long) `);
+        }
+        changed = true;
+    }
+    return changed;
+}
+
+export function nativeJavaSumLongLocals (content) {
+    if (!/^\s*Object [A-Za-z_]\w* = this\.sum\(/m.test (content)) return content;
+    // a class declaring its own sum() keeps the Object-typed call
+    if (/^    (?:public|private|protected)[^\n(]* sum\(/m.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    if (starts.length === 0) return content;
+    const out = lines.slice (0, starts[0]);
+    for (let s = 0; s < starts.length; s++) {
+        const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
+        sumLongLocalsMember (member, 0, member.length);
+        out.push (...member);
+    }
+    return out.join ('\n');
+}
+
 // hx4 J31
 // ===== hx4 J31: multiply/subtract over Long/Integer locals the J04/J23 null proofs miss =====
 // Adds non-null writes the string-blind splitters reject: ternaries whose condition holds a string literal

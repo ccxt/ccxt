@@ -1264,7 +1264,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Long first = this.parseToInt(offset);
         Long size = this.parseToInt(length);
         Long start = (first * 2L);
-        Object end = this.sum(start, (size * 2L));
+        Long end = (Long) this.sum(start, (size * 2L));
         return this.binaryToString(this.base16ToBinary(Helpers.slice(frameHex, start, end)));
     }
 

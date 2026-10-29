@@ -695,7 +695,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     // safety guard
                     if (client.subscriptions.containsKey(messageHash))
                     {
-                        Object nextAttempts = this.sum(numAttempts, 1);
+                        Long nextAttempts = (Long) this.sum(numAttempts, 1);
                         Object delayTime = 1000;
                         if ((!java.util.Objects.equals(lastTimestamp, null)) && (!java.util.Objects.equals(snapshotTimestamp, null)))
                         {

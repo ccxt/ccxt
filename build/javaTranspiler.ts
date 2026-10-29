@@ -30,7 +30,7 @@ import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
 import { nativeJavaJ04Arithmetic } from './java-local-types.js';
 import { nativeJavaJ20ParamCompare } from './java-local-types.js';
-import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmetic, nativeJavaJ27Arithmetic } from './java-local-types.js';
+import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmetic, nativeJavaJ27Arithmetic, nativeJavaSumLongLocals } from './java-local-types.js';
 import { nativeJavaJ31Arithmetic, nativeJavaJ32DivModNeg, nativeJavaJ37DivModNeg } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
@@ -3688,6 +3688,7 @@ class NewTranspiler {
         content = nativeJavaJ20ParamCompare(content); // hx4 J20
         content = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(content)); // hx4 J23, J24
         content = nativeJavaJ27Arithmetic(content); // hx4 J27
+        content = nativeJavaSumLongLocals(content); // hx11 w8 sum-long-local
         content = nativeJavaJ31Arithmetic(content); // hx4 J31
         content = nativeJavaJ25Compare(content); // hx4 J25
         content = nativeJavaJ32DivModNeg(content); // hx4 J32

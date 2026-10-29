@@ -2381,7 +2381,7 @@ public class Hollaex extends HollaexApi
             this.checkRequiredCredentials(true);
             Long timeoutMs = this.parseToInt(this.timeout);
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt((((double) timeoutMs) / ((double) 1000))));
-            Object expires = this.sum(this.seconds(), defaultExpires);
+            Long expires = (Long) this.sum(this.seconds(), defaultExpires);
             String expiresString = this.numberToString(expires);
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + requestPath) + expiresString);
             requestHeaders = new HashMap<String, Object>() {{
