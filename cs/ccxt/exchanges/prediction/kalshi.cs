@@ -1233,7 +1233,7 @@ public partial class kalshi : PredictionExchange
                 tickers.Add(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = (outcomesByTicker.ContainsKey(ticker) ? outcomesByTicker[ticker] : null);
+            List<object> grouped = this.safeList(outcomesByTicker, ticker, new List<object>() {});
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByTicker[(string)ticker] = grouped;
         }

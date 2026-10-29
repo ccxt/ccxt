@@ -6814,8 +6814,7 @@ public partial class xt : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            string? defaultRecvWindow = this.safeString(this.options, "recvWindow", "5000");
-            string? recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
+            string? recvWindow = this.safeString(query, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             string? timestamp = this.numberToString(this.nonce());
             if ((payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch"))
             {
@@ -6833,7 +6832,8 @@ public partial class xt : Exchange
             {
                 isUndefinedBody = false;
             }
-            signedBody = isUndefinedBody ? null : this.json(query);
+            string jsonBody = this.json(query);
+            signedBody = isUndefinedBody ? null : jsonBody;
             string payloadString = "";
             if ((endpoint == "spot") || (endpoint == "user"))
             {
@@ -6850,7 +6850,7 @@ public partial class xt : Exchange
                     }
                 } else
                 {
-                    payloadString = ((((((spotPrefix + "#") + method) + "#") + payload) + "#") + signedBody);
+                    payloadString = ((((((spotPrefix + "#") + method) + "#") + payload) + "#") + jsonBody);
                 }
                 headersValue["xt-validate-algorithms"] = "HmacSHA256";
                 headersValue["xt-validate-recvwindow"] = recvWindow;
@@ -6869,7 +6869,7 @@ public partial class xt : Exchange
                     }
                 } else
                 {
-                    payloadString = ((((futurePrefix + "#") + payload) + "#") + signedBody);
+                    payloadString = ((((futurePrefix + "#") + payload) + "#") + jsonBody);
                 }
             }
             headersValue["xt-validate-appkey"] = this.apiKey;

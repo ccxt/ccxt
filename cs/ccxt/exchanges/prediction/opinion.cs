@@ -1522,10 +1522,6 @@ public partial class opinion : PredictionExchange
      */
     public async virtual Task<object> loadTradeMarket(object marketId)
     {
-        if ((marketId == null))
-        {
-            throw new ArgumentsRequired ((this.id + " loadTradeMarket() requires a marketId")) ;
-        }
         string cacheKey = "tradeMarketsById";
         IDictionary<string, object> cached = this.safeDict(this.options, cacheKey, new Dictionary<string, object>() {});
         string idStr = marketId.ToString();

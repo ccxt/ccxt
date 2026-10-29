@@ -1377,13 +1377,14 @@ public partial class kraken : ccxt.kraken
                 //         }
                 //     }
                 //
-                subscription = this.safeDict(response, "result");
+                subscription = this.extend(this.safeDict(response, "result"), new Dictionary<string, object>() {
+                    { "start", now },
+                });
                 string? token = this.safeString(subscription, "token");
                 if ((token == null))
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty token")) ;
                 }
-                ((IDictionary<string,object>)subscription)["start"] = now;
                 ((IDictionary<string,object>)client.subscriptions)[authenticated] = subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads

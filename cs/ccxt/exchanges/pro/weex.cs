@@ -153,8 +153,8 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        Int64 timestamp = this.nonce();
-        string payload = (this.numberToString(timestamp) + "/v3/ws/private");
+        string timestamp = this.nonce().ToString();
+        string payload = (timestamp + "/v3/ws/private");
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
         IDictionary<string, object> originalHeaders = this.safeDict(getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
@@ -166,7 +166,7 @@ public partial class weex : ccxt.weex
                         { "ACCESS-KEY", this.apiKey },
                         { "ACCESS-SIGN", signature },
                         { "ACCESS-PASSPHRASE", this.password },
-                        { "ACCESS-TIMESTAMP", this.numberToString(timestamp) },
+                        { "ACCESS-TIMESTAMP", timestamp },
                     } },
                 } },
             } },
@@ -1957,7 +1957,7 @@ public partial class weex : ccxt.weex
             accountType = "swap";
         }
         string messageHash = (accountType + ":balance");
-        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
+        if (!((this.balance != null && this.balance.ContainsKey(accountType))))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }

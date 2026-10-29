@@ -865,7 +865,7 @@ public partial class BaseExchange
     {
         key ??= "timestamp";
         fromStart ??= false;
-        if (this.valueIsDefined(limit))
+        if ((limit != null) && (limit != null))
         {
             int arrayLength = (array?.Count ?? 0);
             if (arrayLength > 0)
@@ -907,7 +907,7 @@ public partial class BaseExchange
         {
             return new List<object>() {};
         }
-        bool sinceIsDefined = this.valueIsDefined(since);
+        bool sinceIsDefined = (since != null) && (since != null);
         IList<object> parsedArray = this.toArray(array);
         IList<object> result = parsedArray;
         if (sinceIsDefined)
@@ -938,7 +938,7 @@ public partial class BaseExchange
         key ??= "timestamp";
         tail ??= false;
         bool valueIsDefined = this.valueIsDefined(value);
-        bool sinceIsDefined = this.valueIsDefined(since);
+        bool sinceIsDefined = (since != null) && (since != null);
         IList<object> parsedArray = this.toArray(array);
         IList<object> result = parsedArray;
         // single-pass filter for both symbol and since
@@ -2360,14 +2360,17 @@ public partial class BaseExchange
             freeBalance[(string)code] = this.parseNumber(free);
             usedBalance[(string)code] = this.parseNumber(used);
             totalBalance[(string)code] = this.parseNumber(total);
-            ((IDictionary<string,object>)getValue(balance, code))["free"] = (code != null && freeBalance.ContainsKey(code) ? freeBalance[code] : null);
-            ((IDictionary<string,object>)getValue(balance, code))["used"] = (code != null && usedBalance.ContainsKey(code) ? usedBalance[code] : null);
-            ((IDictionary<string,object>)getValue(balance, code))["total"] = (code != null && totalBalance.ContainsKey(code) ? totalBalance[code] : null);
+            Dictionary<string, object> entry = new Dictionary<string, object>() {
+                { "free", (code != null && freeBalance.ContainsKey(code) ? freeBalance[code] : null) },
+                { "used", (code != null && usedBalance.ContainsKey(code) ? usedBalance[code] : null) },
+                { "total", (code != null && totalBalance.ContainsKey(code) ? totalBalance[code] : null) },
+            };
             if ((debt != null))
             {
                 debtBalance[(string)code] = this.parseNumber(debt);
-                ((IDictionary<string,object>)getValue(balance, code))["debt"] = (code != null && debtBalance.ContainsKey(code) ? debtBalance[code] : null);
+                entry["debt"] = (code != null && debtBalance.ContainsKey(code) ? debtBalance[code] : null);
             }
+            ((IDictionary<string,object>)balance)[(string)code] = this.extend(getValue(balances, code), entry);
         }
         ((IDictionary<string,object>)balance)["free"] = freeBalance;
         ((IDictionary<string,object>)balance)["used"] = usedBalance;

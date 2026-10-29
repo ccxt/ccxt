@@ -488,9 +488,15 @@ public partial class gemini : ccxt.gemini
             object delta = changes[i];
             double? price = this.safeNumber(delta, 1);
             double? size = this.safeNumber(delta, 2);
-            string side = ((this.safeString(delta, 0) == "buy")) ? "bids" : "asks";
-            object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
-            (bookside as IOrderBookSide).store(price, size);
+            if ((this.safeString(delta, 0) == "buy"))
+            {
+                ccxt.pro.IBids bids = orderbook?.bids;
+                (bids as IOrderBookSide).store(price, size);
+            } else
+            {
+                ccxt.pro.IAsks asks = orderbook?.asks;
+                (asks as IOrderBookSide).store(price, size);
+            }
         }
         orderbook["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

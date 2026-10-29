@@ -3869,6 +3869,7 @@ public partial class poloniex : Exchange
             {
                 Dictionary<string, object> currency = this.currency(code);
                 depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(feeInfo, currency);
+                IDictionary<string, object> parsedFee = this.safeDict(depositWithdrawFees, code, new Dictionary<string, object>() {});
                 List<object> childChains = this.safeList(feeInfo, "childChains", new List<object>() {});
                 int chainsLength = childChains.Count;
                 if (chainsLength > 0)
@@ -3894,9 +3895,10 @@ public partial class poloniex : Exchange
                                 } },
                             };
                         }
-                        ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["networks"] = this.extend(this.safeDict((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks", new Dictionary<string, object>() {}), networkObject);
+                        parsedFee["networks"] = this.extend(this.safeDict(parsedFee, "networks", new Dictionary<string, object>() {}), networkObject);
                     }
                 }
+                depositWithdrawFees[(string)code] = parsedFee;
             }
         }
         return depositWithdrawFees;

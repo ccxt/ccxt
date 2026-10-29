@@ -674,6 +674,10 @@ public partial class deepcoin : Exchange
             isLinear = (quoteId != "USD");
             settleId = isLinear == true ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
+            if ((settle == null))
+            {
+                return null;
+            }
             symbol = ((((bs + "/") + quote) + ":") + settle);
         }
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});

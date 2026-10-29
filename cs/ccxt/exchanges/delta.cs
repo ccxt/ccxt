@@ -4424,7 +4424,7 @@ public partial class delta : Exchange
             } else
             {
                 requestBody = this.json(query);
-                auth = auth + requestBody;
+                auth = (((method + timestamp) + requestPath) + requestBody);
                 privateHeaders["Content-Type"] = "application/json";
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);

@@ -5835,21 +5835,21 @@ public partial class coinbase : Exchange
         return (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
     }
 
-    public virtual string? createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
+    public virtual string? createAuthToken(object seconds, object url, string? method = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         useEddsa ??= false;
-        object uri = null;
-        if ((url != null))
+        string? uri = null;
+        if (!(url is ""))
         {
-            uri = add(add(method, " "), url.Replace("https://", (string)""));
-            int quesPos = getIndexOf(uri, "?");
+            uri = ((method + " ") + ((string)url).Replace("https://", (string)""));
+            int quesPos = (uri?.IndexOf("?", StringComparison.Ordinal) ?? -1);
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (quesPos > 0)
             {
-                uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
+                uri = ((uri == null) ? null : uri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? uri.Length + (quesPos) : quesPos), uri.Length), 0)));
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
@@ -6006,7 +6006,7 @@ public partial class coinbase : Exchange
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    string token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
+                    string token = this.createAuthToken(seconds, url, method, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = ("Bearer " + token);
                 } else

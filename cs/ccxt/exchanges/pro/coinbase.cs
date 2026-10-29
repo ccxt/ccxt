@@ -292,7 +292,7 @@ public partial class coinbase : ccxt.coinbase
             if ((currentToken == null) || ((tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
-                string token = this.createAuthToken(seconds, null, null, this.isEddsaApiKey());
+                string token = this.createAuthToken(seconds, "", null, this.isEddsaApiKey());
                 this.options["wsToken"] = token;
                 this.options["wsTokenTimestamp"] = seconds;
             }

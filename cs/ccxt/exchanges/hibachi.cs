@@ -723,8 +723,9 @@ public partial class hibachi : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
-        List<object> promises = new List<object>(await Task.WhenAll(rawPromises));
-        object pricesResponse = (promises != null && 0 < promises.Count ? promises[0] : null);
+        var pricesResponsestatsResponseVariable = new List<object>(await Task.WhenAll(rawPromises));
+        var pricesResponse = ((IList<object>) pricesResponsestatsResponseVariable)[0];
+        var statsResponse = ((IList<object>) pricesResponsestatsResponseVariable)[1];
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -737,7 +738,6 @@ public partial class hibachi : Exchange
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        object statsResponse = (promises != null && 1 < promises.Count ? promises[1] : null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",

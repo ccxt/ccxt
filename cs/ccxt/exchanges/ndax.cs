@@ -3055,16 +3055,35 @@ public partial class ndax : Exchange
         {
             this.checkRequiredCredentials();
             string? sessionToken = this.safeString(this.options, "sessionToken");
+            bool isPost = ((method == "POST"));
             if ((sessionToken == null))
             {
                 string nonce = this.nonce().ToString();
                 string auth = ((nonce + this.uid) + this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                if (isPost)
+                {
+                    headersSigned = new Dictionary<string, object>() {
+                        { "Nonce", nonce },
+                        { "APIKey", this.apiKey },
+                        { "Signature", signature },
+                        { "UserId", this.uid },
+                        { "Content-Type", "application/json" },
+                    };
+                } else
+                {
+                    headersSigned = new Dictionary<string, object>() {
+                        { "Nonce", nonce },
+                        { "APIKey", this.apiKey },
+                        { "Signature", signature },
+                        { "UserId", this.uid },
+                    };
+                }
+            } else if (isPost)
+            {
                 headersSigned = new Dictionary<string, object>() {
-                    { "Nonce", nonce },
-                    { "APIKey", this.apiKey },
-                    { "Signature", signature },
-                    { "UserId", this.uid },
+                    { "APToken", sessionToken },
+                    { "Content-Type", "application/json" },
                 };
             } else
             {
@@ -3072,9 +3091,8 @@ public partial class ndax : Exchange
                     { "APToken", sessionToken },
                 };
             }
-            if ((method == "POST"))
+            if (isPost)
             {
-                headersSigned["Content-Type"] = "application/json";
                 bodySigned = this.json(query);
             } else
             {
