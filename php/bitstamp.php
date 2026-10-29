@@ -2002,10 +2002,10 @@ class bitstamp extends Exchange {
         //         "timestamp": "1644406050"
         //     }
         //
-        $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.001);
+        $timestamp = $this->safe_integer_product($contract, 'timestamp', 1000);
         return array(
             'info' => $contract,
-            'symbol' => null,
+            'symbol' => $this->safe_symbol(null, $market),
             'fundingRate' => $this->safe_number($contract, 'funding_rate'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
