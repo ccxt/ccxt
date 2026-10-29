@@ -1742,12 +1742,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 func (this *Cryptocom) ParseBalance(response any) map[string]any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTyped(responseResult, "data")
-	var positionBalances []any = SafeListTyped(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return DerefScalar(data[0])
-		}
-		return nil
-	}(), "position_balances")
+	var positionBalances []any = SafeListTyped(this.SafeDict(data, 0), "position_balances")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
