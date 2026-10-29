@@ -271574,7 +271574,7 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
-                const precision = this.currency(market['quote'])['precision'];
+                const precision = this.safeNumber(this.currency(market['quote']), 'precision');
                 request['amountQuote'] = this.decimalToPrecision(cost, (/* inlined export .TRUNCATE */0), precision, this.precisionMode);
             } else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
@@ -365994,15 +365994,6 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                         'rule': rule
                     };
                 }
-                if (reduceOnly !== undefined) {
-                    request['initial']['reduce_only'] = reduceOnly;
-                }
-                if (timeInForce !== undefined) {
-                    request['initial']['tif'] = timeInForce;
-                }
-                if (clientOrderId !== undefined) {
-                    request['initial']['text'] = clientOrderId;
-                }
             } else {
                 // spot conditional order
                 const options = this.safeDict(this.options, 'createOrder', {});
@@ -421894,7 +421885,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
         return orderbook;
     }
-    handleTriggerPrices(params) {
+    checkTriggerPrices(params) {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
@@ -421903,11 +421894,6 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         if (isStopLoss && isTakeProfit || triggerPrice !== undefined && stopLossPrice !== undefined || triggerPrice !== undefined && isTakeProfit) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
-        return [
-            triggerPrice,
-            stopLossPrice,
-            takeProfitPrice
-        ];
     }
     /**
      * @method
@@ -422002,7 +421988,10 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         const paramsOmitted = this.omit(params, 'test');
         const [hf, paramsHf] = this.handleHfAndParams(paramsOmitted);
         const [useSync, paramsSync] = this.handleOptionBoolAndParams(paramsHf, 'createOrder', 'sync', false);
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsSync);
+        this.checkTriggerPrices(paramsSync);
+        const triggerPrice = this.safeNumber2(paramsSync, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsSync, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsSync, 'takeProfitPrice');
         const tradeType = this.safeString(paramsSync, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const marginMode = this.handleMarginModeAndParams('createOrder', paramsSync)[0];
@@ -422089,7 +422078,10 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const tradeType = this.safeString(paramsOmitted, 'tradeType'); // keep it for backward compatibility
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const isTriggerOrder = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         paramsOmitted = this.omit(paramsOmitted, [
@@ -422246,7 +422238,10 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 request['size'] = parseInt(sizeString);
             }
         }
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
@@ -422508,7 +422503,10 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             }
         }
         // handling with conditional orders
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
@@ -470175,7 +470173,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [method, paramsMethod] = this.handleOptionAndParams(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
         const until = this.safeInteger(paramsMethod, 'until');
         if (until !== undefined) {
             request['end'] = until;
@@ -497496,8 +497494,14 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        const limitValue = limit === undefined ? 20 : limit;
-        const limitResolved = limitValue > 50 ? 50 : limitValue;
+        let limitValue = this.parseToInt(20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(limit);
+        }
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt(50);
+        }
         for(let qi = 0; qi < queriesLength; qi++){
             const request = {
                 'query': queries[qi]
@@ -515838,7 +515842,7 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
                     vol
                 ];
             } else {
-                const candle = buckets[bucketKey];
+                const candle = this.safeList(buckets, bucketKey, []);
                 candle[2] = Math.max(candle[2], price); // high
                 candle[3] = Math.min(candle[3], price); // low
                 candle[4] = price; // close (last tick wins)
@@ -544527,7 +544531,7 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const generation = this.handleOptionIntegerAndParams(params, 'watchBalance', 'generation', 2)[0];
+        const [generation] = this.handleOptionIntegerAndParams(params, 'watchBalance', 'generation', 2);
         if (generation !== 2) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' watchBalance() is only supported for the generation 2 API');
         }
@@ -544648,7 +544652,7 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const generation = this.handleOptionIntegerAndParams(params, 'watchOrders', 'generation', 2)[0];
+        const [generation] = this.handleOptionIntegerAndParams(params, 'watchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' watchOrders() is only supported for the generation 2 API');
         }
@@ -551632,9 +551636,13 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         }
         const [callerMethodNameOption, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', callerMethodName);
         const isOHLCV = channelName === 'candle';
-        let symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.market(symbols[0]);
+        let symbols = [];
+        if (isOHLCV) {
+            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), undefined, false, true);
+        } else {
+            symbols = this.marketSymbols(symbolsArray, undefined, false, true);
+        }
+        const firstMarket = this.market(this.safeString(symbols, 0));
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
         if (marketType !== 'swap') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet');
@@ -551642,7 +551650,7 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbols.length; i++){
-            const market = this.market(symbols[i]);
+            const market = this.market(this.safeString(symbols, i));
             let channel = channelName;
             if (isOHLCV) {
                 const tfArray = symbolsArray[i];

@@ -1511,7 +1511,7 @@ class bitvavo extends bitvavo$1["default"] {
                 cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
-                const precision = this.currency(market['quote'])['precision'];
+                const precision = this.safeNumber(this.currency(market['quote']), 'precision');
                 request['amountQuote'] = this.decimalToPrecision(cost, number.TRUNCATE, precision, this.precisionMode);
             }
             else {

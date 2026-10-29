@@ -8684,7 +8684,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [method, paramsMethod] = this.handleOptionAndParams(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
         const until = this.safeInteger(paramsMethod, 'until');
         if (until !== undefined) {
             request['end'] = until;

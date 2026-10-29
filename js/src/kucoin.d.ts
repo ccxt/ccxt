@@ -281,7 +281,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleTriggerPrices(params: Dict): [Num, Num, Num];
+    checkTriggerPrices(params: Dict): void;
     /**
      * @method
      * @name kucoin#createOrder

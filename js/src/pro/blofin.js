@@ -827,9 +827,14 @@ export default class blofin extends blofinRest {
         }
         const [callerMethodNameOption, paramsCallerMethodName] = this.handleParamString(params, 'callerMethodName', callerMethodName);
         const isOHLCV = (channelName === 'candle');
-        let symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.market(symbols[0]);
+        let symbols = [];
+        if (isOHLCV) {
+            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), undefined, false, true);
+        }
+        else {
+            symbols = this.marketSymbols(symbolsArray, undefined, false, true);
+        }
+        const firstMarket = this.market(this.safeString(symbols, 0));
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
         if (marketType !== 'swap') {
             throw new NotSupported(this.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet');
@@ -837,7 +842,7 @@ export default class blofin extends blofinRest {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const market = this.market(symbols[i]);
+            const market = this.market(this.safeString(symbols, i));
             let channel = channelName;
             if (isOHLCV) {
                 const tfArray = symbolsArray[i];

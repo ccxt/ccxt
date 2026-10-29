@@ -3976,7 +3976,7 @@ export default class kucoin extends Exchange {
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
         return orderbook;
     }
-    handleTriggerPrices(params) {
+    checkTriggerPrices(params) {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
@@ -3985,7 +3985,6 @@ export default class kucoin extends Exchange {
         if ((isStopLoss && isTakeProfit) || ((triggerPrice !== undefined) && (stopLossPrice !== undefined)) || ((triggerPrice !== undefined) && isTakeProfit)) {
             throw new ExchangeError(this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
-        return [triggerPrice, stopLossPrice, takeProfitPrice];
     }
     /**
      * @method
@@ -4085,7 +4084,10 @@ export default class kucoin extends Exchange {
         const paramsOmitted = this.omit(params, 'test');
         const [hf, paramsHf] = this.handleHfAndParams(paramsOmitted);
         const [useSync, paramsSync] = this.handleOptionBoolAndParams(paramsHf, 'createOrder', 'sync', false);
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsSync);
+        this.checkTriggerPrices(paramsSync);
+        const triggerPrice = this.safeNumber2(paramsSync, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsSync, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsSync, 'takeProfitPrice');
         const tradeType = this.safeString(paramsSync, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         const marginMode = this.handleMarginModeAndParams('createOrder', paramsSync)[0];
@@ -4176,7 +4178,10 @@ export default class kucoin extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const tradeType = this.safeString(paramsOmitted, 'tradeType'); // keep it for backward compatibility
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         paramsOmitted = this.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice']);
@@ -4333,7 +4338,10 @@ export default class kucoin extends Exchange {
                 request['size'] = parseInt(sizeString);
             }
         }
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
@@ -4603,7 +4611,10 @@ export default class kucoin extends Exchange {
             }
         }
         // handling with conditional orders
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;

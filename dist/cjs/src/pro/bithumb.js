@@ -774,7 +774,7 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const generation = this.handleOptionIntegerAndParams(params, 'watchBalance', 'generation', 2)[0];
+        const [generation] = this.handleOptionIntegerAndParams(params, 'watchBalance', 'generation', 2);
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' watchBalance() is only supported for the generation 2 API');
         }
@@ -893,7 +893,7 @@ class bithumb extends bithumb$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const generation = this.handleOptionIntegerAndParams(params, 'watchOrders', 'generation', 2)[0];
+        const [generation] = this.handleOptionIntegerAndParams(params, 'watchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' watchOrders() is only supported for the generation 2 API');
         }

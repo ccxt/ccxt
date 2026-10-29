@@ -445,8 +445,14 @@ class binance extends binance$1["default"] {
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        const limitValue = (limit === undefined) ? 20 : limit;
-        const limitResolved = (limitValue > 50) ? 50 : limitValue;
+        let limitValue = this.parseToInt(20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(limit);
+        }
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt(50);
+        }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
                 'query': queries[qi],

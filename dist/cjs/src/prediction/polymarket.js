@@ -1331,7 +1331,7 @@ class polymarket extends polymarket$1["default"] {
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
             }
             else {
-                const candle = buckets[bucketKey];
+                const candle = this.safeList(buckets, bucketKey, []);
                 candle[2] = Math.max(candle[2], price); // high
                 candle[3] = Math.min(candle[3], price); // low
                 candle[4] = price; // close (last tick wins)

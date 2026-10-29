@@ -4896,15 +4896,6 @@ export default class gate extends Exchange {
                         // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
                     };
                 }
-                if (reduceOnly !== undefined) {
-                    request['initial']['reduce_only'] = reduceOnly;
-                }
-                if (timeInForce !== undefined) {
-                    request['initial']['tif'] = timeInForce;
-                }
-                if (clientOrderId !== undefined) {
-                    request['initial']['text'] = clientOrderId;
-                }
             }
             else {
                 // spot conditional order

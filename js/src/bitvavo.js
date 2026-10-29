@@ -1512,7 +1512,7 @@ export default class bitvavo extends Exchange {
                 cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
-                const precision = this.currency(market['quote'])['precision'];
+                const precision = this.safeNumber(this.currency(market['quote']), 'precision');
                 request['amountQuote'] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             }
             else {
