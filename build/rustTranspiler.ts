@@ -5097,7 +5097,7 @@ export class RustTranspilerBuilder {
         const masked = this.maskStringsAndComments(body);
         const inner = masked.slice(1, masked.lastIndexOf('}'));
         for (const r of inner.matchAll(/\breturn\s+([^;]*);/g)) {
-            const t = r[1].trim();
+            const t = this.stripOuterParens(r[1].trim());
             if (!(t.startsWith('Value::Bool(') || t === 'Value::Null')) return false;
         }
         let depth = 0; let lastSemi = -1;
@@ -5108,7 +5108,8 @@ export class RustTranspilerBuilder {
             else if (c === ';' && depth === 0) lastSemi = i;
         }
         const tail = inner.slice(lastSemi + 1).trim();
-        return tail === '' || tail.startsWith('Value::Bool(') || tail === 'Value::Null';
+        const tl = this.stripOuterParens(tail);
+        return tl === '' || tl.startsWith('Value::Bool(') || tl === 'Value::Null';
     }
 
     /** Emitted signature index for the D-32 call fold: method names whose Rust
