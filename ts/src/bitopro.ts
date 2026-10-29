@@ -1245,7 +1245,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseCancelOrders (data: any): Order[] {
+    parseCancelOrders (data: Dict): Order[] {
         const dataKeys = Object.keys (data);
         const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
@@ -1296,7 +1296,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseCancelOrders (data);
     }
 
