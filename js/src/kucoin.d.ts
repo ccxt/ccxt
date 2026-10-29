@@ -107,7 +107,7 @@ export default class kucoin extends Exchange {
     parseSpotOrUtaTicker(ticker: Dict, market?: Market): Ticker;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseContractTicker(ticker: Dict, market?: Market): Ticker;
-    typeToTradeType(type: Str): Str;
+    typeToTradeType(type: string): Str;
     /**
      * @method
      * @name kucoin#fetchTickers

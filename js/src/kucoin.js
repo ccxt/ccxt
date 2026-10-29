@@ -2935,9 +2935,6 @@ export default class kucoin extends Exchange {
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         };
-        if (type === undefined) {
-            return undefined;
-        }
         return this.safeString(tradeTypes, type, type);
     }
     /**

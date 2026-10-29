@@ -537,11 +537,6 @@ export default class bithumb extends bithumbRest {
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray(bidAsk);
     }
-    handleBookDeltas(orderbook, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleBookDelta(orderbook, deltas[i]);
-        }
-    }
     /**
      * @method
      * @name bithumb#watchTrades

@@ -339244,16 +339244,12 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
             'currency': currency['id']
         };
         if (type !== undefined) {
-            let requestType = undefined;
             if (type === 'spot') {
-                requestType = 'spot';
+                request['kind'] = 'spot';
             } else if (type === 'future' || type === 'contract') {
-                requestType = 'future';
+                request['kind'] = 'future';
             } else if (type === 'option') {
-                requestType = 'option';
-            }
-            if (requestType !== undefined) {
-                request['kind'] = requestType;
+                request['kind'] = 'option';
             }
         }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -340573,8 +340569,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         //
         const contract = this.safeString(position, 'instrument_name');
         const marketResolved = this.safeMarket(contract, market);
-        let side = this.safeString(position, 'direction');
-        side = side === 'buy' ? 'long' : 'short';
+        const side = this.safeString(position, 'direction') === 'buy' ? 'long' : 'short';
         const unrealizedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
@@ -388601,10 +388596,10 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp)
         };
-        const currenciesById = this.currencies_by_id;
-        if (currenciesById === undefined) {
+        if (this.currencies_by_id === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' currencies not loaded');
         }
+        const currenciesById = this.currencies_by_id;
         const currencyIds = Object.keys(currenciesById);
         for(let i = 0; i < currencyIds.length; i++){
             const currencyId = this.safeString(currencyIds, i, '');
@@ -420890,9 +420885,6 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             'margin': 'MARGIN',
             'swap': 'FUTURES'
         };
-        if (type === undefined) {
-            return undefined;
-        }
         return this.safeString(tradeTypes, type, type);
     }
     /**
@@ -497248,7 +497240,10 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
             maxTopicsResolved = this.parseToInt(maxTopics);
         }
         const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
-        const pageLimit = pageLimitOption > 100 ? 100 : pageLimitOption;
+        let pageLimit = this.parseToInt(100);
+        if (pageLimitOption < 100) {
+            pageLimit = this.parseToInt(pageLimitOption);
+        }
         const collected = [];
         let offset = 0;
         while(true){
@@ -498782,7 +498777,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         const quote = await this.fetchQuote(quoteRequest, paramsOmitted);
         const quoteId = this.safeString(quote, 'quoteId');
         const orderRequest = this.extend(commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString(wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType
@@ -498860,7 +498855,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         const wallet = await this.fetchWallet('cancelOrders', params);
         const request = {
             'walletAddress': this.safeString(wallet, 'walletAddress'),
-            'walletId': wallet['walletId']
+            'walletId': this.safeString(wallet, 'walletId')
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for(let i = 0; i < ids.length; i++){
@@ -544284,11 +544279,6 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray(bidAsk);
     }
-    handleBookDeltas(orderbook, deltas) {
-        for(let i = 0; i < deltas.length; i++){
-            this.handleBookDelta(orderbook, deltas[i]);
-        }
-    }
     /**
      * @method
      * @name bithumb#watchTrades
@@ -554155,7 +554145,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
             execTypes = execTypeOption;
         }
         for(let i = 0; i < data.length; i++){
-            const rawTrade = data[i];
+            const rawTrade = this.safeDict(data, i, {});
             let parsed = undefined;
             if (spot && !executionFast) {
                 parsed = this.parseWsTrade(rawTrade);

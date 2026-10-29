@@ -50,7 +50,6 @@ export default class bithumb extends bithumbRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
     /**
      * @method
      * @name bithumb#watchTrades

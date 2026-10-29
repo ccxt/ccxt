@@ -2934,9 +2934,6 @@ class kucoin extends kucoin$1["default"] {
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         };
-        if (type === undefined) {
-            return undefined;
-        }
         return this.safeString(tradeTypes, type, type);
     }
     /**

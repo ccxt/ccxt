@@ -995,10 +995,10 @@ export default class hollaex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const currenciesById = this.currencies_by_id;
-        if (currenciesById === undefined) {
+        if (this.currencies_by_id === undefined) {
             throw new ExchangeError(this.id + ' currencies not loaded');
         }
+        const currenciesById = this.currencies_by_id;
         const currencyIds = Object.keys(currenciesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = this.safeString(currencyIds, i, '');

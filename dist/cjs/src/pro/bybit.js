@@ -1497,7 +1497,7 @@ class bybit extends bybit$1["default"] {
             execTypes = execTypeOption;
         }
         for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+            const rawTrade = this.safeDict(data, i, {});
             let parsed = undefined;
             if (spot && !executionFast) {
                 parsed = this.parseWsTrade(rawTrade);

@@ -572,7 +572,7 @@ export declare class BaseExchange {
     storeByKey(dict: Dict, key: NullableIndexType, value: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     handleDelta(bookside: any, delta: any): void;
-    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any[]): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleDeltasWithKeys(bookSide: any, deltas: any[], priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
