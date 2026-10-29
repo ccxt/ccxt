@@ -140,7 +140,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker:' + symbolValue;
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchTicker', 'uta', false);
         const [instType, paramsValue] = this.getInstType('watchTicker', market, uta, paramsUta);
@@ -530,7 +530,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
         let messageHash = undefined;
@@ -676,7 +676,7 @@ class bitget extends bitget$1["default"] {
         }
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
         this.ohlcvs[symbol] = symbolOhlcvs;
         const channel = this.safeString2(arg, 'channel', 'topic', '');
@@ -1226,7 +1226,7 @@ class bitget extends bitget$1["default"] {
         }
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -2994,7 +2994,7 @@ class bitget extends bitget$1["default"] {
         }
         const instId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'unsubscribe:trade:' + this.safeString(market, 'symbol', '');
         const subMessageHash = 'trade:' + symbol;
         if (symbol in this.trades) {
@@ -3070,7 +3070,7 @@ class bitget extends bitget$1["default"] {
         const timeframes = this.safeDict(this.options, 'timeframes');
         const timeframe = this.findTimeframe(interval, timeframes);
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let messageHash = undefined;
         let subMessageHash = undefined;
         if (isUta) {

@@ -927,7 +927,7 @@ export default class backpack extends Exchange {
             inverse = false;
             settleId = this.safeString(market, 'quoteSymbol');
             settle = this.safeCurrencyCode(settleId);
-            symbol = base + '/' + quote + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote; // settle is the quote currency
             contractSize = 1;
         }
         else {

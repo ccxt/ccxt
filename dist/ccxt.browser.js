@@ -173960,7 +173960,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             inverse = false;
             settleId = this.safeString(market, 'quoteSymbol');
             settle = this.safeCurrencyCode(settleId);
-            symbol = base + '/' + quote + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote; // settle is the quote currency
             contractSize = 1;
         } else {
             return undefined;
@@ -517932,7 +517932,8 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcomeResolved;
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'orders::' + outcomeName;
         }
         const orders = await this.subscribeUserChannel(messageHash, params);
         let limitResolved = limit;
@@ -517958,7 +517959,8 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcomeResolved;
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'myTrades::' + outcomeName;
         }
         const trades = await this.subscribeUserChannel(messageHash, params);
         let limitResolved = limit;
@@ -540684,7 +540686,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker:' + symbolValue;
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchTicker', 'uta', false);
         const [instType, paramsValue] = this.getInstType('watchTicker', market, uta, paramsUta);
@@ -541070,7 +541072,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
         let messageHash = undefined;
@@ -541224,7 +541226,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
         this.ohlcvs[symbol] = symbolOhlcvs;
         const channel = this.safeString2(arg, 'channel', 'topic', '');
@@ -541775,7 +541777,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -543569,7 +543571,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const instId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'unsubscribe:trade:' + this.safeString(market, 'symbol', '');
         const subMessageHash = 'trade:' + symbol;
         if (symbol in this.trades) {
@@ -543644,7 +543646,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const timeframes = this.safeDict(this.options, 'timeframes');
         const timeframe = this.findTimeframe(interval, timeframes);
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let messageHash = undefined;
         let subMessageHash = undefined;
         if (isUta) {
@@ -578091,7 +578093,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             } else {
                 subType = 'inverse';
             }
-            marketId = market['lowercaseId'];
+            marketId = this.safeString(market, 'lowercaseId', '*');
         } else {
             type = this.safeString(this.options, 'defaultType', 'spot');
             type = this.safeString(params, 'type', type);
@@ -578237,7 +578239,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            suffix = market['lowercaseId'];
+            suffix = this.safeString(market, 'lowercaseId', '*');
             if (market['linear'] === true) {
                 subType = 'linear';
             } else {
@@ -585648,8 +585650,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
@@ -585683,8 +585684,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const orderbook = this.orderbooks[symbol];
         const side = this.safeString(message, 'side');

@@ -880,7 +880,7 @@ class htx extends htx$1["default"] {
             else {
                 subType = 'inverse';
             }
-            marketId = market['lowercaseId'];
+            marketId = this.safeString(market, 'lowercaseId', '*');
         }
         else {
             type = this.safeString(this.options, 'defaultType', 'spot');
@@ -1026,7 +1026,7 @@ class htx extends htx$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            suffix = market['lowercaseId'];
+            suffix = this.safeString(market, 'lowercaseId', '*');
             if (market['linear'] === true) {
                 subType = 'linear';
             }

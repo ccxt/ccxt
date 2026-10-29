@@ -1237,8 +1237,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
@@ -1272,8 +1271,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const orderbook = this.orderbooks[symbol];
         const side = this.safeString(message, 'side');
