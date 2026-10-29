@@ -595,7 +595,7 @@ public class Coinmate extends CoinmateApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -634,7 +634,7 @@ public class Coinmate extends CoinmateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostBalances(parameters)).join();
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

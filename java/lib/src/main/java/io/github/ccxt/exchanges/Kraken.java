@@ -1879,7 +1879,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1937,7 +1937,7 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

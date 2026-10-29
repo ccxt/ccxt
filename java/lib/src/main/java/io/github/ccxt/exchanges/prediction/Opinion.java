@@ -1723,7 +1723,7 @@ public class Opinion extends OpinionApi
                 Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
                 ((Map<String, Object>)rawBalance).put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -1736,7 +1736,7 @@ public class Opinion extends OpinionApi
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

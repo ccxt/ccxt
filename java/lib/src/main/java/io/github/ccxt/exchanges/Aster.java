@@ -2556,7 +2556,7 @@ public class Aster extends AsterApi
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
-            List<Object> data = null;
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 data = (this.fapiPrivateGetV3Balance(paramsMarketType)).join();
@@ -2565,12 +2565,12 @@ public class Aster extends AsterApi
                 response = (this.sapiPrivateGetV3Account(paramsMarketType)).join();
                 data = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseBalance(data);
+            return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

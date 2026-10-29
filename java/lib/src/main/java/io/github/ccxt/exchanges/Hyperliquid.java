@@ -5089,11 +5089,11 @@ public class Hyperliquid extends HyperliquidApi
             String transferType = this.safeString(parameters, "type");
             // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
             // unified account is active", a unified account has to move balances with sendAsset instead
-            Object transferMethod = null;
+            String transferMethod = null;
             Object query = parameters;
-            List<Object> transferMethodqueryVariable = (List<Object>) this.handleOptionAndParams(query, "transfer", "method", (Object) null);
-            transferMethod = ((List<Object>) transferMethodqueryVariable).get(0);
-            query = ((List<Object>) transferMethodqueryVariable).get(1);
+            Pair<String, Map<String, Object>> transferMethodqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "transfer", "method", (String) null);
+            transferMethod = transferMethodqueryVariable.first();
+            query = transferMethodqueryVariable.second();
             String masterAddress = null;
             masterAddress = this.safeString(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 0);
             query = this.safeDict(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 1, new HashMap<String, Object>() {{}});

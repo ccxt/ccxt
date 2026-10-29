@@ -957,7 +957,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
@@ -970,7 +970,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return i;
             }
         }
-        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
+        return ((List<?>)cache).size();
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -2545,7 +2545,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v10 -> j39v10.contains("msg"); case Map<?, ?> j39v9 -> j39v9.containsKey("msg"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v4 -> j39v4.contains("msg"); case Map<?, ?> j39v3 -> j39v3.containsKey("msg"); case null, default -> false; }))
         {
             this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             return;

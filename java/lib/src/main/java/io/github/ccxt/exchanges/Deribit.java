@@ -1447,13 +1447,13 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Balances parseBalance(Object balance)
+    public Balances parseBalance(Map<String, Object> balance)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
         List<Object> summaries = new ArrayList<Object>(Arrays.asList());
-        if ((switch ((Object)(balance)) { case List<?> j39v3 -> j39v3.contains("summaries"); case Map<?, ?> j39v2 -> j39v2.containsKey("summaries"); case null, default -> false; }))
+        if (balance.containsKey("summaries"))
         {
             summaries = (List<Object>) this.safeList(balance, "summaries", new ArrayList<Object>(Arrays.asList()));
         } else
@@ -1554,7 +1554,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseBalance(result);
+            return this.parseBalance((Map<String, Object>) (result));
         }).thenApply(Balances::new);
 
     }

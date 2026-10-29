@@ -1031,7 +1031,6 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String type = null;
-            String marketId = "*"; // wildcard
             Map<String, Object> market = null;
             String messageHash = null;
             Object channel = null;
@@ -1048,7 +1047,6 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     subType = "inverse";
                 }
-                marketId = this.safeString(market, "lowercaseId", "*");
             } else
             {
                 type = this.safeString(this.options, "defaultType", "spot");
@@ -1067,7 +1065,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
                 mode = this.safeString(paramsRequest, "mode", mode);
                 paramsRequest = this.omit(paramsRequest, "mode");
-                messageHash = (((("trade.clearing" + "#") + marketId) + "#") + mode);
+                messageHash = (((("trade.clearing" + "#") + this.safeString(market, "lowercaseId", "*")) + "#") + mode);
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
@@ -1215,12 +1213,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String type = null;
             String subType = null;
             Map<String, Object> market = null;
-            String suffix = "*"; // wildcard
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
                 type = this.safeString(market, "type");
-                suffix = this.safeString(market, "lowercaseId", "*");
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     subType = "linear";
@@ -1245,7 +1241,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object channel = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                messageHash = (("orders" + "#") + suffix);
+                messageHash = (("orders" + "#") + this.safeString(market, "lowercaseId", "*"));
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {

@@ -352,7 +352,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String marketId = this.safeString(data, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(data, "last_updated_at");
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());

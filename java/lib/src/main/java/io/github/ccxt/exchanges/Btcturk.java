@@ -464,7 +464,7 @@ public class Btcturk extends BtcturkApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -523,7 +523,7 @@ public class Btcturk extends BtcturkApi
             //       ]
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

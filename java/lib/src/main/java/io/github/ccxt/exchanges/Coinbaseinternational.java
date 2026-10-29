@@ -1907,16 +1907,16 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 List<Object> summaries = (List<Object>) this.safeList(result, "summaries", (Object) null);
                 if (!java.util.Objects.equals(summaries, null))
                 {
-                    return this.parseBalance(summaries);
+                    return this.parseBalanceList(summaries);
                 }
-                return this.parseBalance(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
+                return this.parseBalanceList(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
             }
-            return this.parseBalance(result);
+            return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

@@ -1475,7 +1475,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // spotPrivatePostUserInfo
@@ -1817,7 +1817,7 @@ public class Lbank extends LbankApi
             //    }
             //
             Object balanceResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
-            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance(balanceResponse);
+            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance((Map<String, Object>) (balanceResponse));
             if (java.util.Objects.equals(balanceResult, null))
             {
                 throw new NullResponse((this.id + " fetchBalance() returned empty response")) ;

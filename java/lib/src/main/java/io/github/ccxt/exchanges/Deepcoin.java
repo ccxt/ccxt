@@ -1226,12 +1226,12 @@ public class Deepcoin extends DeepcoinApi
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketTypeOption) );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, paramsMarketType))).join();
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         //     {

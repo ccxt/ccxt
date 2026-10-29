@@ -1389,7 +1389,7 @@ public class Onetrading extends OnetradingApi
         return this.safeTrade(mapLiteral2, market);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1445,7 +1445,7 @@ public class Onetrading extends OnetradingApi
             //         ]
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

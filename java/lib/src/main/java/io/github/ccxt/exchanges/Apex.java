@@ -421,7 +421,7 @@ public class Apex extends ApexApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // {
@@ -469,7 +469,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privateGetV3AccountBalance(parameters)).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance(data);
+            return this.parseBalance((Map<String, Object>) (data));
         }).thenApply(Balances::new);
 
     }

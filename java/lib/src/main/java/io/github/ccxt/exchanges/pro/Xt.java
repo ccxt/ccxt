@@ -197,7 +197,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");
@@ -206,7 +206,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 return i;
             }
         }
-        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
+        return ((List<?>)cache).size();
     }
 
     public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)

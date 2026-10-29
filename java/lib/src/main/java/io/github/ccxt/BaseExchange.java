@@ -9627,7 +9627,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         throw new NotSupported((this.id + " parseBalance() is not supported yet")) ;
     }

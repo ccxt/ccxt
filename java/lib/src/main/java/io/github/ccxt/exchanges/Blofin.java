@@ -1564,11 +1564,11 @@ public class Blofin extends BlofinApi
             return this.parseFundingBalance((Map<String, Object>) (response));
         } else
         {
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // "data" similar for REST & WS

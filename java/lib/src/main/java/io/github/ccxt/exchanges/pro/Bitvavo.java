@@ -1947,7 +1947,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = this.safeString(message, "requestId");
         List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(response);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalanceList(response);
         client.resolve(balance, messageHash);
     }
 

@@ -365,23 +365,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return (((java.util.Objects.equals(base, null)))) ? null : ((String)base).toLowerCase();
     }
 
-    public String getStockUnifiedSymbol(String stockSymbol, String quote)
+    public String getStockUnifiedSymbol(String stockSymbol, Object quote)
     {
         if (java.util.Objects.equals(stockSymbol, null))
         {
             return null;
-        }
-        String safeQuote = quote;
-        if (java.util.Objects.equals(quote, null))
-        {
-            safeQuote = "USDC";
         }
         String parsed = this.safeSymbol(stockSymbol, (Map<String, Object>) null, "/", "spot");
         if ((!java.util.Objects.equals(parsed, null)) && (((String)parsed).indexOf("/") >= 0))
         {
             return parsed;
         }
-        return ((stockSymbol + "/") + safeQuote);
+        return ((stockSymbol + "/") + java.util.Objects.requireNonNullElse(quote, "USDC"));
     }
 
     /**

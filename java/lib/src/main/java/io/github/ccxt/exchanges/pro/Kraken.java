@@ -1503,9 +1503,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String subscriptionHash = "executions";
             String messageHash = name;
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            if (!java.util.Objects.equals(symbolResolved, null))
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
+                symbolResolved = this.symbol(symbol);
                 messageHash = ((name + ":") + symbolResolved);
             }
             String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");

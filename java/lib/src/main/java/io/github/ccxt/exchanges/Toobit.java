@@ -2016,12 +2016,12 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateGetApiV1Account(new HashMap<String, Object>() {{}})).join();
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

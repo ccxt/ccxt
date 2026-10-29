@@ -1302,7 +1302,7 @@ public class Zebpay extends ZebpayApi
             //         ]
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -2179,7 +2179,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

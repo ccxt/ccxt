@@ -898,7 +898,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaStart = this.safeInteger(delta, "U");
@@ -908,7 +908,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 return i;
             }
         }
-        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+        return ((List<?>)cache).size();
     }
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
@@ -1862,7 +1862,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(type)) != null && j39v11.contains(type); case Map<?, ?> j39v10 -> ((Object)(type)) instanceof String && j39v10.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
         {
             return;
         }

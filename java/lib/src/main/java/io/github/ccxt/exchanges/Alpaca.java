@@ -2604,12 +2604,12 @@ public class Alpaca extends AlpacaApi
                 put( "account", account );
                 put( "positions", positions );
             }};
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency

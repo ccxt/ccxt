@@ -3920,7 +3920,7 @@ public class Derive extends DeriveApi
                 Map<String, Object> subaccountResponse = (this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams))).join();
                 // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
                 Map<String, Object> subaccountResult = (Map<String, Object>) this.safeDict(subaccountResponse, "result", new HashMap<String, Object>() {{}});
-                return this.parseBalance(new ArrayList<Object>(Arrays.asList(subaccountResult)));
+                return this.parseBalanceList(new ArrayList<Object>(Arrays.asList(subaccountResult)));
             }
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
@@ -4178,12 +4178,12 @@ public class Derive extends DeriveApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", (Object) null);
-            return this.parseBalance(result);
+            return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

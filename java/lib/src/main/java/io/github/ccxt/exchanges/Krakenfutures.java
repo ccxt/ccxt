@@ -3388,7 +3388,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
                 throw new BadRequest(((this.id + " fetchBalance has no account for ") + type)) ;
             }
-            Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
+            Map<String, Object> balance = (Map<String, Object>) this.parseBalance((Map<String, Object>) (account));
             balance.put("info", response);
             Helpers.addElementToObject(balance, "timestamp", this.parse8601(datetime));
             Helpers.addElementToObject(balance, "datetime", datetime);
@@ -3397,7 +3397,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // cashAccount

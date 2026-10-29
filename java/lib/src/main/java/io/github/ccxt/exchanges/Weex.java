@@ -2474,12 +2474,12 @@ public class Weex extends WeexApi
                     response = (this.contractPrivateGetCapiV3AccountBalance(paramsMarketType)).join();
                 }
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

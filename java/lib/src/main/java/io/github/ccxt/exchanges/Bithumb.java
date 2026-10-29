@@ -777,7 +777,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         //
         // generation 1
@@ -875,7 +875,7 @@ public class Bithumb extends BithumbApi
                 }};
                 response = (this.privatePostInfoBalance(this.extend(request, paramsGeneration))).join();
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }

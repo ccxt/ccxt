@@ -167,7 +167,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(message);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance((Map<String, Object>) (message));
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};

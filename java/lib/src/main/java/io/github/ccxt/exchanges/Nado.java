@@ -1608,7 +1608,7 @@ public class Nado extends NadoApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance(data);
+            return this.parseBalance((Map<String, Object>) (data));
         }).thenApply(Balances::new);
 
     }
@@ -2965,7 +2965,7 @@ public class Nado extends NadoApi
         }});
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         //     {

@@ -2641,14 +2641,14 @@ public class Backpack extends BackpackApi
                         balances.put(assetId, (response == null || assetId == null ? null : response.get(assetId)));
                     }
                 }
-                return this.parseBalance(balances);
+                return this.parseBalance((Map<String, Object>) (balances));
             }
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         //     {
@@ -2659,12 +2659,12 @@ public class Backpack extends BackpackApi
         //         }
         //     }
         //
-        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> balanceKeys = new ArrayList<String>(response.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
-            Object id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
-            String code = this.safeCurrencyCode((String) (id), (Map<String, Object>) null);
+            String id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
+            String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, id, (Object) null);
             Map<String, Object> account = this.account();
             String locked = this.safeString(balance, "locked");
@@ -4224,7 +4224,7 @@ public class Backpack extends BackpackApi
     public String generateBatchPayload(Object parameters, String ts, String recvWindow, String instruction)
     {
         String payload = "";
-        Integer paramsLength = (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Integer paramsLength = (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
         for (var i = 0; (paramsLength != null && i < paramsLength); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});

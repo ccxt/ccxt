@@ -1158,7 +1158,7 @@ public class Hollaex extends HollaexApi
         return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Long timestamp = this.parse8601(this.safeString(response, "updated_at"));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1217,7 +1217,7 @@ public class Hollaex extends HollaexApi
             //         // ...
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

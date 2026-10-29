@@ -4717,10 +4717,10 @@ public class Okx extends OkxApi
             }
         }
         // unified stp
-        Object selfTradePrevention = null;
-        List<Object> selfTradePreventionorderParamsVariable = (List<Object>) this.handleOptionAndParams(orderParams, "createOrder", "selfTradePrevention", (Object) null);
-        selfTradePrevention = ((List<Object>) selfTradePreventionorderParamsVariable).get(0);
-        orderParams = ((List<Object>) selfTradePreventionorderParamsVariable).get(1);
+        String selfTradePrevention = null;
+        Pair<String, Map<String, Object>> selfTradePreventionorderParamsVariable = this.handleOptionStringAndParams((Map<String, Object>) (orderParams), "createOrder", "selfTradePrevention", (String) null);
+        selfTradePrevention = selfTradePreventionorderParamsVariable.first();
+        orderParams = selfTradePreventionorderParamsVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
         {
             Map<String, Object> stpModes = new HashMap<String, Object>() {{
@@ -4728,12 +4728,12 @@ public class Okx extends OkxApi
                 put( "EXPIRE_TAKER", "cancel_taker" );
                 put( "EXPIRE_BOTH", "cancel_both" );
             }};
-            String selfTradePreventionUpper = ((String)selfTradePrevention).toUpperCase();
+            String selfTradePreventionUpper = selfTradePrevention.toUpperCase();
             if (java.util.Objects.equals(selfTradePreventionUpper, "NONE"))
             {
                 throw new NotSupported((this.id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")) ;
             }
-            String stpMode = this.safeString(stpModes, selfTradePreventionUpper, ((String)selfTradePrevention).toLowerCase());
+            String stpMode = this.safeString(stpModes, selfTradePreventionUpper, selfTradePrevention.toLowerCase());
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
             String requestOrdType = this.safeString(request, "ordType");
             if ((!java.util.Objects.equals(requestOrdType, null)) && (algoOrderTypes.containsKey(requestOrdType)))

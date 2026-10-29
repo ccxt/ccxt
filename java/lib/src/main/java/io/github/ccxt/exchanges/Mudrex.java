@@ -775,12 +775,12 @@ public class Mudrex extends MudrexApi
             }
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
             mapLiteral4.put("currency", currency);
-            return this.parseBalance(this.extend(response, mapLiteral4));
+            return this.parseBalance((Map<String, Object>) (this.extend(response, mapLiteral4)));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");

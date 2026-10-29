@@ -4675,7 +4675,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // cross
@@ -5048,7 +5048,7 @@ public class Bybit extends BybitApi
             //         "time": 1672125441042
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

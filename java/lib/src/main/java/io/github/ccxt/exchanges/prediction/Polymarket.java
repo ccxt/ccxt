@@ -2203,7 +2203,7 @@ public class Polymarket extends PolymarketApi
                 put( "signature_type", signatureType );
             }};
             Map<String, Object> response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -2216,7 +2216,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

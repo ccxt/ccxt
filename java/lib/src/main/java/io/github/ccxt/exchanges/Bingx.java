@@ -3265,12 +3265,12 @@ public class Bingx extends BingxApi
                     response = (this.swapV3PrivateGetUserBalance(marketTypeQuery)).join();
                 }
             }
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // standard

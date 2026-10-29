@@ -759,7 +759,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public Map<String, Object> parseWsBalance(Map<String, Object> message)
     {
-        return (Map<String, Object>) (this.parseBalance(message));
+        return (Map<String, Object>) (this.parseBalance((Map<String, Object>) (message)));
     }
 
     /**

@@ -112,7 +112,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Boolean.TRUE.equals(isPrivate))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -169,7 +169,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscription.put("topic", topic);
             subscription.put("unsubscribe", true);
             subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
-            if (Boolean.TRUE.equals(isPrivate))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
@@ -218,7 +218,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Boolean.TRUE.equals(isPrivate))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -271,7 +271,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             message.put("type", "unsubscribe");
             message.put("product_ids", productIds);
             message.put("channel", name);
-            if (Boolean.TRUE.equals(isPrivate))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }

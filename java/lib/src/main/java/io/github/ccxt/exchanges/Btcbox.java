@@ -431,19 +431,19 @@ public class Btcbox extends BtcboxApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = this.safeString(currency, "id", "");
             String free = (currencyId + "_balance");
-            if ((switch ((Object)(response)) { case List<?> j39v3 -> ((Object)(free)) != null && j39v3.contains(free); case Map<?, ?> j39v2 -> ((Object)(free)) instanceof String && j39v2.containsKey(free); case null, default -> false; }))
+            if (response.containsKey(free))
             {
                 Map<String, Object> account = this.account();
                 String used = (currencyId + "_lock");
@@ -473,7 +473,7 @@ public class Btcbox extends BtcboxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostBalance(parameters)).join();
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

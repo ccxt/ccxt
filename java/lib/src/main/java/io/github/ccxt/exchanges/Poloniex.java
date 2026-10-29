@@ -3166,7 +3166,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -3276,7 +3276,7 @@ public class Poloniex extends PoloniexApi
                 //    }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
-                return this.parseBalance(data);
+                return this.parseBalanceList(data);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountType", "SPOT" );
@@ -3298,7 +3298,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }

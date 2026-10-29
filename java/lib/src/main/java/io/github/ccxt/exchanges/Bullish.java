@@ -2982,7 +2982,7 @@ public class Bullish extends BullishApi
                 //         }, ...
                 //     ]
                 //
-                return this.parseBalance(response);
+                return this.parseBalanceList(response);
             }
         }).thenApply(Balances::new);
 
@@ -3000,7 +3000,7 @@ public class Bullish extends BullishApi
         return this.safeBalance(result);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

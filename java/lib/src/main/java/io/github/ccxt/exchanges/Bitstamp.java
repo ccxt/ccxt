@@ -2068,7 +2068,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Object finalResponse = response; // java req
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2111,7 +2111,7 @@ public class Bitstamp extends BitstampApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privatePostAccountBalances(parameters)).join();
+            List<Object> response = (this.privatePostAccountBalances(parameters)).join();
             //
             //     [
             //         {
@@ -2123,7 +2123,7 @@ public class Bitstamp extends BitstampApi
             //         ...
             //     ]
             //
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }

@@ -1576,7 +1576,7 @@ public class Bittrade extends BittradeApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
@@ -1635,7 +1635,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new NotSupported((((this.id + " fetchBalance() does not support the ") + method) + " method")) ;
             }
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

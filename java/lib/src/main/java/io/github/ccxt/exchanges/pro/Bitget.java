@@ -353,7 +353,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             this.tickers.put(symbol, ticker);
         }
-        String messageHash = ("ticker:" + symbol);
+        String messageHash = ("ticker:" + this.safeString(ticker, "symbol", ""));
         client.resolve(ticker, messageHash);
     }
 
@@ -571,7 +571,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             this.bidsasks.put(symbol, ticker);
         }
-        String messageHash = ("bidask:" + symbol);
+        String messageHash = ("bidask:" + this.safeString(ticker, "symbol", ""));
         client.resolve(ticker, messageHash);
     }
 
@@ -2798,7 +2798,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             stored.append(parsed);
-            String symbol = (String) parsed.get("symbol");
+            String symbol = this.safeString(parsed, "symbol", "");
             String symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }

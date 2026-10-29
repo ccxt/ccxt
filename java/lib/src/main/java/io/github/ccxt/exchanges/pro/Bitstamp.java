@@ -268,7 +268,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, i, (Object) null);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -277,7 +277,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 return (((long) i) + 1L);
             }
         }
-        return (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+        return ((List<?>)deltas).size();
     }
 
     /**

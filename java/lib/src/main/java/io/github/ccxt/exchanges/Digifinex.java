@@ -1079,7 +1079,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         //
         // spot and margin
@@ -1211,7 +1211,7 @@ public class Digifinex extends DigifinexApi
                 balanceRequest = "data";
             }
             List<Object> balances = (List<Object>) this.safeList(response, balanceRequest, new ArrayList<Object>(Arrays.asList()));
-            return this.parseBalance(balances);
+            return this.parseBalanceList(balances);
         }).thenApply(Balances::new);
 
     }

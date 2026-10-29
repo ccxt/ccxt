@@ -1109,7 +1109,7 @@ public class Bitopro extends BitoproApi
         return result;
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         //
         //     [{
@@ -1175,7 +1175,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseBalance(balances);
+            return this.parseBalanceList(balances);
         }).thenApply(Balances::new);
 
     }
@@ -1455,7 +1455,7 @@ public class Bitopro extends BitoproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String id = (String) market.get("uppercaseId");
+            String id = this.safeString(market, "uppercaseId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
             {

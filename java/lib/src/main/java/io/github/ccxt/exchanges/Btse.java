@@ -1257,12 +1257,12 @@ public class Btse extends BtseApi
                 }};
                 response = (this.privateGetFuturesApiV23UserWallet(this.extend(request, paramsWallet))).join();
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1270,7 +1270,7 @@ public class Btse extends BtseApi
         Map<String, Object> totals = new HashMap<String, Object>() {{}};
         Map<String, Object> frees = new HashMap<String, Object>() {{}};
         Map<String, Object> useds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> row = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             List<Object> assets = (List<Object>) this.safeList(row, "assets", (Object) null);
@@ -1394,16 +1394,16 @@ public class Btse extends BtseApi
                         Double maxNotional = this.safeNumber(level, "value", (Object) null);
                         // the endpoint only reports the notional ladder, the
                         // per-tier leverage and margin rates are not available
-                        ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                            j39v4.put("tier", this.safeInteger(level, "level"));
-                            j39v4.put("symbol", symbol);
-                            j39v4.put("currency", market.get("settle"));
-                            j39v4.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
-                            j39v4.put("maxNotional", maxNotional);
-                            j39v4.put("maintenanceMarginRate", null);
-                            j39v4.put("maxLeverage", null);
-                            j39v4.put("info", level);
-                            yield j39v4; } }));
+                        ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("tier", this.safeInteger(level, "level"));
+                            j39v1.put("symbol", symbol);
+                            j39v1.put("currency", market.get("settle"));
+                            j39v1.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
+                            j39v1.put("maxNotional", maxNotional);
+                            j39v1.put("maintenanceMarginRate", null);
+                            j39v1.put("maxLeverage", null);
+                            j39v1.put("info", level);
+                            yield j39v1; } }));
                         minNotional = maxNotional;
                     }
                     result.put(symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
@@ -4389,7 +4389,7 @@ public class Btse extends BtseApi
         String queryString = "";
         if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));

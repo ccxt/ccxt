@@ -2066,7 +2066,7 @@ public class Hashkey extends HashkeyApi
                 //         "userId": "1732885739572845312"
                 //     }
                 //
-                return this.parseBalance(response);
+                return this.parseBalance((Map<String, Object>) (response));
             } else
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
@@ -2075,7 +2075,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Balances parseBalance(Object balance)
+    public Balances parseBalance(Map<String, Object> balance)
     {
         //
         //     {

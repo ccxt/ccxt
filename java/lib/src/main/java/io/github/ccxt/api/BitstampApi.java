@@ -301,9 +301,9 @@ public class BitstampApi extends Exchange
      * Calls the privatePostAccountBalances endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privatePostAccountBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountBalances", optionalArgs);
     }

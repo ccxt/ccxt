@@ -646,7 +646,7 @@ public class Bitbns extends BitbnsApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<String> timestamp = null;
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -717,7 +717,7 @@ public class Bitbns extends BitbnsApi
             //     }
             //
             // note that "Money" stands for INR - the only fiat in bitbns
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

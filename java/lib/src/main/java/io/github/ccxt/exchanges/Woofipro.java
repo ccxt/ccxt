@@ -3294,7 +3294,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -3348,8 +3348,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.parseBalance(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseBalance((Map<String, Object>) (data));
         }).thenApply(Balances::new);
 
     }

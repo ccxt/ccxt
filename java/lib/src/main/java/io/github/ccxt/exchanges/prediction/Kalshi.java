@@ -1894,7 +1894,7 @@ public class Kalshi extends KalshiApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -1907,7 +1907,7 @@ public class Kalshi extends KalshiApi
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         // Kalshi balance in cents → divide by 100
         Map<String, Object> result = new HashMap<String, Object>() {{

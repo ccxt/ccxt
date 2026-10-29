@@ -2949,13 +2949,13 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "subaccount", (Object) null);
-            return this.parseBalance(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
+            return this.parseBalance((Map<String, Object>) (data));
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(response, "freeCollateral"));

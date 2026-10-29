@@ -1555,7 +1555,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(parameters);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalanceList(parameters);
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};

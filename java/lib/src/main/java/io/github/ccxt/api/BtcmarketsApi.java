@@ -290,9 +290,9 @@ public class BtcmarketsApi extends Exchange
      * Calls the privateGetAccountsMeBalances endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetAccountsMeBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAccountsMeBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountsMeBalances", optionalArgs);
     }

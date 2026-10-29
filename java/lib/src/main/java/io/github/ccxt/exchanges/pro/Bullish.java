@@ -803,7 +803,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(messageType, "snapshot"))
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseBalance(data);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseBalanceList(data);
             List<String> parsedKeys = new ArrayList<String>(parsed.keySet());
             for (var i = 0; i < ((List<?>)parsedKeys).size(); i++)
             {

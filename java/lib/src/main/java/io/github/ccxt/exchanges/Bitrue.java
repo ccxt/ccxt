@@ -1197,7 +1197,7 @@ public class Bitrue extends BitrueApi
         return this.safeMarketStructure(mapLiteral2);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // spot
@@ -1313,7 +1313,7 @@ public class Bitrue extends BitrueApi
                 response = (this.spotV1PrivateGetAccount(paramsSubType)).join();
                 result = response;
             }
-            return this.parseBalance(result);
+            return this.parseBalance((Map<String, Object>) (result));
         }).thenApply(Balances::new);
 
     }

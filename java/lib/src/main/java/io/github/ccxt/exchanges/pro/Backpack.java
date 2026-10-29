@@ -1502,7 +1502,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0, (Object) null);
         Long nonce = this.safeInteger(orderbook, "nonce");
         Long firstDeltaStart = this.safeInteger(firstDelta, "U");
-        Integer cacheLength = (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+        Integer cacheLength = ((List<?>)cache).size();
         if (java.util.Objects.equals(nonce, null))
         {
             return cacheLength;
@@ -1834,7 +1834,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     put( "staked", Backpack.this.safeString(data, "S") );
 }});
         this.options.put("wsBalanceAssets", assets);
-        Map<String, Object> response = (Map<String, Object>) this.parseBalance(assets);
+        Map<String, Object> response = (Map<String, Object>) this.parseBalance((Map<String, Object>) (assets));
         Map<String, Object> parsed = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
             put( "balances", response );
         }}, "balances", new HashMap<String, Object>() {{}});

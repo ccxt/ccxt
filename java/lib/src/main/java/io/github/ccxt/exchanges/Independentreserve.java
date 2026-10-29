@@ -535,7 +535,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -573,8 +573,8 @@ public class Independentreserve extends IndependentreserveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privatePostGetAccounts(parameters)).join();
-            return this.parseBalance(response);
+            List<Object> response = (this.privatePostGetAccounts(parameters)).join();
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
