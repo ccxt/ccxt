@@ -2067,9 +2067,6 @@ impl OpinionCore {
  * @returns {object} the parsed market
  */
     pub async fn load_trade_market(&mut self, mut marketId: Value) -> Value {
-        if (marketId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" loadTradeMarket() requires a marketId".into()))));
-        }
         let mut cacheKey: Value = Value::Str("tradeMarketsById".into());
         let mut cached: indexmap::IndexMap<String, Value> = self.safe_dict(self.options.clone(), cacheKey.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -780,10 +780,13 @@ impl GeminiCore {
             let mut delta: Value = changes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
-            let mut side: Value = (if (self.safe_string(delta, Value::Int(0), &[]).as_str() == Some("buy")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
-            let mut bookside: Value = get_value(&orderbook, &side);
-            let mut bookside: Value = get_value(&orderbook, &side);
-            bookside.store(price, size);
+            if (self.safe_string(delta, Value::Int(0), &[]).as_str() == Some("buy")) {
+                let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+                bids.store(price.clone(), size.clone());
+            }  else {
+                let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
+                asks.store(price, size);
+            }
         }
         }
         orderbook.set_book_meta("symbol", symbol.clone());

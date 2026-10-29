@@ -4389,7 +4389,7 @@ impl PoloniexCore {
         //             },
         //         }
         //
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4404,7 +4404,11 @@ impl PoloniexCore {
             let mut feeInfo: Value = self.safe_dict(response.clone(), currencyId, &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
                 let mut currency: Value = self.currency(code.clone());
-                if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(feeInfo.clone(), &[currency.clone()])); }
+                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(feeInfo.clone(), &[currency.clone()]));
+                let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(depositWithdrawFees.clone()), code.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
                 let mut childChains: Value = self.safe_list_k(feeInfo, "childChains", &[Value::from(vec![])]);
                 let mut chainsLength: f64 = ((childChains.len() as i64) as f64);
                 if chainsLength > ((0i64) as f64) {
@@ -4439,18 +4443,19 @@ impl PoloniexCore {
     m
 }));
                         }
-                        let __ws_arg_41 = self.safe_dict_k(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "networks", &[Value::Map({
+                        let __ws_arg_41 = self.safe_dict(Value::Map(parsedFee.clone()), Value::Str("networks".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                        { let __be_tmp = self.extend(__ws_arg_41, &[Value::Map(networkObject)]); add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into()), __be_tmp); };
+                        { let __be_tmp = self.extend(__ws_arg_41, &[Value::Map(networkObject)]); parsedFee.insert("networks".into(), __be_tmp); }
                     }
                     }
                 }
+                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map(parsedFee));
             }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }

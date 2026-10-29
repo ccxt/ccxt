@@ -1802,12 +1802,16 @@ impl KrakenCore {
                 //         }
                 //     }
                 //
-                subscription = self.safe_dict_k(response, "result", &[]);
+                let __ws_arg_5 = self.safe_dict_k(response, "result", &[]);
+                subscription = self.extend(__ws_arg_5, &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("start".to_string(), now);
+                    m
+                })]);
                 let mut token: Option<String> = self.safe_string_k_opt(subscription.clone(), "token", &[]);
                 if (token.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
-                add_element_to_object(&mut subscription, &Value::Str("start".into()), now);
                 __ch.add_subscription(&authenticated, subscription.clone());
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
@@ -2061,12 +2065,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_5 = self.extend(params, &[Value::Map({
+        let __ws_arg_6 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("snap_orders".to_string(), Value::Bool(true));
     m
 })]);
-        return self.watch_private(Value::Str("orders".into()), &[symbol, since, limit, __ws_arg_5]).await;
+        return self.watch_private(Value::Str("orders".into()), &[symbol, since, limit, __ws_arg_6]).await;
 
     Value::Null
 }

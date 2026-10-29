@@ -5230,7 +5230,7 @@ impl DeltaCore {
                 }
             }  else {
                 requestBody = json_stringify(&query);
-                auth = Value::Str(format!("{}{}", auth, requestBody).into());
+                auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), requestBody).into());
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

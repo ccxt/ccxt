@@ -7849,8 +7849,7 @@ impl XtCore {
         let mut signedBody: Value = Value::Null;
         if signed {
             self.check_required_credentials(&[]);
-            let mut defaultRecvWindow: Value = self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]);
-            let mut recvWindow: Value = self.safe_string_k(query.clone(), "recvWindow", &[defaultRecvWindow]);
+            let mut recvWindow: Value = self.safe_string_k(query.clone(), "recvWindow", &[self.safe_string(self.options.clone(), Value::Str("recvWindow".into()), &[Value::Str("5000".into())])]);
             let mut timestamp: Value = self.number_to_string(self.nonce());
             if (payload.as_str() == Some("/v4/order")) || (payload.as_str() == Some("/future/trade/v1/order/create")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_str() == Some("/future/trade/v1/order/create-batch")) {
                 let mut id: Value = Value::Str("CCXT".into());
@@ -7864,7 +7863,8 @@ impl XtCore {
             if (method.as_str() == Some("PUT")) && (endpoint.as_str() == Some("spot")) {
                 isUndefinedBody = false;
             }
-            signedBody = (if isUndefinedBody { Value::Null } else { json_stringify(&query) });
+            let mut jsonBody: Value = json_stringify(&query);
+            signedBody = (if isUndefinedBody { Value::Null } else { jsonBody.clone() });
             let mut payloadString: Value = Value::Str("".into());
             if (endpoint.as_str() == Some("spot")) || (endpoint.as_str() == Some("user")) {
                 let mut spotPrefix: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=".into()), self.apiKey.clone()).into()),
@@ -7878,7 +7878,7 @@ impl XtCore {
                         payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, Value::Str("#".into())).into()), method).into()), Value::Str("#".into())).into()), payload).into());
                     }
                 }  else {
-                    payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, Value::Str("#".into())).into()), method).into()), Value::Str("#".into())).into()), payload).into()), Value::Str("#".into())).into()), signedBody).into());
+                    payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, Value::Str("#".into())).into()), method).into()), Value::Str("#".into())).into()), payload).into()), Value::Str("#".into())).into()), jsonBody).into());
                 }
                 headersValue.insert("xt-validate-algorithms".into(), Value::Str("HmacSHA256".into()));
                 headersValue.insert("xt-validate-recvwindow".into(), recvWindow);
@@ -7892,7 +7892,7 @@ impl XtCore {
                         payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, Value::Str("#".into())).into()), payload).into());
                     }
                 }  else {
-                    payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, Value::Str("#".into())).into()), payload).into()), Value::Str("#".into())).into()), signedBody).into());
+                    payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, Value::Str("#".into())).into()), payload).into()), Value::Str("#".into())).into()), jsonBody).into());
                 }
             }
             headersValue.insert("xt-validate-appkey".into(), self.apiKey.clone());

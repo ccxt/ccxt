@@ -3321,16 +3321,36 @@ impl NdaxCore {
         }  else if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut sessionToken: Option<String> = self.safe_string_k_opt(self.options.clone(), "sessionToken", &[]);
+            let mut isPost: bool = method.as_str() == Some("POST");
             if (sessionToken.is_none()) {
                 let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
                 let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone()).into());
                 let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                if isPost {
+                    headersSigned = Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("Nonce".to_string(), nonce.clone());
+                            m.insert("APIKey".to_string(), self.apiKey.clone());
+                            m.insert("Signature".to_string(), signature.clone());
+                            m.insert("UserId".to_string(), self.uid.clone());
+                            m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
+                        m
+                    });
+                }  else {
+                    headersSigned = Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("Nonce".to_string(), nonce);
+                            m.insert("APIKey".to_string(), self.apiKey.clone());
+                            m.insert("Signature".to_string(), signature);
+                            m.insert("UserId".to_string(), self.uid.clone());
+                        m
+                    });
+                }
+            }  else if isPost {
                 headersSigned = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Nonce".to_string(), nonce);
-                        m.insert("APIKey".to_string(), self.apiKey.clone());
-                        m.insert("Signature".to_string(), signature);
-                        m.insert("UserId".to_string(), self.uid.clone());
+                        m.insert("APToken".to_string(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 });
             }  else {
@@ -3340,8 +3360,7 @@ impl NdaxCore {
                     m
                 });
             }
-            if (method.as_str() == Some("POST")) {
-                if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+            if isPost {
                 bodySigned = json_stringify(&query);
             }  else {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

@@ -968,7 +968,7 @@ pub trait ExchangeBase:
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut key = get_arg(optional_args, 1, Value::Str("timestamp".into()));
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
-        if self.value_is_defined(limit.clone()).as_bool() == Some(true) {
+        if (limit != Value::Null) && (limit != Value::Null) {
             let mut arrayLength: Value = Value::Int(array.len() as i64);
             if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut ascending: bool = true;
@@ -1006,10 +1006,10 @@ pub trait ExchangeBase:
         if (array == Value::Null) {
             return Value::from(vec![]);
         }
-        let mut sinceIsDefined: Value = self.value_is_defined(since.clone());
+        let mut sinceIsDefined: bool = (since != Value::Null) && (since != Value::Null);
         let mut parsedArray: Value = self.to_array(array);
         let mut result: Value = parsedArray.clone();
-        if sinceIsDefined.as_bool() == Some(true) {
+        if sinceIsDefined {
             result = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1028,7 +1028,7 @@ pub trait ExchangeBase:
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        let mut shouldFilterFromStart: Value = Value::Bool(!is_true(&tail) && sinceIsDefined.as_bool() == Some(true));
+        let mut shouldFilterFromStart: Value = Value::Bool(!is_true(&tail) && sinceIsDefined);
         return self.filter_by_limit(result, &[limit, key, shouldFilterFromStart]);
 
     Value::Null
@@ -1041,11 +1041,11 @@ pub trait ExchangeBase:
         let mut key = get_arg(optional_args, 3, Value::Str("timestamp".into()));
         let mut tail = get_arg(optional_args, 4, Value::Bool(false));
         let mut valueIsDefined: Value = self.value_is_defined(value.clone());
-        let mut sinceIsDefined: Value = self.value_is_defined(since.clone());
+        let mut sinceIsDefined: bool = (since != Value::Null) && (since != Value::Null);
         let mut parsedArray: Value = self.to_array(array);
         let mut result: Value = parsedArray.clone();
         // single-pass filter for both symbol and since
-        if valueIsDefined.as_bool() == Some(true) || sinceIsDefined.as_bool() == Some(true) {
+        if valueIsDefined.as_bool() == Some(true) || sinceIsDefined {
             result = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1058,7 +1058,7 @@ pub trait ExchangeBase:
                 let mut firstCondition: bool = !(valueIsDefined.as_bool() == Some(true)) || entryFiledEqualValue;
                 let mut entryKeyValue: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
                 let mut entryKeyGESince: bool = (entryKeyValue != Value::Null) && (entryKeyValue.as_f64() != Some(0.0)) && (since != Value::Null) && (entryKeyValue.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN));
-                let mut secondCondition: bool = !(sinceIsDefined.as_bool() == Some(true)) || entryKeyGESince;
+                let mut secondCondition: bool = !(sinceIsDefined) || entryKeyGESince;
                 if firstCondition && secondCondition {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
@@ -1068,7 +1068,7 @@ pub trait ExchangeBase:
         if tail.as_bool() == Some(true) && (limit != Value::Null) {
             return self.array_slice(result.clone(), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
         }
-        return self.filter_by_limit(result, &[limit, key, sinceIsDefined]);
+        return self.filter_by_limit(result, &[limit, key, Value::Bool(sinceIsDefined)]);
 
     Value::Null
 }
@@ -2946,13 +2946,18 @@ pub trait ExchangeBase:
             freeBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(free, &[]));
             usedBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(used, &[]));
             totalBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(total, &[]));
-            if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("free".to_string(), freeBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)); } }
-            if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("used".to_string(), usedBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)); } }
-            if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("total".to_string(), totalBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)); } }
+            let mut entry: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("free".to_string(), freeBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                    m.insert("used".to_string(), usedBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                    m.insert("total".to_string(), totalBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                m
+            });
             if (debt.is_some()) {
                 debtBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
-                if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("debt".to_string(), debtBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)); } }
+                entry.insert("debt".into(), debtBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
+            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
         }
         }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }

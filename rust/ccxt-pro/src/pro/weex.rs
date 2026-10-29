@@ -499,8 +499,8 @@ impl WeexCore {
         if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
-        let mut timestamp: Value = self.nonce();
-        let mut payload: Value = Value::Str(format!("{}{}", self.number_to_string(timestamp.clone()), Value::Str("/v3/ws/private".into())).into());
+        let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
+        let mut payload: Value = Value::Str(format!("{}{}", timestamp, Value::Str("/v3/ws/private".into())).into());
         let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut originalHeaders: Value = self.safe_dict(crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()), &[]);
         let mut userAgent: Value = self.safe_string_k(originalHeaders, "User-Agent", &[Value::Str("ccxt".into())]);
@@ -516,7 +516,7 @@ impl WeexCore {
         m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
         m.insert("ACCESS-SIGN".to_string(), signature);
         m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
-        m.insert("ACCESS-TIMESTAMP".to_string(), self.number_to_string(timestamp));
+        m.insert("ACCESS-TIMESTAMP".to_string(), timestamp);
     m
 }));
     m
@@ -2483,7 +2483,7 @@ impl WeexCore {
             accountType = Value::Str("swap".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", accountType, Value::Str(":balance".into())).into());
-        if (self.balance.as_map().and_then(|__m| accountType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) == Value::Null) {
+        if !(matches!((&self.balance, &accountType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

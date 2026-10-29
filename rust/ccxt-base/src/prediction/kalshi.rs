@@ -1652,19 +1652,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1259: bool = true;
             while { if !__for_first_1259 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1259 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            let mut ticker: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]);
-            if (ticker == Value::Null) {
+            let mut ticker: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]);
+            if (ticker.is_none()) {
                 continue;
             }
-            if !(matches!((&outcomesByTicker, &ticker), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ticker), Value::from(vec![])); }
-                tickers.push(ticker.clone());
+            if !(matches!((&outcomesByTicker, &ticker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(ticker.as_deref().unwrap_or("null").to_string(), Value::from(vec![])); }
+                tickers.push(ticker.clone().map(Value::from).unwrap_or(Value::Null));
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = outcomesByTicker.as_map().and_then(|__m| ticker.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj); };
-            crate::set_value(&mut outcomesByTicker, &ticker, grouped.clone());
-            if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ticker), grouped.clone()); }
+            let mut grouped: Value = self.safe_list(outcomesByTicker.clone(), ticker.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+            if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj); }
+            if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(ticker.as_deref().unwrap_or("null").to_string(), grouped.clone()); }
         }
         }
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "fetchTickersBatchSize", &[Value::Int(100)]);

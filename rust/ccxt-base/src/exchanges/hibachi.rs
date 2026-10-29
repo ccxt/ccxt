@@ -1074,8 +1074,9 @@ impl HibachiCore {
         });
         let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
         let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
-        let mut promises: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
-        let mut pricesResponse: Value = promises.get(0).cloned().unwrap_or(Value::Null);
+        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
+        let mut pricesResponse: Value = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut statsResponse: Value = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -1088,7 +1089,6 @@ impl HibachiCore {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        let mut statsResponse: Value = promises.get(1).cloned().unwrap_or(Value::Null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",

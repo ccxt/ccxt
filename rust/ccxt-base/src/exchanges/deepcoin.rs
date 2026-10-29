@@ -1094,6 +1094,9 @@ impl DeepcoinCore {
             isLinear = (Value::Bool(quoteId.as_str() != Some("USD")));
             settleId = (if isLinear.as_bool() == Some(true) { quoteId.clone() } else { baseId.clone() });
             settle = self.safe_currency_code(settleId.clone(), &[]);
+            if (settle == Value::Null) {
+                return Value::Null;
+            }
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
         }
         let mut fees: Value = self.safe_dict2(self.fees.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()), &[Value::Map({
