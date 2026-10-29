@@ -7172,10 +7172,9 @@ func (this *BaseExchange) ParseFundingRates(response any, optionalArgs ...any) m
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 
-		var parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(entry))
-		PanicOnError(parsed)
-		if !IsEqual(GetValue(parsed, "symbol"), nil) {
-			AddElementToObject(fundingRates, GetValue(parsed, "symbol"), parsed)
+		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(entry))
+		if !IsEqual(parsed["symbol"], nil) {
+			AddElementToObject(fundingRates, parsed["symbol"], parsed)
 		}
 	}
 	return this.IndexBy(this.FilterByArray(fundingRates, "symbol", symbols, false), "symbol")
@@ -7417,10 +7416,9 @@ func (this *BaseExchange) ParseOpenInterests(response any, optionalArgs ...any) 
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 
-		var parsed any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry))
-		PanicOnError(parsed)
-		if !IsEqual(GetValue(parsed, "symbol"), nil) {
-			AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
+		var parsed map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry))
+		if !IsEqual(parsed["symbol"], nil) {
+			AddElementToObject(result, parsed["symbol"], parsed)
 		}
 	}
 	return this.IndexBy(this.FilterByArray(result, "symbol", symbols, false), "symbol")
@@ -7436,8 +7434,7 @@ func (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs .
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 
-		var interest any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry, market))
-		PanicOnError(interest)
+		var interest map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry, market))
 		interests = append(interests, interest)
 	}
 	var sorted []any = this.SortBy(interests, "timestamp")
