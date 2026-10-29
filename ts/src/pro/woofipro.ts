@@ -146,7 +146,7 @@ export default class woofipro extends woofiproRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const topic = this.safeString (message, 'topic');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -516,7 +516,7 @@ export default class woofipro extends woofiproRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
