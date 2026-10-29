@@ -6785,14 +6785,17 @@ public Map<String, Object> describe()
             freeBalance.put(code, this.parseNumber(free));
             usedBalance.put(code, this.parseNumber(used));
             totalBalance.put(code, this.parseNumber(total));
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "free", (freeBalance == null || code == null ? null : freeBalance.get(code)));
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "used", (usedBalance == null || code == null ? null : usedBalance.get(code)));
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "total", (totalBalance == null || code == null ? null : totalBalance.get(code)));
+            Map<String, Object> entry = new HashMap<String, Object>() {{
+                put( "free", (freeBalance == null || code == null ? null : freeBalance.get(code)) );
+                put( "used", (usedBalance == null || code == null ? null : usedBalance.get(code)) );
+                put( "total", (totalBalance == null || code == null ? null : totalBalance.get(code)) );
+            }};
             if (!java.util.Objects.equals(debt, null))
             {
                 debtBalance.put(code, this.parseNumber(debt));
-                Helpers.addElementToObject(Helpers.GetValue(balance, code), "debt", (debtBalance == null || code == null ? null : debtBalance.get(code)));
+                entry.put("debt", (debtBalance == null || code == null ? null : debtBalance.get(code)));
             }
+            Helpers.addElementToObject(balance, code, this.extend(Helpers.GetValue(balances, code), entry));
         }
         ((Map<String, Object>)balance).put("free", freeBalance);
         ((Map<String, Object>)balance).put("used", usedBalance);

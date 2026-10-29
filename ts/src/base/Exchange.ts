@@ -4776,13 +4776,16 @@ export class BaseExchange {
             freeBalance[code] = this.parseNumber (free);
             usedBalance[code] = this.parseNumber (used);
             totalBalance[code] = this.parseNumber (total);
-            balance[code]['free'] = freeBalance[code];
-            balance[code]['used'] = usedBalance[code];
-            balance[code]['total'] = totalBalance[code];
+            const entry: Dict = {
+                'free': freeBalance[code],
+                'used': usedBalance[code],
+                'total': totalBalance[code],
+            };
             if (debt !== undefined) {
                 debtBalance[code] = this.parseNumber (debt);
-                balance[code]['debt'] = debtBalance[code];
+                entry['debt'] = debtBalance[code];
             }
+            balance[code] = this.extend (balances[code], entry);
         }
         balance['free'] = freeBalance;
         balance['used'] = usedBalance;
