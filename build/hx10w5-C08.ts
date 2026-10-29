@@ -560,5 +560,78 @@ export function hx10C08SnippetChecks (): string[] {
         const input = (label === 'noVenue') ? body : wrap (body)
         check ('negative ' + label, input, input, api)
     }
+    const slotIn = wrap ('    public async Task<object> fetchS(object parameters = null)\n    {\n        object p1 = this.publicGetA(parameters);\n        object p2 = this.publicGetList(parameters);\n        var p1p2Variable = await promiseAll(new List<object>() {p1, p2});\n        var a = ((IList<object>) p1p2Variable)[0];\n        var b = ((IList<object>) p1p2Variable)[1];\n        return this.safeDict(a, b);\n    }\n')
+    const slotOut = hx11w8PromiseAllSlots (slotIn, () => new Map (Object.entries (mixedApi)))
+    if (slotOut !== wrap ('    public async Task<object> fetchS(object parameters = null)\n    {\n        Task<Dictionary<string, object>> p1 = this.publicGetA(parameters);\n        Task<List<object>> p2 = this.publicGetList(parameters);\n        await Task.WhenAll(p1, p2);\n        var a = await p1;\n        var b = await p2;\n        return this.safeDict(a, b);\n    }\n')) {
+        problems.push ('hx11 w8 promiseAll slots -> ' + slotOut.replace (/\n/g, ' | '))
+    }
     return problems
+}
+
+// hx11 w8: destructured slots. `var aBVariable = await promiseAll(new List<object>() {p, q});` followed by
+// `var a = ((IList<object>) aBVariable)[0];` ... over single-use `object` task locals with a plain Task<T>:
+// await natively and read each slot from its own task (PromiseAll's re-box is the identity on plain T).
+export function hx11w8PromiseAllSlots (content: string, apiTypesOf?: (venue: string) => Map<string, string>): string {
+    if (!content || (content.indexOf ('promiseAll') < 0)) {
+        return content
+    }
+    const venueMatch = /public partial class (\w+)/.exec (content)
+    if (venueMatch === null) {
+        return content
+    }
+    const api = ((typeof apiTypesOf === 'function') ? apiTypesOf : hx10C08ApiTaskTypes) (venueMatch[1])
+    const mask = hx10C08Mask (content)
+    const declared = new Map<string, string | undefined> ()
+    const declRe = /public\s+(?:async\s+)?(?:static\s+)?(?:override\s+|virtual\s+)*(Task(?:<(?:[^<>]|<[^<>]*>)*>)?)\s+(\w+)\s*\(/g
+    let dsm
+    while ((dsm = declRe.exec (mask)) !== null) {
+        declared.set (dsm[2], (declared.has (dsm[2]) && (declared.get (dsm[2]) !== dsm[1])) ? undefined : dsm[1])
+    }
+    const accepted: Hx10C08Edit[] = []
+    for (const span of hx10C08MethodSpans (mask, content.split ('\n'))) {
+        const body = mask.slice (span.start, span.end)
+        const re = /var (\w+Variable) = await promiseAll\(new List<object>(?:\(\))? \{([^{}()]*)\}\);\n/g
+        let m
+        while ((m = re.exec (body)) !== null) {
+            const at = span.start + m.index
+            const parts = hx10C08SplitParts (mask, at + m[0].indexOf ('{') + 1, at + m[0].lastIndexOf ('}'))
+            const names = parts.map (part => mask.slice (part.start, part.end))
+            let cursor = at + m[0].length
+            const slots: Array<{ indent: string, name: string }> = []
+            for (let i = 0; i < names.length; i++) {
+                const sm = new RegExp ('^( *)var (\\w+) = \\(\\(IList<object>\\) ' + m[1] + '\\)\\[' + i + '\\];\\n').exec (mask.slice (cursor))
+                if (sm === null) {
+                    break
+                }
+                slots.push ({ indent: sm[1], name: sm[2] })
+                cursor += sm[0].length
+            }
+            const mentions = (body.match (new RegExp ('\\b' + m[1] + '\\b', 'g')) || []).length
+            if ((slots.length !== names.length) || (mentions !== 1 + names.length) || (new Set (names)).size !== names.length) {
+                continue
+            }
+            const edits: Hx10C08Edit[] = []
+            const plain = parts.every ((part, i) => {
+                const info = hx10C08ElementInfo (mask, part, span, api, declared)
+                const inner = (info === undefined) ? undefined : hx10C08TaskInner (info.type)
+                if ((inner === undefined) || !HX10C08_PLAIN.has (inner)) {
+                    return false
+                }
+                if (info!.edit !== undefined) {
+                    edits.push (info!.edit)
+                }
+                // a slot must stay read-only: its type narrows from object to T
+                return !new RegExp ('(?<![\\w.])' + slots[i].name + '\\s*(?:=(?!=)|\\+=|-=|\\+\\+|--)').test (body.slice (cursor - span.start))
+            })
+            if (!plain || !/^ *$/.test (mask.slice (mask.lastIndexOf ('\n', at) + 1, at))) {
+                continue
+            }
+            const reads = slots.map ((s, i) => s.indent + 'var ' + s.name + ' = await ' + names[i] + ';\n').join ('')
+            const all = [ { start: at, end: cursor, text: 'await Task.WhenAll(' + names.join (', ') + ');\n' + reads }, ...edits ]
+            if (!all.some (e => accepted.some (a => (e.start < a.end) && (a.start < e.end)))) {
+                accepted.push (...all)
+            }
+        }
+    }
+    return (accepted.length === 0) ? content : hx10C08Apply (content, accepted)
 }

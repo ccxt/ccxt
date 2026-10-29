@@ -5,7 +5,7 @@ import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { hx10C07PromiseAll, hx10C07SelfTest } from './hx10w2-C07.js' // hx10 wave2 C07: promiseAll -> Task.WhenAll
 import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: handleErrors code / ws boolean flags
-import { hx10C08PromiseAll, hx10C08SnippetChecks } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
+import { hx10C08PromiseAll, hx10C08SnippetChecks, hx11w8PromiseAllSlots } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
@@ -9476,7 +9476,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
     const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
     const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
-    return hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out)))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse
+    return hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx11w8PromiseAllSlots (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out))))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse
 }
 
 function nativeC07HelperCalls (content: string): string {
