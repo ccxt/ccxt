@@ -447,7 +447,7 @@
     "@noble/hashes": "2.2.0",
     "@scure/base": "2.2.0",
     "@scure/starknet": "2.2.0",
-    "undici": "7.29.1",
+    "undici": "7.30.1",
     "ws": "8.21.0"
   },
   "overrides": {
