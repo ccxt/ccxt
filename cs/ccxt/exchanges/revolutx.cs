@@ -883,11 +883,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> market = null;
-        if ((symbol != null))
-        {
-            market = this.market(symbol);
-        }
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((market != null))
         {

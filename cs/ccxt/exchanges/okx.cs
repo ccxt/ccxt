@@ -3137,10 +3137,7 @@ public partial class okx : Exchange
         bool isFullBook = ((method == "publicGetMarketBooksFull"));
         bool largeLimit = (((limit == null)) && isFullBook) || (((limit != null)) && ((limit > 400)));
         Int64? limitResolved = ((rpi == true) && largeLimit) ? 400 : requestedLimit;
-        if ((limitResolved != null))
-        {
-            request["sz"] = limitResolved; // max 400
-        }
+        request["sz"] = limitResolved; // max 400
         Dictionary<string, object> response = null;
         if ((rpi == true))
         {

@@ -74,13 +74,8 @@ public partial class coinbase : ccxt.coinbase
         }
         IDictionary<string, object> market = null;
         object messageHash = name;
-        IList<object> productIds = new List<object>() {};
-        if (((symbol is IList<object>) || (symbol.GetType().IsGenericType && symbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            IList<object> symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            messageHash = add(add(name, "::"), String.Join(",", symbols.ToArray()));
-        } else if ((symbol != null))
+        List<object> productIds = new List<object>() {};
+        if ((symbol != null))
         {
             market = this.market(symbol);
             messageHash = add(add(name, "::"), symbol);
@@ -124,14 +119,8 @@ public partial class coinbase : ccxt.coinbase
         IDictionary<string, object> market = null;
         object watchMessageHash = name;
         string unWatchMessageHash = ("unsubscribe:" + (name));
-        IList<object> productIds = new List<object>() {};
-        if (((symbol is IList<object>) || (symbol.GetType().IsGenericType && symbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            IList<object> symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            watchMessageHash = add(add(name, "::"), String.Join(",", symbols.ToArray()));
-            unWatchMessageHash = ((("unsubscribe:" + (name)) + "::") + String.Join(",", symbols.ToArray()));
-        } else if ((symbol != null))
+        List<object> productIds = new List<object>() {};
+        if ((symbol != null))
         {
             market = this.market(symbol);
             watchMessageHash = add(add(name, "::"), symbol);

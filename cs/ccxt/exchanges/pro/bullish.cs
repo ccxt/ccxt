@@ -191,6 +191,10 @@ public partial class bullish : ccxt.bullish
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         string? symbol = this.safeSymbol(marketId);
+        if ((symbol == null))
+        {
+            return;
+        }
         Dictionary<string, object> market = this.market(symbol);
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
         IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
