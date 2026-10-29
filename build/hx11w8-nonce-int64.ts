@@ -148,3 +148,60 @@ export function hx11w8NonceInt64Check (): string[] {
     ok (hx11w8NonceInt64 (hx11w8NonceInt64 (fn ('\treturn this.Seconds()\n'))).includes ('Nonce() int64 {'), 'idempotent');
     return problems;
 }
+
+// A `var n any = this.Nonce()` / `this.IncrementingNonce()` local is an int64 (see above). It is retyped when the
+// function declares it once, never rewrites it, and no use needs an interface box (nil test, assertion, address).
+const NONCE_LOCAL = /^(\t+)var (\w+) any = this\.(?:Incrementing)?Nonce\(\)(?= *(?:\/\/.*)?$)/;
+
+function nonceLocalSafe (name: string, lines: string[], declAt: number): boolean {
+    const id = '\\b' + name + '\\b';
+    const rewrite = new RegExp ('^\\s*(?:[\\w.\\[\\]*]+\\s*,\\s*)*' + name + '\\s*(?:,[^=]*)?(?::=|=[^=]|[-+*/%]=|\\+\\+|--)');
+    const forms = [
+        new RegExp (id + '\\s*[!=]=\\s*nil'), new RegExp ('nil\\s*[!=]=\\s*' + name + '\\b'), new RegExp ('IsEqual\\(' + name + ', nil\\)'),
+        new RegExp (id + '\\.\\('), new RegExp ('&' + name + '\\b'), new RegExp (',\\s*' + name + '\\s*(?::=|=[^=])'),
+        new RegExp ('\\bfor\\b[^\\n]*' + id), new RegExp ('\\*' + name + '\\b'),
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const l = lines[i];
+        if (i === declAt) {
+            continue;
+        }
+        if (new RegExp (id).test (l) && (rewrite.test (l) || forms.some ((f) => f.test (l)) || new RegExp ('\\bvar ' + name + '\\b').test (l))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export function hx11w8NonceLocals (content: string): string {
+    const parts = content.split (/(?=\nfunc )/);
+    return parts.map ((fn) => {
+        if (!/ any = this\.(?:Incrementing)?Nonce\(\)/.test (fn)) {
+            return fn;
+        }
+        const lines = fn.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const m = NONCE_LOCAL.exec (lines[i]);
+            if (m !== null && nonceLocalSafe (m[2], lines, i)) {
+                lines[i] = lines[i].replace ('var ' + m[2] + ' any =', 'var ' + m[2] + ' int64 =');
+            }
+        }
+        return lines.join ('\n');
+    }).join ('');
+}
+
+export function hx11w8NonceLocalsCheck (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('hx11w8 nonce locals: ' + msg); } };
+    const fn = (body: string) => '\nfunc (this *X) F() any {\n\tvar nonce any = this.IncrementingNonce()\n' + body + '}\n';
+    const typed = (body: string) => hx11w8NonceLocals (fn (body)).includes ('var nonce int64 = ');
+    ok (typed ('\tvar r any = ToString(nonce)\n\treturn map[string]any{"n": nonce, "m": Add(nonce, 1)}\n'), 'plain uses are retyped');
+    ok (!typed ('\tnonce = this.Foo()\n\treturn nonce\n'), 'a rewrite keeps any');
+    ok (!typed ('\tif nonce == nil {\n\t\treturn nil\n\t}\n'), 'a nil test keeps any');
+    ok (!typed ('\tif IsEqual(nonce, nil) {\n\t\treturn nil\n\t}\n'), 'IsEqual nil keeps any');
+    ok (!typed ('\tn := nonce.(int64)\n\treturn n\n'), 'an assertion keeps any');
+    ok (!typed ('\tfor nonce := 0; nonce < 2; nonce++ {\n\t}\n'), 'a loop var keeps any');
+    ok (!typed ('\tnonce, ok := f()\n'), 'a tuple write keeps any');
+    ok (hx11w8NonceLocals (hx11w8NonceLocals (fn ('\treturn nonce\n'))) === hx11w8NonceLocals (fn ('\treturn nonce\n')), 'idempotent');
+    return problems;
+}
