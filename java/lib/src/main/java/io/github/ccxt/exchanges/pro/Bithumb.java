@@ -909,7 +909,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2L)).get(0);
+            List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationVariable).get(0);
             if ((generation == null || generation != 2))
             {
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
@@ -1055,7 +1056,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2L)).get(0);
+            List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2L);
+            Long generation = (Long) ((List<Object>) generationVariable).get(0);
             if ((generation == null || generation != 2))
             {
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;

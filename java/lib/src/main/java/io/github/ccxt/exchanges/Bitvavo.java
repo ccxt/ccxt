@@ -1785,7 +1785,7 @@ public class Bitvavo extends BitvavoApi
             }
             if (!java.util.Objects.equals(cost, null))
             {
-                Object precision = ((Map<String, Object>)this.currency((String) (market.get("quote")))).get("precision");
+                Double precision = this.safeNumber(this.currency((String) (market.get("quote"))), "precision", (Object) null);
                 request.put("amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
             } else
             {

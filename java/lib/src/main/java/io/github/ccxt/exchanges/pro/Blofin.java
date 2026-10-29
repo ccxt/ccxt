@@ -1091,9 +1091,15 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             String callerMethodNameOption = (String) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(1);
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "candle"));
-            Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-            symbols = this.marketSymbols(symbols, (Object) null, false, true, false);
-            Map<String, Object> firstMarket = this.market(Helpers.GetValue(symbols, 0));
+            List<String> symbols = new ArrayList<String>(Arrays.asList());
+            if (Boolean.TRUE.equals(isOHLCV))
+            {
+                symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), (Object) null, false, true, false);
+            } else
+            {
+                symbols = this.marketSymbols(symbolsArray, (Object) null, false, true, false);
+            }
+            Map<String, Object> firstMarket = this.market(this.safeString(symbols, 0));
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
@@ -1103,9 +1109,9 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+            for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = this.market(this.safeString(symbols, i));
                 Object channel = channelName;
                 if (Boolean.TRUE.equals(isOHLCV))
                 {

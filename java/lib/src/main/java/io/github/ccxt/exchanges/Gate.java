@@ -6215,18 +6215,6 @@ public class Gate extends GateApi
                     mapLiteral14.put("rule", rule);
                     request.put("trigger", mapLiteral14);
                 }
-                if (!java.util.Objects.equals(reduceOnly, null))
-                {
-                    Helpers.addElementToObject(request.get("initial"), "reduce_only", reduceOnly);
-                }
-                if (!java.util.Objects.equals(timeInForce, null))
-                {
-                    Helpers.addElementToObject(request.get("initial"), "tif", timeInForce);
-                }
-                if (!java.util.Objects.equals(clientOrderId, null))
-                {
-                    Helpers.addElementToObject(request.get("initial"), "text", clientOrderId);
-                }
             } else
             {
                 // spot conditional order

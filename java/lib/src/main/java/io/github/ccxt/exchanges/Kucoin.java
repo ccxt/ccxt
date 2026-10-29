@@ -4717,7 +4717,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object handleTriggerPrices(Map<String, Object> parameters)
+    public void checkTriggerPrices(Map<String, Object> parameters)
     {
         Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice", (Object) null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
@@ -4728,7 +4728,6 @@ public class Kucoin extends KucoinApi
         {
             throw new ExchangeError((this.id + " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
-        return new ArrayList<Object>(Arrays.asList(triggerPrice, stopLossPrice, takeProfitPrice));
     }
 
     /**
@@ -4849,10 +4848,10 @@ public class Kucoin extends KucoinApi
             Pair<Boolean, Map<String, Object>> useSyncparamsSyncVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsHf), "createOrder", "sync", false);
             Boolean useSync = useSyncparamsSyncVariable.first();
             Map<String, Object> paramsSync = useSyncparamsSyncVariable.second();
-            List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (paramsSync));
-            var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
-            var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
-            var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
+            this.checkTriggerPrices((Map<String, Object>) (paramsSync));
+            Double triggerPrice = this.safeNumber2(paramsSync, "triggerPrice", "stopPrice", (Object) null);
+            Double stopLossPrice = this.safeNumber(paramsSync, "stopLossPrice", (Object) null);
+            Double takeProfitPrice = this.safeNumber(paramsSync, "takeProfitPrice", (Object) null);
             String tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
             Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
             String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("createOrder", paramsSync, (String) null)).get(0);
@@ -4955,10 +4954,10 @@ public class Kucoin extends KucoinApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         String tradeType = this.safeString(paramsOmitted, "tradeType"); // keep it for backward compatibility
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (paramsOmitted));
-        var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
-        var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
-        var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
+        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
+        Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
+        Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
         Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
         paramsOmitted = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice")));
@@ -5144,10 +5143,10 @@ public class Kucoin extends KucoinApi
                 request.put("size", Helpers.parseInt(sizeString));
             }
         }
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (paramsOmitted));
-        var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
-        var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
-        var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
+        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
+        Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
+        Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsOmitted, "stopLoss", (Object) null);
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsOmitted, "takeProfit", (Object) null);
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
@@ -5452,10 +5451,10 @@ public class Kucoin extends KucoinApi
             }
         }
         // handling with conditional orders
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (paramsOmitted));
-        var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
-        var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
-        var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
+        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
+        Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
+        Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsOmitted, "stopLoss", (Object) null);
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsOmitted, "takeProfit", (Object) null);
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);

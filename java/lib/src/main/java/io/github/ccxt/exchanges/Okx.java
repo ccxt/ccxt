@@ -10520,9 +10520,9 @@ public class Okx extends OkxApi
             {
                 request.put("limit", limit);
             }
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive");
-            var method = ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Long until = this.safeInteger(paramsMethod, "until");
             if (!java.util.Objects.equals(until, null))
             {
