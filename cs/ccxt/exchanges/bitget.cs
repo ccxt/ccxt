@@ -5877,7 +5877,7 @@ public partial class bitget : Exchange
             if (isStock)
             {
                 request["category"] = "SPOT";
-            } else if (!(request.ContainsKey("category")))
+            } else
             {
                 request["category"] = productType;
             }

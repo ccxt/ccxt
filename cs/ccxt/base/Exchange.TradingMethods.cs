@@ -811,7 +811,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrder(this.safeString(order, "id"),this.safeString(order, "symbol"), parameters);
+        return await this.FetchOrder(this.safeString(order, "id", ""),this.safeString(order, "symbol"), parameters);
     }
 
     public async virtual Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)

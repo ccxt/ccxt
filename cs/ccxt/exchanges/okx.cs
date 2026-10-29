@@ -4364,7 +4364,8 @@ public partial class okx : Exchange
         bool marketIOC = (isMarketOrder && ioc) || ((type == "optimal_limit_ioc"));
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(orderParams, "tgtCcy", defaultTgtCcy);
-        if (((contract != true)) && (!margin))
+        // conditional sell orders must not carry tgtCcy
+        if (((contract != true)) && (!margin) && (trigger || (!conditional) || (!(side == "sell"))))
         {
             request["tgtCcy"] = tgtCcy;
         }
@@ -4563,11 +4564,7 @@ public partial class okx : Exchange
             {
                 request["ordType"] = "oco";
             }
-            if ((side == "sell"))
-            {
-                request = this.omit(request, "tgtCcy");
-            }
-            if ((this.safeString(request, "tdMode") == "cash"))
+            if (((spot == true)) && (!margin))
             {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}

@@ -5579,36 +5579,36 @@ public partial class binance : Exchange
             for (int i = 0; i < getArrayLength(response); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(response, i);
-                Dictionary<string, object> account = this.account();
+                Dictionary<string, object> accountPapi = this.account();
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
                 if ((type is "linear"))
                 {
-                    account["free"] = this.safeString(entry, "umWalletBalance");
-                    account["used"] = this.safeString(entry, "umUnrealizedPNL");
+                    accountPapi["free"] = this.safeString(entry, "umWalletBalance");
+                    accountPapi["used"] = this.safeString(entry, "umUnrealizedPNL");
                 } else if ((type is "inverse"))
                 {
-                    account["free"] = this.safeString(entry, "cmWalletBalance");
-                    account["used"] = this.safeString(entry, "cmUnrealizedPNL");
+                    accountPapi["free"] = this.safeString(entry, "cmWalletBalance");
+                    accountPapi["used"] = this.safeString(entry, "cmUnrealizedPNL");
                 } else if (cross)
                 {
                     string? borrowed = this.safeString(entry, "crossMarginBorrowed");
                     string? interest = this.safeString(entry, "crossMarginInterest");
-                    account["debt"] = Precise.stringAdd(borrowed, interest);
-                    account["free"] = this.safeString(entry, "crossMarginFree");
-                    account["used"] = this.safeString(entry, "crossMarginLocked");
-                    account["total"] = this.safeString(entry, "crossMarginAsset");
+                    accountPapi["debt"] = Precise.stringAdd(borrowed, interest);
+                    accountPapi["free"] = this.safeString(entry, "crossMarginFree");
+                    accountPapi["used"] = this.safeString(entry, "crossMarginLocked");
+                    accountPapi["total"] = this.safeString(entry, "crossMarginAsset");
                 } else
                 {
                     string? usedLinear = this.safeString(entry, "umUnrealizedPNL");
                     string? usedInverse = this.safeString(entry, "cmUnrealizedPNL");
                     string? totalUsed = Precise.stringAdd(usedLinear, usedInverse);
                     string? totalWalletBalance = this.safeString(entry, "totalWalletBalance");
-                    account["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
+                    accountPapi["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
                 }
                 if ((code != null))
                 {
-                    result[(string)code] = account;
+                    result[(string)code] = accountPapi;
                 }
             }
         } else if (!isolated && (((type is "spot")) || cross))
@@ -5620,18 +5620,18 @@ public partial class binance : Exchange
                 IDictionary<string, object> balance = this.safeDict(balances, i);
                 string? currencyId = this.safeString(balance, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
-                account["free"] = this.safeString(balance, "free");
-                account["used"] = this.safeString(balance, "locked");
+                Dictionary<string, object> accountSpot = this.account();
+                accountSpot["free"] = this.safeString(balance, "free");
+                accountSpot["used"] = this.safeString(balance, "locked");
                 if (cross)
                 {
                     string? debt = this.safeString(balance, "borrowed");
                     string? interest = this.safeString(balance, "interest");
-                    account["debt"] = Precise.stringAdd(debt, interest);
+                    accountSpot["debt"] = Precise.stringAdd(debt, interest);
                 }
                 if ((code != null))
                 {
-                    result[(string)code] = account;
+                    result[(string)code] = accountSpot;
                 }
             }
         } else if (isolated)
@@ -5661,13 +5661,13 @@ public partial class binance : Exchange
                 IDictionary<string, object> entry = this.safeDict(positionAmountVos, i);
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
+                Dictionary<string, object> accountSavings = this.account();
                 string? usedAndTotal = this.safeString(entry, "amount");
-                account["total"] = usedAndTotal;
-                account["used"] = usedAndTotal;
+                accountSavings["total"] = usedAndTotal;
+                accountSavings["used"] = usedAndTotal;
                 if ((code != null))
                 {
-                    result[(string)code] = account;
+                    result[(string)code] = accountSavings;
                 }
             }
         } else if ((type is "funding"))
@@ -5675,17 +5675,17 @@ public partial class binance : Exchange
             for (int i = 0; i < getArrayLength(response); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(response, i);
-                Dictionary<string, object> account = this.account();
+                Dictionary<string, object> accountFunding = this.account();
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                account["free"] = this.safeString(entry, "free");
+                accountFunding["free"] = this.safeString(entry, "free");
                 string? frozen = this.safeString(entry, "freeze");
                 string? withdrawing = this.safeString(entry, "withdrawing");
                 string? locked = this.safeString(entry, "locked");
-                account["used"] = Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing));
+                accountFunding["used"] = Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing));
                 if ((code != null))
                 {
-                    result[(string)code] = account;
+                    result[(string)code] = accountFunding;
                 }
             }
         } else
@@ -5706,13 +5706,13 @@ public partial class binance : Exchange
                 }
                 string? currencyId = this.safeString(balance, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
-                account["free"] = this.safeString(balance, "availableBalance");
-                account["used"] = this.safeString(balance, "initialMargin");
-                account["total"] = this.safeString2(balance, "marginBalance", "balance");
+                Dictionary<string, object> accountFutures = this.account();
+                accountFutures["free"] = this.safeString(balance, "availableBalance");
+                accountFutures["used"] = this.safeString(balance, "initialMargin");
+                accountFutures["total"] = this.safeString2(balance, "marginBalance", "balance");
                 if ((code != null))
                 {
-                    result[(string)code] = account;
+                    result[(string)code] = accountFutures;
                 }
             }
         }

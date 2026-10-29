@@ -3419,7 +3419,6 @@ public partial class BaseExchange
 
     public async virtual Task<object> fetchWebEndpoint(string method, object endpointMethod, object returnAsJson, string? startRegex = null, string? endRegex = null)
     {
-        string errorMessage = "";
         object options = this.safeValue(this.options, method, new Dictionary<string, object>() {});
         bool? muteOnFailure = this.safeBool(options, "webApiMuteFailure", true);
         try
@@ -3431,9 +3430,8 @@ public partial class BaseExchange
             }
             Int64? maxRetries = this.safeInteger(options, "webApiRetries", 10);
             object response = null;
-            Int64 retry = 0;
             bool shouldBreak = false;
-            while ((retry < maxRetries))
+            for (int retry = 0; (retry < maxRetries); retry++)
             {
                 try
                 {
@@ -3442,8 +3440,7 @@ public partial class BaseExchange
                     break;
                 } catch(Exception e)
                 {
-                    retry = (retry + 1);
-                    if ((retry == maxRetries))
+                    if (((retry + 1L) >= maxRetries))
                     {
                         throw e;
                     }
@@ -3488,15 +3485,12 @@ public partial class BaseExchange
             }
         } catch(Exception e)
         {
-            errorMessage = (((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
+            if (muteOnFailure != true)
+            {
+                throw new BadResponse ((((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")) ;
+            }
         }
-        if ((muteOnFailure == true))
-        {
-            return null;
-        } else
-        {
-            throw new BadResponse (errorMessage) ;
-        }
+        return null;
     }
 
     public virtual IList<object> marketIds(object symbols = null)

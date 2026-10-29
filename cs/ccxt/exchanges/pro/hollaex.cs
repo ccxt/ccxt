@@ -401,10 +401,14 @@ public partial class hollaex : ccxt.hollaex
         //       }
         //
         string? channel = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> dataDict = this.safeDict(message, "data");
+        List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
+        if ((dataDict != null))
+        {
+            rawOrders = new List<object>() {dataDict};
+        }
         // usually the first message is an empty array
-        int dataLength = getArrayLength(data);
-        if ((dataLength == 0))
+        if (((rawOrders?.Count ?? 0) == 0))
         {
             return;
         }
@@ -414,16 +418,8 @@ public partial class hollaex : ccxt.hollaex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        object rawOrders = null;
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rawOrders = new List<object>() {data};
-        } else
-        {
-            rawOrders = data;
-        }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             object order = this.safeValue(rawOrders, i);
             ccxt.Order parsed = this.parseOrder(order);
@@ -487,7 +483,7 @@ public partial class hollaex : ccxt.hollaex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(data.Keys);
         Int64? timestamp = this.safeTimestamp(message, "time");
-        this.balance["info"] = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        this.balance["info"] = data;
         this.balance["timestamp"] = timestamp;
         this.balance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < keys.Count; i++)

@@ -1676,14 +1676,6 @@ public partial class cryptocom : Exchange
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((type == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
-        }
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
-        }
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = type.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
