@@ -1121,7 +1121,7 @@ public partial class bithumb : Exchange
                 return ccxt.BaseExchange.ToTickers(result);
             }
             List<object> marketIdsChunks = new List<object>() {};
-            List<object> promises = new List<object>() {};
+            List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
             // the exchange rejects more than 200 market ids per request
             Int64? maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
             Int64? maxMarketIdsPerRequest = this.parseToInt((((maxMarketIdsOption == null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))) ? 200 : maxMarketIdsOption);
@@ -1171,7 +1171,7 @@ public partial class bithumb : Exchange
             //         },
             //     ]
             //
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             int responsesLength = (responses?.Count ?? 0);
             for (int i = 0; i < responsesLength; i++)
             {
@@ -1252,13 +1252,13 @@ public partial class bithumb : Exchange
                     quotes = requiredQuoteIds;
                 }
             }
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (quotes?.Count ?? 0); i++)
             {
                 request["quoteId"] = quotes[i];
                 promises.Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             for (int i = 0; i < (quotes?.Count ?? 0); i++)
             {
                 object quote = quotes[i];

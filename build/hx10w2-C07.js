@@ -191,6 +191,23 @@ function hx10C07MethodSpans (mask, lines) {
     return spans
 }
 
+// end offset of the `{ }` block holding position `at` (the method end when it is top level)
+function hx10C07BlockEnd (mask, at, span) {
+    let depth = 0
+    for (let i = at - 1; i >= span.body; i--) {
+        if (mask[i] === '}') {
+            depth++
+        } else if (mask[i] === '{') {
+            if (depth === 0) {
+                const close = hx10C07MatchBracket (mask, i, '{', '}')
+                return (close < 0) ? -1 : close + 1
+            }
+            depth--
+        }
+    }
+    return span.end
+}
+
 // `Task<...>` returns declared in this file: an ambiguous name (two different types) is dropped
 function hx10C07DeclaredTasks (mask) {
     const table = new Map ()
@@ -356,17 +373,23 @@ function hx10C07Site (content, mask, span, callAt, open, close, apiTable, declar
         return undefined
     }
     const name = argTrim
-    const body = mask.slice (span.start, span.end)
+    const wholeBody = mask.slice (span.start, span.end)
     const declRe = new RegExp ('List<object>\\s+' + name + '\\s*=', 'g')
     const decls = []
     let dm
-    while ((dm = declRe.exec (body)) !== null) {
+    while ((dm = declRe.exec (wholeBody)) !== null) {
         decls.push (span.start + dm.index)
     }
-    if (decls.length !== 1) {
+    // C# scoping: a same-named list in a sibling block is another variable; the one in scope at
+    // the call is the nearest earlier declaration whose block still contains the call
+    const inScope = decls.map (at => ({ at, end: hx10C07BlockEnd (mask, at, span) })).filter (d => (d.end > callAt) && (d.at < callAt))
+    if (inScope.length !== 1) {
         return undefined
     }
-    const declAt = decls[0]
+    const scope = inScope[0]
+    const declAt = scope.at
+    const body = mask.slice (scope.at, scope.end)
+    const bodyOffset = scope.at
     const stmtEnd = hx10C07StatementEnd (mask, declAt)
     if ((stmtEnd < 0) || (stmtEnd > span.end)) {
         return undefined
@@ -389,7 +412,7 @@ function hx10C07Site (content, mask, span, callAt, open, close, apiTable, declar
     const addCalls = []
     let am
     while ((am = addRe.exec (body)) !== null) {
-        const addOpen = span.start + am.index + am[0].length - 1
+        const addOpen = bodyOffset + am.index + am[0].length - 1
         const addClose = hx10C07MatchBracket (mask, addOpen, '(', ')')
         if (addClose < 0) {
             return undefined
@@ -402,7 +425,7 @@ function hx10C07Site (content, mask, span, callAt, open, close, apiTable, declar
             return undefined // AddRange / multi-argument Add
         }
         addCalls.push ({ open: addOpen, close: addClose })
-        allowed.push ({ start: span.start + am.index + am[0].indexOf (name), end: end + 1 })
+        allowed.push ({ start: bodyOffset + am.index + am[0].indexOf (name), end: end + 1 })
     }
     if (addCalls.length === 0) {
         return undefined
@@ -414,7 +437,7 @@ function hx10C07Site (content, mask, span, callAt, open, close, apiTable, declar
     const mention = new RegExp ('(?:^|[^\\w.])' + name + '(?![\\w])', 'g')
     let mm
     while ((mm = mention.exec (body)) !== null) {
-        const at = span.start + mm.index + mm[0].indexOf (name)
+        const at = bodyOffset + mm.index + mm[0].indexOf (name)
         const countRead = mask.startsWith ('?.Count ?? 0)', at + name.length) // List<Task<T>> keeps .Count
         if (!countRead && !allowed.some (r => (at >= r.start) && (at < r.end))) {
             return undefined
@@ -501,6 +524,11 @@ export function hx10C07SelfTest () {
         wrap ('    public async Task<object> fetchM(object parameters = null)\n    {\n        List<object> promises = new List<object>() {};\n        promises.Add(this.publicGetA(parameters));\n        int n = (promises?.Count ?? 0);\n        List<object> responses = await promiseAll(promises);\n        return responses;\n    }\n'),
         wrap ('    public async Task<object> fetchM(object parameters = null)\n    {\n        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};\n        promises.Add(this.publicGetA(parameters));\n        int n = (promises?.Count ?? 0);\n        List<object> responses = new List<object>(await Task.WhenAll(promises));\n        return responses;\n    }\n'),
         { publicGetA: 'Task<Dictionary<string, object>>' })
+    // 2c: the same list name in sibling blocks is two variables; the one in scope converts
+    check ('siblingScope',
+        wrap ('    public async Task<object> fetchS(object parameters = null)\n    {\n        if (parameters != null)\n        {\n            List<object> promises = new List<object>() {};\n            promises.Add(this.publicGetB(parameters));\n            List<object> responses = await promiseAll(promises);\n            this.log(responses);\n        } else\n        {\n            List<object> promises = new List<object>() {};\n            promises.Add(this.publicGetA(parameters));\n            List<object> responses = await promiseAll(promises);\n            this.log(responses);\n        }\n        return null;\n    }\n'),
+        wrap ('    public async Task<object> fetchS(object parameters = null)\n    {\n        if (parameters != null)\n        {\n            List<Task<List<object>>> promises = new List<Task<List<object>>>() {};\n            promises.Add(this.publicGetB(parameters));\n            List<object> responses = new List<object>(await Task.WhenAll(promises));\n            this.log(responses);\n        } else\n        {\n            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};\n            promises.Add(this.publicGetA(parameters));\n            List<object> responses = new List<object>(await Task.WhenAll(promises));\n            this.log(responses);\n        }\n        return null;\n    }\n'),
+        { publicGetA: 'Task<Dictionary<string, object>>', publicGetB: 'Task<List<object>>' })
     // 3: `object` task locals retyped from their single-call initializer
     check ('objectLocal',
         wrap ('    public async Task<object> fetchI(object parameters = null)\n    {\n        object firstPromise = this.publicGetA(parameters);\n        var secondPromise = this.publicGetB(parameters);\n        var both = await promiseAll(new List<object>() {firstPromise, secondPromise});\n        return both;\n    }\n'),
