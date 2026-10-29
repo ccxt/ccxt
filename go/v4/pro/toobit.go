@@ -1447,14 +1447,14 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions any = nil
+	var positions []any = nil
 	if r.Value != nil {
 		positions = ccxt.PositionsToList(r.Value)
 	}
 	ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = ccxt.GetValue(this.WsCacheObjGet("Positions"), typeVar)
-	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
-		var position any = ccxt.GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = positions[i]
 		cache.(ccxt.Appender).Append(position)
 	}
 	// don't remove the future from the .futures cache

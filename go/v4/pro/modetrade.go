@@ -1475,14 +1475,14 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions any = nil
+	var positions []any = nil
 	if r.Value != nil {
 		positions = ccxt.PositionsToList(r.Value)
 	}
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
-	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
-		var position any = ccxt.GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = positions[i]
 		var contracts *string = this.SafeString(position, "contracts", "0")
 		if ccxt.Precise.StringGt(contracts, "0") {
 			cache.(ccxt.Appender).Append(position)
