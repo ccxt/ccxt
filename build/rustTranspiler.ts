@@ -13233,7 +13233,8 @@ impl std::ops::DerefMut for ${coreName} {
         if (rewrites.length === 0) return content;
         let out = '', at = 0;
         for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
-        return out + content.slice(at);
+        // Rewriting an outer counter skips its body; rerun so nested counters convert too.
+        return this.x47IntIndex(out + content.slice(at));
     }
 
     // hx5 X39 — case/affix helpers: `starts_with`/`ends_with` go native ONLY when both
