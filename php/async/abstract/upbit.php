@@ -140,7 +140,7 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));
@@ -500,7 +500,7 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));

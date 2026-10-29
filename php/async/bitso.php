@@ -678,7 +678,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $payload = $this->safe_dict($response, 'payload', array());
         $balances = $this->safe_list($payload, 'balances', array());
         $result = array(

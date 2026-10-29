@@ -1745,7 +1745,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_list($message, 'response', array());
-        $balance = $this->parse_balance($response);
+        $balance = $this->parseBalanceList($response);
         $client->resolve($balance, $messageHash);
     }
 

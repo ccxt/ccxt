@@ -4354,7 +4354,7 @@ class hyperliquid extends Exchange {
         // unified account is active", a unified account has to move balances with sendAsset instead
         $transferMethod = null;
         $query = $params;
-        list($transferMethod, $query) = $this->handle_option_and_params($query, 'transfer', 'method');
+        list($transferMethod, $query) = $this->handle_option_string_and_params($query, 'transfer', 'method');
         $masterAddress = null;
         $masterAddress = $this->safe_string($this->handle_public_address('transfer', $query), 0);
         $query = $this->safe_dict($this->handle_public_address('transfer', $query), 1, array());

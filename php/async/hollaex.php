@@ -1039,7 +1039,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
         $result = array(
             'info' => $response,

@@ -59,11 +59,11 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
+    public function subscribe(string $name, bool $isPrivate = false, ?string $symbol = null, $params = array()) {
         return Async\async(self::do_subscribe(...))($name, $isPrivate, $symbol, $params);
     }
 
-    private function do_subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
+    private function do_subscribe(string $name, bool $isPrivate = false, ?string $symbol = null, $params = array()) {
         /**
          * @ignore
          * subscribes to a websocket channel
@@ -102,11 +102,11 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
     }
 
-    public function un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
+    public function un_subscribe(string $topic, string $name, bool $isPrivate = false, ?string $symbol = null) {
         return Async\async(self::do_un_subscribe(...))($topic, $name, $isPrivate, $symbol);
     }
 
-    private function do_un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
+    private function do_un_subscribe(string $topic, string $name, bool $isPrivate = false, ?string $symbol = null) {
         /**
          * @ignore
          * unSubscribes to a websocket channel
@@ -160,11 +160,11 @@ class coinbase extends \ccxt\async\coinbase {
         return $res;
     }
 
-    public function subscribe_multiple(string $name, bool $isPrivate, ?array $symbols = null, $params = array()) {
+    public function subscribe_multiple(string $name, bool $isPrivate = false, ?array $symbols = null, $params = array()) {
         return Async\async(self::do_subscribe_multiple(...))($name, $isPrivate, $symbols, $params);
     }
 
-    private function do_subscribe_multiple(string $name, bool $isPrivate, ?array $symbols = null, $params = array()) {
+    private function do_subscribe_multiple(string $name, bool $isPrivate = false, ?array $symbols = null, $params = array()) {
         /**
          * @ignore
          * subscribes to a websocket channel
@@ -202,11 +202,11 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->watch_multiple($url, $messageHashes, $subscribe, $messageHashes));
     }
 
-    public function un_subscribe_multiple(string $topic, string $name, bool $isPrivate, ?array $symbols = null, $params = array()) {
+    public function un_subscribe_multiple(string $topic, string $name, bool $isPrivate = false, ?array $symbols = null, $params = array()) {
         return Async\async(self::do_un_subscribe_multiple(...))($topic, $name, $isPrivate, $symbols, $params);
     }
 
-    private function do_un_subscribe_multiple(string $topic, string $name, bool $isPrivate, ?array $symbols = null, $params = array()) {
+    private function do_un_subscribe_multiple(string $topic, string $name, bool $isPrivate = false, ?array $symbols = null, $params = array()) {
         /**
          * @ignore
          * unsubscribes to a websocket channel

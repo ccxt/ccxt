@@ -3326,7 +3326,7 @@ class derive extends Exchange {
             $subaccountResponse = $this->privatePostGetSubaccount($this->extend($subaccountRequest, $subaccountParams));
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             $subaccountResult = $this->safe_dict($subaccountResponse, 'result', array());
-            return $this->parse_balance(array( $subaccountResult ));
+            return $this->parse_balance_list(array( $subaccountResult ));
         }
         list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_derive_wallet_address('fetchBalance', $params);
         $request = array(
@@ -3582,10 +3582,10 @@ class derive extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'result');
-        return $this->parse_balance($result);
+        return $this->parse_balance_list($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         $result = array(
             'info' => $response,
         );

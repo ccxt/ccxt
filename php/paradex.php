@@ -2424,10 +2424,10 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        return $this->parse_balance($data);
+        return $this->parse_balance_list($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i, array());

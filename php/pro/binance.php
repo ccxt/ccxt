@@ -330,19 +330,15 @@ class binance extends \ccxt\async\binance {
         return ($base === null) ? null : strtolower($base);
     }
 
-    public function get_stock_unified_symbol(?string $stockSymbol, ?string $quote = null): ?string {
+    public function get_stock_unified_symbol(?string $stockSymbol, string $quote = 'USDC'): ?string {
         if ($stockSymbol === null) {
             return null;
-        }
-        $safeQuote = $quote;
-        if ($quote === null) {
-            $safeQuote = 'USDC';
         }
         $parsed = $this->safe_symbol($stockSymbol, null, '/', 'spot');
         if (($parsed !== null) && (mb_strpos($parsed, '/') !== false)) {
             return $parsed;
         }
-        return $stockSymbol . '/' . $safeQuote;
+        return $stockSymbol . '/' . $quote;
     }
 
     public function watch_stock_market_stream(array $streams, array $messageHashes, $params = array()) {

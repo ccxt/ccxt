@@ -929,7 +929,6 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $type = null;
-        $marketId = '*'; // wildcard
         $market = null;
         $messageHash = null;
         $channel = null;
@@ -943,7 +942,6 @@ class htx extends \ccxt\async\htx {
             } else {
                 $subType = 'inverse';
             }
-            $marketId = $this->safe_string($market, 'lowercaseId', '*');
         } else {
             $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
@@ -960,7 +958,7 @@ class htx extends \ccxt\async\htx {
             $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
             $mode = $this->safe_string($paramsRequest, 'mode', $mode);
             $paramsRequest = $this->omit($paramsRequest, 'mode');
-            $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
+            $messageHash = 'trade.clearing' . '#' . $this->safe_string($market, 'lowercaseId', '*') . '#' . $mode;
             $channel = $messageHash;
         } elseif ($isV5Linear) {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('trade', $market, $paramsRequest);
@@ -1083,11 +1081,9 @@ class htx extends \ccxt\async\htx {
         $type = null;
         $subType = null;
         $market = null;
-        $suffix = '*'; // wildcard
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $type = $this->safe_string($market, 'type');
-            $suffix = $this->safe_string($market, 'lowercaseId', '*');
             if ($market['linear'] === true) {
                 $subType = 'linear';
             } else {
@@ -1108,7 +1104,7 @@ class htx extends \ccxt\async\htx {
         $messageHash = null;
         $channel = null;
         if ($type === 'spot') {
-            $messageHash = 'orders' . '#' . $suffix;
+            $messageHash = 'orders' . '#' . $this->safe_string($market, 'lowercaseId', '*');
             $channel = $messageHash;
         } elseif ($isV5Linear) {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('orders', $market, $paramsRequest);

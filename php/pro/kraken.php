@@ -1351,8 +1351,9 @@ class kraken extends \ccxt\async\kraken {
         $token = Async\await($this->authenticate());
         $subscriptionHash = 'executions';
         $messageHash = $name;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash = $name . ':' . $symbolResolved;
         }
         $url = ($this->urls['api'])['ws']['privateV2'];

@@ -1293,7 +1293,7 @@ class lbank extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // spotPrivatePostUserInfo
         //

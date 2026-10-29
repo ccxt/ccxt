@@ -857,7 +857,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         // spot and margin
         //
@@ -974,7 +974,7 @@ class digifinex extends Exchange {
             $balanceRequest = 'data';
         }
         $balances = $this->safe_list($response, $balanceRequest, array());
-        return $this->parse_balance($balances);
+        return $this->parse_balance_list($balances);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {

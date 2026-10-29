@@ -2746,7 +2746,7 @@ class bingx extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // standard
         //

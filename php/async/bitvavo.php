@@ -1217,7 +1217,7 @@ class bitvavo extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1263,7 +1263,7 @@ class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {

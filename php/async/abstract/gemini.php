@@ -362,7 +362,7 @@ abstract class gemini extends \ccxt\async\Exchange {
         return $this->request('v1/clearing/confirm', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_v1_balances($params = array()) {
         return $this->request('v1/balances', array('private'), 'POST', $params, array("cost" => 1));
@@ -1052,7 +1052,7 @@ abstract class gemini extends \ccxt\async\Exchange {
         return $this->request('v1/clearing/confirm', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostV1Balances($params = array()) {
         return $this->request('v1/balances', array('private'), 'POST', $params, array("cost" => 1));

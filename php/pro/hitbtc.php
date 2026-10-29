@@ -1403,7 +1403,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        $balance = $this->parse_balance($params);
+        $balance = $this->parseBalanceList($params);
         if ($this->balance === null) {
             $this->balance = array();
         }

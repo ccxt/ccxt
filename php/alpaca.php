@@ -2152,7 +2152,7 @@ class alpaca extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
         //

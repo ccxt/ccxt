@@ -337,7 +337,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'return', array());
         $deposit = $this->safe_dict($balances, 'deposit');
         $result = array(

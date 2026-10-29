@@ -1291,7 +1291,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i);
@@ -1383,7 +1383,7 @@ class gemini extends Exchange {
             $this->load_markets();
         }
         $response = $this->privatePostV1Balances($params);
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function parse_order(array $order, ?array $market = null): array {

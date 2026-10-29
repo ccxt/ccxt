@@ -591,7 +591,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -637,7 +637,7 @@ class upbit extends Exchange {
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {

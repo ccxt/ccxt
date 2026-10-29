@@ -2609,10 +2609,10 @@ class bydfi extends Exchange {
             $response = $this->privateGetV1FapiAccountBalance($this->extend($request, $paramsWallet));
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_balance($data);
+        return $this->parse_balance_list($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,

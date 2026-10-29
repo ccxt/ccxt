@@ -160,7 +160,7 @@ class xt extends \ccxt\async\xt {
         return $client->subscriptions['token'];
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache): float {
+    public function get_cache_index(?array $orderbook, array $cache): float {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_dict($cache, 0);

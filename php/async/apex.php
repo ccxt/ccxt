@@ -337,7 +337,7 @@ class apex extends Exchange {
         return $this->safe_integer($data, 'time');
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // {
         //     "totalEquityValue": "100.000000",

@@ -3488,7 +3488,7 @@ class okx extends Exchange {
         }
         // unified stp
         $selfTradePrevention = null;
-        list($selfTradePrevention, $orderParams) = $this->handle_option_and_params($orderParams, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $orderParams) = $this->handle_option_string_and_params($orderParams, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             $stpModes = array(
                 'EXPIRE_MAKER' => 'cancel_maker',

@@ -1470,7 +1470,7 @@ class opinion extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         /**
          * @ignore
          * parses an opinion user-$balance $response into a unified $balances object

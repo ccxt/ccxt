@@ -461,7 +461,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();

@@ -218,7 +218,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $deltas): float {
+    public function get_cache_index(?array $orderbook, array $deltas): float {
         // we will consider it a fail
         $firstElement = $this->safe_dict($deltas, 0);
         $firstElementNonce = $this->safe_integer($firstElement, 'microtimestamp');

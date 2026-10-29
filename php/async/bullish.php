@@ -2620,7 +2620,7 @@ class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            return $this->parse_balance($response);
+            return $this->parse_balance_list($response);
         }
     }
 
@@ -2633,7 +2633,7 @@ class bullish extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
         );

@@ -1039,7 +1039,7 @@ class bitrue extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // spot
         //

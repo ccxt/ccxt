@@ -188,7 +188,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('public/futures/candles/open_interest/{symbol}', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_spot_balance($params = array()) {
         return $this->request('spot/balance', array('private'), 'GET', $params, array("cost" => 15));
@@ -302,7 +302,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('margin-settings', array('private'), 'GET', $params, array("cost" => 15));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_futures_balance($params = array()) {
         return $this->request('futures/balance', array('private'), 'GET', $params, array("cost" => 15));
@@ -386,7 +386,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('user/api-keys', array('private'), 'GET', $params, array("cost" => 15));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_wallet_balance($params = array()) {
         return $this->request('wallet/balance', array('private'), 'GET', $params, array("cost" => 30));
@@ -914,7 +914,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('public/futures/candles/open_interest/{symbol}', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetSpotBalance($params = array()) {
         return $this->request('spot/balance', array('private'), 'GET', $params, array("cost" => 15));
@@ -1028,7 +1028,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('margin-settings', array('private'), 'GET', $params, array("cost" => 15));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetFuturesBalance($params = array()) {
         return $this->request('futures/balance', array('private'), 'GET', $params, array("cost" => 15));
@@ -1112,7 +1112,7 @@ abstract class hitbtc extends \ccxt\async\Exchange {
         return $this->request('user/api-keys', array('private'), 'GET', $params, array("cost" => 15));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetWalletBalance($params = array()) {
         return $this->request('wallet/balance', array('private'), 'GET', $params, array("cost" => 30));

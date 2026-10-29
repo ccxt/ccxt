@@ -651,7 +651,7 @@ class bitbank extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,

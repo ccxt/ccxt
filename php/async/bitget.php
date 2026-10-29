@@ -3713,7 +3713,7 @@ class bitget extends Exchange {
         $isStock = $market['stock'];
         $paramsStock = $this->omit($paramsProductType, 'stock');
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsStock, 'fetchOrderBook', false));
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $isStockOrUta = ($isStockSpot || ($uta === true));
         if ($isStockSpot) {
             if ($limit !== null) {
@@ -3941,7 +3941,7 @@ class bitget extends Exchange {
         $isStock = $market['stock'];
         $paramsStock = $this->omit($paramsProductType, 'stock');
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsStock, 'fetchTicker', false));
-        $isStockOrUta = (($isStock && $market['spot']) || ($uta === true));
+        $isStockOrUta = (($isStock && ($market['spot'] === true)) || ($uta === true));
         if ($isStockOrUta) {
             $request['category'] = $productType;
             $response = Async\await($this->publicUtaGetV3MarketTickers($this->extend($request, $paramsUTA)));
@@ -4494,7 +4494,7 @@ class bitget extends Exchange {
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         $market = $this->market($symbol);
         $isStock = $market['stock'];
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $paramsPaginate = $this->omit($paramsPaginate, 'stock');
         if ($paginate) {
             if ($isStockSpot) {
@@ -4969,7 +4969,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $isStock = $market['stock'];
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $paramsStock = $this->omit($paramsUTA, 'stock');
         $marketType = null;
         $timeframes = null;
@@ -5331,7 +5331,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_balance($data);
+        return $this->parse_balance_list($data);
     }
 
     public function parse_uta_balance(array $balance, ?array $response = null): array {
@@ -5376,7 +5376,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance_list(array $balance): array {
         $result = array( 'info' => $balance );
         //
         // spot
@@ -5919,7 +5919,7 @@ class bitget extends Exchange {
         $marginParams = $this->handle_margin_mode_and_params('createOrder', $params);
         $marginMode = $marginParams[0];
         $isStock = $market['stock'];
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $paramsStock = $this->omit($params, 'stock');
         $triggerPrice = $this->safe_number_2($paramsStock, 'stopPrice', 'triggerPrice');
         $stopLossTriggerPrice = $this->safe_number($paramsStock, 'stopLossPrice');
@@ -6820,7 +6820,7 @@ class bitget extends Exchange {
         $paramsMarginMode = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isStock = $market['stock'];
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $paramsMarginMode = $this->omit($paramsMarginMode, 'stock');
         $request = array();
         $trailing = $this->safe_bool($paramsMarginMode, 'trailing');

@@ -1126,7 +1126,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $entry = $this->safe_dict($response, $i);
@@ -1178,7 +1178,7 @@ class hitbtc extends Exchange {
         //       ...
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {

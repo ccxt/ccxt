@@ -1567,7 +1567,7 @@ class kalshi extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         /**
          * @ignore
          * parses a kalshi balance $response (cents) into a unified balances object with a USD entry

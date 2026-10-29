@@ -1461,7 +1461,7 @@ class bigone extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,

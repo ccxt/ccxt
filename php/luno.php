@@ -683,7 +683,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $wallets = $this->safe_list($response, 'balance', array());
         $result = array(
             'info' => $response,

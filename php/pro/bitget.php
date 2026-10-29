@@ -303,7 +303,7 @@ class bitget extends \ccxt\async\bitget {
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
-        $messageHash = 'ticker:' . $symbol;
+        $messageHash = 'ticker:' . $this->safe_string($ticker, 'symbol', '');
         $client->resolve($ticker, $messageHash);
     }
 
@@ -505,7 +505,7 @@ class bitget extends \ccxt\async\bitget {
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
         }
-        $messageHash = 'bidask:' . $symbol;
+        $messageHash = 'bidask:' . $this->safe_string($ticker, 'symbol', '');
         $client->resolve($ticker, $messageHash);
     }
 
@@ -2480,7 +2480,7 @@ class bitget extends \ccxt\async\bitget {
             }
             $parsed = $this->parse_ws_trade($trade, $market);
             $stored->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol', '');
             $symbolSpecificMessageHash = 'myTrades:' . $symbol;
             $client->resolve($stored, $symbolSpecificMessageHash);
         }

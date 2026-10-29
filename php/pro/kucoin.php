@@ -1892,7 +1892,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve($book, $messageHash);
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache): float {
+    public function get_cache_index(?array $orderbook, array $cache): float {
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer_n($firstDelta, array( 'sequenceStart', 'sequence', 'O' ));

@@ -2501,10 +2501,10 @@ class xt extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $balances = $this->safe_list($data, 'assets', array());
         }
-        return $this->parse_balance($balances);
+        return $this->parse_balance_list($balances);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         //
         // spot
         //

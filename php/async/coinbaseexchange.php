@@ -800,7 +800,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         $rawBalances = $this->to_array($response);
         for ($i = 0; $i < count($rawBalances); $i++) {
@@ -835,7 +835,7 @@ class coinbaseexchange extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->privateGetAccounts($params));
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {

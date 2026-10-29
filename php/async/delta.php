@@ -1740,7 +1740,7 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limitValue);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_list($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());

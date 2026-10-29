@@ -1269,7 +1269,7 @@ class bittrade extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_dict($response, 'data', array());
         $balances = $this->safe_list($data, 'list', array());
         $result = array( 'info' => $response );

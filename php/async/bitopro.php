@@ -1012,7 +1012,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         //     [{
         //         "currency":"twd",
@@ -1074,7 +1074,7 @@ class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return $this->parse_balance($balances);
+        return $this->parse_balance_list($balances);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -1328,7 +1328,7 @@ class bitopro extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $id = $market['uppercaseId'];
+        $id = $this->safe_string($market, 'uppercaseId');
         $request = array();
         if ($id !== null) {
             $request[$id] = $ids;

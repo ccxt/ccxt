@@ -3042,7 +3042,7 @@ class krakenfutures extends Exchange {
         return $balance;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // cashAccount
         //

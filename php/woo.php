@@ -2832,11 +2832,11 @@ class woo extends Exchange {
         //         "timestamp": 1673323746259
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_balance($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
         );

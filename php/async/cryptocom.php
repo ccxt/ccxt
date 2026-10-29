@@ -1261,7 +1261,7 @@ class cryptocom extends Exchange {
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $responseResult = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($responseResult, 'data', array());
         $positionBalances = $this->safe_list($data[0], 'position_balances', array());

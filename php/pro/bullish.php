@@ -717,7 +717,7 @@ class bullish extends \ccxt\async\bullish {
         $messageType = $this->safe_string($message, 'type');
         if ($messageType === 'snapshot') {
             $data = $this->safe_list($message, 'data', array());
-            $parsed = $this->parse_balance($data);
+            $parsed = $this->parseBalanceList($data);
             $parsedKeys = is_array($parsed) ? array_keys($parsed) : array();
             for ($i = 0; $i < count($parsedKeys); $i++) {
                 $parsedKey = $parsedKeys[$i];

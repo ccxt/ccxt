@@ -628,7 +628,7 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         //
         // generation 1
         //
@@ -731,7 +731,7 @@ class bithumb extends Exchange {
             //     }
             //
         }
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {

@@ -1119,10 +1119,10 @@ class btse extends Exchange {
             //     ]
             //
         }
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
         );

@@ -1593,14 +1593,14 @@ class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             $summaries = $this->safe_list($result, 'summaries');
             if ($summaries !== null) {
-                return $this->parse_balance($summaries);
+                return $this->parse_balance_list($summaries);
             }
-            return $this->parse_balance($this->safe_dict($result, 'summaries', array()));
+            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()));
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance_list($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         $result = array(
             'info' => $response,
         );

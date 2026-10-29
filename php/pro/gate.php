@@ -769,7 +769,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function get_cache_index(mixed $orderBook, mixed $cache): float {
+    public function get_cache_index(?array $orderBook, array $cache): float {
         $nonce = $this->safe_integer($orderBook, 'nonce');
         $firstDelta = $this->safe_dict($cache, 0);
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');

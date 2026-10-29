@@ -158,7 +158,7 @@ abstract class bitstamp extends \ccxt\async\Exchange {
         return $this->request('trade_history/{pair}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_account_balances($params = array()) {
         return $this->request('account_balances/', array('private'), 'POST', $params, array("cost" => 1));
@@ -1802,7 +1802,7 @@ abstract class bitstamp extends \ccxt\async\Exchange {
         return $this->request('trade_history/{pair}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostAccountBalances($params = array()) {
         return $this->request('account_balances/', array('private'), 'POST', $params, array("cost" => 1));

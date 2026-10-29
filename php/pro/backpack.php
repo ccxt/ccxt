@@ -1300,7 +1300,7 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache): float {
+    public function get_cache_index(?array $orderbook, array $cache): float {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         $firstDelta = $this->safe_dict($cache, 0);

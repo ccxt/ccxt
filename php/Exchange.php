@@ -3682,7 +3682,7 @@ class BaseExchange {
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $deltas) {
+    public function get_cache_index(?array $orderbook, array $deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
@@ -7321,7 +7321,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' fetchBalanceWs() is not supported yet');
     }
 
-    public function parse_balance(mixed $response) {
+    public function parse_balance(array $response) {
         throw new NotSupported($this->id . ' parseBalance() is not supported yet');
     }
 

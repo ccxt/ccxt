@@ -604,7 +604,7 @@ class btcmarkets extends Exchange {
         return $this->parse8601($this->safe_string($response, 'timestamp'));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i);
@@ -633,7 +633,7 @@ class btcmarkets extends Exchange {
             $this->load_markets();
         }
         $response = $this->privateGetAccountsMeBalances($params);
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

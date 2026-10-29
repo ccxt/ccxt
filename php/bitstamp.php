@@ -1416,7 +1416,7 @@ class bitstamp extends Exchange {
         return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $finalResponse = $response; // java req
         $result = array(
             'info' => $finalResponse,
@@ -1463,7 +1463,7 @@ class bitstamp extends Exchange {
         //         ...
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): array {

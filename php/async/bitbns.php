@@ -526,7 +526,7 @@ class bitbns extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $timestamp = null;
         $result = array(
             'info' => $response,

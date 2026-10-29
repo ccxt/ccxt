@@ -1611,7 +1611,7 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'result', array());
         $result = array(
             'info' => $response,

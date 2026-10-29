@@ -435,7 +435,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'return', array());
         $free = $this->safe_dict($balances, 'balance', array());
         $used = $this->safe_dict($balances, 'balance_hold', array());

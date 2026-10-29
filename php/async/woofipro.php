@@ -2774,7 +2774,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $paramsUntil);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2824,7 +2824,7 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_balance($data);
     }
 

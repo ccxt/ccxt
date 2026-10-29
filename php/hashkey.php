@@ -1844,7 +1844,7 @@ class hashkey extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance(array $balance): array {
         //
         //     {
         //         "balances": [

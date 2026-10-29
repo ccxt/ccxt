@@ -2591,11 +2591,11 @@ class dydx extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'subaccount');
+        $data = $this->safe_dict($response, 'subaccount', array());
         return $this->parse_balance($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'freeCollateral');
         $result = array(

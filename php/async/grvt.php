@@ -1429,7 +1429,7 @@ class grvt extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //        {
         //            "event_time": "1764863116142428457",

@@ -1255,7 +1255,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1330,7 +1330,7 @@ class ndax extends Exchange {
         //         },
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {

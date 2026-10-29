@@ -2164,10 +2164,10 @@ class weex extends Exchange {
                 $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($paramsMarketType));
             }
         }
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         $result = array(
             'info' => $response,
         );

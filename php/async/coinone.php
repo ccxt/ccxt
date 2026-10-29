@@ -489,7 +489,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',

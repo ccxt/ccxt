@@ -146,7 +146,7 @@ abstract class independentreserve extends \ccxt\Exchange {
         return $this->request('GetOrderDetails', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_post_getaccounts($params = array()) {
         return $this->request('GetAccounts', array('private'), 'POST', $params, array("cost" => 1));
@@ -422,7 +422,7 @@ abstract class independentreserve extends \ccxt\Exchange {
         return $this->request('GetOrderDetails', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privatePostGetAccounts($params = array()) {
         return $this->request('GetAccounts', array('private'), 'POST', $params, array("cost" => 1));

@@ -589,7 +589,7 @@ class mudrex extends Exchange {
         return $this->parse_balance($this->extend($response, array( 'currency' => $currency )));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_dict($response, 'data', array());
         $currency = $this->safe_string($response, 'currency', 'USDT');
         $result = array(

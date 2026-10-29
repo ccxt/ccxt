@@ -385,7 +385,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,

@@ -285,7 +285,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {

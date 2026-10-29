@@ -159,7 +159,7 @@ class woofipro extends \ccxt\async\woofipro {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $topic = $this->safe_string($message, 'topic');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
@@ -549,7 +549,7 @@ class woofipro extends \ccxt\async\woofipro {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

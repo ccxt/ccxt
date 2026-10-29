@@ -1431,7 +1431,7 @@ class coinsph extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_list($response, 'balances', array());
         $result = array(
             'info' => $response,

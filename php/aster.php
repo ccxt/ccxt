@@ -2037,7 +2037,7 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $response = null;
-        $data = null;
+        $data = array();
         if ($marketType === 'swap') {
             $data = $this->fapiPrivateGetV3Balance($paramsMarketType);
             //
@@ -2067,10 +2067,10 @@ class aster extends Exchange {
             //     ]
             //
         }
-        return $this->parse_balance($data);
+        return $this->parse_balance_list($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         $rows = $this->to_array($response);
         for ($i = 0; $i < count($rows); $i++) {

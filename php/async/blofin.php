@@ -1301,7 +1301,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // "data" similar for REST & WS
         //

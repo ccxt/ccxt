@@ -687,10 +687,10 @@ class cryptomus extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        return $this->parse_balance($result);
+        return $this->parse_balance_list($result);
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance_list(array $balance): array {
         //
         //     {
         //         "ticker": "AVAX",

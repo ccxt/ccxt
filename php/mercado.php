@@ -523,7 +523,7 @@ class mercado extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_dict($response, 'response_data', array());
         $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );

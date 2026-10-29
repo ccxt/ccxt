@@ -3608,7 +3608,7 @@ class bybit extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp, 'b', 'a');
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // cross
         //     {

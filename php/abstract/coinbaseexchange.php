@@ -104,7 +104,7 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('address-book/counterparty', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 1));
@@ -722,7 +722,7 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
         return $this->request('address-book/counterparty', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 1));

@@ -2763,7 +2763,7 @@ class poloniex extends Exchange {
         return $this->parse_trades($trades);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -2863,7 +2863,7 @@ class poloniex extends Exchange {
             //    }
             //
             $data = $this->safe_dict($responseRaw, 'data', array());
-            return $this->parse_balance($data);
+            return $this->parse_balance_list($data);
         }
         $request = array(
             'accountType' => 'SPOT',
@@ -2885,7 +2885,7 @@ class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {

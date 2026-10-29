@@ -1067,7 +1067,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance(array $balance): array {
         $result = array(
             'info' => $balance,
         );
