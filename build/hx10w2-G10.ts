@@ -17,7 +17,7 @@ const RECEIVER_CALL = /(?<![\w.])(?:ccxt\.)?(?:AddElementToObject|GetValue|InOp|
 // slices. `any` locals are absent on purpose — they may hold a *int64 / *string box.
 const PLAIN_VALUE_TYPES = /^(?:map\[|\[\]|(?:\*)?ccxt\.[A-Z]|(?:\*)?(?:ArrayCache|OrderBook))/;
 
-type Decl = { 'type': string, 'line': number };
+type Decl = { 'type': string, 'line': number, 'init'?: string };
 
 type Span = { s: number, e: number, text: string };
 
@@ -73,10 +73,10 @@ function hx10G10Split (masked: string, open: number, close: number): Span[] {
 // carries a proven type
 function hx10G10Decls (body: string[], signature: string): Map<string, Decl> {
     const decls = new Map<string, Decl> ();
-    const add = (name: string, type: string, line: number) => {
+    const add = (name: string, type: string, line: number, init?: string) => {
         const seen = decls.get (name);
         if (seen === undefined) {
-            decls.set (name, { 'type': type, 'line': line });
+            decls.set (name, { 'type': type, 'line': line, 'init': init });
         } else {
             seen.type = '?';
         }
@@ -85,9 +85,9 @@ function hx10G10Decls (body: string[], signature: string): Map<string, Decl> {
         add (name, type, 0);
     }
     body.forEach ((line, index) => {
-        const declaration = /^\s*var (\w+) ([^=\n]+?) = /.exec (line);
+        const declaration = /^\s*var (\w+) ([^=\n]+?) = (.*)$/.exec (line);
         if (declaration !== null) {
-            add (declaration[1], declaration[2].trim (), index);
+            add (declaration[1], declaration[2].trim (), index, declaration[3]);
         }
     });
     return decls;
@@ -160,6 +160,27 @@ function hx10G10ExitGuarded (key: string, maskedBody: string[], siteLine: number
     return false;
 }
 
+// `var k *string = this.SafeString(obj, key, "lit")` never holds nil (the default slot is a string literal,
+// and the base getter returns a pointer to it), so an unwritten, un-aliased local of that shape is a plain key
+function hx10G10LiteralDefaultPtr (maskedBody: string[], name: string, decl: Decl): boolean {
+    const m = /^this\.SafeString(2)?\(/.exec (decl.init ?? '');
+    if ((m === null) || (decl.init === undefined) || !decl.init.endsWith (')')) {
+        return false;
+    }
+    const masked = goChanMask (decl.init);
+    const call = hx10G10CallAt (masked, 0, 'SafeString');
+    if ((call === undefined) || (call.close !== masked.length)) {
+        return false;
+    }
+    const slot = (m[1] === '2') ? 3 : 2;
+    const args = call.args.map (a => decl.init?.substring (a.s, a.e).trim () ?? '');
+    if ((args.length !== slot + 1) || !/^"(?:[^"\\\n]|\\.)*"$/.test (args[slot])) {
+        return false;
+    }
+    const rebound = new RegExp ('(?<![\\w.*])' + name + '\\s*(?:,\\s*\\w+\\s*)*(?::=|=(?!=))|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ');
+    return maskedBody.every ((line, index) => (index === decl.line) || !rebound.test (line));
+}
+
 // the key as Go prints it: a string literal, a `string` local, or a `*string` local some earlier
 // deref or enclosing nil guard proves non-nil (a nil key would have panicked or been skipped there)
 function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
@@ -176,7 +197,7 @@ function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string
     if (decl.type !== '*string') {
         return undefined;
     }
-    if (hx10G10NilGuarded (key, maskedBody, siteLine) || hx10G10ExitGuarded (key, maskedBody, siteLine, decl.line)) {
+    if (hx10G10NilGuarded (key, maskedBody, siteLine) || hx10G10ExitGuarded (key, maskedBody, siteLine, decl.line) || hx10G10LiteralDefaultPtr (maskedBody, key, decl)) {
         return '*' + key;
     }
     const deref = new RegExp ('(?<![\\w*.])[*]' + key + '\\b');
@@ -186,7 +207,8 @@ function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string
             continue;
         }
         const depth = hx10G10DepthBefore (maskedBody, k);
-        if ((depth > siteDepth) || !hx10G10BlockStillOpen (maskedBody, k, siteLine, depth)) {
+        // the deref sits INSIDE its block, whose closing brace is read at that same depth
+        if ((depth > siteDepth) || (depth < 1) || !hx10G10BlockStillOpen (maskedBody, k, siteLine, depth - 1)) {
             continue; // a deeper block, or one the site has already left
         }
         return '*' + key;
@@ -315,10 +337,11 @@ function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map<string
             if ((declaration === null) || (declaration[1] !== name)) {
                 continue;
             }
+            const init = /^\s*var \w+ [^=\n]+? = (.*)$/.exec (body[k])?.[1];
             const depth = hx10G10DepthBefore (maskedBody, k);
             if ((depth <= siteDepth) && hx10G10BlockStillOpen (maskedBody, k, site, depth)) {
                 view = (view === decls) ? new Map (decls) : view;
-                view.set (name, { 'type': declaration[2].trim (), 'line': k });
+                view.set (name, { 'type': declaration[2].trim (), 'line': k, 'init': init });
                 break;
             }
         }
@@ -511,6 +534,14 @@ export function hx10G10SelfTest (): string[] {
     // membership: the comma-ok of the helper's map branch, negated and compound
     ok (f ('sym string', '\tif ccxt.InOp(this.Orderbooks, sym) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; ok {') >= 0, 'InOp goes native');
     ok (f ('sym string', '\tif !(ccxt.InOp(this.Orderbooks, sym)) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; !ok {') >= 0, 'negated InOp goes native');
+    // a deref inside a sibling block that has already closed proves nothing: the read stays behind its own nil guard
+    const sibling = f ('symbol *string', '\tif x {\n\t\tvar h string = *symbol\n\t}\n\tif y {\n\t\tvar book any = ccxt.GetValue(this.Orderbooks, symbol)\n\t}\n');
+    ok (sibling.indexOf ('GetValue(this.Orderbooks, symbol)') < 0 && sibling.indexOf ('if symbol != nil {\n\t\t\tbook = this.Orderbooks[*symbol]') >= 0 && sibling.indexOf ('book any = this.Orderbooks[*symbol]') < 0,
+        'a deref in a closed sibling block does not prove the key');
+    // a `*string` local whose only write is a SafeString with a literal default is never nil
+    ok (f ('', '\tvar symbol *string = this.SafeString(market, "symbol", "")\n\tif !(ccxt.InOp(this.Orderbooks, symbol)) {\n\t}\n').indexOf ('if _, ok := this.Orderbooks[*symbol]; !ok {') >= 0, 'a literal-default SafeString key goes native');
+    ok (f ('', '\tvar symbol *string = this.SafeString(market, "symbol")\n\tif !(ccxt.InOp(this.Orderbooks, symbol)) {\n\t}\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a no-default SafeString key keeps InOp');
+    ok (f ('', '\tvar symbol *string = this.SafeString(market, "symbol", "")\n\tsymbol = this.SafeString(x, "s")\n\tif !(ccxt.InOp(this.Orderbooks, symbol)) {\n\t}\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a rebound key keeps InOp');
     // second level of the ohlcv book: delete on a proven key, one declaration per branch typed by scope
     ok (f ('symbol *string, timeframe string', '\tvar u string = *symbol\n\tccxt.Remove(this.Ohlcvs[*symbol], timeframe)\n').indexOf ('\tdelete(this.Ohlcvs[*symbol], timeframe)') >= 0, 'Remove on the ohlcv book goes native');
     ok (f ('symbol *string, timeframe any', '\tccxt.Remove(this.Ohlcvs[*symbol], timeframe)\n').indexOf ('ccxt.Remove(this.Ohlcvs[*symbol]') >= 0, 'unproven timeframe keeps Remove');
