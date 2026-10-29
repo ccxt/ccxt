@@ -2018,7 +2018,7 @@ export default class xt extends Exchange {
         //
         const marketId = this.safeString (ticker, 's');
         let marketType = this.safeString (market, 'type');
-        const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
+        const hasSpotKeys = (this.safeString (ticker, 'cv') !== undefined) || (this.safeString (ticker, 'aq') !== undefined);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2369,7 +2369,7 @@ export default class xt extends Exchange {
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = this.safeString (market, 'type');
-        const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
+        const hasSpotKeys = (this.safeBool (trade, 'b') !== undefined) || (this.safeString (trade, 'bizType') !== undefined) || (this.safeString (trade, 'oi') !== undefined);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
@@ -4418,7 +4418,7 @@ export default class xt extends Exchange {
         //         "id": 950898
         //     }
         //
-        const type = ('fromAddr' in transaction) ? 'deposit' : 'withdraw';
+        const type = (this.safeString (transaction, 'fromAddr') !== undefined) ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger (transaction, 'createdTime');
         const address = this.safeString (transaction, 'address');
         const memo = this.safeString (transaction, 'memo');
