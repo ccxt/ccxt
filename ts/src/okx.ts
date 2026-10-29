@@ -3496,7 +3496,7 @@ export default class okx extends Exchange {
         }
         // unified stp
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, orderParams ] = this.handleOptionAndParams (orderParams, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, orderParams ] = this.handleOptionStringAndParams (orderParams, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             const stpModes: Dict = {
                 'EXPIRE_MAKER': 'cancel_maker',
