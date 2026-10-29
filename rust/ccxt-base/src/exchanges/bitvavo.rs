@@ -1998,7 +1998,7 @@ impl BitvavoCore {
                 cost = self.safe_number_k(paramsOmitted, "cost", &[]);
             }
             if (cost != Value::Null) {
-                let mut precision: Value = self.currency(market.get("quote").cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null);
+                let mut precision: Value = self.safe_number(self.currency(market.get("quote").cloned().unwrap_or(Value::Null)), Value::Str("precision".into()), &[]);
                 request.insert("amountQuote".into(), self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()]));
             }  else {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));

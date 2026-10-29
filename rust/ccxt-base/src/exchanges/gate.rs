@@ -7226,7 +7226,7 @@ if _try_result.is_err() {
                     initial.insert("price".into(), (if (priceResolved.as_f64() == Some(0.0)) { Value::Str("0".into()) } else { self.price_to_precision(symbol.clone(), priceResolved.clone()) }));
                 }
                 if (reduceOnly != Value::Null) {
-                    initial.insert("reduce_only".into(), reduceOnly.clone());
+                    initial.insert("reduce_only".into(), reduceOnly);
                 }
                 if (timeInForce != Value::Null) {
                     initial.insert("tif".into(), timeInForce.clone());
@@ -7264,15 +7264,6 @@ if _try_result.is_err() {
         m.insert("rule".to_string(), rule.clone());
     m
 }));
-                }
-                if (reduceOnly != Value::Null) {
-                    if let Value::Dict(__d) = request.entry("initial".into()).or_default() { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), reduceOnly); }
-                }
-                if (timeInForce != Value::Null) {
-                    if let Value::Dict(__d) = request.entry("initial".into()).or_default() { std::sync::Arc::make_mut(__d).insert("tif".into(), timeInForce.clone()); }
-                }
-                if (clientOrderId != Value::Null) {
-                    if let Value::Dict(__d) = request.entry("initial".into()).or_default() { std::sync::Arc::make_mut(__d).insert("text".into(), clientOrderId.clone()); }
                 }
             }  else {
                 // spot conditional order

@@ -11939,7 +11939,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("method".into()), &[Value::Str("privateGetAccountBillsArchive".into())]).as_array().cloned().unwrap_or_default();
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("method".into()), &[Value::Str("privateGetAccountBillsArchive".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut until: Value = self.safe_integer_k(paramsMethod.clone(), "until", &[]);

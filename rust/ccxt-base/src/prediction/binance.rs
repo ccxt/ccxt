@@ -763,8 +763,14 @@ impl BinanceCore {
         });
         let mut collected: Value = Value::from(vec![]);
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(20) } else { limit });
-        let mut limitResolved: Value = (if (limitValue.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64)) { Value::Int(50) } else { limitValue });
+        let mut limitValue: Value = self.parse_to_int(Value::Int(20));
+        if (limit != Value::Null) {
+            limitValue = self.parse_to_int(limit);
+        }
+        let mut limitResolved: Value = limitValue.clone();
+        if limitValue.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64) {
+            limitResolved = self.parse_to_int(Value::Int(50));
+        }
         {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1210: bool = true;

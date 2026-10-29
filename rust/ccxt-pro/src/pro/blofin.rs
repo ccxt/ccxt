@@ -1434,9 +1434,13 @@ impl BlofinCore {
         let mut callerMethodNameOption: Value = callerMethodNameOptionparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsCallerMethodName: Value = callerMethodNameOptionparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isOHLCV: bool = channelName.as_str() == Some("candle");
-        let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
-        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.market(get_value(&symbols, &Value::Int(0)));
+        let mut symbols: Value = Value::from(vec![]);
+        if isOHLCV {
+            symbols = self.market_symbols(&[self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), Value::Null, Value::Bool(false), Value::Bool(true)]);
+        }  else {
+            symbols = self.market_symbols(&[symbolsArray.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
+        }
+        let mut firstMarket: Value = self.market(self.safe_string(symbols.clone(), Value::Int(0), &[]));
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(callerMethodNameOption.clone(), &[firstMarket, paramsCallerMethodName]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1448,8 +1452,8 @@ impl BlofinCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_174 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = self.market(get_value(&symbols, &i));
+            while { if !__for_first_174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_174 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut market: Value = self.market(self.safe_string(symbols.clone(), i.clone(), &[]));
             let mut channel: Value = channelName.clone();
             if isOHLCV {
                 let mut tfArray: Value = get_value(&symbolsArray, &i);
