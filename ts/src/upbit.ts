@@ -135,7 +135,7 @@ export default class upbit extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'accounts': { 'cost': 0.67 } as Endpoint<Dict>, // RPS: 30
+                        'accounts': { 'cost': 0.67 } as Endpoint<List>, // RPS: 30
                         'orders/chance': { 'cost': 0.67 } as Endpoint<Dict>,
                         'order': { 'cost': 0.67 } as Endpoint<Dict>,
                         'orders/closed': { 'cost': 0.67 } as Endpoint<List>,
@@ -598,7 +598,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -644,7 +644,7 @@ export default class upbit extends Exchange {
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

@@ -2049,7 +2049,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response: NullableDict = undefined;
-        let data: Dict | List | undefined = undefined;
+        let data: List = [];
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance (paramsMarketType);
             //
@@ -2079,10 +2079,10 @@ export default class aster extends Exchange {
             //     ]
             //
         }
-        return this.parseBalance (data);
+        return this.parseBalanceList (data);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         const rows = this.toArray (response);
         for (let i = 0; i < rows.length; i++) {

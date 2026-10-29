@@ -1701,7 +1701,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limitValue);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const balances: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});

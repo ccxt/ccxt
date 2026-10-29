@@ -2500,17 +2500,13 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances: NullableDict = undefined;
         if ((subType !== undefined) || isContractWallet) {
-            balances = this.safeList (response, 'result', []);
-        } else {
-            const data = this.safeDict (response, 'result', {});
-            balances = this.safeList (data, 'assets', []);
+            return this.parseBalanceList (this.safeList (response, 'result', []));
         }
-        return this.parseBalance (balances);
+        return this.parseBalanceList (this.safeList (this.safeDict (response, 'result', {}), 'assets', []));
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         //
         // spot
         //

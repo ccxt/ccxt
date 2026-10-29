@@ -693,10 +693,10 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseBalance (result);
+        return this.parseBalanceList (result);
     }
 
-    override parseBalance (balance: any): Balances {
+    parseBalanceList (balance: Dict[]): Balances {
         //
         //     {
         //         "ticker": "AVAX",

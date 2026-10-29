@@ -106,7 +106,7 @@ export default class bitflyer extends Exchange {
                 'private': {
                     'get': {
                         'getpermissions': { 'cost': 1 } as Endpoint<List>,
-                        'getbalance': { 'cost': 1 } as Endpoint<Dict>,
+                        'getbalance': { 'cost': 1 } as Endpoint<List>,
                         'getbalancehistory': { 'cost': 1 } as Endpoint<List>,
                         'getcollateral': { 'cost': 1 } as Endpoint<Dict>,
                         'getcollateralhistory': { 'cost': 1 } as Endpoint<List>,
@@ -422,7 +422,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i);
@@ -470,7 +470,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

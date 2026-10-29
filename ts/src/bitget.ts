@@ -5242,7 +5242,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseBalance (data);
+        return this.parseBalanceList (data);
     }
 
     parseUtaBalance (balance: Dict[], response: Dict | undefined = undefined): Balances {
@@ -5287,7 +5287,7 @@ export default class bitget extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseBalance (balance: any): Balances {
+    parseBalanceList (balance: Dict[]): Balances {
         const result: Dict = { 'info': balance };
         //
         // spot

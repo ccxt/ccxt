@@ -393,7 +393,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,

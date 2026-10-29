@@ -2157,7 +2157,7 @@ export default class alpaca extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
         //

@@ -1552,14 +1552,14 @@ export default class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             const summaries = this.safeList (result, 'summaries');
             if (summaries !== undefined) {
-                return this.parseBalance (summaries);
+                return this.parseBalanceList (summaries);
             }
-            return this.parseBalance (this.safeDict (result, 'summaries', []));
+            return this.parseBalanceList (this.safeDict (result, 'summaries', []));
         }
-        return this.parseBalance (result);
+        return this.parseBalanceList (result);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: any): Balances {
         const result: Dict = {
             'info': response,
         };

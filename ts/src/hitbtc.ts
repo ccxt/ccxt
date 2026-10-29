@@ -166,7 +166,7 @@ export default class hitbtc extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'spot/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'spot/balance': { 'cost': 15 } as Endpoint<List>,
                         'spot/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                         'spot/order': { 'cost': 1 } as Endpoint<List>,
                         'spot/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
@@ -185,7 +185,7 @@ export default class hitbtc extends Exchange {
                         'margin/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'margin/history/clearing': { 'cost': 15 } as Endpoint<List>,
                         'margin-settings': { 'cost': 15 } as Endpoint<Dict>,
-                        'futures/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/balance': { 'cost': 15 } as Endpoint<List>,
                         'futures/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/account': { 'cost': 1 } as Endpoint<List>,
                         'futures/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -199,7 +199,7 @@ export default class hitbtc extends Exchange {
                         'futures/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'futures/history/clearing': { 'cost': 15 } as Endpoint<List>,
                         'user/api-keys': { 'cost': 15 } as Endpoint<List>,
-                        'wallet/balance': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/balance': { 'cost': 30 } as Endpoint<List>,
                         'wallet/balance/{currency}': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/address/white-list': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/address': { 'cost': 30 } as Endpoint<List>,
@@ -1127,7 +1127,7 @@ export default class hitbtc extends Exchange {
         } as DepositAddress;
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict (response, i);
@@ -1158,7 +1158,7 @@ export default class hitbtc extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
-        let response: Dict;
+        let response: List;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (paramsOmitted);
         } else if (account === 'spot') {
@@ -1180,7 +1180,7 @@ export default class hitbtc extends Exchange {
         //       ...
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

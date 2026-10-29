@@ -1418,7 +1418,7 @@ export default class opinion extends Exchange {
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'result', {});
         const balances: Dict[] = this.safeList (data, 'balances', []);

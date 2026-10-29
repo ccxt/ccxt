@@ -594,7 +594,7 @@ export default class mudrex extends Exchange {
         return this.parseBalance (this.extend (response, { 'currency': currency }));
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const data = this.safeDict (response, 'data', {});
         const currency = this.safeString (response, 'currency', 'USDT');
         const result: Dict = {

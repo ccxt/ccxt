@@ -1092,10 +1092,10 @@ export default class btse extends Exchange {
             //     ]
             //
         }
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = {
             'info': response,
         };

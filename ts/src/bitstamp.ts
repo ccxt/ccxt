@@ -192,7 +192,7 @@ export default class bitstamp extends Exchange {
                         'trade_history/{pair}': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'account_balances/': { 'cost': 1 } as Endpoint<Dict>,
+                        'account_balances/': { 'cost': 1 } as Endpoint<List>,
                         'account_balances/{currency}/': { 'cost': 1 } as Endpoint<Dict>,
                         'balance/': { 'cost': 1 } as Endpoint<Dict>,
                         'balance/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
@@ -1424,7 +1424,7 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limitResolved);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const finalResponse = response; // java req
         const result: Dict = {
             'info': finalResponse,
@@ -1471,7 +1471,7 @@ export default class bitstamp extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

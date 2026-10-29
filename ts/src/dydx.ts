@@ -2484,11 +2484,11 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'subaccount');
+        const data = this.safeDict (response, 'subaccount', {});
         return this.parseBalance (data);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const account = this.account ();
         account['free'] = this.safeString (response, 'freeCollateral');
         const result: Dict = {

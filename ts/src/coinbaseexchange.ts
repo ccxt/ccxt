@@ -187,7 +187,7 @@ export default class coinbaseexchange extends Exchange {
                     'get': {
                         'address-book': { 'cost': 1 } as Endpoint<List>,
                         'address-book/counterparty': { 'cost': 1 } as Endpoint<List>,
-                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts': { 'cost': 1 } as Endpoint<List>,
                         'accounts/{id}': { 'cost': 1 } as Endpoint<Dict>,
                         'accounts/{id}/holds': { 'cost': 1 } as Endpoint<List>,
                         'accounts/{id}/ledger': { 'cost': 1 } as Endpoint<List>,
@@ -789,7 +789,7 @@ export default class coinbaseexchange extends Exchange {
         };
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         const rawBalances = this.toArray (response);
         for (let i = 0; i < rawBalances.length; i++) {
@@ -820,7 +820,7 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetAccounts (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

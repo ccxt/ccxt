@@ -1073,7 +1073,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    override parseBalance (balance: any): Balances {
+    override parseBalance (balance: Dict): Balances {
         const result: Dict = {
             'info': balance,
         };

@@ -1233,7 +1233,7 @@ export default class bittrade extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const data = this.safeDict (response, 'data', {});
         const balances: Dict[] = this.safeList (data, 'list', []);
         const result: Dict = { 'info': response };

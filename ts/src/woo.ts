@@ -2838,11 +2838,11 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323746259
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseBalance (data);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
         };

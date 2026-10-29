@@ -635,7 +635,7 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: any): Balances {
         //
         // generation 1
         //
@@ -738,7 +738,7 @@ export default class bithumb extends Exchange {
             //     }
             //
         }
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

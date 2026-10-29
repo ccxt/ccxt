@@ -329,7 +329,7 @@ export default class apex extends Exchange {
         return this.safeInteger (data, 'time');
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // {
         //     "totalEquityValue": "100.000000",

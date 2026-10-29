@@ -201,7 +201,7 @@ export default class gemini extends Exchange {
                         'v1/clearing/status': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/clearing/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/clearing/confirm': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/balances': { 'cost': 1 } as Endpoint<List>,
                         'v1/balances/staking': { 'cost': 1 } as Endpoint<List>,
                         'v1/notionalbalances/{currency}': { 'cost': 1 } as Endpoint<List>,
                         'v1/transfers': { 'cost': 1 } as Endpoint<List>,
@@ -1302,7 +1302,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i);
@@ -1394,7 +1394,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privatePostV1Balances (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {

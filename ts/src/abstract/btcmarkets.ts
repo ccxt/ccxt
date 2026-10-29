@@ -105,7 +105,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('accounts/me/withdrawal-limits', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privateGetAccountsMeBalances (params = {}): Promise<Dict> {
+    privateGetAccountsMeBalances (params = {}): Promise<List> {
         return this.request ('accounts/me/balances', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 

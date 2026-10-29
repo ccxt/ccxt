@@ -972,7 +972,7 @@ export default class deepcoin extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         //     {
         //         "code": "0",

@@ -656,7 +656,7 @@ export default class bitbank extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, sinceResolved, limitResolved);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

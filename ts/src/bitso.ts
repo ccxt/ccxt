@@ -665,7 +665,7 @@ export default class bitso extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const payload = this.safeDict (response, 'payload', {});
         const balances: Dict[] = this.safeList (payload, 'balances', []);
         const result: Dict = {

@@ -157,7 +157,7 @@ export default class independentreserve extends Exchange {
                         'GetClosedOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'GetClosedFilledOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'GetOrderDetails': { 'cost': 1 } as Endpoint<Dict>,
-                        'GetAccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccounts': { 'cost': 1 } as Endpoint<List>,
                         'GetTransactions': { 'cost': 1 } as Endpoint<Dict>,
                         'GetFiatBankAccounts': { 'cost': 1 } as Endpoint<List>,
                         'GetDigitalCurrencyDepositAddress': { 'cost': 1 } as Endpoint<Dict>,
@@ -412,7 +412,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         const accounts: List = this.toArray (response);
         for (let i = 0; i < accounts.length; i++) {
@@ -441,7 +441,7 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privatePostGetAccounts (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**

@@ -2086,10 +2086,10 @@ export default class weex extends Exchange {
                 response = await this.contractPrivateGetCapiV3AccountBalance (paramsMarketType);
             }
         }
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: any): Balances {
         const result: Dict = {
             'info': response,
         };

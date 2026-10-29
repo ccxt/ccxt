@@ -2505,7 +2505,7 @@ export default class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            return this.parseBalance (response);
+            return this.parseBalanceList (response);
         }
     }
 
@@ -2518,7 +2518,7 @@ export default class bullish extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = {
             'info': response,
         };

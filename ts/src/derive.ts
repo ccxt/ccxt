@@ -3342,7 +3342,7 @@ export default class derive extends Exchange {
             const subaccountResponse = await this.privatePostGetSubaccount (this.extend (subaccountRequest, subaccountParams));
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             const subaccountResult = this.safeDict (subaccountResponse, 'result', {});
-            return this.parseBalance ([ subaccountResult ]);
+            return this.parseBalanceList ([ subaccountResult ]);
         }
         const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request: Dict = {
@@ -3597,11 +3597,11 @@ export default class derive extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result');
-        return this.parseBalance (result);
+        const result = this.safeList (response, 'result', []);
+        return this.parseBalanceList (result);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = {
             'info': response,
         };

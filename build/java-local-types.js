@@ -584,6 +584,7 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseTradingOrder': 'io.github.ccxt.types.Order',
     'safeBalance': 'io.github.ccxt.types.Balances',
     'parseBalance': 'io.github.ccxt.types.Balances',
+    'parseBalanceList': 'io.github.ccxt.types.Balances',
     'parseOrderBook': 'io.github.ccxt.types.OrderBook',
     // build-once producers only; market()/currency()/safeMarket()/safeCurrency() stay Map (hot
     // lookups: the view ctor snapshots ~45 keys and copies info, per call)
@@ -688,7 +689,7 @@ const JAVA_PARSE_LIST_TYPE = 'java.util.List<Object>';
 const PARSE_MAP_LOCAL_NAMES = new Set ([
     'parseOrder', 'parseOrderBook', 'parseTicker', 'parseTrade', 'parsePosition',
     'parseTradingFee', 'parseFundingRate', 'parseMarginLoan', 'parseTransaction',
-    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance',
+    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance', 'parseBalanceList',
     'parseWsOrder', 'parseWsTicker', 'parseWsPosition',
 ]);
 
@@ -2492,7 +2493,7 @@ const STRUCTURE_PRODUCER_DTO = {
     'parseTicker': 'Ticker', 'parseOrder': 'Order', 'parseTrade': 'Trade',
     'parseOrderBook': 'OrderBook', 'parsePosition': 'Position',
     'parseFundingRate': 'FundingRate', 'parseTransaction': 'Transaction',
-    'parseBalance': 'Balance', 'parseDepositAddress': 'DepositAddress',
+    'parseBalance': 'Balance', 'parseBalanceList': 'Balance', 'parseDepositAddress': 'DepositAddress',
     'parseMarginMode': 'MarginMode', 'parseLeverage': 'Leverage',
 };
 // a key field is only used when its Java box is a reference check: the DTO classes

@@ -2658,7 +2658,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (trades, market, since, limit, paramsUntil);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2704,7 +2704,7 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseBalance (data);
     }
 

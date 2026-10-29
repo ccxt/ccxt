@@ -23,6 +23,7 @@ import { g06Mask } from './hx10w2-G06.js';
 export const G05_GENERATED_RETURN_TYPES: { [callee: string]: string } = {
     // dict producers (goProvenMapCollectionMethods)
     'ParseBalance': 'map[string]any',
+    'ParseBalanceList': 'map[string]any',
     'ParseTickers': 'map[string]any',
     'ParseCurrencies': 'map[string]any',
     'ParseFundingRates': 'map[string]any',

@@ -1741,10 +1741,10 @@ export default class toobit extends Exchange {
             //    }
             //
         }
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

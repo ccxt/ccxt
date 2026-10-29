@@ -1850,7 +1850,7 @@ export default class hashkey extends Exchange {
         }
     }
 
-    override parseBalance (balance: any): Balances {
+    override parseBalance (balance: Dict): Balances {
         //
         //     {
         //         "balances": [

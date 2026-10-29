@@ -165,7 +165,7 @@ export default class btcmarkets extends Exchange {
                         'assets': { 'cost': 1 } as Endpoint<List>,
                         'accounts/me/trading-fees': { 'cost': 1 } as Endpoint<Dict>,
                         'accounts/me/withdrawal-limits': { 'cost': 1 } as Endpoint<List>,
-                        'accounts/me/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/me/balances': { 'cost': 1 } as Endpoint<List>,
                         'accounts/me/transactions': { 'cost': 1 } as Endpoint<List>,
                         'reports/{id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
@@ -610,7 +610,7 @@ export default class btcmarkets extends Exchange {
         return this.parse8601 (this.safeString (response, 'timestamp'));
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i);
@@ -639,7 +639,7 @@ export default class btcmarkets extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetAccountsMeBalances (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

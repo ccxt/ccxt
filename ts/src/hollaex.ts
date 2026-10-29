@@ -1001,7 +1001,7 @@ export default class hollaex extends Exchange {
         ];
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result: Dict = {
             'info': response,

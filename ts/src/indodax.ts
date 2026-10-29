@@ -441,7 +441,7 @@ export default class indodax extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const balances = this.safeDict (response, 'return', {});
         const free = this.safeDict (balances, 'balance', {});
         const used = this.safeDict (balances, 'balance_hold', {});

@@ -1222,7 +1222,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data: Dict[] = this.safeList (responseResult, 'data', []);
         const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);

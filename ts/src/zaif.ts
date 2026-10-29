@@ -333,7 +333,7 @@ export default class zaif extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const balances = this.safeDict (response, 'return', {});
         const deposit = this.safeDict (balances, 'deposit');
         const result: Dict = {

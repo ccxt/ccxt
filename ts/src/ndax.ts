@@ -214,7 +214,7 @@ export default class ndax extends Exchange {
                         'GetUserReportTickets': { 'cost': 1 } as Endpoint<List>,
                         'GetUserReportWriterResultRecords': { 'cost': 1 } as Endpoint<List>,
                         'GetAccountInfo': { 'cost': 1 } as Endpoint<Dict>,
-                        'GetAccountPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccountPositions': { 'cost': 1 } as Endpoint<List>,
                         'GetAllAccountConfigs': { 'cost': 1 } as Endpoint<List>,
                         'GetTreasuryProductsForAccount': { 'cost': 1 } as Endpoint<List>,
                         'GetAccountTrades': { 'cost': 1 } as Endpoint<List>,
@@ -1263,7 +1263,7 @@ export default class ndax extends Exchange {
         return result as Account[];
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1338,7 +1338,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     parseLedgerEntryType (type: Str): Str {

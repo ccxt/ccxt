@@ -2945,7 +2945,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // cashAccount
         //

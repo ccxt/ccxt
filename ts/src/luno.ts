@@ -688,7 +688,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,

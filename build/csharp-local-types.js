@@ -1406,6 +1406,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // own argument back (this.safeBalance(<local>)), the local is initialised by an object
     // literal and never reassigned (79/79 censused), so the boundary cast names the existing box.
     'parseBalance': 'Dictionary<string, object>',
+    'parseBalanceList': 'Dictionary<string, object>',
     // safeBalance itself stays `object`: its value IS its own `object` argument, and 22 ws call
     // sites pass `this.balance` (a ccxt.pro.CustomConcurrentDictionary, NOT a Dictionary), so a
     // Dictionary spelling would throw/null those boxes.

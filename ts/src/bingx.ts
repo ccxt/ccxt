@@ -2673,7 +2673,7 @@ export default class bingx extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // standard
         //

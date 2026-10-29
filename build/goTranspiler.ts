@@ -4843,7 +4843,7 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash', // U06
         // venue balance parsers (every override ends in SafeBalance(<balance local>) or returns another of these)
         'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
-        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList', // U07
         'ParseCurrenciesCustom', // U08
         'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
         'ParseOpenInterests', // U16
