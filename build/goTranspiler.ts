@@ -2459,6 +2459,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
     } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
         valueOut = value; // the helper would store a typed-nil map as untyped nil
+    } else if ((valueType === 'map[string]any') && hx4G29NeverNilMapValue (lines, maskedFunc, declOf (value), value)) {
+        valueOut = value; // hx11 M320: a TickerToMap/OrderToMap/producer-call local is a fresh non-nil map, the helper stores it unchanged
     } else if (guardedPointer (value)) {
         valueOut = '*' + value;
     } else if ((valueType === '*float64') && goMapWritePointerSinkOnly (maskedFunc, name)) {
@@ -2592,6 +2594,32 @@ function goMapWriteTopLevelParts (condition: string, op: string): string[] {
 // `// AddElementToObject(m, k, v) -> m[k] = v` producers: base methods whose every return is a fresh map
 const GO_MAPWRITE_MAP_RESULT_BASE = [ 'SafeCurrencyStructure', 'SafeTicker', 'SafeOrder', 'SafeOpenInterest', 'SafeLedgerEntry', 'DepositWithdrawFee', 'Account', 'Extend' ];
 
+// hx11 M320: `return account` in a callee whose only `account` is `var account <map|any> = this.Account()`,
+// written solely as `account[k] = v` (never rebound, address-taken or passed on): a fresh non-nil map
+function goMapWriteCalleeAccountLocal (lines: string[], def: number, name: string): boolean {
+    if (!/^\w+$/.test (name)) {
+        return false;
+    }
+    let decls = 0;
+    const n = goAccessEscape (name);
+    const word = new RegExp ('(?<![\\w.])' + n + '(?![\\w])');
+    const declRx = new RegExp ('^\\s*var ' + n + ' (?:map\\[string\\]any|any) = this\\.Account\\(\\)$');
+    const writeRx = new RegExp ('^\\s*' + n + '\\[[^\\n\\]]+\\] = ');
+    const takenRx = new RegExp ('&\\s*' + n + '\\b');
+    for (let j = def + 1; (j < lines.length) && (lines[j] !== '}'); j++) {
+        const line = goTextMaskLiteralsAndComments (lines[j]);
+        if (!word.test (line)) {
+            continue;
+        }
+        if (declRx.test (line)) {
+            decls++;
+        } else if (!(writeRx.test (line) && !takenRx.test (line)) && (line.trim () !== 'return ' + name)) {
+            return false;
+        }
+    }
+    return decls === 1;
+}
+
 // `this.M(...)` where M is a base map producer or the single method M of this file whose every
 // return (outside func literals) is a map literal or such a producer call
 function goMapWriteMapResultCall (lines: string[], text: string, depth: number = 0): boolean {
@@ -2620,7 +2648,7 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
         if (ret !== null) {
             returns++;
             const r = ret[1].trim ();
-            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1)) {
+            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1) && !goMapWriteCalleeAccountLocal (lines, defs[0], r)) {
                 return false;
             }
         }
@@ -15486,7 +15514,8 @@ function hx4G25Func (lines: string[], masked: string[], start: number, end: numb
         const before = lines[k];
         const beforeMasked = masked[k];
         goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound);
-        if (lines[k].indexOf ('\n') >= 0) {
+        // hx11 M320: the nil-key guard `if k != nil { m[*k] = v }` is born gofmt-expanded and is one entry here, so it may stay
+        if ((lines[k].indexOf ('\n') >= 0) && !/^\s*if \w+ != nil \{\n\s*\w+\[\*\w+\] = [^\n]+\n\s*\}$/.test (lines[k])) {
             lines[k] = before; // D3: no multi-line nil-key guard block
             masked[k] = beforeMasked;
         }
