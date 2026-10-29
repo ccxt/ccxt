@@ -2235,6 +2235,12 @@ impl Value {
         crate::runtime::add_element_to_object(self, &Value::Str(k.to_string().into()), v);
     }
 
+    /// `book['bids'|'asks'|'nonce'|...]` read on an order-book-typed local: the same
+    /// shared-store lookup `get_value` does for these keys, without the boxed key.
+    pub fn book_field(&self, k: &str) -> Value {
+        get_value_k(self, k)
+    }
+
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
     /// of `self` so transpiled `return book.limit();` lines still
     /// match the `-> Value` signature.
