@@ -270,7 +270,7 @@ export default class coinbase extends coinbaseRest {
             const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken (seconds, undefined, undefined, this.isEddsaApiKey ());
+                const token = this.createAuthToken (seconds, '', undefined, this.isEddsaApiKey ());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
