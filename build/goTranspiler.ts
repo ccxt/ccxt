@@ -2446,6 +2446,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // the helper would store a typed-nil map as untyped nil
     } else if (guardedPointer (value)) {
         valueOut = '*' + value;
+    } else if ((valueType === '*float64') && goMapWritePointerSinkOnly (maskedFunc, name)) {
+        valueOut = value; // hx11 r2: a typed *float64 (ParseNumber/SafeNumber) is stored as the pointer map literals already hold
     } else if (defaultedOk) {
         valueOut = '*' + value;
     } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
@@ -2615,6 +2617,38 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
 // SafeDict/SafeList wrappers, GetArg defaults), or a never-pointer map: AddElementToObject's own deref of the
 // stored value is then the identity
 const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
+
+// every use of the map local reads it through a deref-aware accessor (Safe*, GetValue, InOp, ObjectKeys, len,
+// nil tests, a key-only range) or rebinds/extends it, so a stored *float64 reads the same as the helper's deref'd value
+function goMapWritePointerSinkOnly (maskedFunc: string, name: string): boolean {
+    const n = goAccessEscape (name);
+    const uses = [ ...maskedFunc.matchAll (new RegExp ('(?<![\\w.])' + n + '(?![\\w])', 'g')) ];
+    if (uses.length === 0) {
+        return false;
+    }
+    const okRx = new RegExp ('^(?:'
+        + 'var ' + n + ' map\\[string\\]any = [^\\n]*'
+        + '|' + n + ' = [^\\n]*'
+        + '|' + n + '\\[[^\\n\\]]+\\] = [^\\n]*'
+        + '|(?:ccxt\\.)?AddElementToObject\\(' + n + ', [^\\n]*'
+        + ')$');
+    const readRx = new RegExp ('(?:(?:this\\.|ccxt\\.)?(?:Safe\\w+|GetValue|InOp|ObjectKeys|SafeMapTyped|MapTyped)\\(' + n + '[,)]'
+        + '|\\blen\\(' + n + '\\)|\\b' + n + ' [!=]= nil|for \\w+ := range ' + n + ' \\{)');
+    for (const line of maskedFunc.split ('\n')) {
+        if (!new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (line)) {
+            continue;
+        }
+        const t = line.trim ();
+        if (okRx.test (t)) {
+            continue;
+        }
+        const stripped = t.replace (new RegExp ('(?:(?:this\\.|ccxt\\.)?(?:Safe\\w+|GetValue|InOp|ObjectKeys|SafeMapTyped|MapTyped)\\(' + n + '[,)]|\\blen\\(' + n + '\\)|\\b' + n + ' [!=]= nil|for \\w+ := range ' + n + ' \\{)', 'g'), '');
+        if (!readRx.test (t) || new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (stripped)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 // a single-declaration `any` local whose declaration and every later write is a deref'd producer,
 // and whose address is never taken (AppendToArray(&x, ..) rewrites it)
