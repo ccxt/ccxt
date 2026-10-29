@@ -99,7 +99,7 @@ func (this *Coinbase) Describe() any {
 			"fetchIsolatedBorrowRate":                false,
 			"fetchIsolatedBorrowRates":               false,
 			"fetchIsolatedPositions":                 false,
-			"fetchL2OrderBook":                       false,
+			"fetchL2OrderBook":                       true,
 			"fetchLedger":                            true,
 			"fetchLeverage":                          false,
 			"fetchLeverages":                         false,
