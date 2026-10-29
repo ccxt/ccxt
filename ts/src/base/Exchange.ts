@@ -3577,7 +3577,7 @@ export class BaseExchange {
     }
 
     filterByLimit (array: any[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any[] {
-        if (this.valueIsDefined (limit)) {
+        if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
@@ -3608,7 +3608,7 @@ export class BaseExchange {
         if (array === undefined) {
             return [];
         }
-        const sinceIsDefined = this.valueIsDefined (since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         if (sinceIsDefined) {
@@ -3632,7 +3632,7 @@ export class BaseExchange {
 
     filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
-        const sinceIsDefined = this.valueIsDefined (since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         // single-pass filter for both symbol and since

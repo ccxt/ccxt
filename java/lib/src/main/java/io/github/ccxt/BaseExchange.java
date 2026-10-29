@@ -5246,7 +5246,7 @@ public Map<String, Object> describe()
 
     public List<Object> filterByLimit(Object array, Long limit, Object key, Object fromStart)
     {
-        if (this.valueIsDefined(limit))
+        if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null))
         {
             Object arrayLength = ((List<?>)array).size();
             if ((((Number) arrayLength).doubleValue() > 0))
@@ -5272,7 +5272,7 @@ public Map<String, Object> describe()
                 }
                 if (Boolean.TRUE.equals(ascending))
                 {
-                    return (List<Object>) this.arraySlice(array, (limit == null ? null : -limit));
+                    return (List<Object>) this.arraySlice(array, (-limit));
                 }
                 return (List<Object>) this.arraySlice(array, 0, limit);
             }
@@ -5286,7 +5286,7 @@ public Map<String, Object> describe()
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        Boolean sinceIsDefined = this.valueIsDefined(since);
+        Boolean sinceIsDefined = !java.util.Objects.equals(since, null) && !java.util.Objects.equals(since, null);
         List<Object> parsedArray = this.toArray(array);
         List<Object> result = parsedArray;
         if (Boolean.TRUE.equals(sinceIsDefined))
@@ -5315,7 +5315,7 @@ public Map<String, Object> describe()
     public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Boolean tail)
     {
         Boolean valueIsDefined = this.valueIsDefined(value);
-        Boolean sinceIsDefined = this.valueIsDefined(since);
+        Boolean sinceIsDefined = !java.util.Objects.equals(since, null) && !java.util.Objects.equals(since, null);
         List<Object> parsedArray = this.toArray(array);
         List<Object> result = parsedArray;
         // single-pass filter for both symbol and since
