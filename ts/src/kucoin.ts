@@ -2938,16 +2938,13 @@ export default class kucoin extends Exchange {
         }, marketResolved);
     }
 
-    typeToTradeType (type: Str): Str {
+    typeToTradeType (type: string): Str {
         const tradeTypes: Dict = {
             'spot': 'SPOT',
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         };
-        if (type === undefined) {
-            return undefined;
-        }
-        return this.safeString (tradeTypes, (type as string), type);
+        return this.safeString (tradeTypes, type, type);
     }
 
     /**
