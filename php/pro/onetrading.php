@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class onetrading extends \ccxt\async\onetrading {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -97,7 +97,7 @@ class onetrading extends \ccxt\async\onetrading {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $messageHash = 'balance';
         $subscribeHash = 'ACCOUNT_HISTORY';
         $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
@@ -186,7 +186,7 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $subscriptionHash = 'MARKET_TICKER';
         $messageHash = 'ticker.' . $symbolValue;
         $request = array(
@@ -258,11 +258,12 @@ class onetrading extends \ccxt\async\onetrading {
             $ticker = $tickers[$i];
             $marketId = $this->safe_string($ticker, 'instrument');
             $symbol = $this->safe_symbol($marketId);
-            $this->tickers[$symbol] = $this->parse_ws_ticker($ticker);
+            $parsedTicker = $this->parse_ws_ticker($ticker);
+            $this->tickers[$symbol] = $parsedTicker;
             $timestamp = $this->parse8601($datetime);
-            $this->tickers[$symbol]['timestamp'] = $timestamp;
-            $this->tickers[$symbol]['datetime'] = $this->iso8601($timestamp);
-            $client->resolve($this->tickers[$symbol], 'ticker.' . $symbol);
+            $parsedTicker['timestamp'] = $timestamp;
+            $parsedTicker['datetime'] = $this->iso8601($timestamp);
+            $client->resolve($parsedTicker, 'ticker.' . $symbol);
         }
         $client->resolve($this->tickers, 'tickers');
     }
@@ -327,11 +328,12 @@ class onetrading extends \ccxt\async\onetrading {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $symbolValue = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $symbolValue;
+            $messageHash = 'myTrades:' . $symbolValue;
         }
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $subscribeHash = 'ACCOUNT_HISTORY';
         $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
         $subscribe = array(
@@ -376,7 +378,7 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'book:' . $symbolValue;
         $subscriptionHash = 'ORDER_BOOK';
         $depth = 0;
@@ -425,7 +427,7 @@ class onetrading extends \ccxt\async\onetrading {
         //         "time": "2022-06-23T15:38:02.751301Z"
         //     }
         //
-        $type = $this->safe_string($message, 'type');
+        $type = $this->safe_string($message, 'type', '');
         $marketId = $this->safe_string($message, 'instrument_code');
         $symbol = $this->safe_symbol($marketId);
         $dateTime = $this->safe_string($message, 'time');
@@ -504,11 +506,12 @@ class onetrading extends \ccxt\async\onetrading {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $symbolValue = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $symbolValue;
+            $messageHash = 'orders:' . $symbolValue;
         }
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $subscribeHash = $this->safe_string($params, 'channel', 'ACCOUNT_HISTORY');
         $bpRemainingQuota = $this->safe_integer($this->options, 'bp_remaining_quota', 200);
         $subscribe = array(
@@ -586,7 +589,8 @@ class onetrading extends \ccxt\async\onetrading {
         $order = $this->parse_trading_order($message);
         $orders = $this->orders;
         $orders->append($order);
-        $client->resolve($this->orders, 'orders:' . $order['symbol']);
+        $orderSymbol = $this->safe_string($order, 'symbol', '');
+        $client->resolve($this->orders, 'orders:' . $orderSymbol);
         $client->resolve($this->orders, 'orders');
     }
 
@@ -1133,9 +1137,9 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframeId = $this->safe_dict($timeframes, $timeframe);
         if ($timeframeId === null) {
@@ -1171,7 +1175,8 @@ class onetrading extends \ccxt\async\onetrading {
         $properties = array();
         $marketIds = is_array($subscription) ? array_keys($subscription) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketIdtimeframes = is_array($subscription[$marketIds[$i]]) ? array_keys($subscription[$marketIds[$i]]) : array();
+            $marketSubscription = $this->safe_dict($subscription, $marketIds[$i], array());
+            $marketIdtimeframes = is_array($marketSubscription) ? array_keys($marketSubscription) : array();
             for ($ii = 0; $ii < count($marketIdtimeframes); $ii++) {
                 $marketTimeframeId = $this->safe_dict($timeframes, $timeframe);
                 $property = array(
@@ -1248,20 +1253,21 @@ class onetrading extends \ccxt\async\onetrading {
             $this->safe_number($message, 'close'),
             $this->safe_number($message, 'volume'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
         }
         $stored->append($parsed);
         if ($symbol !== null && $timeframe !== null) {
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $symbolOhlcvs[$timeframe] = $stored;
         }
         $client->resolve($stored, $channel);
     }
 
-    public function find_timeframe(mixed $timeframe, mixed $timeframes = null): ?string {
+    public function find_timeframe(mixed $timeframe, ?array $timeframes = null): ?string {
         $timeframesResolved = ($timeframes === null) ? $this->timeframes : $timeframes;
         if ($timeframesResolved === null) {
             throw new ArgumentsRequired($this->id . ' findTimeframe() timeframes is required');
@@ -1269,7 +1275,8 @@ class onetrading extends \ccxt\async\onetrading {
         $keys = is_array($timeframesResolved) ? array_keys($timeframesResolved) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($timeframesResolved[$key]['unit'] === $timeframe['unit'] && $timeframesResolved[$key]['period'] === $timeframe['period']) {
+            $timeframeResolved = $this->safe_dict($timeframesResolved, $key, array());
+            if ($timeframeResolved['unit'] === $timeframe['unit'] && $timeframeResolved['period'] === $timeframe['period']) {
                 return $key;
             }
         }
@@ -1407,7 +1414,7 @@ class onetrading extends \ccxt\async\onetrading {
         } else {
             $marketIds = $this->market_ids($symbols);
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->safe_value($this->clients, $url);
         $type = 'SUBSCRIBE';
         $subscription = array();
@@ -1440,7 +1447,7 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     private function do_authenticate($params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $client->reusableFuture('authenticated');

@@ -1,11 +1,11 @@
 import Exchange from './abstract/luno.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, DepositWithdrawFee } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, DepositWithdrawFee } from './base/types.js';
 /**
  * @class luno
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name luno#fetchCurrencies
@@ -215,10 +215,7 @@ export default class luno extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseLedgerComment(comment: any): {
-        type: Str;
-        referenceId: Str;
-    };
+    parseLedgerComment(comment: string): Dict;
     parseLedgerEntry(entry: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -258,5 +255,5 @@ export default class luno extends Exchange {
      */
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

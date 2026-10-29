@@ -679,32 +679,34 @@ class coinsph extends coinsph$1["default"] {
         });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolsParam = ('symbols' in params);
+        const limit = this.safeInteger(params, 'limit');
+        if (('noSymbol' in config) && !hasSymbolParam) {
             return config['noSymbol'];
         }
-        else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
+        else if (('noSymbolAndNoSymbols' in config) && !hasSymbolParam && !hasSymbolsParam) {
             return config['noSymbolAndNoSymbols'];
         }
-        else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
-            const symbols = params['symbols'];
+        else if (('byNumberOfSymbols' in config) && hasSymbolsParam) {
+            const symbols = this.safeList(params, 'symbols', []);
             const symbolsAmount = symbols.length;
             const byNumberOfSymbols = this.safeList(config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 const threshold = this.safeInteger(entry, 0);
                 if (threshold !== undefined && symbolsAmount >= threshold) {
-                    return entry[1];
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
-        else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger(params, 'limit');
+        else if (('byLimit' in config) && (limit !== undefined)) {
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger(entry, 0);
-                if (limit !== undefined && threshold !== undefined && limit >= threshold) {
-                    return entry[1];
+                if (threshold !== undefined && limit >= threshold) {
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -1423,13 +1425,14 @@ class coinsph extends coinsph$1["default"] {
             'side': orderSide,
         };
         const options = this.safeDict(this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue(options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue(options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString(newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision(symbol, price);
             request['quantity'] = this.amountToPrecision(symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -1438,7 +1441,7 @@ class coinsph extends coinsph$1["default"] {
             // if market order
         }
         else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString(newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
@@ -1764,9 +1767,7 @@ class coinsph extends coinsph$1["default"] {
             'buy': 'BUY',
             'sell': 'SELL',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
@@ -1794,9 +1795,7 @@ class coinsph extends coinsph$1["default"] {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
     parseOrderStatus(status) {
@@ -2271,7 +2270,7 @@ class coinsph extends coinsph$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
@@ -2286,7 +2285,7 @@ class coinsph extends coinsph$1["default"] {
             }
             const signedQuery = this.urlEncodeQuery(query);
             const signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha2_js.sha256);
-            url = url + '?' + signedQuery + '&signature=' + signature;
+            url = apiUrl + '/' + endpoint + '?' + signedQuery + '&signature=' + signature;
             const signedHeaders = {
                 'X-COINS-APIKEY': this.apiKey,
             };
@@ -2294,7 +2293,7 @@ class coinsph extends coinsph$1["default"] {
         }
         const encodedQuery = this.urlEncodeQuery(query);
         if (encodedQuery.length !== 0) {
-            url += '?' + encodedQuery;
+            url = apiUrl + '/' + endpoint + '?' + encodedQuery;
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }

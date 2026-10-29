@@ -48,23 +48,23 @@ func (this *Kraken) PublicGetTicker(args ...any) <-chan EndpointResult[map[strin
 }
 
 // PublicGetOHLC returns a channel that yields a JSON object.
-func (this *Kraken) PublicGetOHLC(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicGetOHLC", args...)
+func (this *Kraken) PublicGetOHLC(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicGetOHLC", args...))
 }
 
 // PublicGetDepth returns a channel that yields a JSON object.
-func (this *Kraken) PublicGetDepth(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicGetDepth", args...)
+func (this *Kraken) PublicGetDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicGetDepth", args...))
 }
 
 // PublicGetGroupedBook returns a channel that yields a JSON object.
-func (this *Kraken) PublicGetGroupedBook(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicGetGroupedBook", args...)
+func (this *Kraken) PublicGetGroupedBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicGetGroupedBook", args...))
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
-func (this *Kraken) PublicGetTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *Kraken) PublicGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicGetTrades", args...))
 }
 
 // PublicGetSpread returns a channel that yields a JSON object.
@@ -83,8 +83,8 @@ func (this *Kraken) PublicGetPostTrade(args ...any) <-chan EndpointResult[map[st
 }
 
 // PrivatePostLevel3 returns a channel that yields a JSON object.
-func (this *Kraken) PrivatePostLevel3(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostLevel3", args...)
+func (this *Kraken) PrivatePostLevel3(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostLevel3", args...))
 }
 
 // PrivatePostBalance returns a channel that yields a JSON object.

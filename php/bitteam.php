@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
             'name' => 'BIT.TEAM',
@@ -677,7 +677,7 @@ class bitteam extends Exchange {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {
-            $feesByNetworkId = $withdrawCommissionFixed;
+            $feesByNetworkId = $this->extend($withdrawCommissionFixed, array());
         }
         $statuses = $this->safe_dict($statusesResponse, $numericId, array());
         $deposit = $this->safe_bool($statuses, 'depositStatus');
@@ -1763,7 +1763,7 @@ class bitteam extends Exchange {
         $bestAskVolume = null;
         $bids = $this->safe_list($ticker, 'bids');
         $asks = $this->safe_list($ticker, 'asks');
-        if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
+        if (($bids !== null) && ($asks !== null)) {
             $bestBid = $this->safe_dict($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');
@@ -2460,7 +2460,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2468,12 +2468,12 @@ class bitteam extends Exchange {
             if ($code === 404) {
                 if ((mb_strpos($url, '/ccxt/order/') !== false) && ($method === 'GET')) {
                     $parts = explode('/order/', $url);
-                    $orderId = $this->safe_string($parts, 1);
+                    $orderId = $this->safe_string($parts, 1, '');
                     throw new OrderNotFound($this->id . ' order ' . $orderId . ' not found');
                 }
                 if (mb_strpos($url, '/cmc/orderbook/') !== false) {
                     $parts = explode('/cmc/orderbook/', $url);
-                    $symbolId = $this->safe_string($parts, 1);
+                    $symbolId = $this->safe_string($parts, 1, '');
                     throw new BadSymbol($this->id . ' symbolId ' . $symbolId . ' not found');
                 }
             }

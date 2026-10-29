@@ -33,6 +33,68 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     public Object market;
     public final List<Object> cache = new ArrayList<>();
 
+    /** Owner-to-reader hand-off: scalars and side references as of the last completed write. */
+    private final OwnerSlot<Meta> publishedMeta = new OwnerSlot<>();
+
+    /** The ws owner thread, claimed by the first write; null means "nobody has written yet". */
+    private Thread owner;
+
+    /**
+     * True only on the thread that owns the book. An unclaimed book answers from the published
+     * record, which is empty until the first write, so a reader never touches live sides.
+     */
+    protected final boolean isOwner() {
+        Thread o = this.owner;
+        return o != null && o == Thread.currentThread();
+    }
+
+    /** Immutable reader view of the book's scalars and live side references. */
+    static final class Meta {
+        final OrderBookSide asks;
+        final OrderBookSide bids;
+        final String symbol;
+        final Object timestamp;
+        final Object datetime;
+        final Object nonce;
+        final Object outcome;
+        final Object outcomeId;
+        final Object market;
+
+        Meta(OrderBookSide asks, OrderBookSide bids, String symbol, Object timestamp, Object datetime,
+             Object nonce, Object outcome, Object outcomeId, Object market) {
+            this.asks = asks;
+            this.bids = bids;
+            this.symbol = symbol;
+            this.timestamp = timestamp;
+            this.datetime = datetime;
+            this.nonce = nonce;
+            this.outcome = outcome;
+            this.outcomeId = outcomeId;
+            this.market = market;
+        }
+    }
+
+    /** Publish the scalars and side references a reader may use; owner thread only. */
+    void publishMeta() {
+        this.owner = Thread.currentThread();
+        this.publishedMeta.publish(new Meta(this.asks, this.bids, this.symbol, this.timestamp,
+                this.datetime, this.nonce, this.outcome, this.outcomeId, this.market));
+    }
+
+    private Meta meta() {
+        // the owner reads its own writes; a reader gets the record the owner published last
+        if (this.isOwner()) {
+            return new Meta(this.asks, this.bids, this.symbol, this.timestamp, this.datetime,
+                    this.nonce, this.outcome, this.outcomeId, this.market);
+        }
+        Meta published = this.publishedMeta.latest(null);
+        if (published != null) {
+            return published;
+        }
+        return new Meta(this.asks, this.bids, this.symbol, this.timestamp, this.datetime,
+                this.nonce, this.outcome, this.outcomeId, this.market);
+    }
+
     // ─── Map view (C# parity) ───
     // the generated isDictionary() is `instanceof java.util.Map` (see the Helpers.isObject
     // rationale for why transpiled checks are strict); C#'s OrderBook satisfies IDictionary,
@@ -42,7 +104,7 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
         "asks", "bids", "timestamp", "datetime", "nonce");
 
     @Override
-    public synchronized Object get(Object key) {
+    public Object get(Object key) {
         if (!(key instanceof String)) {
             return null; // Map contract: unknown key types are absent, not a CCE
         }
@@ -63,7 +125,7 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     }
 
     @Override
-    public synchronized boolean containsKey(Object key) {
+    public boolean containsKey(Object key) {
         if ("cache".equals(key)) {
             return true; // keyed access for snapshot-buffering handlers; stays out of entrySet()/toMap(),
             // see https://github.com/ccxt/ccxt/pull/29620
@@ -79,7 +141,7 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     }
 
     @Override
-    public synchronized Object put(String key, Object value) {
+    public Object put(String key, Object value) {
         Object prev = this.get(key);
         switch (key) {
             case "asks": this.asks = (OrderBookSide) value; break;
@@ -101,15 +163,16 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             case "market": this.market = value; break;
             default: throw new IllegalArgumentException("WsOrderBook has no field " + key);
         }
+        this.publishMeta();
         return prev;
     }
 
     @Override
-    public synchronized java.util.Set<Map.Entry<String, Object>> entrySet() {
+    public java.util.Set<Map.Entry<String, Object>> entrySet() {
         // snapshot view: hash-based consumers (LinkedHashSet/HashMap/AbstractMap.hashCode)
         // call hashCode() on entry values, and hashing the *live* OrderBookSide races the
-        // WsClient delta thread (ConcurrentModificationException). toMap() already returns
-        // synchronized snapshot copies with the exact same key semantics,
+        // ws owner thread (ConcurrentModificationException). toMap() already returns
+        // published snapshot copies with the exact same key semantics,
         // see https://github.com/ccxt/ccxt/pull/29596
         return this.toMap().entrySet();
     }
@@ -126,23 +189,24 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             this.datetime = snap.get("datetime");
             this.nonce = snap.get("nonce");
 
+            this.asks.beginBatch();
+            this.bids.beginBatch();
             Object asksData = snap.get("asks");
             if (asksData instanceof List) {
-                synchronized (this.asks) {
-                    for (Object delta : (List<?>) asksData) {
-                        this.asks.storeArrayUnsafe(delta);
-                    }
+                for (Object delta : (List<?>) asksData) {
+                    this.asks.storeArrayUnsafe(delta);
                 }
             }
             Object bidsData = snap.get("bids");
             if (bidsData instanceof List) {
-                synchronized (this.bids) {
-                    for (Object delta : (List<?>) bidsData) {
-                        this.bids.storeArrayUnsafe(delta);
-                    }
+                for (Object delta : (List<?>) bidsData) {
+                    this.bids.storeArrayUnsafe(delta);
                 }
             }
+            this.asks.endBatch();
+            this.bids.endBatch();
         }
+        this.publishMeta();
     }
 
     public WsOrderBook() {
@@ -150,13 +214,13 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     }
 
     /** Reset from a REST snapshot Map: replaces metadata and clears+repopulates both sides.
-     *  Synchronized on `this` so concurrent toMap() readers can't observe a torn write
-     *  of the scalar fields. Exchanges that pass `reset({})` and then individually set
+     *  Owner thread only; readers see the previous published record until it is republished.
+     *  Exchanges that pass `reset({})` and then individually set
      *  timestamp/datetime (upbit, bitmart, cryptocom) still have a window between reset()
      *  returning and the addElementToObject calls — that's a per-handler issue, not fixed
      *  here. */
     @SuppressWarnings("unchecked")
-    public synchronized void reset(Object snapshot) {
+    public void reset(Object snapshot) {
         Map<String, Object> snap = (snapshot instanceof Map) ? (Map<String, Object>) snapshot : null;
         if (snap != null) {
             this.symbol = (String) snap.get("symbol");
@@ -167,92 +231,77 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             this.outcomeId = snap.get("outcomeId");
             this.market = snap.get("market");
         }
-        // clear + repopulate must be one critical section per side, otherwise
-        // a concurrent toMap() snapshot can observe an empty list while the
-        // index still holds the old prices, leaving the two length-misaligned.
-        synchronized (this.asks) {
-            this.asks.clear();
-            this.asks.index.clear();
-            if (snap != null) {
-                Object asksData = snap.get("asks");
-                if (asksData instanceof List) {
-                    for (Object delta : (List<?>) asksData) {
-                        this.asks.storeArrayUnsafe(delta);
-                    }
+        // clear + repopulate is one batched write per side, so a reader never sees
+        // an empty list published against an index still holding the old prices.
+        this.asks.beginBatch();
+        this.bids.beginBatch();
+        this.asks.clear();
+        this.asks.index.clear();
+        if (snap != null) {
+            Object asksData = snap.get("asks");
+            if (asksData instanceof List) {
+                for (Object delta : (List<?>) asksData) {
+                    this.asks.storeArrayUnsafe(delta);
                 }
             }
         }
-        synchronized (this.bids) {
-            this.bids.clear();
-            this.bids.index.clear();
-            if (snap != null) {
-                Object bidsData = snap.get("bids");
-                if (bidsData instanceof List) {
-                    for (Object delta : (List<?>) bidsData) {
-                        this.bids.storeArrayUnsafe(delta);
-                    }
+        this.bids.clear();
+        this.bids.index.clear();
+        if (snap != null) {
+            Object bidsData = snap.get("bids");
+            if (bidsData instanceof List) {
+                for (Object delta : (List<?>) bidsData) {
+                    this.bids.storeArrayUnsafe(delta);
                 }
             }
         }
+        this.asks.endBatch();
+        this.bids.endBatch();
+        this.publishMeta();
     }
 
     /** Truncate both sides to the configured depth. Returns this for chaining. */
     public WsOrderBook limit() {
-        this.asks.limit();
-        this.bids.limit();
+        Meta meta = this.meta();
+        meta.asks.limit();
+        meta.bids.limit();
         return this;
     }
 
-    /** Map view of the orderbook; asks/bids are snapshot copies so callers can iterate
-     *  without racing the WsClient thread that keeps applying deltas to the live sides.
-     *  Synchronized so the scalar fields (timestamp/datetime/nonce/symbol) are read
-     *  atomically as a group — pairs with Helpers.addElementToObject's reflective
-     *  branch, which takes the same monitor when an exchange handler does e.g.
-     *  `addElementToObject(orderbook, "timestamp", ts)` and then `... "datetime", iso`. */
-    public synchronized Map<String, Object> toMap() {
+    /** Map view of the orderbook; asks/bids are the published row copies so callers can
+     *  iterate without racing the ws owner thread that applies deltas, and the scalars come
+     *  from the same published record, so a reader sees one consistent write. */
+    public Map<String, Object> toMap() {
+        Meta meta = this.meta();
         Map<String, Object> result = new HashMap<>();
-        result.put("asks", this.asks.snapshot());
-        result.put("bids", this.bids.snapshot());
-        result.put("timestamp", this.timestamp);
-        result.put("datetime", this.datetime);
-        result.put("nonce", this.nonce);
+        result.put("asks", meta.asks.snapshot());
+        result.put("bids", meta.bids.snapshot());
+        result.put("timestamp", meta.timestamp);
+        result.put("datetime", meta.datetime);
+        result.put("nonce", meta.nonce);
         // prediction books are keyed by `outcome` (no `symbol`); crypto books by `symbol`
-        if (this.outcome != null) {
-            result.put("outcome", this.outcome);
-            result.put("outcomeId", this.outcomeId);
-            result.put("market", this.market);
+        if (meta.outcome != null) {
+            result.put("outcome", meta.outcome);
+            result.put("outcomeId", meta.outcomeId);
+            result.put("market", meta.market);
         } else {
-            result.put("symbol", this.symbol);
+            result.put("symbol", meta.symbol);
         }
         return result;
     }
 
-    public synchronized WsOrderBook copy() {
-        Map<String, Object> snapshot = new HashMap<>();
-        if (this.outcome != null) {
-            snapshot.put("outcome", this.outcome);
-            snapshot.put("outcomeId", this.outcomeId);
-            snapshot.put("market", this.market);
-        } else {
-            snapshot.put("symbol", this.symbol);
-        }
+    public WsOrderBook copy() {
+        Meta meta = this.meta();
+        Map<String, Object> snapshot = this.toMap();
         WsOrderBook copy;
         if (this instanceof IndexedOrderBook) {
-            copy = new IndexedOrderBook(snapshot, this.asks.depth);
+            copy = new IndexedOrderBook(null, meta.asks.depth);
         } else if (this instanceof CountedOrderBook) {
-            copy = new CountedOrderBook(snapshot, this.asks.depth);
+            copy = new CountedOrderBook(null, meta.asks.depth);
         } else {
-            copy = new WsOrderBook(snapshot, this.asks.depth);
+            copy = new WsOrderBook(null, meta.asks.depth);
         }
-        synchronized (this.asks) {
-            synchronized (this.bids) {
-                copy.asks = this.asks.copy();
-                copy.bids = this.bids.copy();
-            }
-        }
-        copy.nonce = this.nonce;
-        copy.timestamp = this.timestamp;
-        copy.datetime = this.datetime;
+        copy.reset(snapshot);
         return copy;
     }
 
@@ -266,6 +315,8 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
             super(null, depth);
             this.asks = new IndexedOrderBookSide.IndexedAsks(null, depth);
             this.bids = new IndexedOrderBookSide.IndexedBids(null, depth);
+            this.asks.beginBatch();
+            this.bids.beginBatch();
             if (snapshot instanceof Map) {
                 Map<String, Object> snap = (Map<String, Object>) snapshot;
                 this.symbol = (String) snap.get("symbol");
@@ -274,21 +325,20 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
                 this.nonce = snap.get("nonce");
                 Object asksData = snap.get("asks");
                 if (asksData instanceof List) {
-                    synchronized (this.asks) {
-                        for (Object delta : (List<?>) asksData) {
-                            this.asks.storeArrayUnsafe(delta);
-                        }
+                    for (Object delta : (List<?>) asksData) {
+                        this.asks.storeArrayUnsafe(delta);
                     }
                 }
                 Object bidsData = snap.get("bids");
                 if (bidsData instanceof List) {
-                    synchronized (this.bids) {
-                        for (Object delta : (List<?>) bidsData) {
-                            this.bids.storeArrayUnsafe(delta);
-                        }
+                    for (Object delta : (List<?>) bidsData) {
+                        this.bids.storeArrayUnsafe(delta);
                     }
                 }
             }
+            this.asks.endBatch();
+            this.bids.endBatch();
+            this.publishMeta();
         }
         public IndexedOrderBook() { this(null, null); }
     }

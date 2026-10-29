@@ -122,7 +122,9 @@ class backpack extends backpack$1["default"] {
         const symbolsResolved = [];
         const topics = [];
         const messageHashes = [];
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public', '');
         const client = this.client(url);
         const kind = (bidAsk) ? 'bidask' : 'ticker';
         for (let i = 0; i < normalized.length; i++) {
@@ -140,7 +142,8 @@ class backpack extends backpack$1["default"] {
             }
             const requestParams = this.extend(marketParams, { 'stock': marketStock, 'source': source });
             const request = this.stockDataRequest(methodName, requestParams, market);
-            let topic = 'ticker.' + this.safeString(request, 'symbol');
+            const tickerSymbol = this.safeString(request, 'symbol', '');
+            let topic = 'ticker.' + tickerSymbol;
             if (channel !== undefined) {
                 if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
                     throw new errors.BadRequest(this.id + ' ' + methodName + '() channel must be stockPrice or stockIndicativeQuote');
@@ -163,11 +166,13 @@ class backpack extends backpack$1["default"] {
                     topic = quoteChannel + '.' + ticker;
                 }
                 else {
-                    topic = 'bookTicker.' + this.wsVenueMarketId(methodName, market, query);
+                    this.wsVenueMarketId(methodName, market, query);
+                    topic = 'bookTicker.' + this.safeString(market, 'id', '');
                 }
             }
             else if (source === 'External') {
-                topic = 'externalTicker.' + market['baseId'] + '_USDC';
+                const externalBaseId = this.safeString(market, 'baseId', '');
+                topic = 'externalTicker.' + externalBaseId + '_USDC';
             }
             else if ((this.safeString(market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new errors.NotSupported(this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
@@ -224,7 +229,9 @@ class backpack extends backpack$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public', '');
         let method = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -242,9 +249,11 @@ class backpack extends backpack$1["default"] {
     }
     async watchPrivate(topics, messageHashes, params = {}, unwatch = false) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'private', '');
         const instruction = 'subscribe';
-        const ts = this.nonce().toString();
+        const ts = this.numberToString(this.nonce());
         let method = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -270,7 +279,7 @@ class backpack extends backpack$1["default"] {
         const client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString(messageHashes, i, '');
             const subMessageHash = messageHash.replace('unsubscribe:', '');
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (messageHash.indexOf('ticker') >= 0) {
@@ -310,7 +319,7 @@ class backpack extends backpack$1["default"] {
             else if (messageHash.indexOf('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders;
-                    if (cache !== undefined) {
+                    if (this.orders !== undefined) {
                         const keys = Object.keys(cache);
                         for (let j = 0; j < keys.length; j++) {
                             const symbol = keys[j];
@@ -321,15 +330,14 @@ class backpack extends backpack$1["default"] {
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
                     const cache = this.orders;
-                    if ((cache !== undefined) && (symbol in cache)) {
+                    if ((this.orders !== undefined) && (symbol in cache)) {
                         delete cache[symbol];
                     }
                 }
             }
             else if (messageHash.indexOf('positions') >= 0) {
                 if (messageHash === 'unsubscribe:positions') {
-                    const cache = this.positions;
-                    const keys = Object.keys(cache);
+                    const keys = Object.keys(this.positions);
                     for (let j = 0; j < keys.length; j++) {
                         const symbol = keys[j];
                         delete this.positions[symbol];
@@ -715,13 +723,13 @@ class backpack extends backpack$1["default"] {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+        for (let i = 0; i < symbolsLength; i++) {
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
-            topics.push('kline.' + interval + '.' + this.wsVenueMarketId('watchOHLCVForSymbols', market, query));
+            this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
+            topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));
             messageHashes.push('candles:' + market['symbol'] + ':' + interval);
         }
         const [symbol, timeframe, candles] = await this.watchPublic(topics, messageHashes, this.omit(query, ['stock', 'source']));
@@ -754,13 +762,13 @@ class backpack extends backpack$1["default"] {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+        for (let i = 0; i < symbolsLength; i++) {
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
-            topics.push('kline.' + interval + '.' + this.wsVenueMarketId('watchOHLCVForSymbols', market, query));
+            this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
+            topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));
             messageHashes.push('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, ['stock', 'source']), true);
@@ -891,8 +899,9 @@ class backpack extends backpack$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.wsVenueMarketId('watchTradesForSymbols', this.market(symbol), query);
-            topics.push('trade.' + marketId);
+            const market = this.market(symbol);
+            this.wsVenueMarketId('watchTradesForSymbols', market, query);
+            topics.push('trade.' + this.safeString(market, 'id', ''));
             messageHashes.push('trades:' + symbol);
         }
         const trades = await this.watchPublic(topics, messageHashes, this.omit(query, ['stock', 'source']));
@@ -930,8 +939,9 @@ class backpack extends backpack$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.wsVenueMarketId('watchTradesForSymbols', this.market(symbol), query);
-            topics.push('trade.' + marketId);
+            const market = this.market(symbol);
+            this.wsVenueMarketId('watchTradesForSymbols', market, query);
+            topics.push('trade.' + this.safeString(market, 'id', ''));
             messageHashes.push('unsubscribe:trades:' + symbol);
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, ['stock', 'source']), true);
@@ -1070,9 +1080,9 @@ class backpack extends backpack$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push('orderbook:' + symbol);
-            const marketId = this.wsVenueMarketId('watchOrderBookForSymbols', this.market(symbol), query);
-            const topic = 'depth.' + marketId;
-            topics.push(topic);
+            const market = this.market(symbol);
+            this.wsVenueMarketId('watchOrderBookForSymbols', market, query);
+            topics.push('depth.' + this.safeString(market, 'id', ''));
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
             }
@@ -1116,9 +1126,9 @@ class backpack extends backpack$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push('unsubscribe:orderbook:' + symbol);
-            const marketId = this.wsVenueMarketId('watchOrderBookForSymbols', this.market(symbol), query);
-            const topic = 'depth.' + marketId;
-            topics.push(topic);
+            const market = this.market(symbol);
+            this.wsVenueMarketId('watchOrderBookForSymbols', market, query);
+            topics.push('depth.' + this.safeString(market, 'id', ''));
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, ['stock', 'source']), true);
     }
@@ -1245,11 +1255,11 @@ class backpack extends backpack$1["default"] {
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString(market, 'id', '');
             if (this.safeString(market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString(market, 'id', '');
             }
-            messageHash = 'orders:' + symbolResolved;
+            messageHash = 'orders:' + this.safeString(market, 'symbol', '');
         }
         const topics = [topic];
         if (market === undefined) {
@@ -1286,15 +1296,14 @@ class backpack extends backpack$1["default"] {
             market = this.market(symbol);
             this.handleStockParams('watchOrders', query, market);
         }
-        const symbolResolved = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString(market, 'id', '');
             if (this.safeString(market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString(market, 'id', '');
             }
-            messageHash = 'unsubscribe:orders:' + symbolResolved;
+            messageHash = 'unsubscribe:orders:' + this.safeString(market, 'symbol', '');
         }
         const topics = [topic];
         if (market === undefined) {
@@ -1662,7 +1671,7 @@ class backpack extends backpack$1["default"] {
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601(timestamp);
         cache.append(parsedPosition);
-        const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
+        const symbolSpecificMessageHash = messageHash + ':' + this.safeString(parsedPosition, 'symbol', '');
         client.resolve([parsedPosition], messageHash);
         client.resolve([parsedPosition], symbolSpecificMessageHash);
     }
@@ -1792,7 +1801,7 @@ class backpack extends backpack$1["default"] {
         const code = this.safeInteger(error, 'code');
         try {
             if (code !== undefined) {
-                const msg = this.safeString(error, 'message');
+                const msg = this.safeString(error, 'message', '');
                 throw new errors.ExchangeError(this.id + ' ' + msg);
             }
             return true;

@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class bit2c extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bit2c',
             'name' => 'Bit2C',
@@ -302,8 +302,9 @@ class bit2c extends Exchange {
             $code = $codes[$i];
             $account = $this->account();
             $currency = $this->currency($code);
-            $uppercase = strtoupper($currency['id']);
-            if (is_array($response) && array_key_exists($uppercase ?? '', $response)) {
+            $currencyId = $this->safe_string($currency, 'id', '');
+            $uppercase = strtoupper($currencyId);
+            if ($this->safe_string($response, $uppercase) !== null) {
                 $account['free'] = $this->safe_string($response, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_string($response, $uppercase);
             }
@@ -502,7 +503,7 @@ class bit2c extends Exchange {
         }
         $market = $this->market($symbol);
         $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        $method = $this->safe_string($this->handle_option_and_params(array(), 'fetchTrades', 'method', $optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -764,8 +765,9 @@ class bit2c extends Exchange {
         //
         $orderUnified = null;
         $isNewOrder = false;
-        if (is_array($order) && array_key_exists('NewOrder' ?? '', $order)) {
-            $orderUnified = $order['NewOrder'];
+        $newOrder = $this->safe_value($order, 'NewOrder');
+        if ($newOrder !== null) {
+            $orderUnified = $newOrder;
             $isNewOrder = true;
         } else {
             $orderUnified = $order;
@@ -917,10 +919,7 @@ class bit2c extends Exchange {
         //         }
         //     ]
         //
-        $responseList = array();
-        if ($response !== null) {
-            $responseList = $this->to_array($response);
-        }
+        $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
@@ -1009,11 +1008,8 @@ class bit2c extends Exchange {
             $tradeMarket = $this->safe_market(null, $market);
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
-                if (($side !== null) && ($side !== '')) {
-                    $side = 'buy';
-                } else {
-                    $side = 'sell';
-                }
+                // safeValue already drops an empty string, so a present isBid is a buy here
+                $side = 'buy';
             }
         }
         $marketResolved = $this->safe_market(null, $tradeMarket);
@@ -1091,7 +1087,7 @@ class bit2c extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -1132,7 +1128,7 @@ class bit2c extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -20,7 +20,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class mudrex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mudrex',
             'name' => 'Mudrex',
@@ -219,13 +219,13 @@ class mudrex extends Exchange {
                 return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $requestHeaders );
             }
         }
-        if (count($query) > 0) {
+        if (!$this->is_empty($query)) {
             $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null || gettype($response) !== 'array') {
             return null;
         }
@@ -297,7 +297,9 @@ class mudrex extends Exchange {
         $market = $this->market($symbol);
         $priceType = $this->safe_string($params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        $assetPair = $market['baseId'] . '/' . $market['quoteId'];
+        $baseIdString = $this->safe_string($market, 'baseId', '');
+        $quoteIdString = $this->safe_string($market, 'quoteId', '');
+        $assetPair = $baseIdString . '/' . $quoteIdString;
         $request = array(
             'assets' => $assetPair,
             'aggregation' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -404,7 +406,12 @@ class mudrex extends Exchange {
         $request = array();
         $response = Async\await($this->privateGetFutures($this->extend($request, $params)));
         $data = $this->safe_value($response, 'data', array());
-        $rows = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) ? $data : $this->safe_list($data, 'items', array());
+        $rows = array();
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+            $rows = $this->to_array($data);
+        } else {
+            $rows = $this->safe_list($data, 'items', array());
+        }
         $resultTickers = array();
         for ($i = 0; $i < count($rows); $i++) {
             $t = $rows[$i];
@@ -614,8 +621,7 @@ class mudrex extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchBalance() returned empty response');
         }
-        $response['currency'] = $currency;
-        return $this->parse_balance($response);
+        return $this->parse_balance($this->extend($response, array( 'currency' => $currency )));
     }
 
     public function parse_balance(mixed $response): array {
@@ -1248,15 +1254,14 @@ class mudrex extends Exchange {
         $amount = $this->safe_value($params, 'amount');
         if ($positionId === null) {
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
-            for ($i = 0; $i < count($positions); $i++) {
-                $p = $positions[$i];
-                if ($side !== null && $p['side'] !== $side) {
-                    continue;
-                }
-                if ($p['symbol'] === $market['symbol']) {
-                    $positionId = $this->safe_string($p, 'id');
-                    break;
-                }
+            $candidates = $this->filter_by($positions, 'symbol', $market['symbol']);
+            if ($side !== null) {
+                $candidates = $this->filter_by($candidates, 'side', $side);
+            }
+            $numCandidates = count($candidates);
+            if ($numCandidates > 0) {
+                $found = $candidates[0];
+                $positionId = $this->safe_string($found, 'id');
             }
         }
         if ($positionId === null) {
@@ -1306,12 +1311,11 @@ class mudrex extends Exchange {
         $positionId = $this->safe_string($params, 'position_id');
         if ($positionId === null) {
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
-            for ($i = 0; $i < count($positions); $i++) {
-                $p = $positions[$i];
-                if ($p['symbol'] === $symbol) {
-                    $positionId = $this->safe_string($p, 'id');
-                    break;
-                }
+            $matches = $this->filter_by($positions, 'symbol', $symbol);
+            $numMatches = count($matches);
+            if ($numMatches > 0) {
+                $found = $matches[0];
+                $positionId = $this->safe_string($found, 'id');
             }
         }
         if ($positionId === null) {
@@ -1373,8 +1377,8 @@ class mudrex extends Exchange {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         $pageSize = ($limit === null) ? 0 : $limit * 2;
         $allRows = array();
-        $transactionsCount = 0;
-        $calls = 0;
+        $transactionsCount = $this->parse_to_int(0);
+        $calls = $this->parse_to_int(0);
         $offset = 0;
         $paging = true;
         while ($paging) {
@@ -1392,11 +1396,11 @@ class mudrex extends Exchange {
                 if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
-                        $transactionsCount = $transactionsCount + 1;
+                        $transactionsCount = $this->parse_to_int($transactionsCount + 1);
                     }
                 }
             }
-            $calls = $calls + 1;
+            $calls = $this->parse_to_int($calls + 1);
             $paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (($limit !== null) && ($dataLength === $pageSize)) {
@@ -1431,7 +1435,7 @@ class mudrex extends Exchange {
                 if ($rebateKeys[$j] === $transactionKeys[$i]) {
                     $rebate = $this->safe_string($rebateAmounts, $j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    $rebateKeys[$j] = null;
+                    $rebateKeys[$j] = '';
                     break;
                 }
             }

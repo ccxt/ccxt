@@ -158,11 +158,8 @@ public class Generic {
     public static Map<String, Object> Extend(Object aa, Object bb) {
         Map<String, Object> a = (Map<String, Object>) aa;
         Map<String, Object> out = new LinkedHashMap<>();
-        // Snapshot the source maps before iterating: callers commonly pass
-        // shared state like Exchange.options (Collections.synchronizedMap-wrapped)
-        // that another thread may be writing concurrently. Iterating directly
-        // would throw ConcurrentModificationException; the snapshot is cheap
-        // and decouples us from the caller's locking discipline.
+        // Sources are either caller-owned or copy-on-write stores that publish an immutable
+        // map on every write, so the snapshot below needs no external lock.
         // a may be null/undefined in transpiled code (extend(this.safeDict(...), x)) —
         // JS Object.assign tolerates that, so must we
         if (a != null) {
@@ -180,12 +177,9 @@ public class Generic {
     }
 
     private static List<Map.Entry<String, Object>> snapshotEntries(Map<String, Object> map) {
-        // synchronized() is a no-op for an unwrapped HashMap and the correct
-        // lock for a Collections.synchronizedMap. Either way the returned
-        // ArrayList is detached from the source.
-        synchronized (map) {
-            return new ArrayList<>(map.entrySet());
-        }
+        // The map is owned by this thread or is an immutable published snapshot, so the
+        // returned ArrayList detaches from a source that no one mutates in place.
+        return new ArrayList<>(map.entrySet());
     }
 
     // ---------- deepExtend2 (older impl kept as-is) ----------

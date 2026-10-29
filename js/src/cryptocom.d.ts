@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cryptocom#fetchCurrencies
@@ -121,7 +121,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name cryptocom#createOrder
@@ -169,7 +169,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    editOrderRequest(id: string, symbol: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: Str, symbol: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name cryptocom#cancelAllOrders
@@ -307,7 +307,7 @@ export default class cryptocom extends Exchange {
     parseDepositStatus(status: Str): Str;
     parseWithdrawalStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    customHandleMarginModeAndParams(methodName: any, params?: Dict): [Str, Dict];
+    customHandleMarginModeAndParams(methodName: string, params?: Dict): [Str, Dict];
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
@@ -405,7 +405,7 @@ export default class cryptocom extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    nonce(): number;
+    nonce(): int;
     paramsToString(object: any, level: number): string;
     /**
      * @method
@@ -444,5 +444,5 @@ export default class cryptocom extends Exchange {
     parseTradingFees(response: Dict): TradingFees;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

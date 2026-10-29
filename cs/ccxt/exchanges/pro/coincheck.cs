@@ -63,14 +63,14 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
-            { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-orderbook") },
+            { "channel", (this.safeString(market, "id", "") + "-orderbook") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -95,20 +95,12 @@ public partial class coincheck : ccxt.coincheck
         //         }
         //     ]
         //
-        string? symbol = this.symbol(this.safeString(message, 0));
+        string? symbol = this.safeString(this.market(this.safeString(message, 0)), "symbol", "");
         IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp);
-        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
-        if ((orderbook == null))
-        {
-            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        } else
-        {
-            orderbook = this.getOrderBook(this.orderbooks, symbol);
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-        }
+        ccxt.pro.OrderBook orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
+        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -132,19 +124,18 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
-            { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },
+            { "channel", (this.safeString(market, "id", "") + "-trades") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -166,7 +157,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         List<object> first = this.safeList(message, 0, new List<object>() {});
-        string? symbol = this.symbol(this.safeString(first, 2));
+        string? symbol = this.safeString(this.market(this.safeString(first, 2)), "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {

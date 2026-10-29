@@ -18,7 +18,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class modetrade extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'modetrade',
             'name' => 'Mode Trade',
@@ -576,11 +576,11 @@ class modetrade extends Exchange {
         $quoteId = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
+        if (($base === null) || ($quote === null) || ($settle === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote . ':' . $settle;
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -830,7 +830,8 @@ class modetrade extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $id = $this->safe_string($trade, 'id');
+        $isFromFetchOrder = $id !== null;
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
@@ -841,7 +842,6 @@ class modetrade extends Exchange {
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
-        $id = $this->safe_string($trade, 'id');
         $takerOrMaker = null;
         if ($isFromFetchOrder) {
             $isMaker = $this->safe_string($trade, 'is_maker') === '1';
@@ -1135,8 +1135,7 @@ class modetrade extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->sort_by($rates, 'timestamp'), $symbolResolved, $since, $limit);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1899,7 +1898,7 @@ class modetrade extends Exchange {
                 'algo_type' => 'POSITIONAL_TP_SL',
                 'child_orders' => array(),
             );
-            $childOrders = $outterOrder['child_orders'];
+            $childOrders = array();
             $closeSide = 'BUY';
             if ($orderSide === 'BUY') {
                 $closeSide = 'SELL';
@@ -1926,6 +1925,7 @@ class modetrade extends Exchange {
                 );
                 $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder['child_orders'] = $childOrders;
             $request['child_orders'] = array( $outterOrder );
         }
         $paramsOmitted = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
@@ -2776,7 +2776,7 @@ class modetrade extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['token'] = $currency['id'];
+            $request['token'] = $this->safe_string($currency, 'id');
         }
         if ($since !== null) {
             $request['start_t'] = $since;
@@ -3068,8 +3068,7 @@ class modetrade extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
-        return $this->safe_number($data, 'withdraw_nonce');
+        return $this->safe_number($this->safe_dict($response, 'data', array()), 'withdraw_nonce');
     }
 
     public function hash_message(mixed $message) {
@@ -3078,8 +3077,8 @@ class modetrade extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -3146,7 +3145,7 @@ class modetrade extends Exchange {
             'chainId' => $this->parse_to_int($chainId),
             'receiver' => $address,
             'token' => $codeUpper,
-            'amount' => (string) $amount,
+            'amount' => $this->number_to_string($amount),
             'withdrawNonce' => $withdrawNonce,
             'timestamp' => $nonce,
         );
@@ -3449,7 +3448,7 @@ class modetrade extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -3478,9 +3477,11 @@ class modetrade extends Exchange {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($paramsSorted, 'orders', array());
+                        $taggedOrders = array();
                         for ($i = 0; $i < count($ordersList); $i++) {
-                            $paramsSorted['orders'][$i]['order_tag'] = $brokerId;
+                            $taggedOrders[] = $this->extend($this->safe_dict($ordersList, $i, array()), array( 'order_tag' => $brokerId ));
                         }
+                        $paramsSorted['orders'] = $taggedOrders;
                     } else {
                         $paramsSorted['order_tag'] = $brokerId;
                     }
@@ -3490,12 +3491,11 @@ class modetrade extends Exchange {
             if ($isPostOrPut && $isOrder) {
                 $paramsSigned = $this->keysort($paramsSorted);
             }
-            $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
             $apiKey = $this->apiKey;
-            if (mb_strpos($apiKey, 'ed25519:') === false) {
-                $apiKey = 'ed25519:' . $apiKey;
+            if (mb_strpos($this->apiKey, 'ed25519:') === false) {
+                $apiKey = 'ed25519:' . $this->apiKey;
             }
             $signedHeaders = array(
                 'orderly-account-id' => $this->accountId,
@@ -3517,8 +3517,8 @@ class modetrade extends Exchange {
                 $signedBody = ($method === 'DELETE') ? '' : null;
             }
             $secret = $this->secret;
-            if (mb_strpos($secret, 'ed25519:') !== false) {
-                $parts = explode('ed25519:', $secret);
+            if (mb_strpos($this->secret, 'ed25519:') !== false) {
+                $parts = explode('ed25519:', $this->secret);
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
@@ -3528,7 +3528,7 @@ class modetrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

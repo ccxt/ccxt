@@ -3,7 +3,7 @@ import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV,
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
-    describe(): any;
+    describe(): Dict;
     watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
     watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<any>;
     /**
@@ -383,7 +383,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsWs(params?: {}): Promise<any>;
+    fetchMarketsWs(params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#fetchCurrenciesWs

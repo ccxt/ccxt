@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class xt extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'xt',
             'name' => 'XT',
@@ -882,7 +882,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
@@ -1229,7 +1229,7 @@ class xt extends Exchange {
     public function parse_markets(mixed $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $parsed = $this->parse_market($markets[$i]);
+            $parsed = $this->parse_market($this->safe_value($markets, $i));
             if ($parsed !== null) {
                 $result[] = $parsed;
             }
@@ -1819,10 +1819,11 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'result');
         if ($market['spot'] === true) {
-            return $this->parse_ticker($ticker[0], $market);
+            $tickers = $this->safe_list($response, 'result', array());
+            return $this->parse_ticker($tickers[0], $market);
         }
+        $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -4823,7 +4824,7 @@ class xt extends Exchange {
                     $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
                 }
             } else {
-                $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
+                $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
             }
         }
         return $result;
@@ -5392,8 +5393,7 @@ class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            $key = $this->safe_string($breakEntry, 'symbol') . '_' . $this->safe_string($breakEntry, 'positionSide');
-            $breakBySymbolSide[$key] = $breakEntry;
+            $breakBySymbolSide[$this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '')] = $breakEntry;
         }
         return $breakBySymbolSide;
     }
@@ -5404,9 +5404,7 @@ class xt extends Exchange {
          * @param {array} $entry a single $entry from a position/list response
          * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
          */
-        $marketId = $this->safe_string($entry, 'symbol');
-        $key = $marketId . '_' . $this->safe_string($entry, 'positionSide');
-        $breakEntry = $this->safe_dict($breakBySymbolSide, $key);
+        $breakEntry = $this->safe_dict($breakBySymbolSide, $this->safe_string($entry, 'symbol', '') . '_' . $this->safe_string($entry, 'positionSide', ''));
         if ($breakEntry === null) {
             return $entry;
         }
@@ -5991,7 +5989,7 @@ class xt extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         //
         // spot: error
         //
@@ -6078,7 +6076,7 @@ class xt extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend($this->omit($params, $this->extract_params($path)));
         $urlencoded = $this->urlencode($this->keysort($query));
         $headersValue = array(
             'Content-Type' => 'application/json',
@@ -6086,8 +6084,7 @@ class xt extends Exchange {
         $signedBody = null;
         if ($signed) {
             $this->check_required_credentials();
-            $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow');
-            $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_string($query, 'recvWindow', $this->safe_string($this->options, 'recvWindow', '5000'));
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
@@ -6101,48 +6098,44 @@ class xt extends Exchange {
             if (($method === 'PUT') && ($endpoint === 'spot')) {
                 $isUndefinedBody = false;
             }
-            $signedBody = $isUndefinedBody ? null : $this->json($query);
-            $payloadString = null;
+            $jsonBody = $this->json($query);
+            $signedBody = $isUndefinedBody ? null : $jsonBody;
+            $payloadString = '';
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
-                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
+                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
-                        $payloadString .= '#' . $method . '#' . $payload;
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $method . '#' . $payload . '#' . $signedBody;
+                    $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $jsonBody;
                 }
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
+                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $payload . '#' . $urlencoded;
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
+                        $payloadString = $futurePrefix . '#' . $payload . '#' . $urlencoded;
                     } else {
-                        $payloadString .= '#' . $payload;
+                        $payloadString = $futurePrefix . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $payload . '#' . $signedBody;
+                    $payloadString = $futurePrefix . '#' . $payload . '#' . $jsonBody;
                 }
             }
-            $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
             $headersValue['xt-validate-appkey'] = $this->apiKey;
             $headersValue['xt-validate-timestamp'] = $timestamp;
-            $headersValue['xt-validate-signature'] = $signature;
+            $headersValue['xt-validate-signature'] = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
         } else {
             if ($urlencoded !== '') {
-                $url .= '?' . $urlencoded;
+                $url = $apiUrl . $payload . '?' . $urlencoded;
             }
         }
-        $bodyValue = null;
-        if ($signed) {
-            $bodyValue = $signedBody;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
+        return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $headersValue );
     }
 }

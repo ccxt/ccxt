@@ -5,8 +5,8 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingHisto
  * @augments Exchange
  */
 export default class xt extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name xt#fetchTime
@@ -630,8 +630,8 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string[], method?: string, params?: {}): {
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: Str;

@@ -23,7 +23,7 @@ use const ccxt\DECIMAL_PLACES;
 use const ccxt\SIGNIFICANT_DIGITS;
 
 class bitfinex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
@@ -590,13 +590,13 @@ class bitfinex extends Exchange {
         // Anything exceeding this will be rounded to the 8th decimal.
         $symbolValue = $this->safe_symbol($symbol);
         $market = $this->market($symbolValue);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_value($market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     public function price_to_precision(?string $symbol, mixed $price): string {
         $symbolValue = $this->safe_symbol($symbol);
         $market = $this->market($symbolValue);
-        $priceValue = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        $priceValue = $this->decimal_to_precision($price, ROUND, $this->safe_value($market['precision'], 'price'), $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -667,7 +667,7 @@ class bitfinex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $pairObj = $this->safe_list($markets, $i);
-            $id = $this->safe_string_upper($pairObj, 0);
+            $id = $this->safe_string_upper($pairObj, 0, '');
             $market = $this->safe_list($pairObj, 1, array());
             $spot = true;
             $type = null;
@@ -907,7 +907,7 @@ class bitfinex extends Exchange {
     public function parse_currencies_custom(array $ids, array $indexed, array $indexedNetworks): array {
         $allowedIds = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+            $id = $this->safe_string($ids, $i, '');
             if (str_ends_with($id, 'F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
@@ -918,13 +918,13 @@ class bitfinex extends Exchange {
         $arr = $this->to_array($allowedIds);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency_custom($arr[$i], $indexed, $indexedNetworks);
-            $code = $parsed['code'];
+            $code = $this->safe_string($parsed, 'code', '');
             $result[$code] = $parsed;
         }
         return $result;
     }
 
-    public function parse_currency_custom(mixed $id, array $indexed, array $indexedNetworks): array {
+    public function parse_currency_custom(string $id, array $indexed, array $indexedNetworks): array {
         $code = $this->safe_currency_code($id);
         $label = $this->safe_list($indexed['label'], $id, array());
         $name = $this->safe_string($label, 1);
@@ -1510,7 +1510,7 @@ class bitfinex extends Exchange {
         $amountString = $this->safe_string($tradeList, $amountIndex);
         $priceIndex = $isPrivate ? 5 : 3;
         $priceString = $this->safe_string($tradeList, $priceIndex);
-        if ($amountString[0] === '-') {
+        if (str_starts_with($amountString, '-')) {
             $side = 'sell';
             $amountString = Precise::string_abs($amountString);
         } else {
@@ -1611,7 +1611,7 @@ class bitfinex extends Exchange {
         $trades = $this->sort_by($rawTrades, 1);
         $tradesList = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $tradesList[] = array( 'result' => $trades[$i] ); // convert to array of dicts to match parseOrder signature
+            $tradesList[] = array( 'result' => $this->safe_list($trades, $i) ); // convert to array of dicts to match parseOrder signature
         }
         return $this->parse_trades($tradesList, $market, null, $limit);
     }
@@ -1707,7 +1707,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $state, $status);
     }
 
-    public function parse_order_flags(?string $flags): ?array {
+    public function parse_order_flags(?string $flags): array {
         // flags can be added to each other...
         $flagValues = array(
             '1024' => array( 'reduceOnly' ),
@@ -1718,7 +1718,7 @@ class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         );
-        return $this->safe_list($flagValues, $flags, null);
+        return $this->safe_list($flagValues, $flags, array());
     }
 
     public function parse_time_in_force(?string $orderType): string {
@@ -1752,11 +1752,9 @@ class bitfinex extends Exchange {
         $rawFlags = $this->safe_string($orderList, 12);
         $flags = $this->parse_order_flags($rawFlags);
         $postOnly = false;
-        if ($flags !== null) {
-            for ($i = 0; $i < count($flags); $i++) {
-                if ($flags[$i] === 'postOnly') {
-                    $postOnly = true;
-                }
+        for ($i = 0; $i < count($flags); $i++) {
+            if ($this->safe_string($flags, $i) === 'postOnly') {
+                $postOnly = true;
             }
         }
         $price = $this->safe_string($orderList, 16);
@@ -1840,7 +1838,7 @@ class bitfinex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
+        $clientOrderId = $this->safe_integer_2($params, 'cid', 'clientOrderId');
         $orderType = strtoupper($type);
         if ($trailingAmount !== null) {
             $orderType = 'TRAILING STOP';
@@ -1977,10 +1975,10 @@ class bitfinex extends Exchange {
         //          "Submitting 1 orders."      // Message
         //       ]
         //
-        $status = $this->safe_string($response, 6);
+        $status = $this->safe_string($response, 6, '');
         if ($status !== 'SUCCESS') {
-            $errorCode = $this->safe_string($response, 5);
-            $errorText = $this->safe_string($response, 7);
+            $errorCode = $this->safe_string($response, 5, '');
+            $errorText = $this->safe_string($response, 7, '');
             throw new ExchangeError($this->id . ' ' . $status . ' => ' . $errorText . ' (#' . $errorCode . ')');
         }
         $orders = $this->safe_list($response, 4, array());
@@ -2050,9 +2048,7 @@ class bitfinex extends Exchange {
         $results = array();
         $data = $this->safe_list($response, 4, array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $individualOrder = $entry[4];
-            $results[] = array( 'result' => $individualOrder[0] );
+            $results[] = array( 'result' => $this->safe_list($this->safe_list($this->safe_list($data, $i), 4), 0) );
         }
         return $this->parse_orders($results);
     }
@@ -2081,7 +2077,7 @@ class bitfinex extends Exchange {
         $orders = $this->safe_list($response, 4, array());
         $ordersList = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $ordersList[] = array( 'result' => $orders[$i] );
+            $ordersList[] = array( 'result' => $this->safe_list($orders, $i) );
         }
         return $this->parse_orders($ordersList);
     }
@@ -2104,7 +2100,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client order id
+        $cid = $this->safe_integer_2($params, 'cid', 'clientOrderId'); // client order id
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2120,7 +2116,7 @@ class bitfinex extends Exchange {
             );
         } else {
             $request = array(
-                'id' => intval($id),
+                'id' => $this->parse_to_int($id),
             );
         }
         $paramsOmitted = ($cid !== null) ? $this->omit($params, array( 'cid', 'clientOrderId' )) : $params;
@@ -2151,7 +2147,7 @@ class bitfinex extends Exchange {
         $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
-            $numericIds[] = $this->parse_to_numeric($ids[$i]);
+            $numericIds[] = $this->parse_to_numeric($this->safe_string($ids, $i));
         }
         $request = array(
             'id' => $numericIds,
@@ -2214,7 +2210,7 @@ class bitfinex extends Exchange {
         $orders = $this->safe_list($response, 4, array());
         $ordersList = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $ordersList[] = array( 'result' => $orders[$i] );
+            $ordersList[] = array( 'result' => $this->safe_list($orders, $i) );
         }
         return $this->parse_orders($ordersList, $market);
     }
@@ -2236,7 +2232,7 @@ class bitfinex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $request = array(
-            'id' => array( intval($id) ),
+            'id' => array( $this->parse_to_int($id) ),
         );
         $orders = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_dict($orders, 0);
@@ -2263,7 +2259,7 @@ class bitfinex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $request = array(
-            'id' => array( intval($id) ),
+            'id' => array( $this->parse_to_int($id) ),
         );
         $orders = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_dict($orders, 0);
@@ -2342,7 +2338,7 @@ class bitfinex extends Exchange {
         //
         $ordersList = array();
         for ($i = 0; $i < count($response); $i++) {
-            $ordersList[] = array( 'result' => $response[$i] );
+            $ordersList[] = array( 'result' => $this->safe_list($response, $i) );
         }
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
@@ -2430,7 +2426,7 @@ class bitfinex extends Exchange {
         //
         $ordersList = array();
         for ($i = 0; $i < count($response); $i++) {
-            $ordersList[] = array( 'result' => $response[$i] );
+            $ordersList[] = array( 'result' => $this->safe_list($response, $i) );
         }
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
@@ -2459,7 +2455,7 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $orderId = intval($id);
+        $orderId = $this->parse_to_int($id);
         $request = array(
             'id' => $orderId,
             'symbol' => $market['id'],
@@ -2469,7 +2465,7 @@ class bitfinex extends Exchange {
         $rawTrades = $this->to_array($response);
         $tradesList = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
-            $tradesList[] = array( 'result' => $rawTrades[$i] ); // convert to array of dicts to match parseOrder signature
+            $tradesList[] = array( 'result' => $this->safe_list($rawTrades, $i) ); // convert to array of dicts to match parseOrder signature
         }
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
@@ -2513,7 +2509,7 @@ class bitfinex extends Exchange {
         }
         $tradesList = array();
         for ($i = 0; $i < count($response); $i++) {
-            $tradesList[] = array( 'result' => $response[$i] ); // convert to array of dicts to match parseOrder signature
+            $tradesList[] = array( 'result' => $this->safe_list($response, $i) ); // convert to array of dicts to match parseOrder signature
         }
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
@@ -2864,7 +2860,7 @@ class bitfinex extends Exchange {
         $takerFeeFiat = $this->safe_number($takerData, 2);
         $takerFeeDeriv = $this->safe_number($takerData, 5);
         for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+            $symbol = $this->safe_string($this->symbols, $i, '');
             $market = $this->market($symbol);
             $fee = array(
                 'info' => $response,
@@ -3107,7 +3103,7 @@ class bitfinex extends Exchange {
         $rawPositions = $this->to_array($response);
         $positionsList = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $positionsList[] = array( 'result' => $rawPositions[$i] );
+            $positionsList[] = array( 'result' => $this->safe_list($rawPositions, $i) );
         }
         return $this->parse_positions($positionsList, $symbolsNormalized);
     }
@@ -3183,7 +3179,7 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -3192,7 +3188,7 @@ class bitfinex extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($apiName === 'v1') {
-            $request = $apiName . $request;
+            $request = 'v1' . $request;
         } else {
             $request = $this->version . $request;
         }
@@ -3227,7 +3223,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // ["error", 11010, "ratelimit: error"]
         if ($response !== null) {
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
@@ -3240,10 +3236,10 @@ class bitfinex extends Exchange {
         } elseif ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
         }
-        if ($statusCode === 429) {
+        if ($code === 429) {
             throw new RateLimitExceeded($this->id . ' ' . $body);
         }
-        if ($statusCode === 500) {
+        if ($code === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             $errorCode = $this->safe_string($response, 1, '');
             $errorText = $this->safe_string($response, 2, '');
@@ -3384,8 +3380,7 @@ class bitfinex extends Exchange {
         //
         $ledgerObjects = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $ledgerObjects[] = array( 'result' => $item );
+            $ledgerObjects[] = array( 'result' => $this->safe_list($response, $i) );
         }
         return $this->parse_ledger($ledgerObjects, $currency, $since, $limit);
     }
@@ -4249,10 +4244,10 @@ class bitfinex extends Exchange {
         //         "Submitting update to exchange limit buy order for 0.0002 BTC."
         //     ]
         //
-        $status = $this->safe_string($response, 6);
+        $status = $this->safe_string($response, 6, '');
         if ($status !== 'SUCCESS') {
-            $errorCode = $this->safe_string($response, 5);
-            $errorText = $this->safe_string($response, 7);
+            $errorCode = $this->safe_string($response, 5, '');
+            $errorText = $this->safe_string($response, 7, '');
             throw new ExchangeError($this->id . ' ' . $status . ' => ' . $errorText . ' (#' . $errorCode . ')');
         }
         $order = $this->safe_list($response, 4, array());

@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class kraken extends krakenRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -123,26 +123,26 @@ export default class kraken extends krakenRest {
         });
     }
 
-    orderRequestWs (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
+    orderRequestWs (method: string, symbol: string, type: string, request: Dict, orderParams: Dict, amount: Num, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
         const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (isLimitOrder) {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' limit orders require a price argument');
             }
-            request['params']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
+            orderParams['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
         }
         const isMarket = (type === 'market');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly) {
-            request['params']['post_only'] = true;
+            orderParams['post_only'] = true;
         }
         const clientOrderId = this.safeString (paramsPostOnly, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['params']['cl_ord_id'] = clientOrderId;
+            orderParams['cl_ord_id'] = clientOrderId;
         }
         const cost = this.safeString (paramsPostOnly, 'cost');
         if (cost !== undefined) {
-            request['params']['order_qty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
+            orderParams['order_qty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
         }
         const stopLoss = this.safeDict (paramsPostOnly, 'stopLoss', {});
         const takeProfit = this.safeDict (paramsPostOnly, 'takeProfit', {});
@@ -188,66 +188,71 @@ export default class kraken extends krakenRest {
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool (paramsPostOnly, 'reduceOnly');
             if (reduceOnly === true) {
-                request['params']['reduce_only'] = true;
+                orderParams['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower (paramsPostOnly, 'timeInForce');
             if (timeInForce !== undefined) {
-                request['params']['time_in_force'] = timeInForce;
+                orderParams['time_in_force'] = timeInForce;
             }
-            if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['triggers'] = {};
-            }
+            const triggers: Dict = {};
+            const conditional: Dict = {};
             if (isPresetStopLoss || isPresetTakeProfit) {
-                request['params']['conditional'] = {};
                 if (isPresetStopLoss) {
-                    request['params']['conditional']['order_type'] = 'stop-loss';
-                    request['params']['conditional']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLoss));
+                    conditional['order_type'] = 'stop-loss';
+                    conditional['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLoss));
                 } else if (isPresetTakeProfit) {
-                    request['params']['conditional']['order_type'] = 'take-profit';
-                    request['params']['conditional']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfit));
+                    conditional['order_type'] = 'take-profit';
+                    conditional['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfit));
                 }
                 if (presetStopLossLimit !== undefined) {
-                    request['params']['conditional']['order_type'] = 'stop-loss-limit';
-                    request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLossLimit));
+                    conditional['order_type'] = 'stop-loss-limit';
+                    conditional['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLossLimit));
                 } else if (presetTakeProfitLimit !== undefined) {
-                    request['params']['conditional']['order_type'] = 'take-profit-limit';
-                    request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfitLimit));
+                    conditional['order_type'] = 'take-profit-limit';
+                    conditional['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfitLimit));
                 }
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
-                    request['params']['triggers']['price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
+                    triggers['price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                     if (isLimitOrder) {
-                        request['params']['order_type'] = 'stop-loss-limit';
+                        orderParams['order_type'] = 'stop-loss-limit';
                     } else {
-                        request['params']['order_type'] = 'stop-loss';
+                        orderParams['order_type'] = 'stop-loss';
                     }
                 } else {
-                    request['params']['triggers']['price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
+                    triggers['price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
                     if (isLimitOrder) {
-                        request['params']['order_type'] = 'take-profit-limit';
+                        orderParams['order_type'] = 'take-profit-limit';
                     } else {
-                        request['params']['order_type'] = 'take-profit';
+                        orderParams['order_type'] = 'take-profit';
                     }
                 }
             } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['triggers']['price_type'] = priceType;
+                triggers['price_type'] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
-                    request['params']['order_type'] = 'trailing-stop';
+                    orderParams['order_type'] = 'trailing-stop';
                     if (isTrailingAmountOrder) {
-                        request['params']['triggers']['price'] = this.parseToNumeric (trailingAmountString);
+                        triggers['price'] = this.parseToNumeric (trailingAmountString);
                     } else {
-                        request['params']['triggers']['price'] = this.parseToNumeric (trailingPercentString);
+                        triggers['price'] = this.parseToNumeric (trailingPercentString);
                     }
                 } else {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    request['params']['limit_price_type'] = priceType;
-                    request['params']['order_type'] = 'trailing-stop-limit';
+                    orderParams['limit_price_type'] = priceType;
+                    orderParams['order_type'] = 'trailing-stop-limit';
                     if (isTrailingLimitAmountOrder) {
-                        request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitAmountString);
+                        triggers['price'] = this.parseToNumeric (trailingLimitAmountString);
                     } else {
-                        request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitPercentString);
+                        triggers['price'] = this.parseToNumeric (trailingLimitPercentString);
                     }
                 }
+            }
+            // attach after the writes so a copy-semantics port sees the filled dict
+            if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
+                orderParams['triggers'] = triggers;
+            }
+            if (isPresetStopLoss || isPresetTakeProfit) {
+                orderParams['conditional'] = conditional;
             }
         } else if (method === 'editOrderWs') {
             if (isPresetStopLoss || isPresetTakeProfit) {
@@ -255,24 +260,24 @@ export default class kraken extends krakenRest {
             }
             if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
-                    request['params']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
+                    orderParams['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                 } else {
-                    request['params']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
+                    orderParams['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
                 }
             } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['trigger_price_type'] = priceType;
+                orderParams['trigger_price_type'] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
                     if (isTrailingAmountOrder) {
-                        request['params']['trigger_price'] = this.parseToNumeric (trailingAmountString);
+                        orderParams['trigger_price'] = this.parseToNumeric (trailingAmountString);
                     } else {
-                        request['params']['trigger_price'] = this.parseToNumeric (trailingPercentString);
+                        orderParams['trigger_price'] = this.parseToNumeric (trailingPercentString);
                     }
                 } else {
-                    request['params']['limit_price_type'] = priceType;
+                    orderParams['limit_price_type'] = priceType;
                     if (isTrailingLimitAmountOrder) {
-                        request['params']['trigger_price'] = this.parseToNumeric (trailingLimitAmountString);
+                        orderParams['trigger_price'] = this.parseToNumeric (trailingLimitAmountString);
                     } else {
-                        request['params']['trigger_price'] = this.parseToNumeric (trailingLimitPercentString);
+                        orderParams['trigger_price'] = this.parseToNumeric (trailingLimitPercentString);
                     }
                 }
             }
@@ -287,6 +292,7 @@ export default class kraken extends krakenRest {
             paramsPreset = this.omit (paramsCreate, [ 'stopLoss', 'takeProfit' ]);
         }
         const paramsOmitted: Dict = this.omit (paramsPreset, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        request['params'] = orderParams;
         return [ request, paramsOmitted ];
     }
 
@@ -310,18 +316,19 @@ export default class kraken extends krakenRest {
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = this.numberToString (requestId) as string;
+        const orderParams: Dict = {
+            'order_type': type,
+            'side': side,
+            'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+            'symbol': market['symbol'],
+            'token': token,
+        };
         const request: Dict = {
             'method': 'add_order',
-            'params': {
-                'order_type': type,
-                'side': side,
-                'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-                'symbol': market['symbol'],
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         };
-        const [ requestValue, paramsValue ] = this.orderRequestWs ('createOrderWs', symbol, type, request, amount, price, params);
+        const [ requestValue, paramsValue ] = this.orderRequestWs ('createOrderWs', symbol, type, request, orderParams, amount, price, params);
         return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
     }
 
@@ -378,16 +385,17 @@ export default class kraken extends krakenRest {
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = this.numberToString (requestId) as string;
+        const orderParams: Dict = {
+            'order_id': id,
+            'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+            'token': token,
+        };
         const request: Dict = {
             'method': 'amend_order',
-            'params': {
-                'order_id': id,
-                'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         };
-        const [ requestValue, paramsValue ] = this.orderRequestWs ('editOrderWs', symbol, type, request, amount, price, params);
+        const [ requestValue, paramsValue ] = this.orderRequestWs ('editOrderWs', symbol, type, request, orderParams, amount, price, params);
         return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
     }
 
@@ -1064,9 +1072,9 @@ export default class kraken extends krakenRest {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            const limit = this.safeInteger (subscription, 'limit', 10);
+            const limit = this.parseToInt (this.safeInteger (subscription, 'limit', 10));
             const asksLength: int = a.length;
-            const depth = (asksLength > limit) ? asksLength : limit;
+            const depth = this.parseToInt ((asksLength > limit) ? asksLength : limit);
             const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
             const storedDepth = this.safeInteger (depths, symbol);
             if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
@@ -1103,13 +1111,21 @@ export default class kraken extends krakenRest {
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
-                    const currentAsk = this.safeValue (checkAsks, i, {});
-                    const formattedAsk = this.formatNumber (currentAsk[0]) + this.formatNumber (currentAsk[1]);
+                    const currentAsk = this.safeList (checkAsks, i, []);
+                    const currentAskLength = currentAsk.length;
+                    let formattedAsk = '';
+                    if (currentAskLength > 1) {
+                        formattedAsk = this.formatNumber (currentAsk[0]) + this.formatNumber (currentAsk[1]);
+                    }
                     payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const currentBid = this.safeValue (checkBids, i, {});
-                    const formattedBid = this.formatNumber (currentBid[0]) + this.formatNumber (currentBid[1]);
+                    const currentBid = this.safeList (checkBids, i, []);
+                    const currentBidLength = currentBid.length;
+                    let formattedBid = '';
+                    if (currentBidLength > 1) {
+                        formattedBid = this.formatNumber (currentBid[0]) + this.formatNumber (currentBid[1]);
+                    }
                     payloadArray.push (formattedBid);
                 }
             }
@@ -1226,14 +1242,13 @@ export default class kraken extends krakenRest {
                 //         }
                 //     }
                 //
-                subscription = this.safeDict (response, 'result');
+                subscription = this.extend (this.safeDict (response, 'result'), { 'start': now });
                 const token = this.safeString (subscription, 'token');
                 if (token === undefined) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError (this.id + ' authenticate() received an empty token');
                 }
-                subscription['start'] = now;
                 client.subscriptions[authenticated] = subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
@@ -1258,7 +1273,7 @@ export default class kraken extends krakenRest {
         let messageHash = name;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = name + ':' + symbolResolved;
         }
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -1477,7 +1492,7 @@ export default class kraken extends krakenRest {
                 const previousOrder = this.safeDict (previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
-                    const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
+                    const newRawOrder = this.extend (previousOrder['info'], parsed['info']);
                     newOrder = this.parseWsOrder (newRawOrder);
                 }
                 const length = stored.length;

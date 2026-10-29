@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\alpaca as Exchange;
 
 class alpaca extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'alpaca',
             'name' => 'Alpaca',
@@ -638,7 +638,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         $request = array(
@@ -717,7 +717,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $id = $market['id'];
+        $id = $this->safe_string($market, 'id');
         $loc = $this->safe_string($params, 'loc', 'us');
         $request = array(
             'symbols' => $id,
@@ -790,7 +790,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         $paginate = false;
@@ -1151,7 +1151,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $id = $market['id'];
+        $id = $this->safe_string($market, 'id');
         $request = array(
             'symbol' => $id,
             'side' => $side,
@@ -1510,7 +1510,7 @@ class alpaca extends Exchange {
         //
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $alpacaStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($alpacaStatus);
         $feeValue = $this->safe_string($order, 'commission');
@@ -1778,8 +1778,9 @@ class alpaca extends Exchange {
         }
         $currency = $this->currency($code);
         $addressValue = $address;
-        if (($tagWithdrawTag !== null) && ($tagWithdrawTag !== '')) {
-            $addressValue = $address . ':' . $tagWithdrawTag;
+        $tagSuffix = $this->safe_string($params, 'tag', '');
+        if ($tagSuffix !== '') {
+            $addressValue = $address . ':' . $tagSuffix;
         }
         $request = array(
             'asset' => $currency['id'],
@@ -1991,7 +1992,8 @@ class alpaca extends Exchange {
         if ($activityType !== null) {
             $netAmount = $this->safe_string($transaction, 'net_amount');
             $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($netAmount, '0'));
-            $timestamp = $this->parse8601($this->safe_string($transaction, 'date') . 'T00:00:00Z');
+            $date = $this->safe_string($transaction, 'date', '');
+            $timestamp = $this->parse8601($date . 'T00:00:00Z');
             $datetime = $this->iso8601($timestamp);
             $type = $isIncoming ? 'deposit' : 'withdrawal';
             $amount = $this->parse_number(Precise::string_abs($netAmount));
@@ -2017,7 +2019,7 @@ class alpaca extends Exchange {
             $addressTo = $this->safe_string($transaction, 'to_address');
             $addressFrom = $this->safe_string($transaction, 'from_address');
             $type = $this->parse_transaction_type($this->safe_string($transaction, 'direction'));
-            $amount = $this->safe_number($transaction, 'amount');
+            $amount = $this->parse_number($this->safe_string($transaction, 'amount'));
             $currencyId = $this->safe_string($transaction, 'asset');
             $code = $this->safe_currency_code($currencyId, $currency);
             $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
@@ -2188,8 +2190,8 @@ class alpaca extends Exchange {
         }
         for ($i = 0; $i < count($positions); $i++) {
             $position = $this->safe_dict($positions, $i);
-            $positionSymbol = $this->safe_string($position, 'symbol');
-            if ($positionSymbol === null) {
+            $positionSymbol = $this->safe_string($position, 'symbol', '');
+            if ($positionSymbol === '') {
                 continue;
             }
             $baseId = null;
@@ -2199,7 +2201,7 @@ class alpaca extends Exchange {
             } else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 $baseLength = strlen($positionSymbol) - 3;
-                if (($baseLength > 0) && (mb_substr($positionSymbol, $baseLength) === 'USD')) {
+                if (($baseLength > 0) && str_ends_with($positionSymbol, 'USD')) {
                     $baseId = mb_substr($positionSymbol, 0, $baseLength - 0);
                 }
             }
@@ -2244,7 +2246,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }
@@ -2254,9 +2256,8 @@ class alpaca extends Exchange {
         // }
         $feedback = $this->id . ' ' . $body;
         $errorCode = $this->safe_string($response, 'code');
-        if ($code !== null) {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

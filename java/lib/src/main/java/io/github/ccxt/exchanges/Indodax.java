@@ -35,7 +35,7 @@ public class Indodax extends IndodaxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "indodax" );
@@ -453,38 +453,38 @@ public class Indodax extends IndodaxApi
                 }
                 Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Boolean inMaintenance = (!java.util.Objects.equals(isMaintenance, null)) && ((isMaintenance == null || isMaintenance != 0));
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("taker", this.safeNumber(market, "trade_fee_percent", (Object) null));
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("percentage", true);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", this.safeNumber(market, "trade_fee_percent", (Object) null));
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("percentage", true);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Indodax.this.parseNumber("1e-8") );
                         put( "price", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "price_round"))) );
                         put( "cost", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "volume_precision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -502,9 +502,9 @@ public class Indodax extends IndodaxApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -636,8 +636,10 @@ public class Indodax extends IndodaxApi
         //
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp(ticker, "server_time");
-        String baseVolume = ("vol_" + this.safeStringLower(market, "baseId"));
-        String quoteVolume = ("vol_" + this.safeStringLower(market, "quoteId"));
+        String baseId = this.safeStringLower(market, "baseId", "");
+        String quoteId = this.safeStringLower(market, "quoteId", "");
+        String baseVolume = ("vol_" + baseId);
+        String quoteVolume = ("vol_" + quoteId);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -940,11 +942,7 @@ public class Indodax extends IndodaxApi
         //        }
         //    }
         //
-        String side = null;
-        if (((Map<?, ?>)order).containsKey("type"))
-        {
-            side = this.safeString(order, "type");
-        }
+        String side = this.safeString(order, "type");
         String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
         String cost = null;
@@ -957,13 +955,13 @@ public class Indodax extends IndodaxApi
         if (!java.util.Objects.equals(marketResolved, null))
         {
             symbol = marketResolved.get("symbol");
-            String quoteId = (String) marketResolved.get("quoteId");
-            String baseId = (String) marketResolved.get("baseId");
-            if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (((Map<?, ?>)order).containsKey("order_rp")))
+            String quoteId = this.safeString(marketResolved, "quoteId", "");
+            String baseId = this.safeString(marketResolved, "baseId", "");
+            if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (!java.util.Objects.equals(this.safeString(order, "order_rp"), null)))
             {
                 quoteId = "rp";
             }
-            if ((java.util.Objects.equals(marketResolved.get("baseId"), "idr")) && (((Map<?, ?>)order).containsKey("remain_rp")))
+            if ((java.util.Objects.equals(marketResolved.get("baseId"), "idr")) && (!java.util.Objects.equals(this.safeString(order, "remain_rp"), null)))
             {
                 baseId = "rp";
             }
@@ -1082,13 +1080,14 @@ public class Indodax extends IndodaxApi
                 return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-            List<Object> marketIds = ((List<Object>) switch ((Object)(rawOrders)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict(openOrdersResult, "orders", new HashMap<String, Object>() {{}});
+            List<String> marketIds = new ArrayList<String>(ordersDict.keySet());
             List<Object> exchangeOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Object marketOrders = Helpers.GetValue(rawOrders, marketId);
-                market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, (String) null);
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                Object marketOrders = (ordersDict == null || marketId == null ? null : ordersDict.get(marketId));
+                market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit, new HashMap<String, Object>() {{}});
                 exchangeOrders = (List<Object>) this.arrayConcat(exchangeOrders, parsedOrders);
             }
@@ -1361,11 +1360,15 @@ public class Indodax extends IndodaxApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(response);
-            Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(data, "withdraw_fee", (Object) null));
-            Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
-            Helpers.addElementToObject(result.get("deposit"), "fee", 0);
-            Helpers.addElementToObject(result.get("deposit"), "percentage", false);
-            return this.assignDefaultDepositWithdrawFees(result, currency);
+            result.put("withdraw", new HashMap<String, Object>() {{
+        put( "fee", Indodax.this.safeNumber(data, "withdraw_fee", (Object) null) );
+        put( "percentage", false );
+    }});
+            result.put("deposit", new HashMap<String, Object>() {{
+        put( "fee", 0 );
+        put( "percentage", false );
+    }});
+            return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -1462,16 +1465,16 @@ public class Indodax extends IndodaxApi
             Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, null))
             {
-                List<Object> keys = new ArrayList<Object>(withdraw.keySet());
-                for (var i = 0; i < ((List<?>)keys).size(); i++)
+                List<String> withdrawKeys = new ArrayList<String>(withdraw.keySet());
+                for (var i = 0; i < ((List<?>)withdrawKeys).size(); i++)
                 {
-                    Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                    String key = (withdrawKeys == null || i < 0 || i >= withdrawKeys.size() ? null : withdrawKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
                 }
-                keys = new ArrayList<Object>(deposit.keySet());
-                for (var i = 0; i < ((List<?>)keys).size(); i++)
+                List<String> depositKeys = new ArrayList<String>(deposit.keySet());
+                for (var i = 0; i < ((List<?>)depositKeys).size(); i++)
                 {
-                    Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                    String key = (depositKeys == null || i < 0 || i >= depositKeys.size() ? null : depositKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
                 }
             } else
@@ -1762,13 +1765,13 @@ public class Indodax extends IndodaxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = apiUrl;
+        String url = apiUrl;
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         Boolean isPublic = (java.util.Objects.equals(apiName, "public"));
@@ -1776,10 +1779,10 @@ public class Indodax extends IndodaxApi
         {
             Object query = this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
-            url = (url + requestPath);
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            url = (apiUrl + requestPath);
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
-                url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
+                url = (((apiUrl + requestPath) + "?") + this.urlencodeWithArrayRepeat(query));
             }
         } else
         {
@@ -1817,7 +1820,7 @@ public class Indodax extends IndodaxApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1832,11 +1835,11 @@ public class Indodax extends IndodaxApi
             return null;  // public endpoints may return []-arrays
         }
         String error = this.safeString(response, "error", "");
-        if (!((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("success"); case Map<?, ?> j39v6 -> j39v6.containsKey("success"); case null, default -> false; })) && java.util.Objects.equals(error, ""))
+        String status = this.safeString(response, "success");
+        if ((java.util.Objects.equals(status, null)) && (java.util.Objects.equals(error, "")))
         {
             return null;  // no 'success' property on public responses
         }
-        String status = this.safeString(response, "success");
         if (java.util.Objects.equals(status, "approved"))
         {
             return null;
@@ -1844,7 +1847,7 @@ public class Indodax extends IndodaxApi
         if (java.util.Objects.equals(this.safeInteger(response, "success", 0), 1L))
         {
             // { success: 1, return: { orders: [] }}
-            if (!((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("return"); case Map<?, ?> j39v4 -> j39v4.containsKey("return"); case null, default -> false; })))
+            if (!((switch ((Object)(response)) { case List<?> j39v4 -> j39v4.contains("return"); case Map<?, ?> j39v3 -> j39v3.containsKey("return"); case null, default -> false; })))
             {
                 throw new ExchangeError(((this.id + ": malformed response: ") + this.json(response))) ;
             } else

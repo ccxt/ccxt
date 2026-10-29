@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class polymarket extends \ccxt\async\polymarket {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -78,7 +78,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $requestId;
     }
 
-    public function send_subscription(string $action, array $channels, array $messageHashes, array $subMessageHashes, array $context = array(), $params = array(), ?array $checkHashes = null) {
+    public function send_subscription(string $action, array $channels, array $messageHashes, array $subMessageHashes, array $context = array(), $params = array(), ?array $checkHashes = null): array {
         /**
          * @ignore
          * sends a subscribe or unsubscribe $request and records the $request $id so the ack can be matched back
@@ -90,7 +90,7 @@ class polymarket extends \ccxt\async\polymarket {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the raw $request frame to send
          */
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
@@ -134,17 +134,16 @@ class polymarket extends \ccxt\async\polymarket {
          * @see https://docs.polymarket.com/perps/realtime-updates
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] not used by polymarket watchOrderBook, the $channel always carries the top twenty levels
+         * @param {int} [$limit] not used by polymarket watchOrderBook, the channel always carries the top twenty levels
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook:' . $symbolResolved;
-        $channel = 'book::' . $market['id'];
-        $request = $this->send_subscription('sub', array( $channel ), array( $messageHash ), array( $messageHash ), array(), $params);
-        $url = $this->urls['api']['ws'];
+        $request = $this->send_subscription('sub', array( 'book::' . $this->safe_string($market, 'id', '') ), array( $messageHash ), array( $messageHash ), array(), $params);
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         return $orderbook->limit();
     }
@@ -165,16 +164,16 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'orderbook:' . $symbolResolved;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        $channel = 'book::' . $market['id'];
+        $channel = 'book::' . $this->safe_string($market, 'id', '');
         $context = array(
             'topic' => 'orderbook',
             'symbol' => $symbolResolved,
         );
         $request = $this->send_subscription('unsub', array( $channel ), array( $messageHash ), array( $subMessageHash ), $context, $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -197,7 +196,7 @@ class polymarket extends \ccxt\async\polymarket {
         $parts = explode('::', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($message, 'data', array());
         $timestamp = $this->safe_integer($message, 'ts');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
@@ -228,11 +227,10 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $messageHash = 'ticker:' . $symbolResolved;
-        $channel = 'tickers::' . $market['id'];
-        $request = $this->send_subscription('sub', array( $channel ), array( $messageHash ), array( $messageHash ), array(), $params);
-        $url = $this->urls['api']['ws'];
+        $request = $this->send_subscription('sub', array( 'tickers::' . $this->safe_string($market, 'id', '') ), array( $messageHash ), array( $messageHash ), array(), $params);
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -252,16 +250,16 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'ticker:' . $symbolResolved;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        $channel = 'tickers::' . $market['id'];
+        $channel = 'tickers::' . $this->safe_string($market, 'id', '');
         $context = array(
             'topic' => 'ticker',
             'symbol' => $symbolResolved,
         );
         $request = $this->send_subscription('unsub', array( $channel ), array( $messageHash ), array( $subMessageHash ), $context, $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -281,7 +279,7 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $symbolsNormalized = $this->market_symbols($symbols);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $messageHashes = array();
         $channels = array();
         if ($symbolsNormalized === null) {
@@ -290,8 +288,8 @@ class polymarket extends \ccxt\async\polymarket {
         } else {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $market = $this->market($symbolsNormalized[$i]);
-                $messageHashes[] = 'ticker:' . $market['symbol'];
-                $channels[] = 'tickers::' . $market['id'];
+                $messageHashes[] = 'ticker:' . $this->safe_string($market, 'symbol', '');
+                $channels[] = 'tickers::' . $this->safe_string($market, 'id', '');
             }
         }
         $request = $this->send_subscription('sub', $channels, $messageHashes, $messageHashes, array(), $params);
@@ -326,7 +324,7 @@ class polymarket extends \ccxt\async\polymarket {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'iid');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($message, 'ts');
         $ticker = $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -359,13 +357,13 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $messageHashes = array();
         $channels = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($symbolsNormalized[$i]);
-            $messageHashes[] = 'bidask:' . $market['symbol'];
-            $channels[] = 'bbo::' . $market['id'];
+            $messageHashes[] = 'bidask:' . $this->safe_string($market, 'symbol', '');
+            $channels[] = 'bbo::' . $this->safe_string($market, 'id', '');
         }
         $request = $this->send_subscription('sub', $channels, $messageHashes, $messageHashes, array(), $params);
         $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
@@ -396,7 +394,7 @@ class polymarket extends \ccxt\async\polymarket {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'iid');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($message, 'ts');
         $ticker = $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -430,11 +428,10 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolResolved;
-        $channel = 'trades::' . $market['id'];
-        $request = $this->send_subscription('sub', array( $channel ), array( $messageHash ), array( $messageHash ), array(), $params);
-        $url = $this->urls['api']['ws'];
+        $request = $this->send_subscription('sub', array( 'trades::' . $this->safe_string($market, 'id', '') ), array( $messageHash ), array( $messageHash ), array(), $params);
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -459,16 +456,16 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'trade:' . $symbolResolved;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        $channel = 'trades::' . $market['id'];
+        $channel = 'trades::' . $this->safe_string($market, 'id', '');
         $context = array(
             'topic' => 'trades',
             'symbol' => $symbolResolved,
         );
         $request = $this->send_subscription('unsub', array( $channel ), array( $messageHash ), array( $subMessageHash ), $context, $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -507,14 +504,14 @@ class polymarket extends \ccxt\async\polymarket {
         $first = $this->safe_dict($rows, 0, array());
         $marketId = $this->safe_string($first, 'iid');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $trades = $this->trades[$symbol];
-        for ($i = 0; $i < count($rows); $i++) {
+        for ($i = 0; $i < $rowsLength; $i++) {
             $row = $this->safe_dict($rows, $i, array());
             $trade = $this->parse_ws_trade($row, $market);
             $trades->append($trade);
@@ -580,16 +577,16 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $wsTimeframes = $this->safe_dict($this->options, 'wsTimeframes', array());
         $interval = $this->safe_string($wsTimeframes, $timeframe);
         if ($interval === null) {
             throw new NotSupported($this->id . ' watchOHLCV() does not support the ' . $timeframe . ' timeframe over the websocket');
         }
         $messageHash = 'candles:' . $timeframe . ':' . $symbolResolved;
-        $channel = 'klines::' . $market['id'] . '::' . $interval;
+        $channel = 'klines::' . $this->safe_string($market, 'id', '') . '::' . $interval;
         $request = $this->send_subscription('sub', array( $channel ), array( $messageHash ), array( $messageHash ), array(), $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -615,19 +612,19 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolResolved = $market['symbol'];
+        $symbolResolved = $this->safe_string($market, 'symbol', '');
         $wsTimeframes = $this->safe_dict($this->options, 'wsTimeframes', array());
         $interval = $this->safe_string($wsTimeframes, $timeframe, $timeframe);
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbolResolved;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        $channel = 'klines::' . $market['id'] . '::' . $interval;
+        $channel = 'klines::' . $this->safe_string($market, 'id', '') . '::' . $interval;
         $context = array(
             'topic' => 'ohlcv',
             'symbol' => $symbolResolved,
             'timeframe' => $timeframe,
         );
         $request = $this->send_subscription('unsub', array( $channel ), array( $messageHash ), array( $subMessageHash ), $context, $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -650,7 +647,7 @@ class polymarket extends \ccxt\async\polymarket {
         $marketId = $this->safe_string($parts, 1);
         $interval = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timeframe = $this->find_timeframe($interval);
         if ($timeframe === null) {
             return;
@@ -689,7 +686,7 @@ class polymarket extends \ccxt\async\polymarket {
          * @return {array} resolves once the connection is $authenticated
          */
         $credentials = Async\await($this->loadProxyCredentials());
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $client->reusableFuture($messageHash);
@@ -738,14 +735,15 @@ class polymarket extends \ccxt\async\polymarket {
         Async\await($this->authenticate());
         $messageHash = 'orders';
         $symbolResolved = $symbol;
-        if ($symbolResolved !== null) {
-            $market = $this->market($symbolResolved);
-            $symbolResolved = $market['symbol'];
-            $messageHash = 'orders:' . $symbolResolved;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $resolvedSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $resolvedSymbol;
+            $messageHash = 'orders:' . $resolvedSymbol;
         }
         $subscribeHashes = array( 'orders' );
         $request = $this->send_subscription('sub', array( 'orders' ), array( $messageHash ), $subscribeHashes, array(), $params, $subscribeHashes);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $orders = Async\await($this->watch($url, $messageHash, $request, 'orders'));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -794,7 +792,7 @@ class polymarket extends \ccxt\async\polymarket {
         }
         $stored = $this->orders;
         $symbols = array();
-        for ($i = 0; $i < count($rows); $i++) {
+        for ($i = 0; $i < $rowsLength; $i++) {
             $row = $this->safe_dict($rows, $i, array());
             $parsed = $this->parse_order($row);
             $stored->append($parsed);
@@ -806,7 +804,7 @@ class polymarket extends \ccxt\async\polymarket {
         $client->resolve($stored, 'orders');
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
-            $symbol = $symbolKeys[$i];
+            $symbol = $this->safe_string($symbolKeys, $i, '');
             $client->resolve($stored, 'orders:' . $symbol);
         }
     }
@@ -831,14 +829,15 @@ class polymarket extends \ccxt\async\polymarket {
         Async\await($this->authenticate());
         $messageHash = 'myTrades';
         $symbolResolved = $symbol;
-        if ($symbolResolved !== null) {
-            $market = $this->market($symbolResolved);
-            $symbolResolved = $market['symbol'];
-            $messageHash = 'myTrades:' . $symbolResolved;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $resolvedSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $resolvedSymbol;
+            $messageHash = 'myTrades:' . $resolvedSymbol;
         }
         $subscribeHashes = array( 'fills' );
         $request = $this->send_subscription('sub', array( 'fills' ), array( $messageHash ), $subscribeHashes, array(), $params, $subscribeHashes);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $trades = Async\await($this->watch($url, $messageHash, $request, 'fills'));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -891,7 +890,7 @@ class polymarket extends \ccxt\async\polymarket {
         }
         $stored = $this->myTrades;
         $symbols = array();
-        for ($i = 0; $i < count($rows); $i++) {
+        for ($i = 0; $i < $rowsLength; $i++) {
             $row = $this->safe_dict($rows, $i, array());
             $parsed = $this->parse_trade($row);
             $stored->append($parsed);
@@ -903,7 +902,7 @@ class polymarket extends \ccxt\async\polymarket {
         $client->resolve($stored, 'myTrades');
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
-            $symbol = $symbolKeys[$i];
+            $symbol = $this->safe_string($symbolKeys, $i, '');
             $client->resolve($stored, 'myTrades:' . $symbol);
         }
     }
@@ -927,13 +926,12 @@ class polymarket extends \ccxt\async\polymarket {
         Async\await($this->load_markets());
         Async\await($this->authenticate());
         $symbolsNormalized = $this->market_symbols($symbols);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        $cache = $this->positions;
-        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
@@ -998,7 +996,7 @@ class polymarket extends \ccxt\async\polymarket {
          */
         Async\await($this->load_markets());
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $this->set_balance_cache($client);
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);

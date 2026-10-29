@@ -35,7 +35,7 @@ public class Bitbank extends BitbankApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitbank" );
@@ -685,7 +685,7 @@ public class Bitbank extends BitbankApi
                 Object pair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
                 String marketId = this.safeString(pair, "name");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                String symbol = (String) market.get("symbol");
+                String symbol = this.safeString(market, "symbol", "");
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", pair );
         put( "symbol", symbol );
@@ -1202,7 +1202,7 @@ public class Bitbank extends BitbankApi
             String tagWithdrawTag = (String) ((List<Object>)tagAndParams).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
             this.checkAddress(address, code, tagWithdrawTag);
-            if (!(paramsWithdrawTag.containsKey("uuid")))
+            if (!(parameters.containsKey("uuid")))
             {
                 throw new ExchangeError((this.id + " uuid is required for withdrawal")) ;
             }
@@ -1290,8 +1290,8 @@ public class Bitbank extends BitbankApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object query = this.omit(parameters, this.extractParams(path));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -1303,7 +1303,7 @@ public class Bitbank extends BitbankApi
         if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "markets")))
         {
             url = (url + this.implodeParams(path, parameters));
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (query.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1333,7 +1333,7 @@ public class Bitbank extends BitbankApi
             } else
             {
                 auth = (auth + ((("/" + this.version) + "/") + path));
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (query.size() > 0)
                 {
                     String queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
@@ -1349,11 +1349,15 @@ public class Bitbank extends BitbankApi
             }
             if (Boolean.TRUE.equals(isTimeWindow))
             {
-                requestHeaders.put("ACCESS-REQUEST-TIME", requestTime);
-                requestHeaders.put("ACCESS-TIME-WINDOW", timeWindow);
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("ACCESS-REQUEST-TIME", requestTime);
+                mapLiteral3.put("ACCESS-TIME-WINDOW", timeWindow);
+                requestHeaders = this.extend(requestHeaders, mapLiteral3);
             } else
             {
-                requestHeaders.put("ACCESS-NONCE", nonce);
+                requestHeaders = this.extend(requestHeaders, new HashMap<String, Object>() {{
+                    put( "ACCESS-NONCE", nonce );
+                }});
             }
         }
         String bodyResolved = requestBody;
@@ -1368,7 +1372,7 @@ public class Bitbank extends BitbankApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1440,9 +1444,9 @@ public class Bitbank extends BitbankApi
                 put( "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." );
                 put( "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." );
             }};
-            String code = this.safeString(data, "code");
-            String message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, message);
+            String codeError = this.safeString(data, "code");
+            String message = this.safeString(errorMessages, codeError, "Error");
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, message);
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }
         return null;

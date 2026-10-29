@@ -345,7 +345,7 @@ public partial class btcbox : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -405,17 +405,17 @@ public partial class btcbox : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(this.currenciesDict.Keys);
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(code);
-            object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
-            object free = add(currencyId, "_balance");
+            string currencyId = this.safeString(currency, "id", "");
+            string free = (currencyId + "_balance");
             if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
-                object used = add(currencyId, "_lock");
+                string used = (currencyId + "_lock");
                 account["free"] = this.safeString(response, free);
                 account["used"] = this.safeString(response, used);
                 result[(string)code] = account;
@@ -859,7 +859,7 @@ public partial class btcbox : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByType("all", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByType("all", symbol, since, limit, parameters);
     }
 
     /**
@@ -876,7 +876,7 @@ public partial class btcbox : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByType("open", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByType("open", symbol, since, limit, parameters);
     }
 
     public override Int64 nonce()
@@ -884,31 +884,31 @@ public partial class btcbox : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = ((((apiUrl + "/") + this.version) + "/") + path);
-        if ((apiName is "public"))
+        string url = ((((apiUrl + "/") + this.version) + "/") + path);
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = ((((((apiUrl + "/") + this.version) + "/") + path) + "?") + this.urlencode(parameters));
             }
-        } else if ((apiName is "webApi"))
+        } else if (apiName == "webApi")
         {
-            url = add(add((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("www") ? ((IDictionary<string, object>)this.urls)["www"] : null), "/"), path);
+            url = ((this.safeString(this.urls, "www", "") + "/") + path);
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = this.nonce().ToString();
+            string? nonce = this.numberToString(this.nonce());
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "key", this.apiKey },
                 { "nonce", nonce },
@@ -935,14 +935,14 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((Convert.ToInt64(httpCode) >= 400))
+        if ((code >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }
@@ -951,13 +951,13 @@ public partial class btcbox : Exchange
         {
             return null;  // either public API (no error codes expected) or success
         }
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError (feedback) ;
     }
 
-    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object config = null)
+    public async override Task<object> request(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -967,12 +967,12 @@ public partial class btcbox : Exchange
         if ((response is string))
         {
             // sometimes the exchange returns whitespace prepended to json
-            response = this.strip(response);
-            if (!this.isJsonEncodedObject(response))
+            string strippedResponse = this.strip(response);
+            if (!this.isJsonEncodedObject(strippedResponse))
             {
-                throw new ExchangeError ((string)((this.id + " ") + (response))) ;
+                throw new ExchangeError (((this.id + " ") + strippedResponse)) ;
             }
-            response = parseJson(response);
+            response = JsonHelper.Deserialize(strippedResponse);
         }
         return response;
     }

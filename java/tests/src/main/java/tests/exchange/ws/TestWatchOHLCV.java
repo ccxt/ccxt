@@ -62,7 +62,7 @@ public class TestWatchOHLCV extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
-                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
+                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (symbol), now);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {

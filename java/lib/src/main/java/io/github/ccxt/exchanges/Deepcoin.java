@@ -42,7 +42,7 @@ public class Deepcoin extends DeepcoinApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "deepcoin" );
@@ -594,7 +594,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                ((List<Object>)promises).add(this.fetchMarketsByType((String) ((types == null || i < 0 || i >= types.size() ? null : types.get(i))), parameters));
+                ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i), parameters));
             }
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)responses).size(); i++)
@@ -718,7 +718,11 @@ public class Deepcoin extends DeepcoinApi
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-            symbol = ((symbol + ":") + settle);
+            if (java.util.Objects.equals(settle, null))
+            {
+                return null;
+            }
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
@@ -787,13 +791,14 @@ public class Deepcoin extends DeepcoinApi
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Object market = Helpers.GetValue(result, symbol);
-            if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
+            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
+            if (Boolean.TRUE.equals(isSwap))
             {
                 String additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if (!java.util.Objects.equals(this.markets_by_id, null))
                 {
-                    Helpers.addElementToObject(this.markets_by_id, additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
+                    this.markets_by_id.put(additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
                 }
             }
         }
@@ -916,7 +921,7 @@ public class Deepcoin extends DeepcoinApi
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
-                    Object endTime = (since + (((duration * numberOfCandles)) * 1000L));
+                    Object endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000L)));
                     if (!java.util.Objects.equals(until, null))
                     {
                         endTime = (endTime == null || until == null ? null : (((Number) endTime).doubleValue() < ((Number) until).doubleValue() ? (Object) (endTime) : (Object) (until)));
@@ -2179,7 +2184,7 @@ public class Deepcoin extends DeepcoinApi
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
         String typeValue = typePostOnly;
-        if ((!java.util.Objects.equals(timeInForce, null)) && (java.util.Objects.equals(timeInForce, "IOC")))
+        if (java.util.Objects.equals(timeInForce, "IOC"))
         {
             typeValue = "ioc";
         }
@@ -2410,9 +2415,8 @@ public class Deepcoin extends DeepcoinApi
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Boolean trigger = (Boolean) this.safeBool(paramsPaginate, "trigger", false);
-            List<Object> methodNameparamsMethodNameVariable = (List<Object>) this.handleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
-            String methodName = (String) ((List<Object>) methodNameparamsMethodNameVariable).get(0);
-            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsMethodNameVariable).get(1);
+            String methodName = this.safeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
+            Map<String, Object> paramsMethodName = this.omit(paramsPaginate, "methodName");
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -3740,14 +3744,14 @@ public class Deepcoin extends DeepcoinApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object requestPath = path;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             String query = this.urlencode(parameters);
             if (query.length() > 0)
             {
-                requestPath = (requestPath + ("?" + query));
+                requestPath = ((path + "?") + query);
             }
         }
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3767,9 +3771,10 @@ public class Deepcoin extends DeepcoinApi
             privateHeaders.put("DC-ACCESS-TIMESTAMP", dateTime);
             privateHeaders.put("DC-ACCESS-PASSPHRASE", this.password);
             privateHeaders.put("appid", "200103");
-            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : null;
+            String requestBody = null;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
+                requestBody = this.json(parameters);
                 privateHeaders.put("Content-Type", "application/json");
                 payload = (payload + requestBody);
             }
@@ -3794,7 +3799,7 @@ public class Deepcoin extends DeepcoinApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String msg = this.safeString(response, "msg");

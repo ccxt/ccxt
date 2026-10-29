@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class woo(ccxt.async_support.woo):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(woo, self).describe(), {
             'has': {
                 'ws': True,
@@ -85,14 +85,17 @@ class woo(ccxt.async_support.woo):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        entry = {}
+        entry[url] = newValue
+        self.options['requestId'] = self.extend(self.safe_dict(self.options, 'requestId', {}), entry)
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
         urlUid = ''
         if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
-        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'public', '')
+        url = apiUrl + urlUid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -104,7 +107,8 @@ class woo(ccxt.async_support.woo):
         urlUid = ''
         if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
-        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'public', '')
+        url = apiUrl + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
         message = {
@@ -143,11 +147,13 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         method, paramsMethod = self.handle_option_string_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
-        topic = market['id'] + '@' + method
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@' + method
         urlUid = ''
         if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
-        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'public', '')
+        url = apiUrl + urlUid
         requestId = self.request_id(url)
         request = {
             'event': 'subscribe',
@@ -181,7 +187,8 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         method, paramsMethod = self.handle_option_string_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
-        subHash = market['id'] + '@' + method
+        marketId = self.safe_string(market, 'id', '')
+        subHash = marketId + '@' + method
         topic = 'orderbook'
         return await self.unwatch_public(subHash, market['symbol'], topic, paramsMethod)
 
@@ -324,7 +331,8 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
-        topic = market['id'] + '@' + name
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@' + name
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -343,7 +351,8 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         method, paramsMethod = self.handle_option_string_and_params(params, 'watchTicker', 'method', 'ticker')
         market = self.market(symbol)
-        subHash = market['id'] + '@' + method
+        marketId = self.safe_string(market, 'id', '')
+        subHash = marketId + '@' + method
         topic = 'ticker'
         return await self.unwatch_public(subHash, market['symbol'], topic, paramsMethod)
 
@@ -400,7 +409,7 @@ class woo(ccxt.async_support.woo):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         topic = self.safe_string(message, 'topic')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
@@ -564,7 +573,7 @@ class woo(ccxt.async_support.woo):
                 continue
             ticker['ts'] = timestamp
             parsedTicker = self.parse_ws_bid_ask(ticker)
-            symbol = parsedTicker['symbol']
+            symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 self.bidsasks[symbol] = parsedTicker
             if symbol is not None:
@@ -605,9 +614,10 @@ class woo(ccxt.async_support.woo):
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise ExchangeError(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
-        topic = market['id'] + '@' + name + '_' + interval
+        topic = marketId + '@' + name + '_' + interval
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -634,10 +644,11 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = 'ohlcv'
         name = 'kline'
-        subHash = market['id'] + '@' + name + '_' + interval
+        subHash = marketId + '@' + name + '_' + interval
         params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
@@ -700,8 +711,9 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        topic = market['id'] + '@trade'
+        symbolValue = self.safe_string(market, 'symbol')
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@trade'
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -726,8 +738,9 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketId = self.safe_string(market, 'id', '')
         topic = 'trades'
-        subHash = market['id'] + '@trade'
+        subHash = marketId + '@trade'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
     def handle_trade(self, client: Client, message: dict):
@@ -801,7 +814,7 @@ class woo(ccxt.async_support.woo):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
@@ -845,7 +858,8 @@ class woo(ccxt.async_support.woo):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'private', '')
+        url = apiUrl + '/' + self.uid
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
@@ -869,7 +883,8 @@ class woo(ccxt.async_support.woo):
 
     async def watch_private(self, messageHash: str, message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'private', '')
+        url = apiUrl + '/' + self.uid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -879,7 +894,8 @@ class woo(ccxt.async_support.woo):
 
     async def watch_private_multiple(self, messageHashes: list[str], message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'private', '')
+        url = apiUrl + '/' + self.uid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -909,9 +925,10 @@ class woo(ccxt.async_support.woo):
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += ':' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
+            messageHash = topic + ':' + symbolResolved
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -945,9 +962,10 @@ class woo(ccxt.async_support.woo):
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += ':' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
+            messageHash = 'myTrades' + ':' + symbolResolved
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -1030,7 +1048,7 @@ class woo(ccxt.async_support.woo):
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
             'cost': self.safe_string(order, 'totalFee'),
@@ -1186,7 +1204,8 @@ class woo(ccxt.async_support.woo):
             myTrades = ArrayCacheBySymbolById(limit)
         trade = self.parse_ws_trade(message)
         myTrades.append(trade)
-        messageHash = 'myTrades:' + trade['symbol']
+        tradeSymbol = self.safe_string(trade, 'symbol', '')
+        messageHash = 'myTrades:' + tradeSymbol
         client.resolve(myTrades, messageHash)
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
@@ -1217,7 +1236,8 @@ class woo(ccxt.async_support.woo):
                 messageHashes.append('positions::' + symbol)
         else:
             messageHashes.append('positions')
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
+        apiUrl = self.safe_string(self.urls['api']['ws'], 'private', '')
+        url = apiUrl + '/' + self.uid
         client = self.client(url)
         self.set_positions_cache(client, symbolsNormalized)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -1299,7 +1319,8 @@ class woo(ccxt.async_support.woo):
             position = self.parse_position(rawPosition, market)
             newPositions.append(position)
             cache.append(position)
-            messageHash = 'positions::' + market['symbol']
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            messageHash = 'positions::' + marketSymbol
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
@@ -1364,15 +1385,13 @@ class woo(ccxt.async_support.woo):
             value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
-            if (code is not None) and (code in self.balance):
-                account = self.balance[code]
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
             if code is not None:
-                self.balance[code] = account
+                self.balance[code] = self.extend(self.safe_dict(self.balance, code, {}), account)
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
@@ -1389,7 +1408,8 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = market['id'] + '@estfundingrate'
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@estfundingrate'
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -1411,7 +1431,7 @@ class woo(ccxt.async_support.woo):
         #
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_funding_rate(data)
-        symbol = fundingRate['symbol']
+        symbol = self.safe_string(fundingRate, 'symbol')
         if symbol is not None:
             self.fundingRates[symbol] = fundingRate
         messageHash = self.safe_string(message, 'topic')
@@ -1452,7 +1472,7 @@ class woo(ccxt.async_support.woo):
         #         "data": "SPOT_BTC_USDT@orderbook"
         #     }
         #
-        subscribeHash = self.safe_string(message, 'data')
+        subscribeHash = self.safe_string(message, 'data', '')
         unsubscribeHash = 'unsubscribe::' + subscribeHash
         subscription = self.safe_dict(client.subscriptions, unsubscribeHash, {})
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])

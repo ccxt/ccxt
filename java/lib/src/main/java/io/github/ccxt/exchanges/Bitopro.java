@@ -36,7 +36,7 @@ public class Bitopro extends BitoproApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitopro" );
@@ -1066,7 +1066,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object insertMissingCandles(List<Object> candles, Object distanceInMs, Object since, Object limit)
+    public List<Object> insertMissingCandles(List<Object> candles, Object distanceInMs, Object since, Object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
@@ -1076,11 +1076,12 @@ public class Bitopro extends BitoproApi
             return candles;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object copyFrom = (candles == null || 0 >= ((List<?>)candles).size() ? null : ((List<?>)candles).get(0));
+        List<Object> firstCandle = (List<Object>) this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
+        Object copyFrom = firstCandle;
         Object timestamp = null;
         if (java.util.Objects.equals(since, null))
         {
-            timestamp = Helpers.GetValue(copyFrom, 0);
+            timestamp = this.safeValue(firstCandle, 0);
         } else
         {
             timestamp = since;
@@ -1090,25 +1091,20 @@ public class Bitopro extends BitoproApi
         Integer resultLength = 0;
         while ((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(resultLength, limit)) && (((candleLength != null && !(((Number) i).doubleValue() >= candleLength)))))
         {
-            Object candle = Helpers.GetValue(candles, i);
-            if (Helpers.isEqual(Helpers.GetValue(candle, 0), timestamp))
+            List<Object> candle = (List<Object>) this.safeList(candles, i, new ArrayList<Object>(Arrays.asList()));
+            if (Helpers.isEqual((candle == null || 0 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(0)), timestamp))
             {
                 ((List<Object>)result).add(candle);
                 i = this.sum(i, 1);
             } else
             {
-                List<Object> copy = (List<Object>) this.arrayConcat(new ArrayList<Object>(Arrays.asList()), copyFrom);
-                Helpers.addElementToObject(copy, 0, timestamp);
                 // set open, high, low to close
-                Helpers.addElementToObject(copy, 1, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
-                Helpers.addElementToObject(copy, 2, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
-                Helpers.addElementToObject(copy, 3, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
-                Helpers.addElementToObject(copy, 5, this.parseNumber("0"));
-                ((List<Object>)result).add(copy);
+                Object closeValue = this.safeValue(copyFrom, 4);
+                ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber("0"))));
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = ((List<?>)result).size();
-            copyFrom = (result == null || ((int) (((long) resultLength) - 1L)) < 0 || ((int) (((long) resultLength) - 1L)) >= result.size() ? null : result.get(((int) (((long) resultLength) - 1L))));
+            copyFrom = this.safeValue(result, (((long) resultLength) - 1L));
         }
         return result;
     }
@@ -1127,9 +1123,10 @@ public class Bitopro extends BitoproApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        List<Object> rows = this.toArray(response);
+        for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String amount = this.safeString(balance, "amount");
@@ -1414,21 +1411,21 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public Object parseCancelOrders(Object data)
+    public List<Object> parseCancelOrders(Map<String, Object> data)
     {
-        List<Object> dataKeys = ((List<Object>) switch ((Object)(data)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> dataKeys = new ArrayList<String>(data.keySet());
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)dataKeys).size(); i++)
         {
-            Object marketId = (dataKeys == null || i < 0 || i >= dataKeys.size() ? null : dataKeys.get(i));
-            Object orderIds = Helpers.GetValue(data, marketId);
-            for (var j = 0; j < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); j++)
+            String marketId = (dataKeys == null || i < 0 || i >= dataKeys.size() ? null : dataKeys.get(i));
+            List<Object> orderIds = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < ((List<?>)orderIds).size(); j++)
             {
-                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                    j39v4.put("info", Helpers.GetValue(orderIds, j));
-                    j39v4.put("id", Helpers.GetValue(orderIds, j));
-                    j39v4.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
-                    yield j39v4; } }), (Map<String, Object>) null));
+                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                    j39v1.put("id", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                    j39v1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
+                    yield j39v1; } }), (Map<String, Object>) null));
             }
         }
         return orders;
@@ -1475,8 +1472,8 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.parseCancelOrders(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseCancelOrders((Map<String, Object>) (data));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1521,7 +1518,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseCancelOrders(data);
+            return this.parseCancelOrders((Map<String, Object>) (data));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2190,9 +2187,12 @@ public class Bitopro extends BitoproApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        Integer queryLength = ((Map<String, Object>)query).size();
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         Boolean isSignedBody = (java.util.Objects.equals(apiName, "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);
@@ -2214,7 +2214,7 @@ public class Bitopro extends BitoproApi
                 requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if ((queryLength != null && queryLength > 0))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2231,7 +2231,7 @@ public class Bitopro extends BitoproApi
             }
         } else if (java.util.Objects.equals(apiName, "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if ((queryLength != null && queryLength > 0))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2252,7 +2252,7 @@ public class Bitopro extends BitoproApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

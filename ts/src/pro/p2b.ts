@@ -10,7 +10,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class p2b extends p2bRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -140,8 +140,7 @@ export default class p2b extends p2bRest {
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys (tickerSubs);
-        const messageHash = nameOption + '::' + market['symbol'];
-        return await this.subscribe (nameOption + '.subscribe', messageHash, request, paramsName);
+        return await this.subscribe (nameOption + '.subscribe', nameOption + '::' + this.safeString (market, 'symbol', ''), request, paramsName);
     }
 
     /**
@@ -159,15 +158,15 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         const name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         const [ nameOption, paramsName ] = this.handleOptionStringAndParams (params, 'watchTickers', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const market = this.market ((symbolsNormalized as string[])[i]);
-            messageHashes.push (nameOption + '::' + market['symbol']);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            messageHashes.push (nameOption + '::' + this.safeString (market, 'symbol', ''));
             args.push (market['id']);
         }
         const url = this.urls['api']['ws'];
@@ -332,18 +331,18 @@ export default class p2b extends p2bRest {
         //    }
         //
         const data = this.safeList (message, 'params', []);
-        const trades = this.safeList (data, 1);
+        const trades = this.safeList (data, 1, []);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.safeString (market, 'symbol', '');
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (tradesLimit);
             this.trades[symbol as string] = tradesArray;
         }
-        for (let i = 0; i < (trades as any[]).length; i++) {
-            const item = (trades as any[])[i];
+        for (let i = 0; i < trades.length; i++) {
+            const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
         }
@@ -403,7 +402,7 @@ export default class p2b extends p2bRest {
         } else {
             ticker = this.parseTicker (tickerData, market);
         }
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol', '');
         this.tickers[symbol as string] = ticker;
         if (messageHashStart !== undefined) {
             const messageHash = messageHashStart + '::' + symbol;
@@ -438,8 +437,8 @@ export default class p2b extends p2bRest {
         const bids = this.safeList (data, 'bids');
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const messageHash = 'orderbook::' + market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
+        const messageHash = 'orderbook::' + symbol;
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         let orderbook = this.safeValue (this.orderbooks, symbol);

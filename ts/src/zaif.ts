@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Or
  * @augments Exchange
  */
 export default class zaif extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
             'name': 'Zaif',
@@ -273,7 +273,9 @@ export default class zaif extends Exchange {
         if (name === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing name');
         }
-        const [ baseId, quoteId ] = name.split ('/');
+        const nameParts = name.split ('/');
+        const baseId = this.safeString (nameParts, 0);
+        const quoteId = this.safeString (nameParts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -583,7 +585,7 @@ export default class zaif extends Exchange {
         const data = this.safeDict (response, 'return', {});
         return this.safeOrder ({
             'info': response,
-            'id': data['order_id'].toString (),
+            'id': this.numberToString (data['order_id']),
         }, market);
     }
 
@@ -847,8 +849,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce (): string {
-        const num = this.numberToString (this.milliseconds () / 1000);
-        const nonce = parseFloat (num);
+        const nonce: number = this.milliseconds () / 1000;
         return nonce.toFixed (8);
     }
 
@@ -888,7 +889,7 @@ export default class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

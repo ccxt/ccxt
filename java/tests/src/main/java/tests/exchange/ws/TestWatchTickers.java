@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchTickers extends BaseTest {
-    public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -88,7 +88,7 @@ public class TestWatchTickers extends BaseTest {
                     Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                     try
                     {
-                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (checkedSymbol));
                     } catch(Exception ex)
                     {
                         Object ohlcv = null;

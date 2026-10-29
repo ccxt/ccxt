@@ -3,14 +3,14 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status, Endpoint } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status, Endpoint, NullableDict } from './base/types.js';
 
 /**
  * @class coinsph
  * @augments Exchange
  */
 export default class coinsph extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -677,30 +677,32 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
+        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolsParam = ('symbols' in params);
+        const limit = this.safeInteger (params, 'limit');
+        if (('noSymbol' in config) && !hasSymbolParam) {
             return config['noSymbol'];
-        } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
+        } else if (('noSymbolAndNoSymbols' in config) && !hasSymbolParam && !hasSymbolsParam) {
             return config['noSymbolAndNoSymbols'];
-        } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
-            const symbols = params['symbols'];
+        } else if (('byNumberOfSymbols' in config) && hasSymbolsParam) {
+            const symbols = this.safeList (params, 'symbols', []);
             const symbolsAmount = symbols.length;
             const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 const threshold = this.safeInteger (entry, 0);
                 if (threshold !== undefined && symbolsAmount >= threshold) {
-                    return entry[1];
+                    return this.safeInteger (entry, 1);
                 }
             }
-        } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger (params, 'limit');
+        } else if (('byLimit' in config) && (limit !== undefined)) {
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);
-                if (limit !== undefined && threshold !== undefined && limit >= threshold) {
-                    return entry[1];
+                if (threshold !== undefined && limit >= threshold) {
+                    return this.safeInteger (entry, 1);
                 }
             }
         }
@@ -1427,13 +1429,14 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeDict (this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue (options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString (newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString (newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -1441,7 +1444,7 @@ export default class coinsph extends Exchange {
             }
         // if market order
         } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString (newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString (newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             } else if (orderSide === 'BUY') {
@@ -1767,9 +1770,7 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString (statuses, status, status);
     }
 
@@ -1799,9 +1800,7 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString (statuses, status, status);
     }
 
@@ -2289,7 +2288,7 @@ export default class coinsph extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.extend ({}, this.omit (params, this.extractParams (path)));
         const endpoint = this.implodeParams (path, params);
         let url: string = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
@@ -2304,7 +2303,7 @@ export default class coinsph extends Exchange {
             }
             const signedQuery = this.urlEncodeQuery (query);
             const signature = this.hmac (this.encode (signedQuery), this.encode (this.secret), sha256);
-            url = url + '?' + signedQuery + '&signature=' + signature;
+            url = apiUrl + '/' + endpoint + '?' + signedQuery + '&signature=' + signature;
             const signedHeaders: Dict = {
                 'X-COINS-APIKEY': this.apiKey,
             };
@@ -2312,12 +2311,12 @@ export default class coinsph extends Exchange {
         }
         const encodedQuery = this.urlEncodeQuery (query);
         if (encodedQuery.length !== 0) {
-            url += '?' + encodedQuery;
+            url = apiUrl + '/' + endpoint + '?' + encodedQuery;
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

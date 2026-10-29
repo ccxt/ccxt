@@ -333,14 +333,14 @@ public partial class zaif : Exchange
         {
             throw new ExchangeError ((this.id + " parseMarket() missing name")) ;
         }
-        var baseIdquoteIdVariable = name.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        var baseId = baseIdquoteIdVariable[0];
-        var quoteId = baseIdquoteIdVariable[1];
+        List<object> nameParts = name.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        string? baseId = this.safeString(nameParts, 0);
+        string? quoteId = this.safeString(nameParts, 1);
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -669,7 +669,7 @@ public partial class zaif : Exchange
         };
         Dictionary<string, object> response = await this.privatePostTrade(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)(data != null && data.ContainsKey("order_id") ? data["order_id"] : null)).ToString() },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.numberToString((data != null && data.ContainsKey("order_id") ? data["order_id"] : null)) },         }, market);
     }
 
     /**
@@ -939,39 +939,38 @@ public partial class zaif : Exchange
         };
     }
 
-    public virtual object customNonce()
+    public virtual string? customNonce()
     {
-        string? num = this.numberToString(((double)this.milliseconds() / 1000));
-        object nonce = parseFloat(num);
-        return toFixed(nonce, 8);
+        double nonce = ((double)this.milliseconds() / 1000);
+        return ((string?)((object)(toFixed(nonce, 8))));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string baseUrl = baseApiUrl;
         string url = (baseUrl + "/");
-        if ((apiName is "public"))
+        if (apiName == "public")
         {
             url = url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters));
-        } else if ((apiName is "fapi"))
+        } else if (apiName == "fapi")
         {
             url = url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters));
         } else
         {
             this.checkRequiredCredentials();
-            if ((apiName is "ecapi"))
+            if (apiName == "ecapi")
             {
                 url = url + "ecapi";
-            } else if ((apiName is "tlapi"))
+            } else if (apiName == "tlapi")
             {
                 url = url + "tlapi";
             } else
@@ -1003,7 +1002,7 @@ public partial class zaif : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class btse(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btse, self).describe(), {
             'id': 'btse',
             'name': 'BTSE',
@@ -771,8 +771,8 @@ class btse(Exchange, ImplicitAPI):
             'contract': isSwap or isFuture,
             'linear': None if isSpot else True,
             'inverse': None if isSpot else False,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
             'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1562,7 +1562,7 @@ class btse(Exchange, ImplicitAPI):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -1607,8 +1607,8 @@ class btse(Exchange, ImplicitAPI):
         else:
             # the futures endpoint does not support a count parameter, the limit is applied client-side
             request = self.omit(request, 'count')
-            if market is not None:
-                request['symbol'] = self.futures_request_id(market)
+            if symbol is not None:
+                request['symbol'] = self.futures_request_id(self.market(symbol))
             #
             #     {
             #         "data": [
@@ -1941,14 +1941,17 @@ class btse(Exchange, ImplicitAPI):
                 triggerPriceToSend = None
                 if isStopLossOrder:
                     triggerOrderType = 'STOP_LOSS'
+                    if isLimitOrder:
+                        triggerOrderType = 'STOP_LOSS_LIMIT'
                     triggerPriceToSend = stopLossPrice
                 else:
                     triggerOrderType = 'TAKE_PROFIT'
+                    if isLimitOrder:
+                        triggerOrderType = 'TAKE_PROFIT_LIMIT'
                     triggerPriceToSend = triggerPrice
                     if triggerPriceToSend is None:
                         triggerPriceToSend = takeProfitPrice
                 if isLimitOrder:
-                    triggerOrderType = triggerOrderType + '_LIMIT'
                     request['orderPrice'] = self.price_to_precision(symbol, price)
                 request['triggerOrderType'] = triggerOrderType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPriceToSend)
@@ -2369,15 +2372,17 @@ class btse(Exchange, ImplicitAPI):
         response = None
         if marketTypeOption == 'spot':
             # the literal ALL value cancels every open order across all pairs
-            request['symbol'] = market['id'] if (market is not None) else 'ALL'
+            request['symbol'] = 'ALL'
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.privateDeleteSpotApiV4TradeOrdersAll(self.extend(request, paramsMarketType))
         else:
-            if market is None:
+            if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for contract markets')
             # the unified futures api has no cancel all endpoint, the legacy
             # endpoint cancels every order for the symbol when no order id is
             # sent, and it identifies contracts by the short symbol form
-            request['symbol'] = self.futures_request_id(market)
+            request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateDeleteFuturesApiV23Order(self.extend(request, paramsMarketType))
         return self.parse_orders(response, market)
 
@@ -2430,12 +2435,12 @@ class btse(Exchange, ImplicitAPI):
         marketTypeOption, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params, marketType)
         response = None
         if marketTypeOption == 'spot':
-            if market is not None:
-                request['symbol'] = market['id']
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.privateGetSpotApiV4TradeOrders(self.extend(request, paramsMarketType))
         else:
-            if market is not None:
-                request['symbol'] = self.futures_request_id(market)
+            if symbol is not None:
+                request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateGetFuturesApiV3TradeOrders(self.extend(request, paramsMarketType))
         # the endpoints have no server side time filters, accept a bare array
         # and a data envelope and filter client-side
@@ -2633,7 +2638,7 @@ class btse(Exchange, ImplicitAPI):
         responseList = self.array_concat([], rows)
         result = {}
         for i in range(0, len(responseList)):
-            feeInfo = responseList[i]
+            feeInfo = self.safe_dict(responseList, i, {})
             marketId = self.safe_string(feeInfo, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -2649,7 +2654,7 @@ class btse(Exchange, ImplicitAPI):
             }
         return result
 
-    def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         # the helper always receives a non empty history type list, the list is
         # rebuilt through safeList so the transpilers treat it as an array in
         # every runtime
@@ -2666,7 +2671,7 @@ class btse(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['asset'] = self.safe_string(currency, 'id')
         elif walletType == 'SPOT':
             # the exchange rejects spot wallet history queries without an asset,
             # verified live, and omitting walletType still defaults to spot
@@ -2711,16 +2716,16 @@ class btse(Exchange, ImplicitAPI):
         # filter and returned the whole mixed ledger
         allowed = {}
         for i in range(0, len(typesList)):
-            historyType = typesList[i]
+            historyType = self.safe_string(typesList, i, '')
             allowed[historyType] = True
             allowed[self.capitalize(historyType.lower())] = True
         rows = []
         for i in range(0, len(rawRows)):
-            entry = rawRows[i]
+            entry = self.safe_dict(rawRows, i, {})
             type = self.safe_string(entry, 'type', '')
             if type in allowed:
                 rows.append(entry)
-        return [rows, currency]
+        return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2736,8 +2741,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2753,8 +2757,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchDeposits', ['DEPOSIT'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchDeposits', ['DEPOSIT'], code, since, limit, params)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2770,8 +2773,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2869,7 +2871,7 @@ class btse(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['asset'] = self.safe_string(currency, 'id')
         elif walletType == 'SPOT':
             # the exchange rejects spot wallet history queries without an asset,
             # verified live, and omitting walletType still defaults to spot
@@ -3443,7 +3445,7 @@ class btse(Exchange, ImplicitAPI):
         response = self.privatePostFuturesApiV3TradeLeverage(self.extend(request, paramsMarginMode))
         return response
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
@@ -3517,8 +3519,7 @@ class btse(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = apiUrl
-        url = baseUrl + '/' + self.implode_params(path, params)
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         # the futures v3 trading api reads DELETE params from a signed json
         # body like its POST and PUT counterparts, while the spot v4 and the
@@ -3551,20 +3552,19 @@ class btse(Exchange, ImplicitAPI):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             requestHeaders = {
                 'request-api': self.apiKey,
-                'request-nonce': str(nonce),
+                'request-nonce': self.number_to_string(nonce),
                 'request-sign': signature,
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
             }
-        bodyResolved = requestBody
-        headersResolved = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def futures_request_id(self, market: object):
+    def futures_request_id(self, market: dict):
         # the futures v3 trading api identifies contracts by the short trade-currency
         # form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         # from the raw market info so that cached markets resolve it as well
-        return self.safe_string(market['info'], 'tradeCurrency', market['id'])
+        marketInfo = self.safe_dict(market, 'info', {})
+        return self.safe_string(marketInfo, 'tradeCurrency', self.safe_string(market, 'id'))
 
     def clean_path(self, path: str) -> str:
         result = path.replace('spot', '')
@@ -3572,5 +3572,5 @@ class btse(Exchange, ImplicitAPI):
         result = result.replace('otc', '')
         return result
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\btcturk as Exchange;
 
 class btcturk extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',
@@ -741,15 +741,16 @@ class btcturk extends Exchange {
         } elseif ($since === null) {
             $limitResolved = 100; // default value
         }
-        if ($limitResolved !== null) {
+        if (($limit !== null) || ($since === null)) {
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitCount = ($limit === null) ? 100 : min($limit, 11000);
-            $limitSeconds = $seconds * ($limitCount - 1);
+            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
             if ($since !== null) {
-                $to = $this->parse_to_int($since / 1000) . $limitSeconds;
+                $sinceSeconds = $this->parse_to_int($since / 1000);
+                $to = $sinceSeconds . $limitSeconds;
                 if ($to < $untilSeconds) {
                     $request['to'] = $to;
                 }
@@ -1088,7 +1089,7 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -1104,8 +1105,9 @@ class btcturk extends Exchange {
         $url = $apiUrl . '/' . $path;
         $isQueryMethod = ($method === 'GET') || ($method === 'DELETE');
         if ($isQueryMethod) {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if (strlen($query) > 0) {
+                $url .= '?' . $query;
             }
         }
         $requestBody = null;
@@ -1127,20 +1129,19 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = $privateHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
-        $output = $message;
-        if ($message === null) {
-            $output = $body;
+        $feedback = $this->id . ' ' . $body;
+        if ($message !== null) {
+            $feedback = $this->id . ' ' . $message;
         }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
-            throw new ExchangeError($this->id . ' ' . $output);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

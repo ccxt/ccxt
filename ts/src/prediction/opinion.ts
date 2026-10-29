@@ -6,7 +6,7 @@ import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, 
  * @augments Exchange
  */
 export default class opinion extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'opinion',
             'name': 'Opinion',
@@ -305,13 +305,13 @@ export default class opinion extends Exchange {
             this.safeString (raw, 'noTokenId'),
         ];
         const outcomes: any[] = [];
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
-            const label = outcomeLabels[i];
-            const tokenId = outcomeTokenIds[i];
+            const label = this.safeString (outcomeLabels, i);
+            const tokenId = this.safeString (outcomeTokenIds, i);
             const outcomeHandle = this.slugToOutcomeSymbol (effectiveEventSlug, slug, label);
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winner: Bool = undefined;
+            let settleFraction: Num = undefined;
             if (hasResult) {
                 winner = (tokenId === resultTokenId);
                 settleFraction = winner ? 1 : 0;
@@ -334,7 +334,7 @@ export default class opinion extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
-        let expiryTimestamp = undefined;
+        let expiryTimestamp: Int = undefined;
         if (this.safeInteger (raw, 'cutoffAt', 0) !== 0) {
             expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
         }
@@ -368,8 +368,8 @@ export default class opinion extends Exchange {
             'expiryDatetime': this.iso8601 (expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -611,7 +611,7 @@ export default class opinion extends Exchange {
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
         const resolved = (statusEnum === 'Resolved');
-        let end = undefined;
+        let end: Int = undefined;
         if (this.safeInteger (rawEvent, 'cutoffAt', 0) !== 0) {
             end = this.safeTimestamp (rawEvent, 'cutoffAt');
         }
@@ -649,7 +649,7 @@ export default class opinion extends Exchange {
      */
     override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const promises = [
             this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)),
             this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)),
@@ -740,7 +740,7 @@ export default class opinion extends Exchange {
         const promises: any[] = [];
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
-            const tokenId = outcomeObj['outcomeId'] as string;
+            const tokenId = this.safeString (outcomeObj, 'outcomeId');
             promises.push (this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)));
             promises.push (this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)));
         }
@@ -749,8 +749,8 @@ export default class opinion extends Exchange {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = responses[priceIndex];
-            const bookResponse = responses[this.sum (priceIndex, 1)];
+            const priceResponse = this.safeValue (responses, priceIndex);
+            const bookResponse = this.safeValue (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker (response, outcomeObj as any);
             const symbolKey = this.safeString (ticker, 'outcome');
@@ -773,7 +773,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = {
             'token_id': tokenId,
         };
@@ -812,13 +812,13 @@ export default class opinion extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (!(timeframe in this.timeframes)) {
+        const interval = this.safeString (this.timeframes, timeframe);
+        if (interval === undefined) {
             const supportedKeys = Object.keys (this.timeframes);
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
-        const interval = this.safeString (this.timeframes, timeframe);
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const response = await this.opinionPublicGetTokenPriceHistory (this.extend ({
             'token_id': tokenId,
             'interval': interval,
@@ -950,7 +950,7 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
     opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
@@ -1012,7 +1012,7 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         this.checkRequiredCredentials ();
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const isMarket = (type === 'market');
         const sideStr = (side as string).toUpperCase ();
         if (price === undefined) {
@@ -1032,9 +1032,7 @@ export default class opinion extends Exchange {
         const topicId = this.safeInteger (info, 'marketId');
         const quoteTokenAddress = this.safeString (info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
-        const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress', '');
-        const decimals = this.safeInteger (quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, this.safeInteger (quoteToken, 'decimal', 18));
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -1062,7 +1060,7 @@ export default class opinion extends Exchange {
             'side': sideInt,
             'signatureType': signatureType,
         };
-        const signature = this.signOpinionOrder (order, exchangeAddress);
+        const signature = this.signOpinionOrder (order, this.safeString (quoteToken, 'ctfExchangeAddress', ''));
         const signatureNo0x = this.remove0xPrefix (signature);
         const orderBody: Dict = this.extend ({
             'salt': salt,
@@ -1212,7 +1210,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = {};
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1237,7 +1235,7 @@ export default class opinion extends Exchange {
      */
     async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
         }
@@ -1297,7 +1295,7 @@ export default class opinion extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
         }
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = { 'walletAddress': this.walletAddress };
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1330,12 +1328,9 @@ export default class opinion extends Exchange {
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
-    async loadTradeMarket (marketId: Int): Promise<Market> {
-        if (marketId === undefined) {
-            throw new ArgumentsRequired (this.id + ' loadTradeMarket() requires a marketId');
-        }
+    async loadTradeMarket (marketId: int): Promise<Market> {
         const cacheKey = 'tradeMarketsById';
-        const cached = this.safeDict (this.options, cacheKey, {});
+        const cached: Dict = this.safeDict (this.options, cacheKey, {});
         const idStr = marketId.toString ();
         const existing = this.safeDict (cached, idStr);
         if (existing !== undefined) {
@@ -1522,8 +1517,8 @@ export default class opinion extends Exchange {
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         return {
@@ -1558,7 +1553,7 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
     /**
@@ -1631,7 +1626,7 @@ export default class opinion extends Exchange {
         if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
             throw new AuthenticationError (this.id + ' private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one');
         }
-        let creds = undefined;
+        let creds: NullableDict = undefined;
         try {
             creds = await this.fetchApiKey ();
         } catch (e) {
@@ -1653,7 +1648,8 @@ export default class opinion extends Exchange {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'] as string;
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString (creds, 'apiKey', '') as string;
         return creds;
     }
 
@@ -1692,12 +1688,12 @@ export default class opinion extends Exchange {
     async subscribeOpinionChannel (messageHash: string, channel: string, marketId: Int): Promise<any> {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
         return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
     }
 
@@ -1768,16 +1764,16 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
         const client = this.client (url);
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
-        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
-        if (isNewSubscription) {
-            await this.seedOrderBook (outcome, sym, limit);
-        }
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
+        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook (outcome, sym, limit);
+        }
         const future = this.watch (url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -1813,7 +1809,7 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        if (this.safeValue (this.orderbooks, sym) === undefined) {
+        if (!(sym in this.orderbooks)) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
@@ -2150,7 +2146,7 @@ export default class opinion extends Exchange {
         client.resolve (stored, 'myTrades');
     }
 
-    override handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2178,7 +2174,7 @@ export default class opinion extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'opinion' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup = api[0];
-        const access = this.safeString (api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['opinion'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -2195,10 +2191,9 @@ export default class opinion extends Exchange {
                     throw new ArgumentsRequired (this.id + ' ' + path + ' requires a walletAddress and privateKey');
                 }
                 const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-                const action = this.safeString (actionByMethod, method, 'get');
                 const timestamp = this.numberToString (this.seconds ());
                 headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, this.safeString (actionByMethod, method, 'get'), timestamp);
                 headersExtended['OPINION_TIMESTAMP'] = timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the

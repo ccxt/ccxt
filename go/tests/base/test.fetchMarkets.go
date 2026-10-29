@@ -27,12 +27,7 @@ func testFetchMarketsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 	var marketValues []any = ObjectValues(markets)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
 	for i := 0; i < len(marketValues); i++ {
-		TestMarket(exchange, skippedProperties, method, func() any {
-			if i >= 0 && i < len(marketValues) {
-				return DerefScalar(marketValues[i])
-			}
-			return nil
-		}())
+		TestMarket(exchange, skippedProperties, method, DerefScalar(marketValues[i]))
 	}
 	DetectMarketConflicts(exchange, markets)
 

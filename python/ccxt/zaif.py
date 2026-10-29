@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class zaif(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
@@ -270,7 +270,9 @@ class zaif(Exchange, ImplicitAPI):
         name = self.safe_string(market, 'name')
         if name is None:
             raise ExchangeError(self.id + ' parseMarket() missing name')
-        baseId, quoteId = name.split('/')
+        nameParts = name.split('/')
+        baseId = self.safe_string(nameParts, 0)
+        quoteId = self.safe_string(nameParts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -559,7 +561,7 @@ class zaif(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return', {})
         return self.safe_order({
             'info': response,
-            'id': str(data['order_id']),
+            'id': self.number_to_string(data['order_id']),
         }, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -806,8 +808,7 @@ class zaif(Exchange, ImplicitAPI):
         }
 
     def custom_nonce(self) -> str:
-        num = self.number_to_string(self.milliseconds() / 1000)
-        nonce = float(num)
+        nonce = self.milliseconds() / 1000
         return format(nonce, '.8f')
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -842,7 +843,7 @@ class zaif(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class apex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(apex, self).describe(), {
             'id': 'apex',
             'name': 'Apex',
@@ -514,7 +514,7 @@ class apex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'displayName')
         networks = {}
-        chains = self.options['_temp_currencies_chains']
+        chains = self.safe_list(self.options, '_temp_currencies_chains', [])
         for j in range(0, len(chains)):
             chain = self.safe_dict(chains, j)
             tokens = self.safe_list(chain, 'tokens', [])
@@ -1245,15 +1245,14 @@ class apex(Exchange, ImplicitAPI):
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         marketResolved = market
         if market is None and marketId is not None:
-            marketsById = self.markets_by_id
             if (self.markets is not None) and (marketId in self.markets):
                 marketResolved = self.markets[marketId]
-            elif (marketsById is not None) and (marketId in marketsById):
-                marketResolved = marketsById[marketId]
+            elif (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                marketResolved = self.markets_by_id[marketId]
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
-                if (marketsById is not None) and (newMarketId in marketsById):
-                    markets = marketsById[newMarketId]
+                if (self.markets_by_id is not None) and (newMarketId in self.markets_by_id):
+                    markets = self.markets_by_id[newMarketId]
                     numMarkets = len(markets)
                     if numMarkets > 0:
                         if markets[0]['id2'] == marketId:
@@ -1261,9 +1260,8 @@ class apex(Exchange, ImplicitAPI):
         return super(apex, self).safe_market(marketId, marketResolved, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str) -> str:
-        hasAccountId = (_accountId is not None) and (_accountId != '')
-        accountId = None
-        if hasAccountId:
+        accountId = ''
+        if (_accountId is not None) and (_accountId != ''):
             accountId = _accountId
         else:
             accountId = str(self.rand_number(12))
@@ -1324,7 +1322,8 @@ class apex(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, 'swap', {})
         taker = self.safe_string(fees, 'taker', '0.0005')
         maker = self.safe_string(fees, 'maker', '0.0002')
-        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        pricePrecision = market['precision']['price']
+        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(pricePrecision)), TRUNCATE, pricePrecision, self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
         triggerPrice = self.safe_string(params, 'triggerPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
@@ -1403,9 +1402,7 @@ class apex(Exchange, ImplicitAPI):
         configResponse = await self.publicGetV3Symbols(params)
         configData = self.safe_dict(configResponse, 'data', {})
         contractConfig = self.safe_dict(configData, 'contractConfig', {})
-        contractAssets = self.safe_list(contractConfig, 'assets', [])
         spotConfig = self.safe_dict(configData, 'spotConfig', {})
-        spotAssets = self.safe_list(spotConfig, 'assets', [])
         globalConfig = self.safe_dict(spotConfig, 'global', {})
         receiverAddress = self.safe_string(globalConfig, 'contractAssetPoolEthAddress', '')
         receiverZkAccountId = self.safe_string(globalConfig, 'contractAssetPoolZkAccountId', '')
@@ -1424,15 +1421,15 @@ class apex(Exchange, ImplicitAPI):
         ethAddress = self.safe_string(accountData, 'ethereumAddress', '')
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
-        assets = []
         isContract = fromAccount.lower() == 'contract'
+        assets = self.safe_list(spotConfig, 'assets', [])
         if isContract:
-            assets = contractAssets
-        else:
-            assets = spotAssets
-        for i in range(0, len(assets)):
-            if self.safe_string(assets[i], 'token', '') == code:
-                currency = assets[i]
+            assets = self.safe_list(contractConfig, 'assets', [])
+        numAssets = len(assets)
+        for i in range(0, numAssets):
+            asset = self.safe_dict(assets, i, {})
+            if self.safe_string(asset, 'token', '') == code:
+                currency = asset
         tokenId = self.safe_string(currency, 'tokenId', '')
         decimalsNum = self.safe_number(currency, 'decimals', 0)
         decimalsNumber = 0 if (decimalsNum is None) else decimalsNum
@@ -1493,10 +1490,9 @@ class apex(Exchange, ImplicitAPI):
                 'timestampSeconds': timestampSeconds,
             }
             signature = await self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-            amountStr = str(amount)
             ts = timestampSeconds  # java req
             request = {
-                'amount': amountStr,
+                'amount': self.number_to_string(amount),
                 'timestamp': ts,
                 'clientTransferId': finalClientOrderId,
                 'signature': signature,
@@ -1922,7 +1918,7 @@ class apex(Exchange, ImplicitAPI):
             headersValue['APEX-PASSPHRASE'] = self.password
         return {'url': url, 'method': method, 'body': signBody, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         # {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         # {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

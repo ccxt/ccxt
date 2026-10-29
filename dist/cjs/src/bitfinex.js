@@ -579,12 +579,12 @@ class bitfinex extends bitfinex$1["default"] {
         // Anything exceeding this will be rounded to the 8th decimal.
         const symbolValue = this.safeSymbol(symbol);
         const market = this.market(symbolValue);
-        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeValue(market['precision'], 'amount'), number.DECIMAL_PLACES);
     }
     priceToPrecision(symbol, price) {
         const symbolValue = this.safeSymbol(symbol);
         const market = this.market(symbolValue);
-        const priceValue = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], this.precisionMode);
+        const priceValue = this.decimalToPrecision(price, number.ROUND, this.safeValue(market['precision'], 'price'), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -645,7 +645,7 @@ class bitfinex extends bitfinex$1["default"] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const pairObj = this.safeList(markets, i);
-            const id = this.safeStringUpper(pairObj, 0);
+            const id = this.safeStringUpper(pairObj, 0, '');
             const market = this.safeList(pairObj, 1, []);
             let spot = true;
             let type = undefined;
@@ -881,7 +881,7 @@ class bitfinex extends bitfinex$1["default"] {
     parseCurrenciesCustom(ids, indexed, indexedNetworks) {
         const allowedIds = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i, '');
             if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
@@ -892,7 +892,7 @@ class bitfinex extends bitfinex$1["default"] {
         const arr = this.toArray(allowedIds);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
-            const code = parsed['code'];
+            const code = this.safeString(parsed, 'code', '');
             result[code] = parsed;
         }
         return result;
@@ -1458,7 +1458,7 @@ class bitfinex extends bitfinex$1["default"] {
         let amountString = this.safeString(tradeList, amountIndex);
         const priceIndex = isPrivate ? 5 : 3;
         const priceString = this.safeString(tradeList, priceIndex);
-        if (amountString[0] === '-') {
+        if (amountString.startsWith('-')) {
             side = 'sell';
             amountString = Precise["default"].stringAbs(amountString);
         }
@@ -1555,7 +1555,7 @@ class bitfinex extends bitfinex$1["default"] {
         const trades = this.sortBy(rawTrades, 1);
         const tradesList = [];
         for (let i = 0; i < trades.length; i++) {
-            tradesList.push({ 'result': trades[i] }); // convert to array of dicts to match parseOrder signature
+            tradesList.push({ 'result': this.safeList(trades, i) }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, undefined, limit);
     }
@@ -1654,7 +1654,7 @@ class bitfinex extends bitfinex$1["default"] {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeList(flagValues, flags, undefined);
+        return this.safeList(flagValues, flags, []);
     }
     parseTimeInForce(orderType) {
         const orderTypes = {
@@ -1686,11 +1686,9 @@ class bitfinex extends bitfinex$1["default"] {
         const rawFlags = this.safeString(orderList, 12);
         const flags = this.parseOrderFlags(rawFlags);
         let postOnly = false;
-        if (flags !== undefined) {
-            for (let i = 0; i < flags.length; i++) {
-                if (flags[i] === 'postOnly') {
-                    postOnly = true;
-                }
+        for (let i = 0; i < flags.length; i++) {
+            if (this.safeString(flags, i) === 'postOnly') {
+                postOnly = true;
             }
         }
         let price = this.safeString(orderList, 16);
@@ -1775,7 +1773,7 @@ class bitfinex extends bitfinex$1["default"] {
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnlyParam = this.safeBool(params, 'postOnly', false);
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const clientOrderId = this.safeValue2(params, 'cid', 'clientOrderId');
+        const clientOrderId = this.safeInteger2(params, 'cid', 'clientOrderId');
         let orderType = type.toUpperCase();
         if (trailingAmount !== undefined) {
             orderType = 'TRAILING STOP';
@@ -1912,10 +1910,10 @@ class bitfinex extends bitfinex$1["default"] {
         //          "Submitting 1 orders."      // Message
         //       ]
         //
-        const status = this.safeString(response, 6);
+        const status = this.safeString(response, 6, '');
         if (status !== 'SUCCESS') {
-            const errorCode = this.safeString(response, 5);
-            const errorText = this.safeString(response, 7);
+            const errorCode = this.safeString(response, 5, '');
+            const errorText = this.safeString(response, 7, '');
             throw new errors.ExchangeError(this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const orders = this.safeList(response, 4, []);
@@ -1980,9 +1978,7 @@ class bitfinex extends bitfinex$1["default"] {
         const results = [];
         const data = this.safeList(response, 4, []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const individualOrder = entry[4];
-            results.push({ 'result': individualOrder[0] });
+            results.push({ 'result': this.safeList(this.safeList(this.safeList(data, i), 4), 0) });
         }
         return this.parseOrders(results);
     }
@@ -2006,7 +2002,7 @@ class bitfinex extends bitfinex$1["default"] {
         const orders = this.safeList(response, 4, []);
         const ordersList = [];
         for (let i = 0; i < orders.length; i++) {
-            ordersList.push({ 'result': orders[i] });
+            ordersList.push({ 'result': this.safeList(orders, i) });
         }
         return this.parseOrders(ordersList);
     }
@@ -2024,7 +2020,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
+        const cid = this.safeInteger2(params, 'cid', 'clientOrderId'); // client order id
         let request;
         let market = undefined;
         if (symbol !== undefined) {
@@ -2042,7 +2038,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         else {
             request = {
-                'id': parseInt(id),
+                'id': this.parseToInt(id),
             };
         }
         const paramsOmitted = (cid !== undefined) ? this.omit(params, ['cid', 'clientOrderId']) : params;
@@ -2068,7 +2064,7 @@ class bitfinex extends bitfinex$1["default"] {
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
-            numericIds.push(this.parseToNumeric(ids[i]));
+            numericIds.push(this.parseToNumeric(this.safeString(ids, i)));
         }
         const request = {
             'id': numericIds,
@@ -2131,7 +2127,7 @@ class bitfinex extends bitfinex$1["default"] {
         const orders = this.safeList(response, 4, []);
         const ordersList = [];
         for (let i = 0; i < orders.length; i++) {
-            ordersList.push({ 'result': orders[i] });
+            ordersList.push({ 'result': this.safeList(orders, i) });
         }
         return this.parseOrders(ordersList, market);
     }
@@ -2148,7 +2144,7 @@ class bitfinex extends bitfinex$1["default"] {
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
         const request = {
-            'id': [parseInt(id)],
+            'id': [this.parseToInt(id)],
         };
         const orders = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const order = this.safeDict(orders, 0);
@@ -2170,7 +2166,7 @@ class bitfinex extends bitfinex$1["default"] {
      */
     async fetchClosedOrder(id, symbol = undefined, params = {}) {
         const request = {
-            'id': [parseInt(id)],
+            'id': [this.parseToInt(id)],
         };
         const orders = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const order = this.safeDict(orders, 0);
@@ -2246,7 +2242,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         const ordersList = [];
         for (let i = 0; i < response.length; i++) {
-            ordersList.push({ 'result': response[i] });
+            ordersList.push({ 'result': this.safeList(response, i) });
         }
         return this.parseOrders(ordersList, market, since, limit);
     }
@@ -2331,7 +2327,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         const ordersList = [];
         for (let i = 0; i < response.length; i++) {
-            ordersList.push({ 'result': response[i] });
+            ordersList.push({ 'result': this.safeList(response, i) });
         }
         return this.parseOrders(ordersList, market, since, limit);
     }
@@ -2355,7 +2351,7 @@ class bitfinex extends bitfinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const orderId = parseInt(id);
+        const orderId = this.parseToInt(id);
         const request = {
             'id': orderId,
             'symbol': market['id'],
@@ -2365,7 +2361,7 @@ class bitfinex extends bitfinex$1["default"] {
         const rawTrades = this.toArray(response);
         const tradesList = [];
         for (let i = 0; i < rawTrades.length; i++) {
-            tradesList.push({ 'result': rawTrades[i] }); // convert to array of dicts to match parseOrder signature
+            tradesList.push({ 'result': this.safeList(rawTrades, i) }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, since, limit);
     }
@@ -2406,7 +2402,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const tradesList = [];
         for (let i = 0; i < response.length; i++) {
-            tradesList.push({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
+            tradesList.push({ 'result': this.safeList(response, i) }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, since, limit);
     }
@@ -2742,7 +2738,7 @@ class bitfinex extends bitfinex$1["default"] {
         const takerFeeFiat = this.safeNumber(takerData, 2);
         const takerFeeDeriv = this.safeNumber(takerData, 5);
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
             const fee = {
                 'info': response,
@@ -2974,7 +2970,7 @@ class bitfinex extends bitfinex$1["default"] {
         const rawPositions = this.toArray(response);
         const positionsList = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            positionsList.push({ 'result': rawPositions[i] });
+            positionsList.push({ 'result': this.safeList(rawPositions, i) });
         }
         return this.parsePositions(positionsList, symbolsNormalized);
     }
@@ -3056,7 +3052,7 @@ class bitfinex extends bitfinex$1["default"] {
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (apiName === 'v1') {
-            request = apiName + request;
+            request = 'v1' + request;
         }
         else {
             request = this.version + request;
@@ -3091,7 +3087,7 @@ class bitfinex extends bitfinex$1["default"] {
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray(response)) {
@@ -3105,10 +3101,10 @@ class bitfinex extends bitfinex$1["default"] {
         else if (response === '') {
             throw new errors.ExchangeError(this.id + ' returned empty response');
         }
-        if (statusCode === 429) {
+        if (code === 429) {
             throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }
-        if (statusCode === 500) {
+        if (code === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.safeString(response, 1, '');
             const errorText = this.safeString(response, 2, '');
@@ -3251,8 +3247,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         const ledgerObjects = [];
         for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            ledgerObjects.push({ 'result': item });
+            ledgerObjects.push({ 'result': this.safeList(response, i) });
         }
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
@@ -4071,10 +4066,10 @@ class bitfinex extends bitfinex$1["default"] {
         //         "Submitting update to exchange limit buy order for 0.0002 BTC."
         //     ]
         //
-        const status = this.safeString(response, 6);
+        const status = this.safeString(response, 6, '');
         if (status !== 'SUCCESS') {
-            const errorCode = this.safeString(response, 5);
-            const errorText = this.safeString(response, 7);
+            const errorCode = this.safeString(response, 5, '');
+            const errorText = this.safeString(response, 7, '');
             throw new errors.ExchangeError(this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList(response, 4, []);

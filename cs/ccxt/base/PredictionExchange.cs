@@ -124,7 +124,7 @@ public partial class PredictionExchange : BaseExchange
         throw new ArgumentsRequired ((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }
 
-    public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
+    public virtual object applyEventFetchParams(object events, object parameters = null, IList<object> queries = null)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
@@ -140,7 +140,7 @@ public partial class PredictionExchange : BaseExchange
             List<object> filtered = new List<object>() {};
             for (int i = 0; i < getArrayLength(result); i++)
             {
-                object eventVar = getValue(result, i);
+                object eventVar = this.safeValue(result, i);
                 bool idMatch = ((eventId != null)) && ((this.safeString(eventVar, "id") == eventId));
                 bool slugMatch = ((slug != null)) && ((this.safeString(eventVar, "slug") == slug));
                 if (idMatch || slugMatch)
@@ -157,7 +157,7 @@ public partial class PredictionExchange : BaseExchange
         int queriesLength = 0;
         if ((queries != null))
         {
-            queriesLength = getArrayLength(queries);
+            queriesLength = (queries?.Count ?? 0);
         }
         if (queriesLength > 0)
         {
@@ -216,7 +216,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(events); i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = this.safeValue(events, i);
             bool? isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (((isActive == null)) || ((isActive == wantActive)))
@@ -236,7 +236,7 @@ public partial class PredictionExchange : BaseExchange
         {
             queriesLength = getArrayLength(queries);
         }
-        if (((searchIn == null)) || ((queries == null)) || ((queriesLength == 0)))
+        if (((searchIn == null)) || ((queriesLength == 0)))
         {
             return events;
         }
@@ -245,13 +245,13 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(events); i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = this.safeValue(events, i);
             string? title = this.safeStringLower(eventVar, "title", "");
             string? description = this.safeStringLower(eventVar, "description", "");
             bool matched = false;
-            for (int qi = 0; qi < getArrayLength(queries); qi++)
+            for (int qi = 0; qi < queriesLength; qi++)
             {
-                string q = ((string)getValue(queries, qi)).ToLower();
+                string q = this.safeString(queries, qi, "").ToLower();
                 if ((title == null))
                 {
                     throw new ExchangeError ((this.id + " filterEventsBySearchIn() missing title")) ;
@@ -310,18 +310,23 @@ public partial class PredictionExchange : BaseExchange
         return s;
     }
 
-    public virtual object filterEventsByTags(object events, object tags = null)
+    public virtual object filterEventsByTags(object events, IList<object>? tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if (((tags == null)) || ((getArrayLength(tags) == 0)))
+        int tagsLength = 0;
+        if ((tags != null))
+        {
+            tagsLength = tags?.Count ?? 0;
+        }
+        if ((tagsLength == 0))
         {
             return events;
         }
         List<object> wanted = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tags); i++)
+        for (int i = 0; i < tagsLength; i++)
         {
-            string? wantedKey = this.normalizeTagKey(getValue(tags, i));
+            string? wantedKey = this.normalizeTagKey(this.safeString(tags, i, ""));
             if (wantedKey != "")
             {
                 // an empty normalized key would substring-match every tag
@@ -331,7 +336,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(events); i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = this.safeValue(events, i);
             List<object> eventTags = this.safeList(eventVar, "tags", new List<object>() {});
             bool matched = false;
             for (int ti = 0; ti < eventTags.Count; ti++)
@@ -397,7 +402,7 @@ public partial class PredictionExchange : BaseExchange
         }
         for (int i = 0; i < getArrayLength(events); i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = this.safeValue(events, i);
             string? id = this.safeString(eventVar, "id");
             string? slug = this.safeString(eventVar, "slug");
             string? handle = this.safeString(eventVar, "event");
@@ -472,11 +477,11 @@ public partial class PredictionExchange : BaseExchange
         // through fetchEvents; this never fetches
         if (((this.events != null)) && (inOp(this.events, eventIdOrSlug)))
         {
-            return getValue(this.events, eventIdOrSlug);
+            return this.safeValue(this.events, eventIdOrSlug);
         }
         if (((this.events_by_slug != null)) && (inOp(this.events_by_slug, eventIdOrSlug)))
         {
-            return getValue(this.events_by_slug, eventIdOrSlug);
+            return this.safeValue(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol ((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -493,11 +498,11 @@ public partial class PredictionExchange : BaseExchange
         }
         if (inOp(this.outcomes, outcomeSymbol))
         {
-            return ((IDictionary<string, object>)((object)(getValue(this.outcomes, outcomeSymbol))));
+            return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes, outcomeSymbol))));
         }
         if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeSymbol)))
         {
-            return ((IDictionary<string, object>)((object)(getValue(this.outcomes_by_id, outcomeSymbol))));
+            return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes_by_id, outcomeSymbol))));
         }
         throw new BadSymbol ((((this.id + " does not have outcome ") + (outcomeSymbol)) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
@@ -528,11 +533,11 @@ public partial class PredictionExchange : BaseExchange
         {
             if (((this.outcomes != null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
             {
-                return ((IDictionary<string, object>)((object)(getValue(this.outcomes, outcomeIdOrSymbol))));
+                return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes, outcomeIdOrSymbol))));
             }
             if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
             {
-                return ((IDictionary<string, object>)((object)(getValue(this.outcomes_by_id, outcomeIdOrSymbol))));
+                return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol))));
             }
         }
         if ((outcomeObj != null))
@@ -557,7 +562,7 @@ public partial class PredictionExchange : BaseExchange
         return ((string?)((object)((outcomeObjValue != null && outcomeObjValue.ContainsKey("outcome") ? outcomeObjValue["outcome"] : null))));
     }
 
-    public virtual string shortenSlug(object slug)
+    public virtual string? shortenSlug(object slug)
     {
         Dictionary<string, object> replacements = new Dictionary<string, object>() {
             { "federal-reserve", "fed" },
@@ -657,8 +662,7 @@ public partial class PredictionExchange : BaseExchange
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        object outcomeValue = ((outcome == null)) ? "" : outcome;
-        string upper = ((string)outcomeValue).ToUpper();
+        string upper = ((outcome == null)) ? "" : ((string)outcome).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         List<object> chars = this.stringToCharsArray(upper);
         string label = "";
@@ -709,7 +713,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < marketKeys.Count; i++)
         {
             string? key = ((string)marketKeys[i]);
-            ((IDictionary<string,object>)stored)[(string)key] = this.omit(getValue(stored, key), "symbol");
+            ((IDictionary<string,object>)stored)[(string)key] = this.omit(this.safeDict(stored, key, new Dictionary<string, object>() {}), "symbol");
         }
         this.populateOutcomes();
         return stored;
@@ -758,7 +762,7 @@ public partial class PredictionExchange : BaseExchange
                         string? suffix = ocId;
                         if (idLen > 6)
                         {
-                            suffix = slice(ocId, (idLen - 6), null);
+                            suffix = ((ocId == null) ? null : ocId.Substring(Math.Max(Math.Min(((idLen - 6) < 0 ? ocId.Length + ((idLen - 6)) : (idLen - 6)), ocId.Length), 0)));
                         }
                         ocSymbol = ((ocSymbol + "_") + suffix.ToUpper());
                     }
@@ -864,7 +868,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (missingLength > 0)
             {
-                ccxt.BaseExchange.FromDict(await this.FetchOutcomes(missing));
+                await this.FetchOutcomes(missing);
             }
             return this.outcomes;
         }
@@ -885,11 +889,11 @@ public partial class PredictionExchange : BaseExchange
      * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
      * @returns {object} the outcome cache
      */
-    public async virtual Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
+    public async virtual Task<Dictionary<string, object>> FetchOutcomes(IList<object> outcomeSymbols)
     {
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
+            await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
     }
@@ -940,7 +944,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
         }
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromDict(await this.FetchOutcome(outcomeSymbol)))));
+        return ((IDictionary<string, object>)((object)(await this.FetchOutcome(outcomeSymbol))));
     }
 
     public virtual string? outcomeSearchQuery(object outcomeSymbol)
@@ -953,7 +957,7 @@ public partial class PredictionExchange : BaseExchange
         int colonIndex = ((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal);
         if (colonIndex >= 0)
         {
-            marketPart = slice(outcomeSymbol, 0, colonIndex);
+            marketPart = ((outcomeSymbol == null) ? null : ((string)outcomeSymbol).Substring(0, Math.Max(Math.Min((colonIndex < 0 ? ((string)outcomeSymbol).Length + (colonIndex) : colonIndex), ((string)outcomeSymbol).Length), 0)));
         }
         if ((getIndexOf(marketPart, "0x") == 0))
         {
@@ -1094,7 +1098,7 @@ public partial class PredictionExchange : BaseExchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(outcome,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(outcome,timeframeVar, since, limit, parameters));
     }
 
     /**
@@ -1373,7 +1377,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketBuyOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "buy", cost, 1d, parameters);
         }
         throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
     }
@@ -1392,7 +1396,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketSellOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "sell", cost, 1d, parameters);
         }
         throw new NotSupported ((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
     }
@@ -1566,36 +1570,33 @@ public partial class PredictionExchange : BaseExchange
                 cost = Precise.stringMul(filled, multiplyPrice);
             }
         }
-        object fee = this.safeDict(outcomeOrder, "fee");
+        IDictionary<string, object> fee = this.safeDict(outcomeOrder, "fee");
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         int feeListLength = (feeList?.Count ?? 0);
         if (((fee == null)) && (feeListLength > 0))
         {
-            List<object> reduced = this.reduceFeesByCurrency(feeList);
-            int reducedLength = (reduced?.Count ?? 0);
-            if (reducedLength > 0)
-            {
-                fee = (reduced != null && 0 < reduced.Count ? reduced[0] : null);
-            }
+            fee = this.safeDict(this.reduceFeesByCurrency(feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         string? orderType = this.safeString(outcomeOrder, "type");
         string? timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        bool? postOnly = this.safeBool(outcomeOrder, "postOnly");
+        // the venue flag and the derived one are each written once, so neither local widens
+        bool? postOnlyValue = this.safeBool(outcomeOrder, "postOnly");
+        bool? derivedPostOnly = null;
         if ((timeInForce == null))
         {
             if (orderType == "market")
             {
                 timeInForce = "IOC";
             }
-            if ((postOnly == true))
+            if ((postOnlyValue == true))
             {
                 timeInForce = "PO";
             }
-        } else if ((postOnly == null))
+        } else if ((postOnlyValue == null))
         {
-            postOnly = (timeInForce == "PO");
+            derivedPostOnly = (timeInForce == "PO");
         }
         Int64? timestamp = this.safeInteger(outcomeOrder, "timestamp");
         string? datetime = this.safeString(outcomeOrder, "datetime");
@@ -1622,7 +1623,7 @@ public partial class PredictionExchange : BaseExchange
             { "cost", this.parseNumber(cost) },
             { "fee", fee },
             { "reduceOnly", this.safeBool(outcomeOrder, "reduceOnly") },
-            { "postOnly", postOnly },
+            { "postOnly", ((postOnlyValue != null)) ? postOnlyValue : derivedPostOnly },
             { "trades", trades },
             { "outcome", this.safeString(outcomeOrder, "outcome") },
             { "outcomeId", this.safeString(outcomeOrder, "outcomeId") },
@@ -1945,7 +1946,7 @@ public partial class PredictionExchange : BaseExchange
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         int hexLength = hex.Length;
-        if (!isEqual((((Int64)hexLength % 2L)), 0))
+        if (((Int64)hexLength % 2L != 0))
         {
             return ("0" + hex);
         }
@@ -1981,30 +1982,30 @@ public partial class PredictionExchange : BaseExchange
         }
         if (((byteLength == null || byteLength < 56)))
         {
-            return (this.intToBase16(add(128, byteLength)) + hex);
+            return ((string?)((object)((this.intToBase16(add(128, byteLength)) + hex))));
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex);
+        return ((string?)((object)(((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex))));
     }
 
-    public virtual string? rlpEncodeList(object items)
+    public virtual string? rlpEncodeList(IList<object> items)
     {
-        object concatenated = "";
-        for (int i = 0; i < getArrayLength(items); i++)
+        string concatenated = "";
+        for (int i = 0; i < (items?.Count ?? 0); i++)
         {
-            concatenated = add(concatenated, getValue(items, i));
+            concatenated = (concatenated + this.safeString(items, i, ""));
         }
-        Int64? byteLength = this.parseToInt(((double)((string)concatenated).Length / 2));
+        Int64? byteLength = this.parseToInt(((double)concatenated.Length / 2));
         if (((byteLength == null || byteLength < 56)))
         {
-            return (this.intToBase16(add(192, byteLength)) + (concatenated));
+            return (this.intToBase16(add(192, byteLength)) + concatenated);
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + (concatenated));
+        return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + concatenated);
     }
 
     public virtual string? intToRlpHex(object value)
@@ -2031,20 +2032,17 @@ public partial class PredictionExchange : BaseExchange
         {
             return "";
         }
-        string? h = this.remove0xPrefix(hexValue);
-        object start = 0;
+        string h = this.remove0xPrefix(hexValue);
         int total = h.Length;
-        while ((isLessThan(start, total)) && (isEqual(slice(h, start, add(start, 1)), "0")))
+        for (int i = 0; i < total; i++)
         {
-            start = add(start, 1);
+            if (isEqual(slice(h, i, (i + 1L)), "0"))
+            {
+                continue;
+            }
+            return this.padHexToEven(((h == null) ? null : h.Substring(Math.Max(Math.Min((i < 0 ? h.Length + (i) : i), h.Length), 0))));
         }
-        h = slice(h, start, null);
-        if (h == "")
-        {
-            return "";
-        }
-        h = this.padHexToEven(h);
-        return h;
+        return "";
     }
 
     // eslint-disable-next-line no-unused-vars

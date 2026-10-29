@@ -2,7 +2,7 @@ import hollaexRest from '../hollaex.js';
 import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hollaex extends hollaexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name hollaex#watchOrderBook

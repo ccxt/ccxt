@@ -2,8 +2,8 @@ import krakenRest from '../kraken.js';
 import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
-    describe(): any;
-    orderRequestWs(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
+    describe(): Dict;
+    orderRequestWs(method: string, symbol: string, type: string, request: Dict, orderParams: Dict, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     /**
      * @method
      * @name kraken#createOrderWs

@@ -16,7 +16,7 @@ use React\Promise;
 use React\Promise\PromiseInterface;
 
 class hyperliquid extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hyperliquid',
             'name' => 'Hyperliquid',
@@ -153,7 +153,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
         return $this->milliseconds();
@@ -235,22 +235,23 @@ class hyperliquid extends Exchange {
          * @return {string} the outcome
          */
         $underlying = $this->safe_string($desc, 'underlying', 'OUTCOME' . (string) $outcomeId);
-        $targetPrice = $this->safe_string($desc, 'targetPrice');
+        $targetPrice = $this->safe_string($desc, 'targetPrice', '');
         $expiry = $this->safe_string($desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
         $expiryDate = '';
         if ($expiry !== '') {
-            $expiryDate = explode('-', $expiry)[0];
+            $expiryParts = explode('-', $expiry);
+            $expiryDate = $expiryParts[0];
         }
         $label = 'NO';
         if ($side === 0) {
             $label = 'YES';
         }
         $base = strtoupper($underlying);
-        if (($targetPrice !== null) && ($targetPrice !== '')) {
+        if ($targetPrice !== '') {
             $base = $base . '_ABOVE_' . $targetPrice;
         }
-        if (($expiryDate !== null) && ($expiryDate !== '')) {
+        if ($expiryDate !== '') {
             $base = $base . '_' . $expiryDate;
         }
         return $base . ':' . $label;
@@ -266,22 +267,24 @@ class hyperliquid extends Exchange {
          * @param {array} [$question] linked $question object from outcomeMeta
          * @return {string} the parent market outcome
          */
-        $underlying = $this->safe_string($desc, 'underlying');
-        if (($underlying !== null) && ($underlying !== '')) {
-            $targetPrice = $this->safe_string($desc, 'targetPrice');
+        $underlying = $this->safe_string($desc, 'underlying', '');
+        if ($underlying !== '') {
+            $targetPrice = $this->safe_string($desc, 'targetPrice', '');
             $expiry = $this->safe_string($desc, 'expiry', '');
             $expiryDate = '';
             if ($expiry !== '') {
-                $expiryDate = explode('-', $expiry)[0];
+                $expiryParts = explode('-', $expiry);
+                $expiryDate = $expiryParts[0];
             }
-            $base = strtoupper($underlying);
-            if (($targetPrice !== null) && ($targetPrice !== '')) {
-                $base = $base . '_ABOVE_' . $targetPrice;
+            $targetPart = '';
+            if ($targetPrice !== '') {
+                $targetPart = '_ABOVE_' . $targetPrice;
             }
-            if (($expiryDate !== null) && ($expiryDate !== '')) {
-                $base = $base . '_' . $expiryDate;
+            $expiryPart = '';
+            if ($expiryDate !== '') {
+                $expiryPart = '_' . $expiryDate;
             }
-            return $base;
+            return strtoupper($underlying) . $targetPart . $expiryPart;
         }
         $questionDescription = $this->safe_string($question, 'description');
         if (($questionDescription !== null) && ($questionDescription !== '')) {
@@ -290,9 +293,14 @@ class hyperliquid extends Exchange {
             if ($questionClass === 'pricebucket') {
                 $questionUnderlying = $this->safe_string($questionDesc, 'underlying');
                 $questionExpiry = $this->safe_string($questionDesc, 'expiry', '');
-                $expiryDate = '';
+                $questionExpiryDate = '';
                 if ($questionExpiry !== '') {
-                    $expiryDate = explode('-', $questionExpiry)[0];
+                    $questionExpiryParts = explode('-', $questionExpiry);
+                    $questionExpiryDate = $questionExpiryParts[0];
+                }
+                $questionExpiryPart = '';
+                if ($questionExpiryDate !== '') {
+                    $questionExpiryPart = '_' . $questionExpiryDate;
                 }
                 $thresholdsRaw = $this->safe_string($questionDesc, 'priceThresholds', '');
                 $indexStr = $this->safe_string($desc, 'index');
@@ -318,20 +326,12 @@ class hyperliquid extends Exchange {
                         } else {
                             $bucketLabel = 'BETWEEN_' . $thresholds[$index - 1] . '_' . $thresholds[$index];
                         }
-                        $base = strtoupper($questionUnderlying) . '_' . $bucketLabel;
-                        if (($expiryDate !== null) && ($expiryDate !== '')) {
-                            $base = $base . '_' . $expiryDate;
-                        }
-                        return $base;
+                        return strtoupper($questionUnderlying) . '_' . $bucketLabel . $questionExpiryPart;
                     }
                 }
                 $isFallbackLike = ($rawDescription === 'other') || (mb_strpos($nameLower, 'fallback') !== false) || (mb_strpos($nameLower, 'other') !== false);
                 if (($questionUnderlying !== null && $questionUnderlying !== '') && $isFallbackLike) {
-                    $base = strtoupper($questionUnderlying) . '_OTHER';
-                    if (($expiryDate !== null) && ($expiryDate !== '')) {
-                        $base = $base . '_' . $expiryDate;
-                    }
-                    return $base;
+                    return strtoupper($questionUnderlying) . '_OTHER' . $questionExpiryPart;
                 }
             }
         }
@@ -851,11 +851,11 @@ class hyperliquid extends Exchange {
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
     }
 
-    public function fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches candlestick OHLCV data for an $outcome $market
          *
@@ -2333,7 +2333,7 @@ class hyperliquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2361,7 +2361,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];

@@ -860,8 +860,8 @@ class bitrue extends bitrue$1["default"] {
         }
         const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(promises, 1);
-        const deliveryMarkets = this.safeValue(promises, 2);
+        const futureMarkets = this.safeList(promises, 1, []);
+        const deliveryMarkets = this.safeList(promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -2143,7 +2143,7 @@ class bitrue extends bitrue$1["default"] {
         else if (market['spot'] === true) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }
@@ -2994,6 +2994,7 @@ class bitrue extends bitrue$1["default"] {
         //
         const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
+        const networks = {};
         const result = {
             'info': fee,
             'withdraw': {
@@ -3004,7 +3005,6 @@ class bitrue extends bitrue$1["default"] {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
         if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
@@ -3013,17 +3013,17 @@ class bitrue extends bitrue$1["default"] {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainDetailLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(chainDetail, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -3277,18 +3277,18 @@ class bitrue extends bitrue$1["default"] {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const type = this.safeString(api, 0);
-        const version = this.safeString(api, 1);
-        const access = this.safeString(api, 2);
+        const type = api[0];
+        const version = api[1];
+        const access = api[2];
         const apiUrl = this.safeString(this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        const endpointPath = this.implodeParams(path, params);
+        let url = apiUrl + '/' + endpointPath;
         if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0))) {
-            url += '/' + version;
+            url = apiUrl + '/' + version + '/' + endpointPath;
         }
-        url += '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
         if (access === 'private') {
             this.checkRequiredCredentials();
@@ -3300,32 +3300,32 @@ class bitrue extends bitrue$1["default"] {
                 }, paramsOmitted));
                 const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
                 query += '&' + 'signature=' + signature;
-                requestHeaders = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
                 if ((method === 'GET') || (method === 'DELETE')) {
                     url += '?' + query;
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                    };
                 }
                 else {
                     requestBody = query;
-                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
                 }
             }
             else {
                 const timestamp = this.nonce().toString();
-                let signPath = undefined;
+                let signPrefix = '';
                 if (type === 'fapi') {
-                    signPath = '/fapi';
+                    signPrefix = '/fapi';
                 }
                 else if (type === 'dapi') {
-                    signPath = '/dapi';
+                    signPrefix = '/dapi';
                 }
-                signPath = signPath + '/' + version + '/' + path;
-                let signMessage = timestamp + method + signPath;
+                let signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path);
                 if (method === 'GET') {
-                    const keys = Object.keys(paramsOmitted);
-                    const keysLength = keys.length;
-                    if (keysLength > 0) {
+                    if (Object.keys(paramsOmitted).length > 0) {
                         signMessage += '?' + this.urlencode(paramsOmitted);
                     }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha2_js.sha256);
@@ -3363,7 +3363,7 @@ class bitrue extends bitrue$1["default"] {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
-            throw new errors.DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
+            throw new errors.DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + (' ' + body));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3390,13 +3390,7 @@ class bitrue extends bitrue$1["default"] {
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
-                try {
-                    parsedMessage = JSON.parse(messageInner);
-                }
-                catch (e) {
-                    // do nothing
-                    parsedMessage = undefined;
-                }
+                parsedMessage = this.parseJson(messageInner);
             }
         }
         const errorResponse = (parsedMessage !== undefined) ? parsedMessage : response;
@@ -3439,7 +3433,7 @@ class bitrue extends bitrue$1["default"] {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger(entry, 0);
                 if (limit !== undefined && threshold !== undefined && limit <= threshold) {
-                    return entry[1];
+                    return this.safeNumber(entry, 1);
                 }
             }
         }

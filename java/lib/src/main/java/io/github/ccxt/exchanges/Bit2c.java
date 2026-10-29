@@ -32,7 +32,7 @@ public class Bit2c extends Bit2cApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bit2c" );
@@ -371,14 +371,15 @@ public class Bit2c extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = this.account();
             Map<String, Object> currency = this.currency((String) (code));
-            String uppercase = ((String)currency.get("id")).toUpperCase();
-            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(uppercase)) != null && j39v2.contains(uppercase); case Map<?, ?> j39v1 -> ((Object)(uppercase)) instanceof String && j39v1.containsKey(uppercase); case null, default -> false; }))
+            String currencyId = this.safeString(currency, "id", "");
+            String uppercase = currencyId.toUpperCase();
+            if (!java.util.Objects.equals(this.safeString(response, uppercase), null))
             {
                 account.put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
                 account.put("total", this.safeString(response, uppercase));
@@ -596,7 +597,7 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-            Object method = this.handleOption("fetchTrades", "method", optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+            String method = this.safeString(this.handleOptionAndParams(new HashMap<String, Object>() {{}}, "fetchTrades", "method", optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", market.get("id") );
             }};
@@ -887,9 +888,10 @@ public class Bit2c extends Bit2cApi
         //
         Object orderUnified = null;
         Boolean isNewOrder = false;
-        if (((Map<?, ?>)order).containsKey("NewOrder"))
+        Object newOrder = this.safeValue(order, "NewOrder");
+        if (!java.util.Objects.equals(newOrder, null))
         {
-            orderUnified = ((Map<String, Object>)order).get("NewOrder");
+            orderUnified = newOrder;
             isNewOrder = true;
         } else
         {
@@ -1058,17 +1060,13 @@ public class Bit2c extends Bit2cApi
             //         }
             //     ]
             //
-            List<Object> responseList = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(response, null))
-            {
-                responseList = this.toArray(response);
-            }
+            List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public String removeCommaFromValue(Object str)
+    public String removeCommaFromValue(String str)
     {
         String newString = "";
         List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
@@ -1168,13 +1166,8 @@ public class Bit2c extends Bit2cApi
             side = this.safeValue(trade, "isBid");
             if (!java.util.Objects.equals(side, null))
             {
-                if ((!java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(side, "")))
-                {
-                    side = "buy";
-                } else
-                {
-                    side = "sell";
-                }
+                // safeValue already drops an empty string, so a present isBid is a buy here
+                side = "buy";
             }
         }
         Map<String, Object> marketResolved = this.safeMarket((String) null, tradeMarket, (String) null, (String) null);
@@ -1280,7 +1273,7 @@ public class Bit2c extends Bit2cApi
         {
             this.checkRequiredCredentials(true);
             // bit2c requires an increasing nonce per key
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
@@ -1314,7 +1307,7 @@ public class Bit2c extends Bit2cApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

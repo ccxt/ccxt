@@ -62,7 +62,7 @@ public partial class BaseExchange
 
     public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
-    public object accounts { get; set; } = new dict();
+    public List<object> accounts { get; set; } = new List<object>();
 
     public object accountsById { get; set; } = null;
 
@@ -73,17 +73,63 @@ public partial class BaseExchange
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
     public Dictionary<string, object> features { get; set; }
-    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
+    // options: read the published snapshot, mutate through the config owner (OwnedTable)
+    public ccxt.pro.OwnedTable<object> options { get; set; } = new ccxt.pro.OwnedTable<object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public IDictionary<string, object> markets { get; set; } = null;
     public object currencies { get; set; } = new dict();
-    public object fees { get; set; } = new dict();
-    public object requiredCredentials { get; set; } = new dict();
+    public IDictionary<string, object> fees { get; set; } = new dict();
+    public IDictionary<string, object> requiredCredentials { get; set; } = new dict();
     public Dictionary<string, object> timeframes { get; set; } = null;
     public double rateLimit { get; set; } = 2000;
-    public object exceptions { get; set; } = new dict();
-    public object urls { get; set; } = new dict();
+    public IDictionary<string, object> exceptions { get; set; } = new dict();
+    public IDictionary<string, object> urls { get; set; } = new dict();
+
+    // urls['api'] is a Dict in the TS base declaration (`urls: { api: Dict }`), and every write of
+    // it stores a section dictionary, so this view is the dictionary itself.
+    public IDictionary<string, object> urlsApi
+    {
+        get
+        {
+            var sections = this.urls;
+            if (sections == null || !sections.ContainsKey("api"))
+            {
+                return null;
+            }
+            return sections["api"] as IDictionary<string, object>;
+        }
+    }
+    // urls['api'] entries that are themselves dictionaries, so urlsApi['ws'] indexes as a map.
+    // urls is written at config time only; RefreshUrlsViews re-derives this at every such write.
+    public Dictionary<string, IDictionary<string, object>> urlsApiSections { get; private set; } = new Dictionary<string, IDictionary<string, object>>();
+
+    public void RefreshUrlsViews()
+    {
+        var api = this.urlsApi;
+        var sections = new Dictionary<string, IDictionary<string, object>>();
+        if (api != null)
+        {
+            foreach (var entry in api)
+            {
+                var section = entry.Value as IDictionary<string, object>;
+                if (section != null)
+                {
+                    sections[entry.Key] = section;
+                }
+            }
+        }
+        this.urlsApiSections = sections;
+    }
+    // currencies stays `object` (cs/tests/Generated/TestMethods.cs assigns a boxed local into it),
+    // but every writer stores a string-keyed dictionary: this view is that dictionary.
+    public IDictionary<string, object> currenciesDict
+    {
+        get
+        {
+            return this.currencies as IDictionary<string, object>;
+        }
+    }
     public Dictionary<string, object> precision { get; set; } = null;
 
     public string apiKey { get; set; }
@@ -135,7 +181,7 @@ public partial class BaseExchange
     }
     public object last_request_url { get; set; }
 
-    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
+    public readonly ccxt.pro.OwnedHistory<Dictionary<string, object>> fetchHistoryCache = new ();
 
     public int fetchHistoryCacheSize = 0;
 
@@ -143,7 +189,7 @@ public partial class BaseExchange
 
     public object name { get; set; }
 
-    public object headers { get; set; } = new dict();
+    public IDictionary<string, object> headers { get; set; } = new dict();
     public bool returnResponseHeaders { get; set; } = false;
 
     public Dictionary<string, object> httpExceptions { get; set; } = new dict();
@@ -177,9 +223,30 @@ public partial class BaseExchange
 
     // WS options
 
-    public IDictionary<string, object> tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // WS caches. Each is a plain dictionary owned by this exchange's ws owner thread
+    // (see ccxt.WsOwner): the owner-routed view hands every member call over to it, and
+    // a store of a fresh dictionary re-wraps rather than dropping the facade.
+    private IDictionary<string, object> tickersState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> fundingRatesState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> bidsasksState = new ccxt.pro.OwnedMap();
+
+    public IDictionary<string, object> tickers
+    {
+        get { return this.tickersState; }
+        set { this.tickersState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> fundingRates
+    {
+        get { return this.fundingRatesState; }
+        set { this.fundingRatesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> bidsasks
+    {
+        get { return this.bidsasksState; }
+        set { this.bidsasksState = this.wrapWsCache(value); }
+    }
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
@@ -197,10 +264,28 @@ public partial class BaseExchange
     public object positions;
     public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    public IDictionary<string, object> trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public IDictionary<string, object> orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> tradesState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> orderbooksState = new ccxt.pro.OwnedMap();
 
-    public IDictionary<string, object> ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> trades
+    {
+        get { return this.tradesState; }
+        set { this.tradesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> orderbooks
+    {
+        get { return this.orderbooksState; }
+        set { this.orderbooksState = this.wrapWsCache(value); }
+    }
+
+    private IDictionary<string, object> ohlcvsState = new ccxt.pro.OwnedMap();
+
+    public IDictionary<string, object> ohlcvs
+    {
+        get { return this.ohlcvsState; }
+        set { this.ohlcvsState = this.wrapWsCache(value); }
+    }
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
@@ -269,6 +354,7 @@ public partial class BaseExchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.RefreshUrlsViews();
         this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         this.streaming = SafeValue(extendedProperties, "streaming") as dict;
@@ -279,13 +365,12 @@ public partial class BaseExchange
         {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
-            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
-            this.options = concurrentExtendedDict;
+            this.options = new ccxt.pro.OwnedTable<object>(extendedDict);
         }
         else
         {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options = new ConcurrentDictionary<string, object>(dict2);
+            this.options = new ccxt.pro.OwnedTable<object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", null) as dict;

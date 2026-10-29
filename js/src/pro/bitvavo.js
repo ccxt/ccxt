@@ -77,8 +77,8 @@ export default class bitvavo extends bitvavoRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '');
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -104,7 +104,7 @@ export default class bitvavo extends bitvavoRest {
             const market = this.market(symbolsNormalized[i]);
             args.push(market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -182,7 +182,7 @@ export default class bitvavo extends bitvavoRest {
             this.tickers[symbol] = ticker;
             result.push(ticker);
             if (event !== undefined) {
-                const messageHash = event + '@' + marketId;
+                const messageHash = event + '@' + this.safeString(data, 'market', '');
                 client.resolve(ticker, messageHash);
             }
         }
@@ -213,7 +213,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const ticker = this.parseWsBidAsk(data);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol', '');
             this.bidsasks[symbol] = ticker;
             result.push(ticker);
             const messageHash = event + ':' + symbol;
@@ -275,7 +275,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'trades';
-        const messageHash = name + '@' + marketId;
+        const messageHash = name + '@' + this.safeString(message, 'market', '');
         const trade = this.parseTrade(message, market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
@@ -308,9 +308,9 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             marketIds.push(market['id']);
-            messageHashes.push(name + '@' + market['id']);
+            messageHashes.push(name + '@' + this.safeString(market, 'id', ''));
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -362,7 +362,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             marketIds.push(market['id']);
-            subMessageHashes.push(name + '@' + market['id']);
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', ''));
         }
         const channels = [
             {
@@ -395,8 +395,8 @@ export default class bitvavo extends bitvavoRest {
         const name = 'candles';
         const marketId = market['id'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = name + '@' + marketId + '_' + interval;
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '') + '_' + interval;
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -452,10 +452,10 @@ export default class bitvavo extends bitvavoRest {
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
-        const interval = this.safeString(message, 'interval');
+        const interval = this.safeString(message, 'interval', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe(interval);
-        const messageHash = name + '@' + marketId + '_' + interval;
+        const messageHash = name + '@' + this.safeString(message, 'market', '') + '_' + interval;
         const candles = this.safeList(message, 'candle', []);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -493,15 +493,15 @@ export default class bitvavo extends bitvavoRest {
         const marketIdsByInterval = {};
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const market = this.market(symbolAndTimeframe[0]);
-            const timeframeString = symbolAndTimeframe[1];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
             }
             const intervalIds = marketIdsByInterval[interval];
             intervalIds.push(market['id']);
-            messageHashes.push('multi:' + name + '@' + market['id'] + '_' + interval);
+            messageHashes.push('multi:' + name + '@' + this.safeString(market, 'id', '') + '_' + interval);
         }
         const channels = [];
         const intervals = Object.keys(marketIdsByInterval);
@@ -513,7 +513,7 @@ export default class bitvavo extends bitvavoRest {
                 'markets': marketIdsByInterval[interval],
             });
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': channels,
@@ -558,8 +558,8 @@ export default class bitvavo extends bitvavoRest {
         const marketIdsByInterval = {};
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const market = this.market(symbolAndTimeframe[0]);
-            const timeframeString = symbolAndTimeframe[1];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
@@ -567,8 +567,8 @@ export default class bitvavo extends bitvavoRest {
             const intervalIds = marketIdsByInterval[interval];
             intervalIds.push(market['id']);
             // both the single-symbol and the multi-symbol watch hashes must be released
-            subMessageHashes.push(name + '@' + market['id'] + '_' + interval);
-            subMessageHashes.push('multi:' + name + '@' + market['id'] + '_' + interval);
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', '') + '_' + interval);
+            subMessageHashes.push('multi:' + name + '@' + this.safeString(market, 'id', '') + '_' + interval);
         }
         const channels = [];
         const intervals = Object.keys(marketIdsByInterval);
@@ -601,8 +601,8 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const name = 'book';
-        const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '');
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -648,9 +648,9 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             marketIds.push(market['id']);
-            messageHashes.push(name + '@' + market['id']);
+            messageHashes.push(name + '@' + this.safeString(market, 'id', ''));
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -704,7 +704,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             marketIds.push(market['id']);
-            subMessageHashes.push(name + '@' + market['id']);
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', ''));
         }
         const channels = [
             {
@@ -764,20 +764,20 @@ export default class bitvavo extends bitvavoRest {
         //         "asks": []
         //     }
         //
-        const event = this.safeString(message, 'event');
+        const event = this.safeString(message, 'event', '');
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
-        const messageHash = event + '@' + market['id'];
+        const messageHash = event + '@' + this.safeString(message, 'market', '');
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             return;
         }
-        if (orderbook['nonce'] === undefined) {
+        if (this.safeInteger(orderbook, 'nonce') === undefined) {
             const subscription = this.safeValue(client.subscriptions, messageHash, {});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
-            const flagKey = 'watchingOrderBookSnapshot@' + marketId;
+            const flagKey = 'watchingOrderBookSnapshot@' + this.safeString(message, 'market', '');
             const watchingOrderBookSnapshot = this.safeBool(subscription, flagKey);
             if (watchingOrderBookSnapshot === undefined) {
                 subscription[flagKey] = true;
@@ -807,7 +807,7 @@ export default class bitvavo extends bitvavoRest {
         }
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': name,
             'market': marketId,
@@ -842,7 +842,7 @@ export default class bitvavo extends bitvavoRest {
         const marketId = this.safeString(response, 'market');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const name = 'book';
-        const messageHash = name + '@' + marketId;
+        const messageHash = name + '@' + this.safeString(response, 'market', '');
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             // the market was unsubscribed while this snapshot request was in flight
@@ -862,7 +862,7 @@ export default class bitvavo extends bitvavoRest {
         // getBook is a one-shot request but this.watch tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
-        const snapshotHash = 'getBook@' + marketId;
+        const snapshotHash = 'getBook@' + this.safeString(response, 'market', '');
         if (snapshotHash in client.subscriptions) {
             delete client.subscriptions[snapshotHash];
         }
@@ -886,7 +886,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString(marketIds, i);
             const symbol = this.safeSymbol(marketId, undefined, '-');
-            const messageHash = name + '@' + marketId;
+            const messageHash = name + '@' + this.safeString(marketIds, i, '');
             if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeValue(client.subscriptions, messageHash);
                 const method = this.safeValue(subscription, 'method');
@@ -903,14 +903,14 @@ export default class bitvavo extends bitvavoRest {
         }
     }
     async unWatchChannels(topic, channels, subMessageHashes, subscriptionArgs, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'unsubscribe',
             'channels': channels,
         };
         const unsubHashes = [];
         for (let i = 0; i < subMessageHashes.length; i++) {
-            unsubHashes.push('unsubscribe:' + subMessageHashes[i]);
+            unsubHashes.push('unsubscribe:' + this.safeString(subMessageHashes, i, ''));
         }
         const subscription = this.extend({
             'topic': topic,
@@ -938,7 +938,7 @@ export default class bitvavo extends bitvavoRest {
             if (!key.startsWith('unsubscribe:')) {
                 continue;
             }
-            const subscription = client.subscriptions[key];
+            const subscription = this.safeValue(client.subscriptions, key);
             const subHash = key.replace('unsubscribe:', '');
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
@@ -973,7 +973,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'order:' + symbolValue;
         const request = {
@@ -1013,7 +1013,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'myTrades:' + symbolValue;
         const request = {
@@ -1205,14 +1205,14 @@ export default class bitvavo extends bitvavoRest {
         const ts = this.milliseconds().toString();
         const randomNumber = this.randNumber(4);
         const randomPart = randomNumber.toString();
-        return parseInt(ts + randomPart);
+        return this.parseToInt(ts + randomPart);
     }
     async watchRequest(action, request) {
         const messageHash = this.requestId();
         const messageHashStr = messageHash.toString();
         request['action'] = action;
         request['requestId'] = messageHash;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         return await this.watch(url, messageHashStr, request, messageHashStr);
     }
     /**
@@ -1729,7 +1729,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);
@@ -1799,7 +1799,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, '');
         }
         catch (e) {
             rejected = true;

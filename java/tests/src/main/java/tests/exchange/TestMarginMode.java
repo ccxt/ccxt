@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestMarginMode extends BaseTest {
-    public static void testMarginMode(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testMarginMode(BaseExchange exchange, Object skippedProperties, String method, Object entry)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -24,7 +24,7 @@ public class TestMarginMode extends BaseTest {
             put( "marginMode", "cross" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("symbol"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
     }
 
 }

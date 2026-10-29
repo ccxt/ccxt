@@ -228,7 +228,7 @@ class bitflyer extends bitflyer$1["default"] {
     parseExpiryDate(expiry) {
         const day = expiry.slice(0, 2);
         const monthName = expiry.slice(2, 5);
-        const year = expiry.slice(5, 9);
+        const expiryYear = expiry.slice(5, 9);
         const months = {
             'JAN': '01',
             'FEB': '02',
@@ -247,7 +247,7 @@ class bitflyer extends bitflyer$1["default"] {
         if (month === undefined) {
             return undefined;
         }
-        return this.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z');
+        return this.parse8601(expiryYear + '-' + month + '-' + day + 'T00:00:00Z');
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         // Bitflyer has a different type of conflict in markets, because
@@ -355,8 +355,8 @@ class bitflyer extends bitflyer$1["default"] {
                 continue;
             }
             let symbol = base + '/' + quote;
-            let taker = this.fees['trading']['taker'];
-            let maker = this.fees['trading']['maker'];
+            let taker = this.safeNumber(this.fees['trading'], 'taker');
+            let maker = this.safeNumber(this.fees['trading'], 'maker');
             const contract = swap || future;
             if (contract) {
                 maker = 0.0;
@@ -573,10 +573,7 @@ class bitflyer extends bitflyer$1["default"] {
         }
         let order = undefined;
         if (side !== undefined) {
-            const idInner = side + '_child_order_acceptance_id';
-            if (idInner in trade) {
-                order = this.safeString(trade, idInner);
-            }
+            order = this.safeString(trade, side + '_child_order_acceptance_id');
         }
         if (order === undefined) {
             order = this.safeString(trade, 'child_order_acceptance_id');
@@ -868,8 +865,8 @@ class bitflyer extends bitflyer$1["default"] {
         }
         const orders = await this.fetchOrders(symbol);
         const ordersById = this.indexBy(orders, 'id');
-        if (id in ordersById) {
-            const found = this.safeDict(ordersById, id);
+        const found = this.safeDict(ordersById, id);
+        if (found !== undefined) {
             return found;
         }
         throw new errors.OrderNotFound(this.id + ' No order found with id ' + id);
@@ -1233,21 +1230,20 @@ class bitflyer extends bitflyer$1["default"] {
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys(params).length > 0) {
-                request += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query !== '') {
+                request += '?' + query;
             }
         }
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const baseUrl = this.implodeHostname(apiUrl);
-        const url = baseUrl + request;
+        const url = this.implodeHostname(apiUrl) + request;
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            const content = [nonce, method, request];
-            let auth = content.join('');
+            let auth = nonce + method + request;
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
                     const body = this.json(params);

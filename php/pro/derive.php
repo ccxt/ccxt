@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class derive extends \ccxt\async\derive {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -102,7 +102,8 @@ class derive extends \ccxt\async\derive {
         }
         $limitResolved = ($limit === null) ? 10 : $limit;
         $market = $this->market($symbol);
-        $topic = 'orderbook.' . $market['id'] . '.10.' . $this->number_to_string($limitResolved);
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'orderbook.' . $marketId . '.10.' . $this->number_to_string($limitResolved);
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -141,7 +142,7 @@ class derive extends \ccxt\async\derive {
         $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $topic = $this->safe_string($params, 'channel');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
@@ -174,7 +175,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = 'ticker_slim.' . $market['id'] . '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'ticker_slim.' . $marketId . '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -209,7 +211,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = 'ticker_slim.' . $market['id'] . '.100';
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'ticker_slim.' . $marketId . '.100';
         $messageHash = 'unwatch' . $topic;
         $request = array(
             'method' => 'unsubscribe',
@@ -247,8 +250,10 @@ class derive extends \ccxt\async\derive {
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsResolved); $i++) {
             $market = $this->market($symbolsResolved[$i]);
-            $topics[] = 'ticker_slim.' . $market['id'] . '.100';
-            $messageHashes[] = 'bidask:' . $market['symbol'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $topics[] = 'ticker_slim.' . $marketId . '.100';
+            $messageHashes[] = 'bidask:' . $marketSymbol;
         }
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
@@ -266,7 +271,8 @@ class derive extends \ccxt\async\derive {
         $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
+            $result[$tickerSymbol] = $ticker;
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
@@ -316,7 +322,7 @@ class derive extends \ccxt\async\derive {
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $ticker = $this->parse_ticker($data, $market);
-        $tickerSymbol = $ticker['symbol'];
+        $tickerSymbol = $this->safe_string($ticker, 'symbol');
         if ($tickerSymbol !== null) {
             $this->tickers[$tickerSymbol] = $ticker;
             $bidAsk = $this->safe_ticker(array(
@@ -351,12 +357,11 @@ class derive extends \ccxt\async\derive {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $limit = $this->safe_integer($params, 'limit');
-        if ($limit === null) {
-            $limit = 10;
-        }
+        $limitRaw = $this->safe_integer($params, 'limit');
+        $limit = ($limitRaw === null) ? 10 : $limitRaw;
         $market = $this->market($symbol);
-        $topic = 'orderbook.' . $market['id'] . '.10.' . $this->number_to_string($limit);
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'orderbook.' . $marketId . '.10.' . (string) $limit;
         $messageHash = 'unwatch' . $topic;
         $request = array(
             'method' => 'unsubscribe',
@@ -387,7 +392,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = 'trades.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'trades.' . $marketId;
         $messageHah = 'unwatch' . $topic;
         $request = array(
             'method' => 'unsubscribe',
@@ -435,7 +441,7 @@ class derive extends \ccxt\async\derive {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
@@ -446,7 +452,7 @@ class derive extends \ccxt\async\derive {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
             unset($this->tickers[$symbol]);
         }
@@ -526,7 +532,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = 'trades.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = 'trades.' . $marketId;
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -557,7 +564,7 @@ class derive extends \ccxt\async\derive {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -648,10 +655,12 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchOrders', $params);
-        $topic = $this->number_to_string($subaccountId) . '.orders';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.orders';
         $messageHash = $topic;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
-        if ($symbolResolved !== null) {
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
@@ -775,7 +784,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('unWatchOrders', $params);
-        $topic = $this->number_to_string($subaccountId) . '.orders';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.orders';
         $messageHash = 'unwatch' . $topic;
         $request = array(
             'method' => 'unsubscribe',
@@ -813,10 +823,12 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchMyTrades', $params);
-        $topic = $this->number_to_string($subaccountId) . '.trades';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.trades';
         $messageHash = $topic;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
-        if ($symbolResolved !== null) {
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
@@ -882,7 +894,8 @@ class derive extends \ccxt\async\derive {
             Async\await($this->load_markets());
         }
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('unWatchMyTrades', $params);
-        $topic = $this->number_to_string($subaccountId) . '.trades';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.trades';
         $messageHash = 'unwatch' . $topic;
         $request = array(
             'method' => 'unsubscribe',
@@ -935,7 +948,8 @@ class derive extends \ccxt\async\derive {
             $seeded = $this->extend($snapshot, $emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             $this->balance[$subaccountIdKey] = $seeded;
         }
-        $topic = $this->number_to_string($subaccountId) . '.balances';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.balances';
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -994,14 +1008,16 @@ class derive extends \ccxt\async\derive {
             );
             $snapshotParams = $this->extend($snapshotRequest, $paramsDeriveSubaccountId);
             $positionsSnapshot = Async\await($this->fetch_positions(null, $snapshotParams));
-            $cache = $this->positions[$subaccountIdKey];
+            $cache = $this->safe_value($this->positions, $subaccountIdKey);
             for ($i = 0; $i < count($positionsSnapshot); $i++) {
-                $cache->append($positionsSnapshot[$i]);
+                $snapshotPosition = $this->safe_value($positionsSnapshot, $i);
+                $cache->append($snapshotPosition);
             }
             $loadedSnapshots[$subaccountIdKey] = true;
             $this->options['loadedPositionsSnapshots'] = $loadedSnapshots;
         }
-        $topic = $this->number_to_string($subaccountId) . '.balances';
+        $subaccountIdString = $this->number_to_string($subaccountId);
+        $topic = $subaccountIdString . '.balances';
         $messageHash = 'positions:' . $topic;
         $request = array(
             'method' => 'subscribe',
@@ -1020,18 +1036,18 @@ class derive extends \ccxt\async\derive {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions[$subaccountIdKey], $symbolsResolved, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $subaccountIdKey), $symbolsResolved, $since, $limit, true);
     }
 
     public function handle_position_delta(string $subaccountIdKey, array $entry): array {
         $marketId = $this->safe_string($entry, 'name');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $newSize = $this->safe_string($entry, 'new_balance', '0');
         $isShort = Precise::string_lt($newSize, '0');
         $side = $isShort ? 'short' : 'long';
         $contracts = Precise::string_abs($newSize);
-        $cache = $this->positions[$subaccountIdKey];
+        $cache = $this->safe_value($this->positions, $subaccountIdKey);
         $symbolPositions = $this->safe_dict($cache->hashmap, $symbol, array());
         // a fill through zero flattens the opposite side first
         $oppositeSide = $isShort ? 'long' : 'short';
@@ -1082,7 +1098,7 @@ class derive extends \ccxt\async\derive {
         //     }
         //
         $params = $this->safe_dict($message, 'params');
-        $topic = $this->safe_string($params, 'channel');
+        $topic = $this->safe_string($params, 'channel', '');
         $topicParts = explode('.', $topic);
         $subaccountIdKey = $this->safe_string($topicParts, 0);
         $data = $this->safe_list($params, 'data', array());
@@ -1121,7 +1137,7 @@ class derive extends \ccxt\async\derive {
         }
         if ($updated) {
             $this->balance[$subaccountIdKey] = $this->safe_balance($subBalance);
-            $client->resolve($this->balance[$subaccountIdKey], $topic);
+            $client->resolve($this->safe_value($this->balance, $subaccountIdKey), $topic);
         }
         $positionUpdatesLength = count($positionUpdates);
         if ($positionUpdatesLength > 0) {

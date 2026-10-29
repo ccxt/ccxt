@@ -16,7 +16,7 @@ import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, 
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'sxbet',
             'name': 'SX Bet',
@@ -2125,6 +2125,12 @@ export default class sxbet extends Exchange {
         };
     }
 
+    setWsOption (group: string, key: string, value: Str | Dict) {
+        const entry: Dict = {};
+        entry[key] = value;
+        this.options[group] = this.extend (this.safeDict (this.options, group, {}), entry);
+    }
+
     requestId (url: Str): number {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
@@ -2149,12 +2155,8 @@ export default class sxbet extends Exchange {
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
     registerSxbetWsRequest (requestId: number, messageHash: string, subscription: string) {
-        const existing = this.safeDict (this.options, 'wsPendingRequests');
-        if (existing === undefined) {
-            this.options['wsPendingRequests'] = this.createSafeDictionary ();
-        }
         const requestIdString = this.numberToString (requestId);
-        this.options['wsPendingRequests'][requestIdString] = { 'messageHash': messageHash, 'subscription': subscription };
+        this.setWsOption ('wsPendingRequests', requestIdString, { 'messageHash': messageHash, 'subscription': subscription });
     }
 
     /**
@@ -2325,8 +2327,8 @@ export default class sxbet extends Exchange {
     override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
-        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
         const channel = 'orderbook_v3:' + marketHash;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
@@ -2335,11 +2337,7 @@ export default class sxbet extends Exchange {
         const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
         if (this.safeValue (this.orderbooks, sym) === undefined) {
             // seed from the REST snapshot so the book is served before the first publication
-            const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks');
-            if (watchedBooks === undefined) {
-                this.options['wsWatchedBooks'] = this.createSafeDictionary ();
-            }
-            this.options['wsWatchedBooks'][sym as string] = marketHash;
+            this.setWsOption ('wsWatchedBooks', sym, marketHash);
             const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
             this.applySxbetWsSnapshot (snapshot);
             if (this.safeValue (this.orderbooks, sym) === undefined) {
@@ -2374,16 +2372,12 @@ export default class sxbet extends Exchange {
         if (marketHash === undefined) {
             return refreshed;
         }
-        const versionsAll = this.safeDict (this.options, 'wsBookVersions');
-        if (versionsAll === undefined) {
-            this.options['wsBookVersions'] = this.createSafeDictionary ();
-        }
-        const held = this.safeString (this.options['wsBookVersions'], marketHash, '');
+        const held = this.safeString (this.safeDict (this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if ((held !== '') && (version <= held)) {
             return refreshed;
         }
-        this.options['wsBookVersions'][marketHash] = version;
+        this.setWsOption ('wsBookVersions', marketHash, version);
         const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks', {});
         const watchedSyms = Object.keys (watchedBooks);
         const timestamp = this.milliseconds ();
@@ -2447,14 +2441,10 @@ export default class sxbet extends Exchange {
     override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
         const messageHash = 'ticker::' + sym;
-        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers');
-        if (watchedTickers === undefined) {
-            this.options['wsWatchedTickers'] = this.createSafeDictionary ();
-        }
-        this.options['wsWatchedTickers'][sym as string] = marketHash;
+        this.setWsOption ('wsWatchedTickers', sym, marketHash);
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
         await this.connectSxbetCentrifugo (url);
         const client = this.client (url);
@@ -2535,7 +2525,7 @@ export default class sxbet extends Exchange {
     override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + sym;
         const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades_v3:global');
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
@@ -2634,7 +2624,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
-            const sym = this.safeString (outcomeObj, 'outcome');
+            const sym = this.safeString (outcomeObj, 'outcome', '');
             messageHash = 'myTrades::' + sym;
         }
         const channel = 'account:fills_v3_#' + this.walletAddress;
@@ -2685,7 +2675,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
-            const sym = this.safeString (outcomeObj, 'outcome');
+            const sym = this.safeString (outcomeObj, 'outcome', '');
             messageHash = 'orders::' + sym;
         }
         const channel = 'account:orders_v3_#' + this.walletAddress;
@@ -2716,7 +2706,7 @@ export default class sxbet extends Exchange {
         }
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -2759,7 +2749,7 @@ export default class sxbet extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'sxbet' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const accessLevel: string = this.safeString (api, 1, 'public');
+        const accessLevel: string = api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2779,8 +2769,7 @@ export default class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            const hasOrdersList = ('orders' in query);
-            sendAsQuery = !hasOrdersList;
+            sendAsQuery = !('orders' in query);
         }
         let bodyValue: any = undefined;
         if (sendAsQuery) {
@@ -2789,9 +2778,7 @@ export default class sxbet extends Exchange {
                 url += '?' + querystring;
             }
         } else {
-            const queryKeys = Object.keys (query);
-            const queryKeysLength = queryKeys.length;
-            if (queryKeysLength > 0) {
+            if (Object.keys (query).length > 0) {
                 bodyValue = this.json (query);
             }
         }

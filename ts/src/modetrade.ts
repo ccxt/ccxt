@@ -18,7 +18,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee
  * @augments Exchange
  */
 export default class modetrade extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -568,11 +568,11 @@ export default class modetrade extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString (parts, 2);
         const settle = this.safeCurrencyCode (settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         return this.safeMarketStructure ({
             'id': marketId,
@@ -814,7 +814,8 @@ export default class modetrade extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const id = this.safeString (trade, 'id');
+        const isFromFetchOrder = id !== undefined;
         const timestamp = this.safeInteger (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
@@ -825,7 +826,6 @@ export default class modetrade extends Exchange {
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
-        const id = this.safeString (trade, 'id');
         let takerOrMaker: Str = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString (trade, 'is_maker') === '1';
@@ -1099,8 +1099,7 @@ export default class modetrade extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (this.sortBy (rates, 'timestamp'), symbolResolved, since, limit) as FundingRateHistory[];
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1833,7 +1832,7 @@ export default class modetrade extends Exchange {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders: Dict[] = [];
             let closeSide: Str = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1860,6 +1859,7 @@ export default class modetrade extends Exchange {
                 };
                 childOrders.push (takeProfitOrder);
             }
+            outterOrder['child_orders'] = childOrders;
             request['child_orders'] = [ outterOrder ];
         }
         const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
@@ -2192,7 +2192,7 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const clientOrderIds: Strings = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response: Dict;
@@ -2660,7 +2660,7 @@ export default class modetrade extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['token'] = currency['id'];
+            request['token'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2932,8 +2932,7 @@ export default class modetrade extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.safeNumber (data, 'withdraw_nonce');
+        return this.safeNumber (this.safeDict (response, 'data', {}), 'withdraw_nonce');
     }
 
     hashMessage (message: any) {
@@ -2942,8 +2941,8 @@ export default class modetrade extends Exchange {
 
     signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
@@ -3006,7 +3005,7 @@ export default class modetrade extends Exchange {
             'chainId': this.parseToInt (chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -3293,7 +3292,7 @@ export default class modetrade extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -3322,9 +3321,11 @@ export default class modetrade extends Exchange {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (paramsSorted, 'orders', []);
+                        const taggedOrders: List = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            paramsSorted['orders'][i]['order_tag'] = brokerId;
+                            taggedOrders.push (this.extend (this.safeDict (ordersList, i, {}), { 'order_tag': brokerId }));
                         }
+                        paramsSorted['orders'] = taggedOrders;
                     } else {
                         paramsSorted['order_tag'] = brokerId;
                     }
@@ -3334,19 +3335,18 @@ export default class modetrade extends Exchange {
             if (isPostOrPut && isOrder) {
                 paramsSigned = this.keysort (paramsSorted);
             }
-            let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf ('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf ('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders: Dict = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
-            auth = ts + method + '/' + version + '/' + pathWithParams;
+            let auth = ts + method + '/' + version + '/' + pathWithParams;
             let signedBody: Str = undefined;
             if (method === 'POST' || method === 'PUT') {
                 signedBody = this.json (paramsSigned);
@@ -3361,8 +3361,8 @@ export default class modetrade extends Exchange {
                 signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
@@ -3372,7 +3372,7 @@ export default class modetrade extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

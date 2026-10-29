@@ -5,7 +5,7 @@ import { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddr
  * @augments Exchange
  */
 export default class bullish extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bullish#fetchTime
@@ -432,5 +432,5 @@ export default class bullish extends Exchange {
      */
     signIn(params?: Dict): Promise<string>;
     handleToken(params?: Dict): Promise<string>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

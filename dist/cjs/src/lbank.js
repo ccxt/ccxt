@@ -463,12 +463,11 @@ class lbank extends lbank$1["default"] {
         return this.parseCurrencies(values);
     }
     parseCurrency(rawCurrency) {
-        const id = this.safeString(rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const id = this.safeString(this.safeDict(rawCurrency, 0, {}), 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode(id);
-        const networksRaw = rawCurrency;
         const networks = {};
-        for (let j = 0; j < networksRaw.length; j++) {
-            const networkEntry = this.safeDict(networksRaw, j);
+        for (let j = 0; j < rawCurrency.length; j++) {
+            const networkEntry = this.safeDict(rawCurrency, j);
             let networkId = this.safeString(networkEntry, 'chain');
             if (networkId === undefined) {
                 networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -518,7 +517,7 @@ class lbank extends lbank$1["default"] {
                 },
             },
             'networks': networks,
-            'info': networksRaw,
+            'info': rawCurrency,
         });
     }
     /**
@@ -536,7 +535,9 @@ class lbank extends lbank$1["default"] {
             this.fetchSwapMarkets(params),
         ];
         const resolvedMarkets = await Promise.all(marketsPromises);
-        return this.arrayConcat(resolvedMarkets[0], resolvedMarkets[1]);
+        const spotMarkets = this.safeValue(resolvedMarkets, 0);
+        const swapMarkets = this.safeValue(resolvedMarkets, 1);
+        return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchSpotMarkets(params = {}) {
         const response = await this.spotPublicGetAccuracy(params);
@@ -667,14 +668,13 @@ class lbank extends lbank$1["default"] {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
-            const settle = this.safeCurrencyCode(settleId);
-            const symbol = base + '/' + quote + ':' + settle;
+            const symbol = base + '/' + quote + ':' + quote;
             result.push({
                 'id': marketId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settle,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -1609,7 +1609,9 @@ class lbank extends lbank$1["default"] {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -2000,7 +2002,7 @@ class lbank extends lbank$1["default"] {
         const result = this.safeList(response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
-            return this.parseOrder(result[0]);
+            return this.parseOrder(this.safeDict(result, 0, {}));
         }
         else {
             // const parsedOrders = [];
@@ -2031,7 +2033,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const sinceValue = this.safeValue(params, 'start_date', since);
+        const sinceValue = this.safeInteger(params, 'start_date', since);
         const paramsOmitted = this.omit(params, 'start_date');
         const request = {
             'symbol': market['id'],
@@ -2741,8 +2743,7 @@ class lbank extends lbank$1["default"] {
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const entry = this.safeDict(result, i);
-            const currencyId = this.safeString(entry, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
+            const code = this.safeCurrencyCode(this.safeString(entry, 'coin'));
             const networkList = this.safeList(entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
@@ -2754,7 +2755,9 @@ class lbank extends lbank$1["default"] {
                     const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
                     if (networkCode !== undefined) {
                         if ((code !== undefined) && (networkCode !== undefined)) {
-                            withdrawFees[code][networkCode] = fee;
+                            const feesForCode = {};
+                            feesForCode[networkCode] = fee;
+                            withdrawFees[code] = this.extend(this.safeDict(withdrawFees, code, {}), feesForCode);
                         }
                     }
                 }
@@ -2807,20 +2810,16 @@ class lbank extends lbank$1["default"] {
             const item = this.safeDict(result, i);
             const canWithdraw = this.safeString(item, 'canWithDraw');
             if (canWithdraw === 'true') {
-                const currencyId = this.safeString(item, 'assetCode');
-                const codeInner = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(this.safeString(item, 'assetCode'));
                 let network = this.networkIdToCode(this.safeString(item, 'chain'), codeInner);
                 if (network === undefined) {
                     network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (this.safeValue(withdrawFees, codeInner) === undefined) {
-                    if (codeInner !== undefined) {
-                        withdrawFees[codeInner] = {};
-                    }
-                }
                 if ((codeInner !== undefined) && (network !== undefined)) {
-                    withdrawFees[codeInner][network] = this.parseNumber(fee);
+                    const feesForCode = {};
+                    feesForCode[network] = this.parseNumber(fee);
+                    withdrawFees[codeInner] = this.extend(this.safeDict(withdrawFees, codeInner, {}), feesForCode);
                 }
             }
         }
@@ -2951,8 +2950,7 @@ class lbank extends lbank$1["default"] {
             const fee = response[i];
             const canWithdraw = this.safeBool(fee, 'canWithDraw');
             if (canWithdraw === true) {
-                const currencyId = this.safeString(fee, 'assetCode');
-                const code = this.safeCurrencyCode(currencyId);
+                const code = this.safeCurrencyCode(this.safeString(fee, 'assetCode'));
                 if ((code !== undefined) && (codes === undefined || this.inArray(code, codes))) {
                     const withdrawFee = this.safeNumber(fee, 'fee');
                     if (withdrawFee !== undefined) {
@@ -2961,12 +2959,13 @@ class lbank extends lbank$1["default"] {
                             result[code] = this.depositWithdrawFee([fee]);
                         }
                         else {
-                            const resultCodeInfo = result[code]['info'];
-                            resultCodeInfo.push(fee);
+                            const infoList = this.arrayConcat(resultValue['info'], [fee]);
+                            result[code] = this.extend(resultValue, { 'info': infoList });
                         }
                         const networkCode = this.networkIdToCode(this.safeString(fee, 'chain'), code);
                         if (networkCode !== undefined) {
-                            result[code]['networks'][networkCode] = {
+                            const networkFees = {};
+                            networkFees[networkCode] = {
                                 'withdraw': {
                                     'fee': withdrawFee,
                                     'percentage': undefined,
@@ -2976,12 +2975,16 @@ class lbank extends lbank$1["default"] {
                                     'percentage': undefined,
                                 },
                             };
+                            const networks = this.extend(this.safeDict(this.safeDict(result, code, {}), 'networks', {}), networkFees);
+                            result[code] = this.extend(this.safeDict(result, code, {}), { 'networks': networks });
                         }
                         else {
-                            result[code]['withdraw'] = {
-                                'fee': withdrawFee,
-                                'percentage': undefined,
-                            };
+                            result[code] = this.extend(this.safeDict(result, code, {}), {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': undefined,
+                                },
+                            });
                         }
                     }
                 }
@@ -3032,7 +3035,8 @@ class lbank extends lbank$1["default"] {
                     };
                 }
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    const networkFees = {};
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': withdrawFee,
                             'percentage': undefined,
@@ -3042,13 +3046,14 @@ class lbank extends lbank$1["default"] {
                             'percentage': undefined,
                         },
                     };
+                    result['networks'] = this.extend(this.safeDict(result, 'networks', {}), networkFees);
                 }
             }
         }
         return result;
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
-        let query = this.omit(params, this.extractParams(path));
+        const paramsOmitted = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -3066,17 +3071,17 @@ class lbank extends lbank$1["default"] {
             url = contractUrl + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(this.keysort(query));
+            if (Object.keys(paramsOmitted).length > 0) {
+                url += '?' + this.urlencode(this.keysort(paramsOmitted));
             }
         }
         else {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const echostr = this.uuid22() + this.uuid16();
-            query = this.extend({
+            const signedQuery = this.extend({
                 'api_key': this.apiKey,
-            }, query);
+            }, paramsOmitted);
             let signatureMethod = undefined;
             if (this.secret.length > 32) {
                 signatureMethod = 'RSA';
@@ -3089,10 +3094,9 @@ class lbank extends lbank$1["default"] {
                 'echostr': echostr,
                 'signature_method': finalSig,
                 'timestamp': timestamp,
-            }, query)));
+            }, signedQuery)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, legacy_js.md5);
-            const uppercaseHash = hash.toUpperCase();
+            const uppercaseHash = this.hash(encoded, legacy_js.md5).toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
@@ -3115,8 +3119,8 @@ class lbank extends lbank$1["default"] {
             else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha2_js.sha256);
             }
-            query['sign'] = sign;
-            const bodySigned = this.urlencode(this.keysort(query));
+            signedQuery['sign'] = sign;
+            const bodySigned = this.urlencode(this.keysort(signedQuery));
             const headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
@@ -3128,7 +3132,7 @@ class lbank extends lbank$1["default"] {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length - 0;
+        const secretLength = secret.length;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i <= fullLines; i++) {
@@ -3138,12 +3142,12 @@ class lbank extends lbank$1["default"] {
         }
         return pem + '-----END PRIVATE KEY-----';
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' parseBalance() returned empty response');
         }
-        const success = this.safeValue(response, 'result');
-        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
+        const success = this.safeString(response, 'result');
+        if ((success === 'false') || (success === undefined)) {
             const errorCode = this.safeString(response, 'error_code');
             const message = this.safeString({
                 '10000': 'Internal error',

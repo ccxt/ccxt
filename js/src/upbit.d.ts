@@ -1,11 +1,11 @@
 import Exchange from './abstract/upbit.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, NullableDict } from './base/types.js';
 /**
  * @class upbit
  * @augments Exchange
  */
 export default class upbit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     fetchCurrency(code: string, params?: Dict): Promise<Dict>;
     fetchCurrencyById(id: string, params?: Dict): Promise<Dict>;
     fetchMarket(symbol: string, params?: Dict): Promise<Market>;
@@ -71,7 +71,7 @@ export default class upbit extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    idsQueryStrings(ids: Strings, maxQueryLength: int): string[];
+    idsQueryStrings(ids: string[]): string[];
     /**
      * @method
      * @name upbit#fetchTicker
@@ -131,7 +131,7 @@ export default class upbit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    calcOrderPrice(symbol: string, amount: Num, price?: Num, params?: Dict): Str;
+    calcOrderPrice(symbol: string, amount?: Num, price?: Num, params?: Dict): Str;
     /**
      * @method
      * @name upbit#createOrder
@@ -347,7 +347,7 @@ export default class upbit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

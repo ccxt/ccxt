@@ -20,7 +20,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class binance extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
             'name' => 'Binance',
@@ -141,7 +141,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -214,9 +214,15 @@ class binance extends Exchange {
          * @return {array[]} raw market topic objects
          */
         $maxTopicsOption = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
-        $maxTopicsResolved = ($maxTopics !== null) ? $maxTopics : $maxTopicsOption;
+        $maxTopicsResolved = $this->parse_to_int($maxTopicsOption);
+        if ($maxTopics !== null) {
+            $maxTopicsResolved = $this->parse_to_int($maxTopics);
+        }
         $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
-        $pageLimit = ($pageLimitOption > 100) ? 100 : $pageLimitOption;
+        $pageLimit = $this->parse_to_int(100);
+        if ($pageLimitOption < 100) {
+            $pageLimit = $this->parse_to_int($pageLimitOption);
+        }
         $collected = array();
         $offset = 0;
         while (true) {
@@ -1118,7 +1124,7 @@ class binance extends Exchange {
             $request['limit'] = $limit;
         }
         $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $paramsMaxEntriesPerRequest));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $paramsMaxEntriesPerRequest)));
         //
         // {
@@ -1211,7 +1217,7 @@ class binance extends Exchange {
             $request['endDate'] = $this->yyyymmdd($until);
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $paramsOmitted));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
@@ -1280,7 +1286,7 @@ class binance extends Exchange {
         }
         $wallet = Async\await($this->fetch_wallet('fetchPositions', $params));
         $request = array(
-            'walletAddress' => $wallet['walletAddress'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
         );
         $response = Async\await($this->sapiPrivateGetPositionList($this->extend($request, $params)));
         //
@@ -1372,7 +1378,7 @@ class binance extends Exchange {
             $request['marketTopicId'] = $market['info']['marketTopicId'];
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetPositionFilter($this->extend($request, $params)));
         //
         //
@@ -1489,7 +1495,7 @@ class binance extends Exchange {
             $request['endDate'] = $this->yyyymmdd($until);
         }
         $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $paramsOmitted));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
@@ -1770,7 +1776,7 @@ class binance extends Exchange {
         $cost = $this->safe_string($params, 'cost');
         $slippageBps = $this->parse_to_int(Precise::string_mul($slippage, '10000'));
         $commonRequest = array(
-            'walletAddress' => $wallet['walletAddress'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
             'orderType' => $typeUpper,
             'slippageBps' => $slippageBps,
         );
@@ -1817,7 +1823,7 @@ class binance extends Exchange {
         $quote = Async\await($this->fetch_quote($quoteRequest, $paramsOmitted));
         $quoteId = $this->safe_string($quote, 'quoteId');
         $orderRequest = $this->extend($commonRequest, array(
-            'walletId' => $wallet['walletId'],
+            'walletId' => $this->safe_string($wallet, 'walletId'),
             'quoteId' => $quoteId,
             'timeInForce' => $timeInForce,
             'accountType' => $accountType,
@@ -1910,8 +1916,8 @@ class binance extends Exchange {
         }
         $wallet = Async\await($this->fetch_wallet('cancelOrders', $params));
         $request = array(
-            'walletAddress' => $wallet['walletAddress'],
-            'walletId' => $wallet['walletId'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
+            'walletId' => $this->safe_string($wallet, 'walletId'),
         );
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for ($i = 0; $i < count($ids); $i++) {
@@ -1937,17 +1943,14 @@ class binance extends Exchange {
         $failedOrders = $this->safe_list($response, 'failed', array());
         $failedOrdersLength = count($failedOrders);
         if ($failedOrdersLength > 0) {
-            $failedDetails = '';
+            $failedDetails = array();
             for ($i = 0; $i < $failedOrdersLength; $i++) {
                 $failedOrder = $this->safe_dict($failedOrders, $i);
-                $failedOrderId = $this->safe_string($failedOrder, 'orderId');
-                $failedReason = $this->safe_string($failedOrder, 'reason');
-                if ($i > 0) {
-                    $failedDetails = $failedDetails . ', ';
-                }
-                $failedDetails = $failedDetails . $failedOrderId . ' => ' . $failedReason;
+                $failedOrderId = $this->safe_string($failedOrder, 'orderId', '');
+                $failedReason = $this->safe_string($failedOrder, 'reason', '');
+                $failedDetails[] = $failedOrderId . ' => ' . $failedReason;
             }
-            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . $failedDetails);
+            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . implode(', ', $failedDetails));
         }
         $orders = array();
         $canceledOrdersLength = count($canceledOrders);
@@ -1970,7 +1973,7 @@ class binance extends Exchange {
         return $orders;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

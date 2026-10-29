@@ -2,7 +2,7 @@ import toobitRest from '../toobit.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class toobit extends toobitRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): {
         ping: number;
     };
@@ -181,6 +181,7 @@ export default class toobit extends toobitRest {
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     authenticate(params?: Dict): Promise<void>;
+    setWsOptions(entry: Dict): void;
     keepAliveListenKey(params?: Dict): Promise<void>;
     getUserStreamUrl(): string;
     handleErrorMessage(client: Client, message: Dict): Bool;

@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class bigone(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -616,7 +616,7 @@ class bigone(Exchange, ImplicitAPI):
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = await asyncio.gather(*promises)
         response = self.safe_dict(promisesResult, 0)
-        contractResponse = promisesResult[1]
+        contractResponse = self.safe_value(promisesResult, 1)
         #
         #     {
         #         "code":0,
@@ -842,7 +842,7 @@ class bigone(Exchange, ImplicitAPI):
         #    }
         #
         marketType = 'swap'
-        if 'asset_pair_name' in ticker:
+        if self.safe_string(ticker, 'asset_pair_name') is not None:
             marketType = 'spot'
         marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
@@ -1096,7 +1096,7 @@ class bigone(Exchange, ImplicitAPI):
             orderbook = self.safe_dict(response, 'data', {})
             return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_contract_bids_asks(self, bidsAsks: object):
+    def parse_contract_bids_asks(self, bidsAsks: dict):
         bidsAsksKeys = list(bidsAsks.keys())
         result = []
         for i in range(0, len(bidsAsksKeys)):
@@ -1106,8 +1106,8 @@ class bigone(Exchange, ImplicitAPI):
         return result
 
     def parse_contract_order_book(self, orderbook: dict, symbol: str, limit: Int = None) -> OrderBook:
-        responseBids = self.safe_dict(orderbook, 'bids')
-        responseAsks = self.safe_dict(orderbook, 'asks')
+        responseBids = self.safe_dict(orderbook, 'bids', {})
+        responseAsks = self.safe_dict(orderbook, 'asks', {})
         bids = self.parse_contract_bids_asks(responseBids)
         asks = self.parse_contract_bids_asks(responseAsks)
         return {
@@ -1880,7 +1880,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         exchangeMillisecondsCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0)
         exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
@@ -1900,7 +1900,7 @@ class bigone(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             request = {
                 'type': 'OpenAPIV2',
                 'sub': self.apiKey,
@@ -2046,7 +2046,7 @@ class bigone(Exchange, ImplicitAPI):
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
         type = 'deposit'
-        if 'customer_id' in transaction:
+        if self.safe_string(transaction, 'customer_id') is not None:
             type = 'withdrawal'
         internal = self.safe_bool(transaction, 'is_internal')
         return {
@@ -2300,19 +2300,19 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
         #      {"code":10013,"message":"Resource not found"}
         #      {"code":40004,"message":"invalid jwt"}
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if (code != '0') and (code is not None):
+        if (codeError != '0') and (codeError is not None):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

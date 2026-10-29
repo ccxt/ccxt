@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class lbank extends \ccxt\async\lbank {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -74,7 +74,8 @@ class lbank extends \ccxt\async\lbank {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
         if (($market !== null) && ($market['contract'] === true)) {
-            throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $market['type'] . ' markets yet');
+            $marketType = $this->safe_string($market, 'type', '');
+            throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $marketType . ' markets yet');
         }
     }
 
@@ -232,21 +233,22 @@ class lbank extends \ccxt\async\lbank {
                 $this->safe_number($rawOHLCV, 4),
                 $this->safe_number($rawOHLCV, 5),
             );
-            $timeframeId = $this->safe_string($message, 'kbar');
+            $timeframeId = $this->safe_string($message, 'kbar', '');
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $ohlcvsForSymbol = $this->safe_dict($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $ohlcvsForSymbol;
+            $stored = $this->safe_value($ohlcvsForSymbol, $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $ohlcvsForSymbol[$timeframe] = $stored;
             }
             $stored->append($parsed);
             $messageHash = 'fetchOHLCV:' . $symbol . ':' . $timeframeId;
             $client->resolve($stored, $messageHash);
         } else {  // from subscription
             $rawOHLCV = $this->safe_dict($message, 'kbar', array());
-            $timeframeId = $this->safe_string($rawOHLCV, 'slot');
+            $timeframeId = $this->safe_string($rawOHLCV, 'slot', '');
             $datetime = $this->safe_string($rawOHLCV, 't');
             $parsed = array(
                 $this->parse8601($datetime),
@@ -257,12 +259,13 @@ class lbank extends \ccxt\async\lbank {
                 $this->safe_number($rawOHLCV, 'v'),
             );
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $ohlcvsForSymbol = $this->safe_dict($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $ohlcvsForSymbol;
+            $stored = $this->safe_value($ohlcvsForSymbol, $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $ohlcvsForSymbol[$timeframe] = $stored;
             }
             $stored->append($parsed);
             $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
@@ -645,17 +648,13 @@ class lbank extends \ccxt\async\lbank {
         //
         $marketId = $this->safe_string($message, 'pair');
         $symbol = $this->safe_symbol($marketId, null, '_');
-        $myOrders = $this->orders;
+        $order = $this->parse_ws_order($message);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $myOrders = new ArrayCacheBySymbolById($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $order = $this->parse_ws_order($message);
-        if ($myOrders === null) {
-            return;
-        }
+        $myOrders = $this->orders;
         $myOrders->append($order);
-        $this->orders = $myOrders;
         $client->resolve($myOrders, 'orders');
         $messageHash = 'orders:' . $symbol;
         $client->resolve($myOrders, $messageHash);
@@ -1075,12 +1074,12 @@ class lbank extends \ccxt\async\lbank {
                     if ($result !== 'true') {
                         throw new ExchangeError($this->id . ' failed to refresh the SubscribeKey');
                     }
-                    $client['subscriptions']['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                    $client->subscriptions['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            $client->resolve($client->subscriptions['authenticated']['key'], $messageHash);
+            $client->resolve($this->safe_string($this->safe_dict($client->subscriptions, 'authenticated'), 'key'), $messageHash);
         } catch (Exception $e) {
             // reject the flight - all waiters throw and the next caller
             // re-leads instead of deadlocking on a dead flight

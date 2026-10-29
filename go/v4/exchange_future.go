@@ -1,9 +1,5 @@
 package ccxt
 
-import (
-	"sync"
-)
-
 // Future is a one-shot promise
 //	- once resolved or rejected its channel is closed and subsequent Resolve/Reject calls are ignored.
 //	- matches the minimal API the generated WS code expects: Resolve(...).
@@ -28,28 +24,52 @@ func ToGetsLimit(v any) GetsLimit {
 	return NoopLimit{Val: v} // otherwise it is wrapped in NoopLimit
 }
 
+// futureState is the resolution state plus the pending subscribers; whoever
+// holds it out of the state channel is its only owner, so the resolved flag and
+// the subscriber list are never half-updated (ccxt issue 29586).
+type futureState struct {
+	resolved bool
+	value    any
+	err      any
+	subs     []chan AsyncResult[any]
+}
+
 type Future struct {
-	result        chan any
-	err           chan any
-	subscribers   []chan AsyncResult[any]
-	resolved      bool
-	resolvedValue any
-	resolvedError any
-	// mu guards resolved state AND subscribers together: Await must check
-	// resolved and append its subscriber under the same lock that Resolve
-	// and Reject use to set the state and take the subscriber snapshot,
-	// otherwise a resolve landing between an unlocked check and the append
-	// notifies an empty list, clears it, and the subscriber blocks forever,
-	// see https://github.com/ccxt/ccxt/issues/29586
-	mu   sync.Mutex
-	once sync.Once
+	result chan any
+	err    chan any
+	state  chan futureState
 }
 
 // Create new Future
 func NewFuture() *Future {
-	return &Future{
+	future := &Future{
 		result: make(chan any, 1),
 		err:    make(chan any, 1),
+		state:  make(chan futureState, 1),
+	}
+	future.state <- futureState{}
+	return future
+}
+
+func (f *Future) takeState() futureState {
+	return <-f.state
+}
+
+func (f *Future) putState(st futureState) {
+	f.state <- st
+}
+
+// deliverOutcome performs the non-blocking wake-up send a promise owes its waiters;
+// both channels involved are buffered with the single value they carry.
+func deliverOutcome(ch chan AsyncResult[any], outcome AsyncResult[any]) {
+	defer func() {
+		if r := recover(); r != nil {
+			// the waiter dropped its channel; the outcome stays readable in the state
+		}
+	}()
+	select {
+	case ch <- outcome:
+	default:
 	}
 }
 
@@ -61,89 +81,68 @@ func (f *Future) Resolve(args ...any) {
 	} else {
 		value = args[0]
 	}
-	f.once.Do(func() {
-		f.mu.Lock()
-		f.resolved = true
-		f.resolvedValue = value
-		f.resolvedError = nil
-		subscribers := f.subscribers
-		f.subscribers = nil
-		f.mu.Unlock()
+	st := f.takeState()
+	if st.resolved {
+		f.putState(st)
+		return
+	}
+	st.resolved = true
+	st.value = value
+	st.err = nil
+	subscribers := st.subs
+	st.subs = nil
+	f.putState(st)
 
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// Channel is closed, but that's okay since we're using sync.Once
-					// and the future is already marked as resolved
-				}
-			}()
-			select {
-			case f.result <- value:
-			default:
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// the result channel is already drained, nothing else to publish
 			}
 		}()
-
-		// notify the snapshot outside the lock, every subscriber channel has
-		// capacity 1 and receives at most this one send, so the non blocking
-		// send cannot drop a wakeup
-		for _, sub := range subscribers {
-			func(sub chan AsyncResult[any]) {
-				defer func() {
-					if r := recover(); r != nil {
-						// Channel is closed, but that's okay since we're using sync.Once
-						// and the future is already marked as resolved
-					}
-				}()
-				select {
-				case sub <- AsyncResult[any]{Value: value}:
-				default:
-				}
-			}(sub)
+		select {
+		case f.result <- value:
+		default:
 		}
-	})
+	}()
+
+	// notify the snapshot taken under the token, every subscriber channel has
+	// capacity 1 and receives at most this one send, so the non blocking
+	// send cannot drop a wakeup
+	for _, sub := range subscribers {
+		deliverOutcome(sub, AsyncResult[any]{Value: value})
+	}
 }
 
 // Reject asynchronously with an error
 func (f *Future) Reject(reason any) {
-	f.once.Do(func() {
-		f.mu.Lock()
-		f.resolved = true
-		f.resolvedValue = nil
-		f.resolvedError = reason
-		subscribers := f.subscribers
-		f.subscribers = nil
-		f.mu.Unlock()
+	st := f.takeState()
+	if st.resolved {
+		f.putState(st)
+		return
+	}
+	st.resolved = true
+	st.value = nil
+	st.err = reason
+	subscribers := st.subs
+	st.subs = nil
+	f.putState(st)
 
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// Channel is closed, but that's okay since we're using sync.Once
-					// and the future is already marked as resolved
-				}
-			}()
-			select {
-			case f.err <- reason:
-			default:
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// the error channel is already drained, nothing else to publish
 			}
 		}()
-
-		// notify the snapshot outside the lock, see Resolve
-		failure := rejectionError(reason)
-		for _, sub := range subscribers {
-			func(sub chan AsyncResult[any]) {
-				defer func() {
-					if r := recover(); r != nil {
-						// Channel is closed, but that's okay since we're using sync.Once
-						// and the future is already marked as resolved
-					}
-				}()
-				select {
-				case sub <- AsyncResult[any]{Err: failure}:
-				default:
-				}
-			}(sub)
+		select {
+		case f.err <- reason:
+		default:
 		}
-	})
+	}()
+
+	failure := rejectionError(reason)
+	for _, sub := range subscribers {
+		deliverOutcome(sub, AsyncResult[any]{Err: failure})
+	}
 }
 
 // rejectionError is the Err a rejection reason is delivered as; a nil reason reads as nil, as before.
@@ -157,43 +156,23 @@ func rejectionError(reason any) error {
 // Await delivers the outcome: {Value} on resolve, {Err} on reject.
 func (f *Future) Await() <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
-	f.mu.Lock()
-	if f.resolved {
-		// Already resolved, return cached value immediately
-		if f.resolvedError != nil {
-			ch <- AsyncResult[any]{Err: rejectionError(f.resolvedError)}
+	st := f.takeState()
+	if st.resolved {
+		// Already resolved, hand the cached outcome over immediately
+		if st.err != nil {
+			ch <- AsyncResult[any]{Err: rejectionError(st.err)}
 		} else {
-			ch <- AsyncResult[any]{Value: f.resolvedValue}
+			ch <- AsyncResult[any]{Value: st.value}
 		}
-		f.mu.Unlock()
+		f.putState(st)
 		return ch
 	}
-	// still unresolved under the same lock, so a concurrent Resolve cannot
-	// have taken its subscriber snapshot yet, the append below is safe
-	if f.subscribers == nil {
-		f.subscribers = make([]chan AsyncResult[any], 0)
-	}
-	f.subscribers = append(f.subscribers, ch)
-	f.mu.Unlock()
+	// the resolved check and the append are one ownership step, so a resolve
+	// cannot have snapshotted the subscriber list in between
+	st.subs = append(st.subs, ch)
+	f.putState(st)
 
 	return ch
-}
-
-// Wrap an existing channel that returns (any, error) into Future
-func WrapFuture(ch <-chan struct {
-	val any
-	err error
-}) *Future {
-	f := NewFuture()
-	go func() {
-		v := <-ch
-		if v.err != nil {
-			f.Reject(v.err)
-		} else {
-			f.Resolve(v.val)
-		}
-	}()
-	return f
 }
 
 // Race multiple Futures: returns the first resolved or rejected value/error.
@@ -206,10 +185,10 @@ func FutureRace(futures []*Future) *Future {
 	sharedCh := make(chan AsyncResult[any], 1)
 
 	for _, f := range futures {
-		f.mu.Lock()
-		if f.resolved {
-			val, err := f.resolvedValue, f.resolvedError
-			f.mu.Unlock()
+		st := f.takeState()
+		if st.resolved {
+			val, err := st.value, st.err
+			f.putState(st)
 			if err != nil {
 				result.Reject(err)
 			} else {
@@ -217,14 +196,11 @@ func FutureRace(futures []*Future) *Future {
 			}
 			return result
 		}
-		// same lock spans the resolved check and the subscribe, a resolve
+		// the resolved check and the subscribe are one ownership step, a resolve
 		// landing in between would otherwise notify an empty list and this
 		// racer would never wake, see https://github.com/ccxt/ccxt/issues/29586
-		if f.subscribers == nil {
-			f.subscribers = make([]chan AsyncResult[any], 0)
-		}
-		f.subscribers = append(f.subscribers, sharedCh)
-		f.mu.Unlock()
+		st.subs = append(st.subs, sharedCh)
+		f.putState(st)
 	}
 
 	// Single goroutine forwards the first resolved/rejected value.

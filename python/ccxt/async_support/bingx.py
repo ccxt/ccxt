@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class bingx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bingx, self).describe(), {
             'id': 'bingx',
             'name': 'BingX',
@@ -1075,8 +1075,8 @@ class bingx(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         symbolParts = id.split('-')
-        baseId = symbolParts[0]
-        quoteId = symbolParts[1]
+        baseId = self.safe_string(symbolParts, 0)
+        quoteId = self.safe_string(symbolParts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -2139,13 +2139,13 @@ class bingx(Exchange, ImplicitAPI):
         symbolsLength = 0 if (symbolsNormalized is None) else len(symbolsNormalized)
         if type == 'spot':
             if (market is not None) and (symbolsLength == 1):
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             response = await self.spotV2PublicGetQuoteBookTicker(self.extend(request, paramsMarketType))
             rows = self.safe_list(response, 'data', [])
         else:
             if (market is None) or (market['inverse'] is True) or (symbolsLength != 1):
                 raise ArgumentsRequired(self.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response = await self.swapV2PublicGetQuoteBookTicker(self.extend(request, paramsMarketType))
             data = self.safe_dict(response, 'data', {})
             rows = [self.safe_dict(data, 'book_ticker', {})]
@@ -2391,7 +2391,7 @@ class bingx(Exchange, ImplicitAPI):
         if market is not None:
             type = market['type']
         marketResolved = self.safe_market(marketId, market, None, type)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
@@ -4308,7 +4308,7 @@ class bingx(Exchange, ImplicitAPI):
             idsToParse = clientOrderIds
         parsedIds = []
         for i in range(0, len(idsToParse)):
-            id = idsToParse[i]
+            id = self.safe_string(idsToParse, i, '')
             stringId = str(id)
             parsedIds.append(stringId)
         response: dict
@@ -5133,21 +5133,12 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         subType, paramsSubType = self.handle_sub_type_and_params('transfer', None, params)
-        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromAccount == 'swap':
-            if subType == 'inverse':
-                fromId = 'coinMPerp'
-            else:
-                fromId = 'USDTMPerp'
-        if toAccount == 'swap':
-            if subType == 'inverse':
-                toId = 'coinMPerp'
-            else:
-                toId = 'USDTMPerp'
+        fromIdMapped = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toIdMapped = self.safe_string(accountsByType, toAccount, toAccount)
+        swapId = 'coinMPerp' if (subType == 'inverse') else 'USDTMPerp'
         request = {
-            'fromAccount': fromId,
-            'toAccount': toId,
+            'fromAccount': swapId if (fromAccount == 'swap') else fromIdMapped,
+            'toAccount': swapId if (toAccount == 'swap') else toIdMapped,
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
@@ -5353,7 +5344,7 @@ class bingx(Exchange, ImplicitAPI):
         tag = self.safe_string(depositAddress, 'tag')
         currencyId = self.safe_string(depositAddress, 'coin')
         currencyResolved = self.safe_currency(currencyId, currency)
-        code = currencyResolved['code']
+        code = self.safe_string(currencyResolved, 'code')
         rawAddress = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
         networkId = self.safe_string(depositAddress, 'network')
         networkCode = self.network_id_to_code(networkId, code)
@@ -6025,15 +6016,17 @@ class bingx(Exchange, ImplicitAPI):
         }
         if networksLength != 0:
             for i in range(0, networksLength):
-                networkCode = networkCodes[i]
+                networkCode = self.safe_string(networkCodes, i, '')
                 network = self.safe_dict(networks, networkCode)
                 result['networks'][networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
                     'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
                 }
                 if networksLength == 1:
-                    result['withdraw']['fee'] = self.safe_number(network, 'withdrawFee')
-                    result['withdraw']['percentage'] = False
+                    result['withdraw'] = {
+                        'fee': self.safe_number(network, 'withdrawFee'),
+                        'percentage': False,
+                    }
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -6111,13 +6104,13 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params: dict) -> dict:
-        # const sortedParams = this.keysort (params);
         copied = self.clone(params)
-        rawKeys = list(params.keys())
-        keys = self.sort(rawKeys)
-        for i in range(0, len(keys)):
-            key = keys[i]
-            value = params[key]
+        sortedParams = self.keysort(params)
+        rawKeys = list(sortedParams.keys())
+        rawKeysLength = len(rawKeys)
+        for i in range(0, rawKeysLength):
+            key = rawKeys[i]
+            value = sortedParams[key]
             if isinstance(value, list):
                 arrStr = '['
                 for j in range(0, len(value)):
@@ -6758,14 +6751,14 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def custom_encode(self, params: dict) -> Str:
-        # const sortedParams = this.keysort (params);
-        rawKeys = list(params.keys())
-        keys = self.sort(rawKeys)
+        sortedParams = self.keysort(params)
+        rawKeys = list(sortedParams.keys())
+        rawKeysLength = len(rawKeys)
         adjustedValue = None
         result = None
-        for i in range(0, len(keys)):
-            key = keys[i]
-            value = params[key]
+        for i in range(0, rawKeysLength):
+            key = rawKeys[i]
+            value = sortedParams[key]
             if isinstance(value, list):
                 arrStr = None
                 for j in range(0, len(value)):
@@ -6889,9 +6882,7 @@ class bingx(Exchange, ImplicitAPI):
         url += '/' + version + '/' + pathValue
         requestHeaders = None
         requestBody = None
-        paramsOmitted = self.omit(params, self.extract_params(pathValue))
-        paramsOmitted['timestamp'] = self.nonce()
-        paramsSorted = self.keysort(paramsOmitted)
+        paramsSorted = self.keysort(self.extend(self.omit(params, self.extract_params(pathValue)), {'timestamp': self.nonce()}))
         if access == 'public':
             if len(paramsSorted) > 0:
                 url += '?' + self.urlencode(paramsSorted)
@@ -6912,7 +6903,7 @@ class bingx(Exchange, ImplicitAPI):
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if isJsonContentType:
-                requestHeaders['Content-Type'] = 'application/json'
+                requestHeaders = self.extend(requestHeaders, {'Content-Type': 'application/json'})
                 paramsSorted['signature'] = signature
                 requestBody = self.json(paramsSorted)
             else:
@@ -6922,14 +6913,14 @@ class bingx(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def set_sandbox_mode(self, enable: bool):
         super(bingx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -6940,15 +6931,15 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
         transferErrorMsg = self.safe_string(response, 'transferErrorMsg')  # handling with errors from transfer endpoint
-        if (transferErrorMsg is not None) or (code is not None and code != '0'):
+        if (transferErrorMsg is not None) or (codeError is not None and codeError != '0'):
             if transferErrorMsg is not None:
                 message = transferErrorMsg
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

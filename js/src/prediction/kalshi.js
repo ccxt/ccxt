@@ -273,11 +273,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug(eventTitle) : '';
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if (eventKey !== '') {
+                    if (eventTitle !== undefined && eventTitle !== '') {
+                        const eventKey = this.shortenSlug(eventTitle);
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -407,7 +407,8 @@ export default class kalshi extends Exchange {
     async fetchOutcomes(outcomeSymbols) {
         const tickers = [];
         const seen = {};
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        const outcomeSymbolsLength = outcomeSymbols.length;
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             const outcomeSymbol = outcomeSymbols[i];
             if (outcomeSymbol.indexOf(':') >= 0) {
                 continue;
@@ -451,7 +452,7 @@ export default class kalshi extends Exchange {
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             if (!this.hasOutcome(outcomeSymbols[i])) {
                 await this.fetchOutcome(outcomeSymbols[i]);
             }
@@ -563,15 +564,14 @@ export default class kalshi extends Exchange {
         const liquidity = this.safeNumber2(raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        let eventParts = [];
-        if ((eventTicker !== undefined) && (eventTicker !== '')) {
-            eventParts = eventTicker.split('-');
-        }
         let seriesTicker = eventTicker;
-        const eventPartsLength = eventParts.length;
-        if (eventPartsLength > 1) {
-            const seriesParts = this.arraySlice(eventParts, 0, eventPartsLength - 1);
-            seriesTicker = seriesParts.join('-');
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
+            const eventParts = eventTicker.split('-');
+            const eventPartsLength = eventParts.length;
+            if (eventPartsLength > 1) {
+                const seriesParts = this.arraySlice(eventParts, 0, eventPartsLength - 1);
+                seriesTicker = seriesParts.join('-');
+            }
         }
         // market symbol (no outcome suffix)
         let subtitleOrTicker = ticker;
@@ -986,15 +986,11 @@ export default class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(outcomes);
-        const targets = [];
-        for (let i = 0; i < outcomes.length; i++) {
-            targets.push(outcomes[i]);
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker = {};
         const tickers = [];
-        for (let i = 0; i < targets.length; i++) {
-            const outcomeObj = this.outcome(targets[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome(outcomes[i]);
             const ticker = this.safeString(outcomeObj['info'], 'ticker');
             if (ticker === undefined) {
                 continue;
@@ -1004,7 +1000,7 @@ export default class kalshi extends Exchange {
                 tickers.push(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesByTicker[ticker];
+            const grouped = this.safeList(outcomesByTicker, ticker, []);
             grouped.push(outcomeObj);
             outcomesByTicker[ticker] = grouped;
         }
@@ -2038,7 +2034,7 @@ export default class kalshi extends Exchange {
         if (filledCount !== undefined) {
             order['filled'] = filledCount;
         }
-        else if ((remainingCount !== undefined) && (amount !== undefined)) {
+        else if (remainingCount !== undefined) {
             order['filled'] = amount - remainingCount;
         }
         if (remainingCount !== undefined) {
@@ -2626,7 +2622,7 @@ export default class kalshi extends Exchange {
      */
     sign(path, api = ['kalshi'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const access = this.safeString(api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['kalshi']);
         const implodedPath = this.implodeParams(path, params);

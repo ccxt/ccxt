@@ -70,8 +70,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const productIds = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash += ':' + market['id'];
-            productIds.push(market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            messageHash += ':' + marketId;
+            productIds.push(marketId);
         }
         let url = this.safeString(this.urls['api'], 'ws');
         if (url === undefined) {
@@ -105,8 +106,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             market = this.market(symbol);
-            productIds.push(market['id']);
-            messageHashes.push(messageHashStart + ':' + market['symbol']);
+            const marketId = this.safeString(market, 'id', '');
+            productIds.push(marketId);
+            messageHashes.push(messageHashStart + ':' + this.safeString(market, 'symbol', ''));
         }
         let url = this.safeString(this.urls['api'], 'ws');
         if (url === undefined) {
@@ -355,8 +357,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const marketIds = this.marketIds(symbolsNormalized);
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const marketId = marketIds[i];
-            messageHashes.push(name + ':' + marketId);
+            messageHashes.push(name + ':' + this.safeString(marketIds, i, ''));
         }
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -393,7 +394,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + this.safeString(market, 'id', '');
         const url = this.urls['api']['ws'];
         const subscribe = {
             'type': 'subscribe',
@@ -458,12 +459,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const trade = this.parseWsTrade(message);
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
-            let tradesArray = this.myTrades;
-            if (tradesArray === undefined) {
+            if (this.myTrades === undefined) {
                 const limit = this.safeInteger(this.options, 'myTradesLimit', 1000);
-                tradesArray = new ArrayCacheBySymbolById(limit);
-                this.myTrades = tradesArray;
+                this.myTrades = new ArrayCacheBySymbolById(limit);
             }
+            const tradesArray = this.myTrades;
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
@@ -523,17 +523,18 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const parsed = super.parseTrade(trade);
         let feeRate = undefined;
         let isMaker = false;
-        if ('maker_fee_rate' in trade) {
+        const makerFeeRate = this.safeString(trade, 'maker_fee_rate');
+        if (makerFeeRate !== undefined) {
             isMaker = true;
             parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeString(trade, 'maker_fee_rate');
+            feeRate = makerFeeRate;
         }
         else {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeString(trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            const currentSide = parsed['side'];
+            const currentSide = this.safeString(parsed, 'side');
             parsed['side'] = this.safeString({
                 'buy': 'sell',
                 'sell': 'buy',
@@ -544,11 +545,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             idKey = 'maker_order_id';
         }
         parsed['order'] = this.safeString(trade, idKey);
-        const marketResolved = this.market(parsed['symbol']);
+        const parsedSymbol = parsed['symbol'];
+        const marketResolved = this.market(parsedSymbol);
         const feeCurrency = marketResolved['quote'];
         let feeCost = undefined;
-        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            const cost = this.safeString(parsed, 'cost');
+        const cost = this.safeString(parsed, 'cost');
+        if ((cost !== undefined) && (feeRate !== undefined)) {
             feeCost = Precise.stringMul(cost, feeRate);
         }
         parsed['fee'] = {
@@ -644,11 +646,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //         "reason": "filled"
         //     }
         //
-        let currentOrders = this.orders;
-        if (currentOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            currentOrders = new ArrayCacheBySymbolById(limit);
-            this.orders = currentOrders;
+            this.orders = new ArrayCacheBySymbolById(limit);
         }
         const type = this.safeString(message, 'type');
         const marketId = this.safeString(message, 'product_id');
@@ -658,10 +658,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const orderId = this.safeString(message, 'order_id');
             const makerOrderId = this.safeString(message, 'maker_order_id');
             const takerOrderId = this.safeString(message, 'taker_order_id');
-            const orders = this.orders;
-            if (orders === undefined) {
+            if (this.orders === undefined) {
                 return;
             }
+            const orders = this.orders;
             const previousOrders = this.safeDict(orders.hashmap, symbol, {});
             let previousOrder = this.safeDict(previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -682,16 +682,14 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
                         const trade = this.parseWsTrade(message);
-                        if (previousOrder['trades'] === undefined) {
-                            previousOrder['trades'] = [];
-                        }
-                        previousOrder['trades'].push(trade);
+                        const previousTrades = this.safeList(previousOrder, 'trades', []);
+                        previousTrades.push(trade);
+                        previousOrder['trades'] = previousTrades;
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                         let totalCost = '0';
                         let totalAmount = '0';
-                        const trades = previousOrder['trades'];
-                        for (let i = 0; i < trades.length; i++) {
-                            const tradeEntry = this.safeDict(trades, i);
+                        for (let i = 0; i < previousTrades.length; i++) {
+                            const tradeEntry = this.safeDict(previousTrades, i);
                             totalCost = this.safeString(tradeEntry, 'cost', '0');
                             totalAmount = this.safeString(tradeEntry, 'amount', '0');
                         }
@@ -702,28 +700,26 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         const previousOrderFilled = this.safeString(previousOrder, 'filled');
                         if (previousOrderFilled !== undefined) {
                             previousOrder['filled'] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, 'amount')));
-                            if (previousOrder['amount'] !== undefined) {
+                            if (this.safeString(previousOrder, 'amount') !== undefined) {
                                 previousOrder['remaining'] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, 'amount'), this.safeString(previousOrder, 'filled')));
                             }
                         }
-                        if (previousOrder['fee'] === undefined) {
+                        if (this.safeDict(previousOrder, 'fee') === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
                                 'currency': this.safeString(trade['fee'], 'currency'),
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], this.safeNumber(trade['fee'], 'cost'));
-                            const previousOrderFee = this.safeDict(previousOrder, 'fee');
-                            const tradeFee = this.safeDict(trade, 'fee');
-                            previousOrder['fee']['cost'] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(tradeFee, 'cost')));
+                        const previousOrderFee = this.safeDict(previousOrder, 'fee', {});
+                        if ((this.safeNumber(previousOrderFee, 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                            previousOrder['fee']['cost'] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(trade['fee'], 'cost')));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     }
                     else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend(previousOrder['info'], message);
+                        const info = this.extend(previousInfo, message);
                         const order = this.parseWsOrder(info);
                         const keys = Object.keys(order);
                         // update the reference
@@ -734,7 +730,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         // update the newUpdates count
-                        if (orders === undefined) {
+                        if (this.orders === undefined) {
                             return;
                         }
                         orders.append(previousOrder);
@@ -821,7 +817,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
-            const messageHash = 'ticker:' + symbol;
+            const messageHash = 'ticker:' + this.safeString(ticker, 'symbol', '');
             const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
             client.resolve(ticker, idMessageHash);
@@ -922,7 +918,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'level2';
-        const messageHash = name + ':' + marketId;
+        const messageHash = name + ':' + this.safeString(market, 'id', '');
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         if (type === 'snapshot') {
@@ -987,7 +983,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //     }
         //
         const errMsg = this.safeString(message, 'message');
-        const reason = this.safeString(message, 'reason');
+        const reason = this.safeString(message, 'reason', '');
         try {
             if (errMsg === 'Authentication Failed') {
                 throw new AuthenticationError('Authentication failed: ' + reason);

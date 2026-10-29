@@ -2,7 +2,7 @@ import pacificaRest from '../pacifica.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 export default class pacifica extends pacificaRest {
-    describe(): any;
+    describe(): Dict;
     setupApiKeyHeaders(key?: Str): void;
     /**
      * @method

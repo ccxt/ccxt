@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateH
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -651,7 +651,7 @@ export default class blofin extends Exchange {
         }
         let symbol = base + '/' + quote;
         if (swap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         const expiry = undefined;
         const strikePrice = undefined;
@@ -961,7 +961,9 @@ export default class blofin extends Exchange {
             };
         }
         if (isSpot) {
-            const spotSymbol = marketResolved['base'] + '/' + marketResolved['quote'];
+            const spotBase = this.safeString (marketResolved, 'base', '');
+            const spotQuote = this.safeString (marketResolved, 'quote', '');
+            const spotSymbol = spotBase + '/' + spotQuote;
             const cost = this.parseNumber (Precise.stringMul (price, amount));
             const result: Dict = {
                 'info': trade,
@@ -1152,7 +1154,7 @@ export default class blofin extends Exchange {
         const rates: List = [];
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const rate = data[i];
+            const rate = this.safeValue (data, i);
             const timestamp = this.safeInteger (rate, 'fundingTime');
             rates.push ({
                 'info': rate,
@@ -1378,8 +1380,7 @@ export default class blofin extends Exchange {
         };
         let response: Dict;
         if (accountType !== undefined && accountType !== 'swap') {
-            const options = this.safeDict (this.options, 'accountsByType', {});
-            const parsedAccountType = this.safeString (options, accountType, accountType);
+            const parsedAccountType = this.safeString (this.options['accountsByType'], accountType, accountType);
             request['accountType'] = parsedAccountType;
             response = await this.privateGetAssetBalances (this.extend (request, paramsAccountType));
         } else {
@@ -1753,11 +1754,11 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         } else {
             if ((!isTrigger) && (!isTpsl)) {
-                request['orderId'] = id.toString ();
+                request['orderId'] = this.numberToString (id);
             } else if (isTpsl) {
-                request['tpslId'] = id.toString ();
+                request['tpslId'] = this.numberToString (id);
             } else if (isTrigger) {
-                request['algoId'] = id.toString ();
+                request['algoId'] = this.numberToString (id);
             }
         }
         const query = this.omit (params, [ 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ]);
@@ -2056,8 +2057,7 @@ export default class blofin extends Exchange {
     }
 
     networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
-        const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
-        const aliasedCode = this.safeString (aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString (this.options['networkCodeAliases'], networkCode, networkCode);
         const unifiedCode = this.safeString (this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
@@ -2072,16 +2072,13 @@ export default class blofin extends Exchange {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        const networks = this.safeDict (this.options, 'networks', {});
-        const direct = this.safeString (networks, unifiedCode);
+        const direct = this.safeString (this.options['networks'], unifiedCode);
         if (direct !== undefined) {
             return direct;
         }
-        const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
-        const prefix = this.safeString (prefixes, unifiedCode);
+        const prefix = this.safeString (this.options['networkPrefixes'], unifiedCode);
         if (prefix !== undefined) {
-            const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
-            const suffix = this.safeString (suffixes, unifiedCode, unifiedCode);
+            const suffix = this.safeString (this.options['networkSuffixes'], unifiedCode, unifiedCode);
             return prefix + ' ' + '(' + suffix + ')';
         }
         return unifiedCode;
@@ -2103,8 +2100,7 @@ export default class blofin extends Exchange {
             const tail = this.safeString (parts, 1, '');
             const tailParts = tail.split (')');
             const suffix = this.safeString (tailParts, 0);
-            const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
-            const suffixCode = this.safeString (bySuffix, suffix);
+            const suffixCode = this.safeString (this.options['networkCodesBySuffix'], suffix);
             if (suffixCode !== undefined) {
                 return suffixCode;
             }
@@ -2255,8 +2251,7 @@ export default class blofin extends Exchange {
                 if (networkKeysLength === 1) {
                     networkCode = this.safeString (networkKeys, 0);
                 } else {
-                    const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
-                    networkCode = this.safeString (defaultNetworks, currency['code']);
+                    networkCode = this.safeString (this.options['defaultNetworks'], currency['code']);
                 }
             }
             if (networkCode === undefined) {
@@ -2348,10 +2343,12 @@ export default class blofin extends Exchange {
         }
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
-            const networkKeys = Object.keys (result['networks']);
+            const networks: Dict = this.safeDict (result, 'networks', {});
+            const networkKeys = Object.keys (networks);
             const onlyNetwork = this.safeString (networkKeys, 0);
             if (onlyNetwork !== undefined) {
-                result['withdraw'] = result['networks'][onlyNetwork]['withdraw'];
+                const networkResolved: Dict = this.safeDict (networks, onlyNetwork, {});
+                result['withdraw'] = networkResolved['withdraw'];
             }
         }
         return result;
@@ -2383,7 +2380,7 @@ export default class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         const dataLength = (data as List).length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeValue (data, i);
             if (this.safeString (entry, 'depositId') === id) {
                 return this.parseTransaction (entry, currency);
             }
@@ -2402,7 +2399,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: Str, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const clientId = this.safeString (params, 'clientId');
         if ((id === undefined) && (clientId === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
@@ -2423,7 +2420,7 @@ export default class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         const dataLength = (data as List).length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeValue (data, i);
             let matches = false;
             if (id !== undefined) {
                 matches = (this.safeString (entry, 'withdrawId') === id);
@@ -2722,7 +2719,7 @@ export default class blofin extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseIds (ids: any) {
+    parseIds (ids: any): Strings {
         /**
          * @ignore
          * @method
@@ -2766,11 +2763,11 @@ export default class blofin extends Exchange {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds (ids);
+            const orderIds = this.parseIds (ids) as string[];
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push ({
-                        'tpslId': tpslIds[i],
+                        'tpslId': this.safeString (tpslIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -2778,12 +2775,12 @@ export default class blofin extends Exchange {
             for (let i = 0; i < orderIds.length; i++) {
                 if (trigger === true) {
                     request.push ({
-                        'tpslId': orderIds[i],
+                        'tpslId': this.safeString (orderIds, i),
                         'instId': market['id'],
                     });
                 } else {
                     request.push ({
-                        'orderId': orderIds[i],
+                        'orderId': this.safeString (orderIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -2792,7 +2789,7 @@ export default class blofin extends Exchange {
             for (let i = 0; i < clientOrderIds.length; i++) {
                 request.push ({
                     'instId': market['id'],
-                    'clientOrderId': clientOrderIds[i],
+                    'clientOrderId': this.safeString (clientOrderIds, i),
                 });
             }
         }
@@ -2823,9 +2820,8 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = this.safeString (this.options['accountsByType'], fromAccount, fromAccount);
+        const toId = this.safeString (this.options['accountsByType'], toAccount, toAccount);
         const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -3155,19 +3151,8 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const symbolsList = symbolsNormalized;
-        let instIds = '';
-        for (let i = 0; i < symbolsList.length; i++) {
-            const entry = symbolsList[i];
-            const entryMarket = this.market (entry);
-            if (i > 0) {
-                instIds = instIds + ',' + entryMarket['id'];
-            } else {
-                instIds = instIds + entryMarket['id'];
-            }
-        }
         const request: Dict = {
-            'instId': instIds,
+            'instId': this.marketIds (symbolsNormalized).join (','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, query));
@@ -3478,7 +3463,7 @@ export default class blofin extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         const request: Dict = {
-            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
+            'positionMode': (hedged === true) ? 'long_short_mode' : 'net_mode',
         };
         //
         //     {
@@ -3579,19 +3564,19 @@ export default class blofin extends Exchange {
         } as ADL;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const feedback = this.id + ' ' + body;
-        if (code !== undefined && code !== '0') {
+        if (codeError !== undefined && codeError !== '0') {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
@@ -3648,8 +3633,8 @@ export default class blofin extends Exchange {
                 }
             } else {
                 if (!this.isEmpty (query)) {
-                    signedBody = this.json (query);
-                    sign_body = signedBody;
+                    sign_body = this.json (query);
+                    signedBody = sign_body;
                 }
                 signedHeaders['Content-Type'] = 'application/json';
             }

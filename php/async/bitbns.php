@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class bitbns extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',
@@ -540,11 +540,12 @@ class bitbns extends Exchange {
             $parts = explode('availableorder', $key);
             $numParts = count($parts);
             if ($numParts > 1) {
+                $usedCurrencyId = $this->safe_string($parts, 1, '');
                 $currencyId = $this->safe_string($parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 $account = $this->account();
                 $account['free'] = $this->safe_string($data, $key);
-                $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
+                $account['used'] = $this->safe_string($data, 'inorder' . $usedCurrencyId);
                 if ($currencyId === 'Money') {
                     $currencyId = 'INR';
                 }
@@ -1324,31 +1325,27 @@ class bitbns extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
     public function sign(string $path, array $api = array('www'), string $method = 'GET', $params = array()): array {
-        $urls = $this->urls;
         $apiName = $api[0];
-        if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
         if ($apiName !== 'www') {
             $this->check_required_credentials();
         }
-        $apiKeyHeaders = array(
-            'X-BITBNS-APIKEY' => $this->apiKey,
-        );
-        $requestHeaders = ($apiName !== 'www') ? $apiKeyHeaders : null;
-        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
-        if ($baseApiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        $requestHeaders = array();
+        if ($apiName !== 'www') {
+            $requestHeaders['X-BITBNS-APIKEY'] = $this->apiKey;
         }
         $baseUrl = $this->implode_hostname($baseApiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $nonce = (string) $this->nonce();
+        $nonce = $this->number_to_string($this->nonce());
         $queryLength = count($query);
         $postBody = '{}';
         if ($queryLength > 0) {
@@ -1366,7 +1363,6 @@ class bitbns extends Exchange {
             );
             $payload = base64_encode($this->json($auth));
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
-            $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
             $requestHeaders['X-BITBNS-PAYLOAD'] = $payload;
             $requestHeaders['X-BITBNS-SIGNATURE'] = $signature;
             $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -1374,7 +1370,7 @@ class bitbns extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -1382,12 +1378,12 @@ class bitbns extends Exchange {
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $error = ($code !== null) && ($code !== '200') && ($code !== '204');
+        $error = ($codeError !== null) && ($codeError !== '200') && ($codeError !== '204');
         if ($error || ($message !== null)) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown message

@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class cryptomus extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptomus',
             'name' => 'Cryptomus',
@@ -341,8 +341,8 @@ class cryptomus extends Exchange {
             throw new ExchangeError($this->id . ' parseMarket() missing marketId');
         }
         $parts = explode('_', $marketId);
-        $baseId = $parts[0];
-        $quoteId = $parts[1];
+        $baseId = $this->safe_string($parts, 0);
+        $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -535,10 +535,9 @@ class cryptomus extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'currency_pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'high' => null,
@@ -786,7 +785,8 @@ class cryptomus extends Exchange {
         $sideBuy = $side === 'buy';
         $amountToString = $this->number_to_string($amount);
         $priceToString = $this->number_to_string($price);
-        list($costParam, $paramsCost) = $this->handle_param_string($paramsOmitted, 'cost');
+        $paramsCost = $this->omit($paramsOmitted, 'cost');
+        $costParam = $this->safe_string($paramsOmitted, 'cost');
         $cost = $costParam;
         if ($type === 'market') {
             $requiresPriceAndParams = $this->handle_option_bool_and_params($paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -797,13 +797,13 @@ class cryptomus extends Exchange {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = $requiresPriceAndParams[0];
                 if ($createMarketBuyOrderRequiresPrice) {
-                    if (($price === null) && ($cost === null)) {
+                    if (($price === null) && ($costParam === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
-                    } elseif ($cost === null) {
+                    } elseif ($costParam === null) {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
                 } else {
-                    $cost = ($cost !== null && $cost !== '') ? $cost : $amountToString;
+                    $cost = ($costParam !== null && $costParam !== '') ? $costParam : $amountToString;
                 }
                 $request['value'] = $cost;
             } else {
@@ -869,14 +869,14 @@ class cryptomus extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in (not used in cryptomus)
          * @param {int} [$since] the earliest time in ms to fetch $orders for (not used in cryptomus)
-         * @param {int} [$limit] the maximum number of $order structures to retrieve (not used in cryptomus)
+         * @param {int} [$limit] the maximum number of order structures to retrieve (not used in cryptomus)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->direction] $order direction 'buy' or 'sell'
-         * @param {string} [$params->order_id] $order id
-         * @param {string} [$params->client_order_id] client $order id
+         * @param {string} [$params->direction] order direction 'buy' or 'sell'
+         * @param {string} [$params->order_id] order id
+         * @param {string} [$params->client_order_id] client order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -933,8 +933,7 @@ class cryptomus extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $orders = array();
         for ($i = 0; $i < count($result); $i++) {
-            $order = $result[$i];
-            $orders[] = $this->parse_order($order, $market);
+            $orders[] = $this->parse_order($result[$i], $market);
         }
         return $orders;
     }
@@ -1266,20 +1265,20 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
-        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
-            $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'message');
+        if ($codeError !== null) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback);
-        } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
+        } elseif ($message !== null) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

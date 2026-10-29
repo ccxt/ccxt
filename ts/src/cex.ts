@@ -15,7 +15,7 @@ import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
             'name': 'CEX.IO',
@@ -1157,7 +1157,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeDict (result, 0);
@@ -1179,7 +1179,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeDict (result, 0);
@@ -1394,7 +1394,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
             'cancelRequestId': 'c_' + (this.milliseconds ()).toString (),
             'timestamp': this.milliseconds (),
         };
@@ -1856,7 +1856,7 @@ export default class cex extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
@@ -1864,7 +1864,7 @@ export default class cex extends Exchange {
         if (response === undefined) {
             if (body === undefined) {
                 throw new NullResponse (this.id + ' returned empty response');
-            } else if (body[0] === '{') {
+            } else if (body.startsWith ('{')) {
                 const fixed = this.fixStringifiedJsonMembers (body);
                 responseFixed = this.parseJson (fixed);
             } else {

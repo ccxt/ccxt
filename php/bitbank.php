@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
             'name' => 'bitbank',
@@ -560,7 +560,7 @@ class bitbank extends Exchange {
             $pair = $pairs[$i];
             $marketId = $this->safe_string($pair, 'name');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = array(
                 'info' => $pair,
                 'symbol' => $symbol,
@@ -1010,7 +1010,7 @@ class bitbank extends Exchange {
         $tagWithdrawTag = $tagAndParams[0];
         $paramsWithdrawTag = $tagAndParams[1];
         $this->check_address($address, $code, $tagWithdrawTag);
-        if (!(is_array($paramsWithdrawTag) && array_key_exists('uuid' ?? '', $paramsWithdrawTag))) {
+        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         if ($this->markets === null) {
@@ -1086,13 +1086,13 @@ class bitbank extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1139,10 +1139,9 @@ class bitbank extends Exchange {
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
             if ($isTimeWindow) {
-                $requestHeaders['ACCESS-REQUEST-TIME'] = $requestTime;
-                $requestHeaders['ACCESS-TIME-WINDOW'] = $timeWindow;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-REQUEST-TIME' => $requestTime, 'ACCESS-TIME-WINDOW' => $timeWindow ));
             } else {
-                $requestHeaders['ACCESS-NONCE'] = $nonce;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-NONCE' => $nonce ));
             }
         }
         $bodyResolved = $requestBody;
@@ -1150,7 +1149,7 @@ class bitbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1219,9 +1218,9 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
-            $code = $this->safe_string($data, 'code');
-            $message = $this->safe_string($errorMessages, $code, 'Error');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            $codeError = $this->safe_string($data, 'code');
+            $message = $this->safe_string($errorMessages, $codeError, 'Error');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $message);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;

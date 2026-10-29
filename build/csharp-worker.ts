@@ -2,6 +2,7 @@ import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeAddHx4C02, installCsharpHx4C10NonNullConcat } from './csharp-local-types.js';
 import log from 'ololog'
+import './hx10w3-C07.js' // hx10 wave3 C07: narrowed handleErrors code + ws boolean flags (tables)
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
 interface CsharpWorkerTask {

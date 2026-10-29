@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class weex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(weex, self).describe(), {
             'id': 'weex',
             'name': 'Weex',
@@ -720,7 +720,7 @@ class weex(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_status(self, params: dict = {}) -> Status:
@@ -1223,7 +1223,7 @@ class weex(Exchange, ImplicitAPI):
             response = [response]
         results = []
         for i in range(0, len(response)):
-            rawTicker = response[i]
+            rawTicker = self.safe_value(response, i)
             # book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             marketId = self.safe_string(rawTicker, 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, marketType)
@@ -1293,7 +1293,7 @@ class weex(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType = 'spot'
-        if (markPrice is not None) or ((market is not None) and (market['contract'] is True)):
+        if (markPrice is not None) or ((market is not None) and (self.safe_bool(market, 'contract', False))):
             # 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap'
         marketResolved = self.safe_market(marketId, market, None, marketType)
@@ -1583,18 +1583,20 @@ class weex(Exchange, ImplicitAPI):
         if useHistory:
             if priceType is not None:
                 request['priceType'] = priceType
-            startTime = since
-            endTime = until
             now = self.milliseconds()
+            startTime = since
+            endTime = now
+            if until is not None:
+                endTime = until
             if (since is None) or (until is None):
-                duration = self.parse_timeframe(timeframe) * 1000
+                duration = self.parse_to_int(self.parse_timeframe(timeframe) * 1000)
                 # the history endpoint returns at most maxHistoricalLimit candles and serves the
                 # newest ones inside the window, so a wider window would silently drop the candles
                 # right after since, keep the window at what one call can return
-                historyLimit = maxHistoricalLimit
+                historyLimit = self.parse_to_int(maxHistoricalLimit)
                 if limit is not None and limit is not None and limit != 0:
-                    historyLimit = min(limit, maxHistoricalLimit)
-                timeDelta = historyLimit * duration
+                    historyLimit = self.parse_to_int(min(limit, maxHistoricalLimit))
+                timeDelta = self.parse_to_int(historyLimit * duration)
                 if (since is None) and (until is None):
                     endTime = now
                     startTime = now - timeDelta
@@ -1606,7 +1608,7 @@ class weex(Exchange, ImplicitAPI):
                     # this.sum, a bare + is string concatenation in the php port
                     endTime = self.sum(since, timeDelta)
             # the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if (endTime is not None) and (endTime > now):
+            if endTime > now:
                 endTime = now
             request['startTime'] = startTime
             request['endTime'] = endTime
@@ -1861,8 +1863,7 @@ class weex(Exchange, ImplicitAPI):
         interval = None
         collectCycle = self.safe_string(contract, 'collectCycle')
         if collectCycle is not None:
-            interval = Precise.string_div(collectCycle, '60')
-            interval = interval + 'h'
+            interval = Precise.string_div(collectCycle, '60') + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -2139,6 +2140,7 @@ class weex(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
+        response = None
         response = self.privatePostApiV3Order(request)
         #
         #     {
@@ -4043,8 +4045,7 @@ class weex(Exchange, ImplicitAPI):
         if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
             return marketId  # a live market id, not a demo one
         if marketId.endswith('SUSDT'):
-            baseLength = len(marketId) - 5
-            return marketId[0:baseLength] + 'USDT'
+            return marketId[0:-5] + 'USDT'
         return marketId
 
     def set_sandbox_mode(self, enable: bool):
@@ -4057,14 +4058,14 @@ class weex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
-            if len(query) > 0:
+            if not self.is_empty(query):
                 endpoint += '?' + self.urlencode(query)
         isPrivate = (apiName == 'private') or (apiName == 'contractPrivate')
         hasJsonBody = isPrivate and ((method == 'POST') or isBatch)
         requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
-        requestHeaders = None
+        requestHeaders = {}
         if isPrivate:
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
             if (sandboxMode) and (path.find('capi/v3/sim/') != 0):
@@ -4095,7 +4096,7 @@ class weex(Exchange, ImplicitAPI):
         url = baseUrl + '/' + endpoint
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         #     {
         #         "code": -1140,

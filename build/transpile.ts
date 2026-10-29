@@ -460,6 +460,13 @@ class Transpiler {
             [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+            // single-slot tuple destructure `const [ x ] = self.f (...)` / `[ x ] = await this.f (...)`: the generic
+            // rule below drops the brackets and binds the whole tuple to x, so pick slot 0 explicitly.
+            // only declarations or a bare statement-start `[ x ] =` (never `obj[k] = v`) and only method-call right sides
+            [ /(^|[^a-zA-Z0-9_$\]\)])((?:let|const|var)\s+)\[\s*(\w+)\s*\]\s*=\s*await\s+(self\.\w+\s*\([^;]*\))\s*;/g, '$1$2$3 = (await $4)[0];' ],
+            [ /(^|[^a-zA-Z0-9_$\]\)])((?:let|const|var)\s+)\[\s*(\w+)\s*\]\s*=\s*(self\.\w+\s*\([^;]*\))\s*;/g, '$1$2$3 = $4[0];' ],
+            [ /^(\s*)\[\s*(\w+)\s*\]\s*=\s*await\s+(self\.\w+\s*\([^;]*\))\s*;/gm, '$1$2 = (await $3)[0];' ],
+            [ /^(\s*)\[\s*(\w+)\s*\]\s*=\s*(self\.\w+\s*\([^;]*\))\s*;/gm, '$1$2 = $3[0];' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
             [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
             [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type

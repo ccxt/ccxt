@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\paymium as Exchange;
 
 class paymium extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
             'name' => 'Paymium',
@@ -160,12 +160,11 @@ class paymium extends Exchange {
             $code = $currencies[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free ?? '', $response)) {
+            $freeAmount = $this->safe_string($response, 'balance_' . $currencyId);
+            if ($freeAmount !== null) {
                 $account = $this->account();
-                $used = 'locked_' . $currencyId;
-                $account['free'] = $this->safe_string($response, $free);
-                $account['used'] = $this->safe_string($response, $used);
+                $account['free'] = $freeAmount;
+                $account['used'] = $this->safe_string($response, 'locked_' . $currencyId);
                 $result[$code] = $account;
             }
         }
@@ -304,7 +303,8 @@ class paymium extends Exchange {
         $marketResolved = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_string($trade, 'price');
-        $amountField = 'traded_' . strtolower($marketResolved['base']);
+        $baseId = $this->safe_string($marketResolved, 'base', '');
+        $amountField = 'traded_' . strtolower($baseId);
         $amount = $this->safe_string($trade, $amountField);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -625,7 +625,7 @@ class paymium extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }
@@ -638,8 +638,9 @@ class paymium extends Exchange {
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $hasQuery = count($query) > 0;
         if ($api[0] === 'public') {
-            if (count($query) > 0) {
+            if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -651,8 +652,7 @@ class paymium extends Exchange {
                 'Api-Key' => $this->apiKey,
                 'Api-Nonce' => $nonce,
             );
-            $hasQuery = count($query) > 0;
-            $signedBody = null;
+            $signedBody = '';
             if ($method === 'POST' && $hasQuery) {
                 $signedBody = $this->json($query);
             }
@@ -664,7 +664,7 @@ class paymium extends Exchange {
             } else {
                 if ($hasQuery) {
                     $queryString = $this->urlencode($query);
-                    $auth .= $queryString;
+                    $auth = $nonce . $url . $queryString;
                     $url .= '?' . $queryString;
                 }
             }
@@ -674,7 +674,7 @@ class paymium extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

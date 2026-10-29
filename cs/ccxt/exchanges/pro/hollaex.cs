@@ -66,9 +66,10 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("orderbook" + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("orderbook" + ":") + marketId);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, parameters));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -97,33 +98,33 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         string? channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((symbol == null))
+        string? marketIdValue = this.safeString(market, "id", "");
+        string? symbol = this.safeString(market, "symbol");
+        if ((symbol != null))
         {
-            return;
-        }
-        IDictionary<string, object> data = this.safeDict(message, "data");
-        string? timestamp = this.safeString(data, "timestamp");
-        Int64? timestampMs = this.parse8601(timestamp);
-        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestampMs);
-        object orderbook = null;
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
-        {
-            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        } else
-        {
-            orderbook = this.getOrderBook(this.orderbooks, symbol);
-            if ((orderbook == null))
+            IDictionary<string, object> data = this.safeDict(message, "data");
+            string? timestamp = this.safeString(data, "timestamp");
+            Int64? timestampMs = this.parse8601(timestamp);
+            ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestampMs);
+            object orderbook = null;
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
             {
-                return;
+                orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            } else
+            {
+                orderbook = this.getOrderBook(this.orderbooks, symbol);
+                if ((orderbook == null))
+                {
+                    return;
+                }
+                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             }
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-        }
-        if ((channel != null))
-        {
-            string messageHash = ((channel + ":") + marketId);
-            client.resolve(orderbook, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + ":") + marketIdValue);
+                client.resolve(orderbook, messageHash);
+            }
         }
     }
 
@@ -146,8 +147,9 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = (("trade" + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("trade" + ":") + marketId);
         object trades = await this.watchPublic(messageHash, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -177,7 +179,8 @@ public partial class hollaex : ccxt.hollaex
         string? channel = this.safeString(message, "topic");
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? marketIdValue = this.safeString(market, "id", "");
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -187,13 +190,13 @@ public partial class hollaex : ccxt.hollaex
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
-        for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
+        for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
-            stored.append(parsedTrades[j]);
+            stored.append(this.safeValue(parsedTrades, i));
         }
         if ((channel != null))
         {
-            string messageHash = ((channel + ":") + marketId);
+            string messageHash = ((channel + ":") + marketIdValue);
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, channel);
@@ -218,13 +221,13 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         string messageHash = "usertrade";
-        IDictionary<string, object> market = null;
         string? symbolResolved = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            messageHash = ((messageHash + ":") + marketId);
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -280,9 +283,9 @@ public partial class hollaex : ccxt.hollaex
             object trade = rawTrades[i];
             ccxt.Trade parsed = this.parseTrade(trade);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
-            object symbol = getValue(trade, "symbol");
+            string? symbol = this.safeString(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id");
             if ((marketId != null))
             {
                 marketIds[(string)marketId] = true;
@@ -321,13 +324,13 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         string messageHash = "order";
-        IDictionary<string, object> market = null;
         string? symbolResolved = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            messageHash = ((messageHash + ":") + marketId);
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -422,12 +425,12 @@ public partial class hollaex : ccxt.hollaex
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
-            object order = getValue(rawOrders, i);
+            object order = this.safeValue(rawOrders, i);
             ccxt.Order parsed = this.parseOrder(order);
             stored.append(ccxt.BaseExchange.FromOrder(parsed));
-            object symbol = getValue(order, "symbol");
+            string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id");
             if ((marketId != null))
             {
                 marketIds[(string)marketId] = true;
@@ -484,7 +487,7 @@ public partial class hollaex : ccxt.hollaex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(data.Keys);
         Int64? timestamp = this.safeTimestamp(message, "time");
-        this.balance["info"] = data;
+        this.balance["info"] = this.safeDict(message, "data", new Dictionary<string, object>() {});
         this.balance["timestamp"] = timestamp;
         this.balance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < keys.Count; i++)
@@ -513,7 +516,7 @@ public partial class hollaex : ccxt.hollaex
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -526,30 +529,25 @@ public partial class hollaex : ccxt.hollaex
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object expires = this.safeString(this.options, "ws-expires");
-        if ((expires == null))
+        string? expires = this.safeString(this.options, "ws-expires", "");
+        if (expires == "")
         {
             Int64? timeoutMs = this.parseToInt(this.timeout);
             Int64? timeout = this.parseToInt(((double?)timeoutMs / 1000));
-            expires = this.sum(this.seconds(), timeout);
-            if ((expires == null))
-            {
-                throw new ArgumentsRequired ((this.id + " watchPrivate() expires is required")) ;
-            }
-            expires = expires.ToString();
+            expires = this.numberToString(this.parseToInt(this.sum(this.seconds(), timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options["ws-expires"] = expires;
         }
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
-        string auth = (("CONNECT" + "/stream") + (expires));
+        string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
+        string auth = (("CONNECT" + "/stream") + expires);
         string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },
             { "api-signature", signature },
             { "api-expires", expires },
         };
-        object signedUrl = add(add(url, "?"), this.urlencode(authParams));
+        string signedUrl = ((url + "?") + this.urlencode(authParams));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },

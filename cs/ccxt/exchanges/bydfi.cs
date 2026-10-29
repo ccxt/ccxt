@@ -607,11 +607,11 @@ public partial class bydfi : Exchange
         string? settleId = this.safeString(market, "marginAsset");
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        if (((bs == null)) || ((quote == null)))
-        {
-            return ccxt.BaseExchange.ToDict(null);
-        }
         string? settle = this.safeCurrencyCode(settleId);
+        if (((bs == null)) || ((quote == null)) || ((settle == null)))
+        {
+            return null;
+        }
         string symbol = ((((bs + "/") + quote) + ":") + settle);
         bool? inverse = this.safeBool(market, "reverse");
         string? limitMaxQty = this.safeString(market, "limitMaxQty");
@@ -1024,7 +1024,7 @@ public partial class bydfi : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
         Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-        object timeDelta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, numberOfCandles);
+        Int64? timeDelta = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, numberOfCandles));
         object startTime = since;
         object until = untilParam;
         if ((since == null) && (untilParam == null))
@@ -1602,7 +1602,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((this.id + " createOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        for (int i = 0; i < length; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -1682,7 +1682,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((this.id + " editOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        for (int i = 0; i < length; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? id = this.safeString(rawOrder, "id");
@@ -1838,8 +1838,7 @@ public partial class bydfi : Exchange
             { "wallet", walletOption },
         };
         Dictionary<string, object> response = null;
-        bool trigger = false;
-        (bool?, object) triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", trigger);
+        (bool?, object) triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", false);
         bool? triggerOption = triggerOptionparamsTriggerVariable.Item1;
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable.Item2);
         if (!(triggerOption == true))
@@ -1928,8 +1927,7 @@ public partial class bydfi : Exchange
         IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable.Item2);
         request["wallet"] = walletOption;
         Dictionary<string, object> response = null;
-        bool trigger = false;
-        (bool?, object) triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", trigger);
+        (bool?, object) triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", false);
         bool? triggerOption = triggerOptionparamsTriggerVariable.Item1;
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable.Item2);
         if (!(triggerOption == true))
@@ -2050,7 +2048,7 @@ public partial class bydfi : Exchange
         Int64? untilParam = untilParamparamsUntilVariable.Item1;
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
-        Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
+        Int64 sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         object startTime = since;
         Int64? until = untilParam;
         if ((since == null))
@@ -2058,7 +2056,8 @@ public partial class bydfi : Exchange
             if (!(untilParam == null))
             {
                 // since is undefined but until is defined
-                startTime = (untilParam - sevenDays);
+                Int64? untilInt = this.parseToInt(untilParam);
+                startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilInt, sevenDays);
             } else
             {
                 // both since and until are undefined
@@ -2775,7 +2774,7 @@ public partial class bydfi : Exchange
             { "marginType", marginModeValue.ToUpper() },
             { "wallet", walletOption },
         };
-        return ccxt.BaseExchange.ToDict(await this.privatePostV1FapiUserDataMarginType(this.extend(request, paramsWallet)));
+        return await this.privatePostV1FapiUserDataMarginType(this.extend(request, paramsWallet));
     }
 
     /**
@@ -2803,7 +2802,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         string positionType = "ONEWAY";
-        if (hedged)
+        if ((hedged == true))
         {
             positionType = "HEDGE";
         }
@@ -2832,7 +2831,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        return ccxt.BaseExchange.ToDict(await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, paramsSettleCoin)));
+        return await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, paramsSettleCoin));
     }
 
     /**
@@ -2993,7 +2992,8 @@ public partial class bydfi : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        int responseLength = getArrayLength(response);
+        for (int i = 0; i < responseLength; i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? symbol = this.safeString(balance, "asset");
@@ -3254,7 +3254,7 @@ public partial class bydfi : Exchange
         Int64? untilParam = untilParamparamsUntilVariable.Item1;
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
-        Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
+        Int64 sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         object startTime = since;
         Int64? until = untilParam;
         if ((since == null))
@@ -3262,7 +3262,8 @@ public partial class bydfi : Exchange
             if (!(untilParam == null))
             {
                 // since is undefined but until is defined
-                startTime = (untilParam - sevenDays);
+                Int64? untilInt = this.parseToInt(untilParam);
+                startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilInt, sevenDays);
             } else
             {
                 // both since and until are undefined
@@ -3392,18 +3393,17 @@ public partial class bydfi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = apiUrl;
         string endpoint = ("/" + path);
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
@@ -3417,7 +3417,7 @@ public partial class bydfi : Exchange
         }
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
@@ -3443,18 +3443,17 @@ public partial class bydfi : Exchange
                 };
             }
         }
-        url = url + endpoint;
         string? bodyResolved = requestBody;
         Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
-            { "url", url },
+            { "url", (apiUrl + endpoint) },
             { "method", method },
             { "body", bodyResolved },
             { "headers", headersResolved },
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3466,14 +3465,14 @@ public partial class bydfi : Exchange
         //         "message": "Requires transaction permissions"
         //     }
         //
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "message");
-        if (code != "200")
+        if (codeError != "200")
         {
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -488,7 +488,7 @@ public partial class lighter : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.initAuthObject(accountIndex, apiKeyIndex);
-        IDictionary<string, object> cachedAuths = this.safeDict(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex);
+        IDictionary<string, object> cachedAuths = this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accountIndex, new Dictionary<string, object>() {}), apiKeyIndex);
         object signer = this.safeValue(cachedAuths, "signer");
         if ((signer != null))
         {
@@ -500,7 +500,9 @@ public partial class lighter : Exchange
         {
             // load lighter library, and create lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true);
-            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex))["signer"] = signer;
+            this.setAuthEntry(accountIndex, apiKeyIndex, new Dictionary<string, object>() {
+                { "signer", signer },
+            });
             return signer;
         }
         bool privateKeyIsSet = ((this.privateKey != null)) && (!(this.privateKey == ""));
@@ -512,7 +514,9 @@ public partial class lighter : Exchange
             }
             // load lighter library without creating lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, "", this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), false);
-            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex))["signer"] = signer;
+            this.setAuthEntry(accountIndex, apiKeyIndex, new Dictionary<string, object>() {
+                { "signer", signer },
+            });
             object res = await this.changeApiKey();
             await this.handleBuilderFeeApproval(this.parseToInt(accountIndex), this.parseToInt(apiKeyIndex));
             return res;
@@ -520,24 +524,25 @@ public partial class lighter : Exchange
         return signer;
     }
 
+    public virtual void setAuthEntry(object accIdx, object keyIdx, IDictionary<string, object> entry)
+    {
+        Dictionary<string, object> updated = new Dictionary<string, object>() {};
+        updated[(string)keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accIdx, new Dictionary<string, object>() {}), keyIdx, new Dictionary<string, object>() {}), entry);
+        Dictionary<string, object> auths = new Dictionary<string, object>() {};
+        auths[(string)accIdx] = this.extend(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accIdx, new Dictionary<string, object>() {}), updated);
+        this.options["auths"] = this.extend(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), auths);
+    }
+
     public virtual void initAuthObject(object strAccountIndex, object strApiKeyIndex)
     {
-        if (!(this.options.ContainsKey("auths")))
+        if ((this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), strAccountIndex, new Dictionary<string, object>() {}), strApiKeyIndex) == null))
         {
-            this.options["auths"] = new Dictionary<string, object>() {};
-        }
-        if (!(inOp((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex)))
-        {
-            ((IDictionary<string,object>)(this.options.ContainsKey("auths") ? this.options["auths"] : null))[(string)strAccountIndex] = new Dictionary<string, object>() {};
-        }
-        if (!(inOp(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex)))
-        {
-            ((IDictionary<string,object>)getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex))[(string)strApiKeyIndex] = new Dictionary<string, object>() {
+            this.setAuthEntry(strAccountIndex, strApiKeyIndex, new Dictionary<string, object>() {
                 { "signer", null },
                 { "lighterPrivateKey", null },
                 { "deadline", null },
                 { "token", null },
-            };
+            });
         }
     }
 
@@ -571,12 +576,12 @@ public partial class lighter : Exchange
         string? strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         this.initAuthObject(strAccountIndex, strApiKeyIndex);
-        object signer = this.safeDict(getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex), "signer");
+        object signer = this.safeDict(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), strAccountIndex, new Dictionary<string, object>() {}), strApiKeyIndex, new Dictionary<string, object>() {}), "signer");
         if ((signer != null))
         {
             return true;
         }
-        signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
+        signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
         bool loaded = ((signer != null));
         return loaded;
@@ -669,7 +674,7 @@ public partial class lighter : Exchange
         var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index");
         var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
@@ -677,7 +682,7 @@ public partial class lighter : Exchange
         };
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         var txTypetxInfoVariable = this.lighterSignCreateSubAccount(signer, this.extend(signRaw, paramsAccountIndex));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
@@ -685,7 +690,7 @@ public partial class lighter : Exchange
             { "tx_type", txType },
             { "tx_info", txInfo },
         };
-        return ccxt.BaseExchange.ToDict(await this.publicPostSendTx(request));
+        return await this.publicPostSendTx(request);
     }
 
     public virtual string? createAuth(object parameters = null)
@@ -719,9 +724,11 @@ public partial class lighter : Exchange
             { "api_key_index", this.parseToInt(apiKeyIndex) },
             { "account_index", this.parseToInt(accountIndex) },
         };
-        object token = this.lighterCreateAuthToken(getValue(getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex), "signer"), request);
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex))["deadline"] = deadline;
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex))["token"] = token;
+        object token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, "signer"), request);
+        this.setAuthEntry(accountIndex, apiKeyIndex, new Dictionary<string, object>() {
+            { "deadline", deadline },
+            { "token", token },
+        });
         return ((string?)((object)(token)));
     }
 
@@ -758,7 +765,7 @@ public partial class lighter : Exchange
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
@@ -772,8 +779,8 @@ public partial class lighter : Exchange
     {
         string? hashMessage = this.hashMessage(message);
         string signature = this.signHash(hashMessage, privateKey);
-        object decTxInfo = this.parseJson(txInfo);
-        ((IDictionary<string,object>)decTxInfo)["L1Sig"] = signature;
+        Dictionary<string, object> decTxInfo = this.extend(new Dictionary<string, object>() {}, this.parseJson(txInfo));
+        decTxInfo["L1Sig"] = signature;
         return this.json(decTxInfo);
     }
 
@@ -819,7 +826,7 @@ public partial class lighter : Exchange
     public async virtual Task<bool> checkIfStandardTier(object accountIndex)
     {
         IDictionary<string, object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new Dictionary<string, object>() {});
-        string accountIndexStr = accountIndex.ToString();
+        string? accountIndexStr = this.numberToString(accountIndex);
         bool? isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
         if ((isStandardTier != null))
         {
@@ -856,8 +863,10 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         string? strAccountIndex = this.numberToString(accountIndex);
         string? strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() { { "skipNonce", false }, })));
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         Int64 expiry = (this.milliseconds() + (365L * 864000L));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "integrator_account_index", builder },
@@ -892,11 +901,13 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signerNotLoad = getValue(getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex), "signer");
+        object signerNotLoad = this.safeValue(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), strAccountIndex, new Dictionary<string, object>() {}), strApiKeyIndex, new Dictionary<string, object>() {}), "signer");
         var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
         var privateKey = ((IList<object>) privateKeypublicKeyVariable)[0];
         var publicKey = ((IList<object>) privateKeypublicKeyVariable)[1];
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new Dictionary<string, object>() { { "skipNonce", false }, })));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "pubkey", this.encode(publicKey) },
             { "nonce", nonce },
@@ -904,7 +915,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
         };
         // create lighter client
-        object signer = this.lighterCreateClient(signerNotLoad, (this.options.ContainsKey("chainId") ? this.options["chainId"] : null), privateKey, apiKeyIndex, accountIndex);
+        object signer = this.lighterCreateClient(signerNotLoad, this.safeInteger(this.options, "chainId"), privateKey, apiKeyIndex, accountIndex);
         var txTypetxInfomessageToSignVariable = this.lighterSignChangePubkey(signer, this.extend(signRaw, paramsAccountIndex));
         var txType = ((IList<object>) txTypetxInfomessageToSignVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfomessageToSignVariable)[1];
@@ -915,8 +926,10 @@ public partial class lighter : Exchange
             { "tx_info", newTxInfo },
         };
         await this.publicPostSendTx(request);
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex))["lighterPrivateKey"] = privateKey;
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex))["signer"] = signer; // reassign signer in go
+        this.setAuthEntry(strAccountIndex, strApiKeyIndex, new Dictionary<string, object>() {
+            { "lighterPrivateKey", privateKey },
+            { "signer", signer },
+        }); // reassign signer in go
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
         return signer;
     }
@@ -954,7 +967,7 @@ public partial class lighter : Exchange
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if ((price == null))
         {
@@ -1081,16 +1094,17 @@ public partial class lighter : Exchange
         request["trigger_price"] = this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale));
         if ((this.safeBool(this.options, "builderFee", true) == true))
         {
-            request["integrator_account_index"] = (this.options.ContainsKey("integratorAccountIndex") ? this.options["integratorAccountIndex"] : null);
-            request["integrator_taker_fee"] = (this.options.ContainsKey("integratorTakerFee") ? this.options["integratorTakerFee"] : null);
-            request["integrator_maker_fee"] = (this.options.ContainsKey("integratorMakerFee") ? this.options["integratorMakerFee"] : null);
+            request["integrator_account_index"] = this.safeInteger(this.options, "integratorAccountIndex");
+            request["integrator_taker_fee"] = this.safeInteger(this.options, "integratorTakerFee");
+            request["integrator_maker_fee"] = this.safeInteger(this.options, "integratorMakerFee");
         }
         List<object> orders = new List<object>() {};
-        orders.Add(this.extend(request, paramsRequest));
+        Dictionary<string, object> firstOrder = this.extend(request, paramsRequest);
+        orders.Add(firstOrder);
         if (hasStopLoss || hasTakeProfit)
         {
             // group order
-            ((IDictionary<string,object>)(orders != null && 0 < orders.Count ? orders[0] : null))["client_order_index"] = 0; // client order index should be 0
+            firstOrder["client_order_index"] = 0; // client order index should be 0
             string triggerOrderSide = "";
             if (orderSide == "BUY")
             {
@@ -1108,20 +1122,20 @@ public partial class lighter : Exchange
             // amount should be 0 for child orders
             if ((stopLoss != null))
             {
-                object orderObj = getValue(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new Dictionary<string, object>() {
-    { "stopLossPrice", stopLossOrderTriggerPrice },
-    { "reduceOnly", true },
-})), 0);
-                ((IDictionary<string,object>)orderObj)["client_order_index"] = 0;
+                IDictionary<string, object> orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new Dictionary<string, object>() {
+                    { "stopLossPrice", stopLossOrderTriggerPrice },
+                    { "reduceOnly", true },
+                })), 0, new Dictionary<string, object>() {});
+                orderObj["client_order_index"] = 0;
                 orders.Add(orderObj);
             }
             if ((takeProfit != null))
             {
-                object orderObj = getValue(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new Dictionary<string, object>() {
-    { "takeProfitPrice", takeProfitOrderTriggerPrice },
-    { "reduceOnly", true },
-})), 0);
-                ((IDictionary<string,object>)orderObj)["client_order_index"] = 0;
+                IDictionary<string, object> orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new Dictionary<string, object>() {
+                    { "takeProfitPrice", takeProfitOrderTriggerPrice },
+                    { "reduceOnly", true },
+                })), 0, new Dictionary<string, object>() {});
+                orderObj["client_order_index"] = 0;
                 orders.Add(orderObj);
             }
         }
@@ -1148,7 +1162,7 @@ public partial class lighter : Exchange
         bool? skipNonce = this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true).Item1;
         if ((skipNonce == true))
         {
-            return ccxt.BaseExchange.ToInt64Value(this.milliseconds());
+            return this.milliseconds();
         }
         Dictionary<string, object> response = await this.publicGetNextNonce(new Dictionary<string, object>() {
             { "account_index", accountIndex },
@@ -1172,7 +1186,7 @@ public partial class lighter : Exchange
         // before order-req creation, we need to know account status
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         try
         {
             bool isStandardTier = await this.checkIfStandardTier(accountIndex);
@@ -1210,7 +1224,7 @@ public partial class lighter : Exchange
         // the nonce could be updated
         if ((this.safeInteger(order, "nonce") == null))
         {
-            ((IDictionary<string,object>)order)["nonce"] = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex));
+            ((IDictionary<string,object>)order)["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
         }
         object txType = null;
         object txInfo = null;
@@ -1224,15 +1238,15 @@ public partial class lighter : Exchange
             Dictionary<string, object> signingPayload = new Dictionary<string, object>() {
                 { "grouping_type", groupingType },
                 { "orders", orderRequests },
-                { "nonce", getValue(order, "nonce") },
+                { "nonce", this.safeInteger(order, "nonce") },
                 { "api_key_index", apiKeyIndex },
                 { "account_index", accountIndex },
             };
             if ((this.safeBool(this.options, "builderFee", true) == true))
             {
-                signingPayload["integrator_account_index"] = getValue(order, "integrator_account_index");
-                signingPayload["integrator_taker_fee"] = getValue(order, "integrator_taker_fee");
-                signingPayload["integrator_maker_fee"] = getValue(order, "integrator_maker_fee");
+                signingPayload["integrator_account_index"] = this.safeInteger(order, "integrator_account_index");
+                signingPayload["integrator_taker_fee"] = this.safeInteger(order, "integrator_taker_fee");
+                signingPayload["integrator_maker_fee"] = this.safeInteger(order, "integrator_maker_fee");
             }
             var txTypetxInfoVariable = this.lighterSignCreateGroupedOrders(signer, signingPayload);
             txType = ((IList<object>)txTypetxInfoVariable)[0];
@@ -1315,7 +1329,7 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? amountScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("size_decimals") ? marketInfo["size_decimals"] : null));
@@ -1333,7 +1347,7 @@ public partial class lighter : Exchange
         {
             amountStr = this.amountToPrecision(symbol, amount);
         }
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "index", this.parseToInt(id) },
@@ -1346,9 +1360,9 @@ public partial class lighter : Exchange
         };
         if ((this.safeBool(this.options, "builderFee", true) == true))
         {
-            signRaw["integrator_account_index"] = (this.options.ContainsKey("integratorAccountIndex") ? this.options["integratorAccountIndex"] : null);
-            signRaw["integrator_taker_fee"] = (this.options.ContainsKey("integratorTakerFee") ? this.options["integratorTakerFee"] : null);
-            signRaw["integrator_maker_fee"] = (this.options.ContainsKey("integratorMakerFee") ? this.options["integratorMakerFee"] : null);
+            signRaw["integrator_account_index"] = this.safeInteger(this.options, "integratorAccountIndex");
+            signRaw["integrator_taker_fee"] = this.safeInteger(this.options, "integratorTakerFee");
+            signRaw["integrator_maker_fee"] = this.safeInteger(this.options, "integratorMakerFee");
         }
         var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, paramsOmitted));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -1403,7 +1417,7 @@ public partial class lighter : Exchange
         //         "timestamp": "1717777777"
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(response, "timestamp"));
+        return this.safeTimestamp(response, "timestamp") ?? 0;
     }
 
     /**
@@ -1515,7 +1529,8 @@ public partial class lighter : Exchange
             object baseId = marketSymbol;
             if ((marketSymbol != null) && (marketSymbol.IndexOf("/", StringComparison.Ordinal) != -1))
             {
-                baseId = getValue(marketSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0);
+                List<object> symbolParts = marketSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+                baseId = (symbolParts != null && 0 < symbolParts.Count ? symbolParts[0] : null);
             }
             string quoteId = "USDC";
             string? settleId = (type == "swap") ? "USDC" : null;
@@ -1633,7 +1648,7 @@ public partial class lighter : Exchange
     {
         string? id = this.safeString(rawCurrency, "asset_id");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
-        string? decimals = this.safeString(rawCurrency, "decimals");
+        string? decimals = this.safeString(rawCurrency, "decimals", "");
         bool isUSDC = (code == "USDC");
         double? depositMin = null;
         double? withdrawMin = null;
@@ -2209,7 +2224,7 @@ public partial class lighter : Exchange
                     IDictionary<string, object> asset = this.safeDict(assets, j);
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
-                    IDictionary<string, object> balance = this.safeDict(result, code, this.account());
+                    Dictionary<string, object> balance = this.extend(this.account(), this.safeDict(result, code, new Dictionary<string, object>() {}));
                     balance["total"] = Precise.stringAdd((balance != null && balance.ContainsKey("total") ? balance["total"] : null), this.safeString(asset, "balance"));
                     balance["used"] = Precise.stringAdd((balance != null && balance.ContainsKey("used") ? balance["used"] : null), this.safeString(asset, "locked_balance"));
                     if ((code != null))
@@ -2219,7 +2234,7 @@ public partial class lighter : Exchange
                 }
             } else
             {
-                IDictionary<string, object> perpBalance = this.safeDict(result, "USDC", this.account());
+                Dictionary<string, object> perpBalance = this.extend(this.account(), this.safeDict(result, "USDC", new Dictionary<string, object>() {}));
                 string? perpTotal = this.safeString(perpBalance, "total", "0");
                 string? perpFree = this.safeString(perpBalance, "free", "0");
                 string? perpUSDCTotal = this.safeString(account, "collateral", "0");
@@ -2548,7 +2563,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2632,7 +2647,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2879,7 +2894,7 @@ public partial class lighter : Exchange
             { "1", "good-till-time" },
             { "2", "post-only" },
         };
-        return this.safeString(timeInForces, tifInteger.ToString());
+        return this.safeString(timeInForces, this.numberToString(tifInteger));
     }
 
     /**
@@ -2915,7 +2930,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsToAccountIndex = ((IDictionary<string, object>)toAccountIndexparamsToAccountIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
         Dictionary<string, object> currency = this.currency(code);
         string? currencyCode = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
         if ((currencyCode != "USDC") && (currencyCode != "ETH"))
@@ -2928,7 +2943,7 @@ public partial class lighter : Exchange
         int toRouteType = ((toAccount == "perp")) ? 0 : 1;
         string? memo = this.safeString(paramsToAccountIndex, "memo", "0x000000000000000000000000000000");
         Dictionary<string, object> paramsOmitted = this.omit(paramsToAccountIndex, new List<object>() {"memo"});
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "to_account_index", toAccountIndex },
             { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
@@ -2990,7 +3005,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3114,7 +3129,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3186,7 +3201,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3318,7 +3333,7 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> currency = this.currency(code);
         string? currencyCode = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
         if ((currencyCode != "USDC") && (currencyCode != "ETH"))
@@ -3329,7 +3344,7 @@ public partial class lighter : Exchange
         Int64? amountScaled = this.parseToInt(Precise.stringMul(this.pow("10", amountDecimals), this.currencyToPrecision(code, amount)));
         Int64? routeType = this.safeInteger(paramsAccountIndex, "routeType", 0); // 0: perp, 1: spot
         object paramsOmitted = this.omit(paramsAccountIndex, "routeType");
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "route_type", routeType },
@@ -3438,7 +3453,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> paramsApiKeyIndex = ((IDictionary<string, object>)apiKeyIndexparamsApiKeyIndexVariable[1]);
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sort_by", "timestamp" },
             { "limit", 100 },
@@ -3610,7 +3625,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires an marginMode parameter")) ;
         }
-        return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsMarginMode));
+        return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsMarginMode);
     }
 
     /**
@@ -3639,7 +3654,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires an leverage parameter")) ;
         }
-        return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage));
+        return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, string? symbol = null, object parameters = null)
@@ -3665,9 +3680,9 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
@@ -3708,8 +3723,8 @@ public partial class lighter : Exchange
         object paramsOmitted = this.omit(paramsAccountIndex, new List<object>() {"client_order_index", "clientOrderId"});
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted);
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "nonce", nonce },
@@ -3773,8 +3788,8 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "time_in_force", 0 },
             { "time", 0 },
@@ -3849,8 +3864,8 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         int timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         object cancelTime = 0;
         if (isScheduled)
@@ -3873,7 +3888,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         Dictionary<string, object> response = await this.publicPostSendTx(request);
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3891,7 +3906,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "direction", 1 },
         };
-        return ((Dictionary<string, object>)((object)(ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(amount), this.extend(request, parameters))))));
+        return ((Dictionary<string, object>)((object)(ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters))))));
     }
 
     /**
@@ -3909,7 +3924,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "direction", 0 },
         };
-        return ((Dictionary<string, object>)((object)(ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(amount), this.extend(request, parameters))))));
+        return ((Dictionary<string, object>)((object)(ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters))))));
     }
 
     /**
@@ -3951,9 +3966,9 @@ public partial class lighter : Exchange
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
-        object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        object nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount))) },
@@ -3990,16 +4005,16 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         object url = null;
-        if ((apiName is "root"))
+        if (apiName == "root")
         {
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public");
+            string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "public");
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4007,7 +4022,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+            string? baseApiUrl2 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
             if ((baseApiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4015,7 +4030,7 @@ public partial class lighter : Exchange
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Dictionary<string, object> authHeaders = null;
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             authHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.createAuth(parameters) },
@@ -4037,7 +4052,7 @@ public partial class lighter : Exchange
             }
             url = add(url, ("?" + this.rawencode(parameters)));
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             return new Dictionary<string, object>() {
                 { "url", url },
@@ -4054,7 +4069,7 @@ public partial class lighter : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -4066,13 +4081,13 @@ public partial class lighter : Exchange
         //         "message": "string"
         //     }
         //
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "message");
-        if ((code != null) && code != "0" && code != "200")
+        if ((codeError != null) && codeError != "0" && codeError != "200")
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

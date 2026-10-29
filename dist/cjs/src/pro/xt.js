@@ -77,7 +77,8 @@ class xt extends xt$1["default"] {
         if (isContract) {
             tradeType = 'contract';
         }
-        let url = this.safeString(this.urls['api']['ws'], tradeType);
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        let url = this.safeString(apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
         }
@@ -202,7 +203,7 @@ class xt extends xt$1["default"] {
         const privateAccess = access === 'private';
         const [type, paramsMarketType] = this.handleMarketTypeAndParams(methodName, market, params);
         const isContract = (type !== 'spot');
-        const id = this.numberToString(this.milliseconds()) + name; // call back ID
+        const id = this.milliseconds().toString() + name; // call back ID
         const subscribe = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': id,
@@ -237,7 +238,8 @@ class xt extends xt$1["default"] {
         const subscription = {
             'id': id,
         };
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
     /**
@@ -261,7 +263,7 @@ class xt extends xt$1["default"] {
         const privateAccess = access === 'private';
         const [type, paramsMarketType] = this.handleMarketTypeAndParams(methodName, market, params);
         const isContract = (type !== 'spot');
-        const id = this.numberToString(this.milliseconds()) + name; // call back ID
+        const id = this.milliseconds().toString() + name; // call back ID
         const unsubscribe = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
@@ -290,7 +292,8 @@ class xt extends xt$1["default"] {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.safeString(this.urls['api']['ws'], tradeType) + '/' + tail;
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         const subscription = {
             'unsubscribe': true,
             'id': id,
@@ -325,8 +328,7 @@ class xt extends xt$1["default"] {
         const options = this.safeDict(this.options, 'watchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
         const method = this.safeString(params, 'method', defaultMethod);
-        const name = method + '@' + market['id'];
-        return await this.subscribe(name, 'public', 'watchTicker', market, undefined, params);
+        return await this.subscribe(method + '@' + this.safeString(market, 'id', ''), 'public', 'watchTicker', market, undefined, params);
     }
     /**
      * @method
@@ -347,7 +349,7 @@ class xt extends xt$1["default"] {
         const options = this.safeDict(this.options, 'unWatchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
         const method = this.safeString(params, 'method', defaultMethod);
-        const name = method + '@' + market['id'];
+        const name = method + '@' + this.safeString(market, 'id', '');
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe(messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
     }
@@ -369,13 +371,18 @@ class xt extends xt$1["default"] {
         const options = this.safeDict(this.options, 'watchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
+        if (name === undefined) {
+            return this.filterByArray(this.tickers, 'symbol', symbols);
+        }
         let market = undefined;
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
         }
-        const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
+        if (name !== undefined) {
+            const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
+            if (this.newUpdates) {
+                return tickers;
+            }
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -397,11 +404,17 @@ class xt extends xt$1["default"] {
         const options = this.safeDict(this.options, 'unWatchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
+        if (name === undefined) {
+            return undefined;
+        }
         if (symbols !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
-        const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        if (name !== undefined) {
+            const messageHash = 'unsubscribe::' + name;
+            return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        }
+        return undefined;
     }
     /**
      * @method
@@ -421,8 +434,7 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const name = 'kline@' + market['id'] + ',' + timeframe;
-        const ohlcv = await this.subscribe(name, 'public', 'watchOHLCV', market, undefined, params);
+        const ohlcv = await this.subscribe('kline@' + this.safeString(market, 'id', '') + ',' + timeframe, 'public', 'watchOHLCV', market, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit(symbol, limit);
@@ -445,7 +457,7 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const name = 'kline@' + market['id'] + ',' + timeframe;
+        const name = 'kline@' + this.safeString(market, 'id', '') + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
         const symbolsAndTimeframes = [[market['symbol'], timeframe]];
         return await this.unSubscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, { 'symbolsAndTimeframes': symbolsAndTimeframes });
@@ -467,8 +479,7 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const name = 'trade@' + market['id'];
-        const trades = await this.subscribe(name, 'public', 'watchTrades', market, undefined, params);
+        const trades = await this.subscribe('trade@' + this.safeString(market, 'id', ''), 'public', 'watchTrades', market, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit(symbol, limit);
@@ -490,7 +501,7 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const name = 'trade@' + market['id'];
+        const name = 'trade@' + this.safeString(market, 'id', '');
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe(messageHash, name, 'public', 'unWatchTrades', 'trades', market, [symbol], params);
     }
@@ -515,9 +526,10 @@ class xt extends xt$1["default"] {
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         const paramsOmitted = this.omit(params, 'levels');
-        let name = 'depth_update@' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        let name = 'depth_update@' + marketId;
         if (levels !== undefined) {
-            name = 'depth@' + market['id'] + ',' + levels;
+            name = 'depth@' + marketId + ',' + levels;
         }
         const orderbook = await this.subscribe(name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
         return orderbook.limit();
@@ -542,9 +554,10 @@ class xt extends xt$1["default"] {
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         const paramsOmitted = this.omit(params, 'levels');
-        let name = 'depth_update@' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        let name = 'depth_update@' + marketId;
         if (levels !== undefined) {
-            name = 'depth@' + market['id'] + ',' + levels;
+            name = 'depth@' + marketId + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], paramsOmitted);
@@ -636,7 +649,8 @@ class xt extends xt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'contract') + '/' + 'user';
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const url = this.safeString(apiUrls, 'contract', '') + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
@@ -670,8 +684,7 @@ class xt extends xt$1["default"] {
         if (market['swap'] !== true) {
             throw new errors.NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
-        const name = 'fund_rate@' + market['id'];
-        return await this.subscribe(name, 'public', 'watchFundingRate', market, undefined, params);
+        return await this.subscribe('fund_rate@' + this.safeString(market, 'id', ''), 'public', 'watchFundingRate', market, undefined, params);
     }
     /**
      * @method
@@ -690,7 +703,7 @@ class xt extends xt$1["default"] {
         if (market['swap'] !== true) {
             throw new errors.NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
-        const name = 'fund_rate@' + market['id'];
+        const name = 'fund_rate@' + this.safeString(market, 'id', '');
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
     }
@@ -977,7 +990,7 @@ class xt extends xt$1["default"] {
             }
             newTickers.push(ticker);
         }
-        const messageHashStart = this.safeString(message, 'topic') + '::' + tradeType;
+        const messageHashStart = this.safeString(message, 'topic', '') + '::' + tradeType;
         const messageHashes = this.findMessageHashes(client, messageHashStart + '::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1415,12 +1428,11 @@ class xt extends xt$1["default"] {
         //           }
         //    }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit');
-            orders = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = orders;
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const orders = this.orders;
         const order = this.safeDict(message, 'data', {});
         const marketId = this.safeString2(order, 's', 'symbol');
         if (marketId !== undefined) {
@@ -1523,12 +1535,11 @@ class xt extends xt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'data', {});
-        let stored = this.myTrades;
-        if (stored === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
-            stored = new Cache.ArrayCacheBySymbolById(limit);
-            this.myTrades = stored;
+            this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const stored = this.myTrades;
         const parsedTrade = this.parseTrade(data);
         const tradeSymbol = parsedTrade['symbol'];
         if (tradeSymbol === undefined) {

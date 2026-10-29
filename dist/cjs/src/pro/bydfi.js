@@ -93,7 +93,7 @@ class bydfi extends bydfi$1["default"] {
         return reqid;
     }
     async watchPublic(messageHashes, channels, params = {}, subscription = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const id = this.requestId();
         const subscriptionParams = {
             'id': id,
@@ -115,7 +115,7 @@ class bydfi extends bydfi$1["default"] {
     }
     async watchPrivate(messageHashes, params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const subHash = 'private';
         const client = this.client(url);
         const privateSubscription = this.safeValue(client.subscriptions, subHash);
@@ -155,7 +155,7 @@ class bydfi extends bydfi$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const messageHash = 'ticker::' + symbol;
         const channel = marketId + '@ticker';
         return await this.watchPublic([messageHash], [channel], params);
@@ -198,7 +198,8 @@ class bydfi extends bydfi$1["default"] {
         else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
-                const marketId = this.marketId(symbol);
+                const market = this.market(symbol);
+                const marketId = this.safeString(market, 'id', '');
                 messageHashes.push(messageHash + symbol);
                 channels.push(marketId + channel);
             }
@@ -238,7 +239,8 @@ class bydfi extends bydfi$1["default"] {
                     if (symbol === 'all') {
                         continue;
                     }
-                    const marketId = this.marketId(symbol);
+                    const market = this.market(symbol);
+                    const marketId = this.safeString(market, 'id', '');
                     channels.push(marketId + channel);
                 }
             }
@@ -248,7 +250,8 @@ class bydfi extends bydfi$1["default"] {
         else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
-                const marketId = this.marketId(symbol);
+                const market = this.market(symbol);
+                const marketId = this.safeString(market, 'id', '');
                 messageHashes.push(messageHash + symbol);
                 channels.push(marketId + channel);
             }
@@ -285,7 +288,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const ticker = this.parseTicker(message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol', '');
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve(this.tickers[symbol], messageHash);
@@ -305,7 +308,8 @@ class bydfi extends bydfi$1["default"] {
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const symbolResult = this.safeDict(result, symbol, {});
+        return this.safeList(symbolResult, timeframe, []);
     }
     /**
      * @method
@@ -333,23 +337,29 @@ class bydfi extends bydfi$1["default"] {
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
+        const firstSymbolAndTimeframe = this.safeList(symbolsAndTimeframes, 0);
+        if (symbolsLength === 0 || !Array.isArray(firstSymbolAndTimeframe)) {
             throw new errors.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets();
         const channels = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
             const timeframes = this.safeDict(this.options, 'timeframes', {});
-            const interval = this.safeString(timeframes, tf, tf);
-            channels.push(market['id'] + '@kline_' + interval);
-            messageHashes.push('ohlcv::' + market['symbol'] + '::' + interval);
+            const interval = this.safeString(timeframes, tf, '');
+            const channelMarketId = this.safeString(market, 'id', '');
+            const channelMarketSymbol = this.safeString(market, 'symbol', '');
+            channels.push(channelMarketId + '@kline_' + interval);
+            messageHashes.push('ohlcv::' + channelMarketSymbol + '::' + interval);
         }
-        const [symbol, timeframe, candles] = await this.watchPublic(messageHashes, channels, params);
+        const ohlcvResolved = await this.watchPublic(messageHashes, channels, params);
+        const symbol = this.safeString(ohlcvResolved, 0, '');
+        const timeframe = this.safeString(ohlcvResolved, 1, '');
+        const candles = this.safeValue(ohlcvResolved, 2);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = candles.getLimit(symbol, limit);
@@ -368,20 +378,23 @@ class bydfi extends bydfi$1["default"] {
      */
     async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
+        const firstSymbolAndTimeframe = this.safeList(symbolsAndTimeframes, 0);
+        if (symbolsLength === 0 || !Array.isArray(firstSymbolAndTimeframe)) {
             throw new errors.ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets();
         const channels = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
-            const interval = this.safeString(this.timeframes, tf, tf);
-            channels.push(market['id'] + '@kline_' + interval);
-            messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval);
+            const interval = this.safeString(this.timeframes, tf, '');
+            const channelMarketId = this.safeString(market, 'id', '');
+            const channelMarketSymbol = this.safeString(market, 'symbol', '');
+            channels.push(channelMarketId + '@kline_' + interval);
+            messageHashes.push('unsubscribe::ohlcv::' + channelMarketSymbol + '::' + interval);
         }
         const paramsExtended = this.extend(params, { 'unsubscribe': true });
         const subscription = {
@@ -407,10 +420,14 @@ class bydfi extends bydfi$1["default"] {
         //
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const interval = this.safeString(message, 'i');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(interval, timeframes);
+        if (timeframe === undefined) {
+            return;
+        }
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -422,7 +439,6 @@ class bydfi extends bydfi$1["default"] {
         const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseWsOHLCV(message);
         ohlcv.append(parsed);
-        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         client.resolve([symbol, timeframe, ohlcv], messageHash);
     }
     /**
@@ -478,7 +494,8 @@ class bydfi extends bydfi$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            channels.push(market['id'] + '@depth' + depthOption + channelSuffix);
+            const channelMarketId = this.safeString(market, 'id', '');
+            channels.push(channelMarketId + '@depth' + depthOption + channelSuffix);
             messageHashes.push('orderbook::' + symbol);
         }
         const orderbook = await this.watchPublic(messageHashes, channels, paramsFrequency);
@@ -512,7 +529,8 @@ class bydfi extends bydfi$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            channels.push(market['id'] + '@depth' + depthOption + channelSuffix);
+            const channelMarketId = this.safeString(market, 'id', '');
+            channels.push(channelMarketId + '@depth' + depthOption + channelSuffix);
             messageHashes.push('unsubscribe::orderbook::' + symbol);
         }
         const subscription = {
@@ -535,13 +553,13 @@ class bydfi extends bydfi$1["default"] {
         const marketId = this.safeString(message, 's');
         const symbol = this.safeSymbol(marketId);
         const timestamp = this.safeInteger(message, 'E');
+        const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
         const parsed = this.parseOrderBook(message, symbol, timestamp, 'b', 'a');
         orderbook.reset(parsed);
-        const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
@@ -630,7 +648,7 @@ class bydfi extends bydfi$1["default"] {
         const rawOrder = this.safeDict(message, 'o', {});
         const marketId = this.safeString(rawOrder, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orders';
         const symbolMessageHash = messageHash + '::' + symbol;
         if (this.orders === undefined) {
@@ -788,17 +806,15 @@ class bydfi extends bydfi$1["default"] {
         const rawPosition = this.safeDict(positionsData, 0, {});
         const marketId = this.safeString(rawPosition, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'positions';
         const symbolMessageHash = messageHash + '::' + symbol;
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
-        const parsedPosition = this.parseWsPosition(rawPosition, market);
         const timestamp = this.safeInteger(message, 'T');
-        parsedPosition['timestamp'] = timestamp;
-        parsedPosition['datetime'] = this.iso8601(timestamp);
+        const parsedPosition = this.extend(this.parseWsPosition(rawPosition, market), { 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) });
         cache.append(parsedPosition);
         client.resolve([parsedPosition], messageHash);
         client.resolve([parsedPosition], symbolMessageHash);
@@ -876,7 +892,7 @@ class bydfi extends bydfi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const client = this.client(url);
         this.fetchBalanceSnapshot(client);
         const options = this.safeDict(this.options, 'watchBalance');
@@ -1023,7 +1039,7 @@ class bydfi extends bydfi$1["default"] {
         const messageHashes = this.safeList(subscription, 'messageHashes', []);
         const subHashIsPrefix = this.safeBool(subscription, 'subHashIsPrefix', false);
         for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
+            const unsubHash = this.safeString(messageHashes, i, '');
             const subHash = unsubHash.replace('unsubscribe::', '');
             this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         }

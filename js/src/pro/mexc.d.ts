@@ -3,7 +3,7 @@ import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, 
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name mexc#watchTicker

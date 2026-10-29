@@ -32,7 +32,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -79,12 +79,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     public Long requestId()
     {
-        Long newValue;
-        synchronized (this) {
-        Long previousValue = this.safeInteger(this.options, "requestId", 0);
-        newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject(this.options, "requestId", newValue);
-        }
+        Long newValue = this.nextCounter("requestId", 1L);
         return newValue;
     }
 
@@ -94,7 +89,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         // see https://github.com/ccxt/ccxt/issues/26864
         if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("contract"), true)))
         {
-            throw new NotSupported((((((this.id + " ") + methodName) + "() does not support ") + market.get("type")) + " markets yet")) ;
+            String marketType = this.safeString(market, "type", "");
+            throw new NotSupported((((((this.id + " ") + methodName) + "() does not support ") + marketType) + " markets yet")) ;
         }
     }
 
@@ -256,35 +252,37 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             List<Object> rawOHLCV = (List<Object>) this.safeList(records, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1, (Object) null), this.safeNumber(rawOHLCV, 2, (Object) null), this.safeNumber(rawOHLCV, 3, (Object) null), this.safeNumber(rawOHLCV, 4, (Object) null), this.safeNumber(rawOHLCV, 5, (Object) null)));
-            String timeframeId = this.safeString(message, "kbar");
-            Object timeframe = this.findTimeframe(timeframeId, timeframes);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+            String timeframeId = this.safeString(message, "kbar", "");
+            String timeframe = this.findTimeframe(timeframeId, timeframes);
+            Map<String, Object> ohlcvsForSymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, ohlcvsForSymbol);
+            Object stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(ohlcvsForSymbol, timeframe, stored);
             }
-            stored.append(parsed);
+            ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
             String messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         } else
         {
             Map<String, Object> rawOHLCV = (Map<String, Object>) this.safeDict(message, "kbar", new HashMap<String, Object>() {{}});
-            String timeframeId = this.safeString(rawOHLCV, "slot");
+            String timeframeId = this.safeString(rawOHLCV, "slot", "");
             String datetime = this.safeString(rawOHLCV, "t");
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(datetime), this.safeNumber(rawOHLCV, "o", (Object) null), this.safeNumber(rawOHLCV, "h", (Object) null), this.safeNumber(rawOHLCV, "l", (Object) null), this.safeNumber(rawOHLCV, "c", (Object) null), this.safeNumber(rawOHLCV, "v", (Object) null)));
-            Object timeframe = this.findTimeframe(timeframeId, timeframes);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+            String timeframe = this.findTimeframe(timeframeId, timeframes);
+            Map<String, Object> ohlcvsForSymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, ohlcvsForSymbol);
+            Object stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(ohlcvsForSymbol, timeframe, stored);
             }
-            stored.append(parsed);
+            ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
@@ -384,7 +382,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(message, market);
-        Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
+        this.tickers.put(symbol, parsedTicker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(parsedTicker, messageHash);
         messageHash = ("fetchTicker:" + symbol);
@@ -553,7 +551,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(message, "trade", (Object) null);
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
@@ -563,7 +561,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Helpers.addElementToObject(trade, "symbol", symbol);
             stored.append(trade);
         }
-        Helpers.addElementToObject(this.trades, symbol, stored);
+        this.trades.put(symbol, stored);
         String messageHash = ("trades:" + symbol);
         client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
         messageHash = ("fetchTrades:" + symbol);
@@ -692,19 +690,14 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
-        io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
-        if (java.util.Objects.equals(myOrders, null))
-        {
-            return;
-        }
+        io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         myOrders.append(order);
-        this.orders = myOrders;
         client.resolve(myOrders, "orders");
         String messageHash = ("orders:" + symbol);
         client.resolve(myOrders, messageHash);
@@ -860,9 +853,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.parse8601(this.safeString(message, "TS"));
         String datetime = this.iso8601(timestamp);
-        Helpers.addElementToObject(this.balance, "info", data);
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", datetime);
+        this.balance.put("info", data);
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> account = this.account();
@@ -871,7 +864,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         account.put("total", this.safeString(data, "asset"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            this.balance.put(code, account);
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
@@ -1018,7 +1011,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -1115,7 +1108,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Client client = this.client(url);
             Long now = this.milliseconds();
             String messageHash = "authenticateFlight";
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            if (client.futures.containsKey(messageHash))
             {
                 // a flight is already in progress - wake when the leader settles
                 // it: the subscribeKey is then in the bucket
@@ -1137,7 +1130,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                     {
                         throw new ExchangeError((this.id + " failed to get subscribe key")) ;
                     }
-                    ((Map)client.subscriptions).put("authenticated", new HashMap<String, Object>() {{
+                    client.subscriptions.put("authenticated", new HashMap<String, Object>() {{
         put( "key", Lbank.this.safeString(response, "data") );
         put( "expires", Lbank.this.sum(now, 3300000) );
     }});
@@ -1157,12 +1150,12 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                         {
                             throw new ExchangeError((this.id + " failed to refresh the SubscribeKey")) ;
                         }
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(client, "subscriptions"), "authenticated"), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                        Helpers.addElementToObject((client.subscriptions == null ? null : client.subscriptions.get("authenticated")), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                     }
                 }
                 // settle the flight through the client so that every write to the
                 // futures map happens inside the base class
-                client.resolve(Helpers.GetValue(((Map)client.subscriptions).get("authenticated"), "key"), messageHash);
+                client.resolve(this.safeString(this.safeDict(client.subscriptions, "authenticated", (Object) null), "key"), messageHash);
             } catch(Exception e)
             {
                 // reject the flight - all waiters throw and the next caller
@@ -1171,7 +1164,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             // rethrows a rejected flight to the leader and attaches the handler
             // that keeps an alone leader from crashing on an unhandled rejection
-            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            future.getFuture().join();
             return this.safeString(this.safeDict(client.subscriptions, "authenticated", (Object) null), "key");
         });
 

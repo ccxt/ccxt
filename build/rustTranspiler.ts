@@ -9,6 +9,12 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
+import {
+    nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, hx10w2R08, r05FieldChainInserts, bf03PlainDictChains,
+    r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r08DictReads, r10ClientHandle,
+    hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
+    narrowStrSinkLocals, narrowStrNullLocals,
+} from 'ast-transpiler';
 
 ansi.nice;
 
@@ -37,11 +43,92 @@ function borrowLiteralBoxes(content: string): string {
     return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
 }
 
+// Break every emitted line over 400 chars at whitespace that sits between Rust
+// tokens (after `,`/`;` first, any other code space second). Only as a last
+// resort inside a plain string literal: a space followed by `\` + newline,
+// which Rust folds away, so literal contents stay identical. Strings, chars,
+// raw strings and comments are tracked across lines so nothing inside them is
+// split. Runs on the final text only.
+function splitLongRustLines(content: string, max = 400): string {
+    if (!new RegExp(`[^\\n]{${max + 1}}`).test(content)) return content;
+    let mode = 0; // 0 code, 1 string, 2 raw string, 3 block comment
+    let rawHashes = 0;
+    let blockDepth = 0;
+    const outLines: string[] = [];
+    for (const line of content.split('\n')) {
+        const cands: { pos: number; pri: number }[] = [];
+        const n = line.length;
+        let i = 0;
+        while (i < n) {
+            const c = line[i];
+            if (mode === 3) {
+                if (c === '*' && line[i + 1] === '/') { blockDepth--; i += 2; if (blockDepth === 0) mode = 0; continue; }
+                if (c === '/' && line[i + 1] === '*') { blockDepth++; i += 2; continue; }
+                i++; continue;
+            }
+            if (mode === 1) {
+                if (c === '\\') { i += 2; continue; }
+                if (c === '"') { mode = 0; i++; continue; }
+                if (c === ' ' && i > 0 && line[i - 1] !== ' ' && line[i - 1] !== '\\' && i + 1 < n && line[i + 1] !== ' ') cands.push({ pos: i, pri: 3 });
+                i++; continue;
+            }
+            if (mode === 2) {
+                if (c === '"' && line.startsWith('#'.repeat(rawHashes), i + 1)) { mode = 0; i += 1 + rawHashes; continue; }
+                i++; continue;
+            }
+            if (c === '/' && line[i + 1] === '/') break;
+            if (c === '/' && line[i + 1] === '*') { mode = 3; blockDepth = 1; i += 2; continue; }
+            if (c === '"') { mode = 1; i++; continue; }
+            if ((c === 'r' || (c === 'b' && line[i + 1] === 'r')) && !/[A-Za-z0-9_]/.test(line[i - 1] ?? ' ')) {
+                let j = i + (c === 'b' ? 2 : 1);
+                let h = 0;
+                while (line[j] === '#') { h++; j++; }
+                if (line[j] === '"' && (c === 'b' || true)) { mode = 2; rawHashes = h; i = j + 1; continue; }
+            }
+            if (c === '\'') {
+                if (line[i + 1] === '\\') { const e = line.indexOf('\'', i + 3); i = e < 0 ? n : e + 1; continue; }
+                if (line[i + 2] === '\'') { i += 3; continue; }
+                i++; continue; // lifetime
+            }
+            if (c === ' ' && i > 0 && line[i - 1] !== ' ' && i + 1 < n && line[i + 1] !== ' ') {
+                const prev = line[i - 1];
+                cands.push({ pos: i, pri: prev === ',' || prev === ';' ? 1 : 2 });
+            }
+            i++;
+        }
+        if (n <= max || cands.length === 0) { outLines.push(line); continue; }
+        const indent = /^\s*/.exec(line)![0] + '    ';
+        const parts: string[] = [];
+        let start = 0;
+        let prefix = 0;
+        for (;;) {
+            if (prefix + (n - start) <= max) break;
+            const budget = max - 40 - prefix;
+            const within = cands.filter(k => k.pos > start + 20 && k.pos - start <= budget);
+            let pick: { pos: number; pri: number } | undefined;
+            for (const pri of [1, 2, 3]) {
+                const ofPri = within.filter(k => k.pri === pri);
+                if (ofPri.length) { pick = ofPri[ofPri.length - 1]; break; }
+            }
+            const p1 = within.filter(k => k.pri === 1);
+            if (p1.length && pick && pick.pri !== 1 && p1[p1.length - 1].pos - start >= budget * 0.4) pick = p1[p1.length - 1];
+            if (!pick) pick = cands.find(k => k.pos > start + 20);
+            if (!pick) break;
+            parts.push((start === 0 ? '' : indent) + line.slice(start, pick.pri === 3 ? pick.pos + 1 : pick.pos) + (pick.pri === 3 ? '\\' : ''));
+            start = pick.pos + 1;
+            prefix = indent.length;
+        }
+        parts.push((start === 0 ? '' : indent) + line.slice(start));
+        outLines.push(parts.join('\n'));
+    }
+    return outLines.join('\n');
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = borrowLiteralBoxes(content);
+    content = splitLongRustLines(borrowLiteralBoxes(content));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -3124,11 +3211,15 @@ export class RustTranspilerBuilder {
             if (depth !== 0) { out += content.slice(idx); break; }
             const inner = content.slice(idx + marker.length, j);
             const semi = content.indexOf(';', j);
-            // Optional sibling `if let Err(<name>) = _try_result { … }`.
+            // Optional sibling catch: the ast printer's
+            // `if let Err(<name>) = _try_result { … }`, or the already-lowered
+            // `if _try_result.is_err() { … }` this pass emits (re-run safe).
             let after = semi + 1;
             while (after < content.length && /\s/.test(content[after])) after++;
-            const ifMatch = content.slice(after).match(
-                /^if\s+let\s+Err\(([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=\s*_try_result\s*\{/);
+            const catchRx = new RegExp(
+                '^if\\s+let\\s+Err\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)\\s*=\\s*_try_result\\s*\\{'
+                + '|^if\\s+_try_result\\.is_err\\(\\)\\s*\\{');
+            const ifMatch = content.slice(after).match(catchRx);
             let errName = '_e';
             let catchBody = '';
             let consumeEnd = semi + 1;
@@ -3137,7 +3228,7 @@ export class RustTranspilerBuilder {
                 // body references the un-prefixed `e` / `<name>` — bind the
                 // name the body actually uses (`#![allow(unused)]` covers
                 // the case where the body ignores it).
-                errName = ifMatch[1].replace(/^_/, '');
+                if (ifMatch[1]) errName = ifMatch[1].replace(/^_/, '');
                 let d2 = 1, k = after + ifMatch[0].length, inStr2 = false, esc2 = false;
                 while (k < content.length && d2 > 0) {
                     const c = content[k];
@@ -3164,6 +3255,11 @@ export class RustTranspilerBuilder {
             // Recurse so nested try/catch in either body is handled too.
             let tryBody     = this.rewriteTryCatchAsync(inner, isVoid);
             const catchPart = this.rewriteTryCatchAsync(catchBody, isVoid);
+            // A handler that never reads its binding needs no `Value` payload:
+            // `Err(_)` / `is_err()` are native, so the helper call disappears
+            // (hx10 R10). Bindings the body does read keep `panic_to_value`.
+            const errUsed = ifMatch !== null
+                && new RegExp(`(?<![A-Za-z0-9_])${errName}(?![A-Za-z0-9_])`).test(catchPart);
             // Inside an `async {}` catch_unwind block, `return ident;`
             // tries to move out of an outer-scope variable that the
             // catch arm and code after the match also need to read.
@@ -3193,6 +3289,9 @@ export class RustTranspilerBuilder {
             if (hasBreakContinue) {
                 out += `{${tryBody}}`;
             } else {
+                const errArm = errUsed
+                    ? `Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} }`
+                    : `Err(_) => { ${catchPart} }`;
                 // The catch binding is the panic payload (`Box<dyn Any>`);
                 // convert it to a `Value` so the catch body (which treats
                 // `e` as an error object) type-checks.
@@ -3211,7 +3310,7 @@ export class RustTranspilerBuilder {
                     } else {
                         out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${voidBody} #[allow(unreachable_code)] { false }}));\n`;
                     }
-                    out += `match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
+                    out += `match _try_result { Ok(__try_ret) => { if __try_ret { return; } } ${errArm} }`;
                     i = consumeEnd;
                     continue;
                 }
@@ -3225,9 +3324,11 @@ export class RustTranspilerBuilder {
                     // from the enclosing fn on the success path. Failure
                     // (the panic case) runs the catch body. Use `match`
                     // so both arms see one move of `_try_result`.
-                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
+                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } ${errArm} }`;
                 } else {
-                    const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`;
+                    const catchHead = errUsed
+                        ? `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`
+                        : `if _try_result.is_err() {`;
                     out += `${catchHead}${catchPart}}`;
                 }
             }
@@ -6756,6 +6857,8 @@ export class RustTranspilerBuilder {
      */
     dropDeadValueSlotClones(content: string): string {
         if (!content.includes('.clone()')) return content;
+        // hx10w9 RP02: a `&mut IndexMap` parameter is never moved, only copied.
+        const refMapParams = hx10w9Rp02RefMapParamNames(content);
         const masked = this.maskStrings(content);
         const blocks = this.rustBlocksOf(masked);
         const closures = blocks.filter(b => b.kind === 'closure');
@@ -6847,6 +6950,7 @@ export class RustTranspilerBuilder {
                 if (borrow.test(masked.slice(blocks[b].headerStart, blocks[b].open))) { blocked = true; break; }
             }
             if (blocked) continue;
+            if (refMapParams.has(ident)) continue;
             if (!this.rustLocalMovesAfter(masked, blocks, closures, rs, end, ident)) continue;
             out += content.slice(last, rs) + ident;
             last = end;
@@ -7620,7 +7724,7 @@ export class RustTranspilerBuilder {
             // Args inside the parens — collect (Value-typed) names so we
             // can pack them into a `vec![...]` to forward.
             const argList = m[2];
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
             const vecArgs: string[] = [];
             let hasSlice = false;
             for (const p of params) {
@@ -7677,7 +7781,7 @@ export class RustTranspilerBuilder {
             // Build the forwarding call. The trait method takes fixed-arity
             // `Value` args; we pull them from the inherent method's params.
             const argList = m[3];
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             // Classify each inherent param: 'value' (a fixed Value),
             // 'slice' (the `optional_args: &[Value]` bag), or unknown.
             type ParamInfo = { name: string, kind: 'value' | 'slice' | 'other' };
@@ -7842,10 +7946,12 @@ export class RustTranspilerBuilder {
             const isVoid = !isValue;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             const paramKinds = params.map(p => {
                 if (/:\s*&\[/.test(p)) return 'slice';
+                if (hx10w9Rp02ParamKind(p) !== undefined) return 'map';
                 if (/:\s*Value\b/.test(p)) return 'value';
+                if (/:\s*bool\b/.test(p)) return 'bool';
                 return 'other';
             });
             if (paramKinds.some(k => k === 'other')) continue;
@@ -7959,6 +8065,10 @@ export class RustTranspilerBuilder {
             for (let i = 0; i < paramKinds.length; i++) {
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'bool') {
+                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8008,6 +8118,10 @@ ${arms.join('\n')}
             for (let i = 0; i < paramKinds.length; i++) {
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'bool') {
+                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8085,6 +8199,11 @@ ${arms.join('\n')}
                 if (paramKinds[i] === 'value') {
                     // Pull args[i] (cloned), defaulting to Null.
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'bool') {
+                    // A native `bool` slot takes the same truthiness the body used.
+                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     // Pass the remaining args as a slice of `args` itself.
                     callArgs.push(this.dispatchSliceArg(i));
@@ -8125,6 +8244,10 @@ ${isBase
             for (let i = 0; i < paramKinds.length; i++) {
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'bool') {
+                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'map') {
+                    callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8199,13 +8322,17 @@ ${fallthrough}
             const isVoid = retType === '';
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
             if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
-            const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (/:\s*Value\b/.test(p) ? 'value' : 'other'));
+            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
+            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (hx10w9Rp02ParamKind(p) !== undefined ? 'map' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other'))));
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
                 ? this.dispatchSliceArg(i)
-                : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                : k === 'bool'
+                    ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
+                    : k === 'map'
+                        ? hx10w9Rp02DispatchArg(i)
+                        : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
@@ -9002,6 +9129,10 @@ impl std::ops::DerefMut for ${coreName} {
                 // write-back pass appends `set_value(&mut X, ..)` lines those
                 // locals must keep the box for).
                 rustContent = this.typeSafeListLocals(rustContent);
+                // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
+                rustContent = r06Push(rustContent);
+                // hx10 W3 R06: append_to_array on a marker-free local receiver is a plain Vec push.
+                rustContent = r06w3Push(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
@@ -9012,10 +9143,32 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.whileTrueToLoop(rustContent);
                 rustContent = this.x45Native(rustContent); // hx5 X45
                 rustContent = this.r28Truth(rustContent); // hx4 R28
+                rustContent = r04Scalars(rustContent); // hx10 R04
+                rustContent = r04Callee(rustContent); // hx10w3 R04
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
                 rustContent = this.x46Incr(rustContent); // hx5 X46
+                // Last of all: native get_value on a receiver whose container shape
+                // the final text pins (needs the clone/write passes to be done).
+                rustContent = nativeGetValue(rustContent); // hx10 R01
+                rustContent = r02NativeInserts(rustContent); // hx10 R02
+                rustContent = hx10w2R03(rustContent); // hx10w2 R03
+                rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
+                // hx10 W3 R01: typed locals run last, on the final text.
+                rustContent = r01TypedLocals(rustContent);
+                rustContent = r07StringNatives(rustContent); // hx10 W3 R07
+                rustContent = hx11RustSignApiStr(rustContent);
+                rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
+                rustContent = r05FieldChainInserts(rustContent); // hx10 R05
+                rustContent = bf03PlainDictChains(rustContent); // hx10w4 BF03
+                rustContent = r08DictReads(rustContent); // hx10w3 R08
+                // hx10w7 R10: venue reads of the ws client go through the typed
+                // handle the drive loop owns (field reads, no `get_value` lookup).
+                rustContent = r10ClientHandle(rustContent);
+                // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
+                rustContent = narrowStrSinkLocals(rustContent);
+                rustContent = narrowStrNullLocals(rustContent); // hx11 W7
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9734,6 +9887,9 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
+        // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
+        finalFile = r06Push(finalFile);
+        finalFile = r06w3Push(finalFile); // hx10 W3 R06
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
@@ -9742,10 +9898,26 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.whileTrueToLoop(finalFile);
         finalFile = this.x45Native(finalFile); // hx5 X45
         finalFile = this.r28Truth(finalFile); // hx4 R28
+        finalFile = r04Scalars(finalFile); // hx10 R04
+        finalFile = r04Callee(finalFile); // hx10w3 R04
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
         finalFile = this.x46Incr(finalFile); // hx5 X46
+        // Last of all: native get_value on a pinned receiver (hx10 R01).
+        finalFile = nativeGetValue(finalFile);
+        finalFile = r02NativeInserts(finalFile); // hx10 R02
+        finalFile = hx10w2R03(finalFile); // hx10w2 R03
+        finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
+        finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
+        finalFile = r07StringNatives(finalFile); // hx10 W3 R07
+        finalFile = hx11RustSignApiStr(finalFile);
+                finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
+        finalFile = r05FieldChainInserts(finalFile); // hx10 R05
+        finalFile = bf03PlainDictChains(finalFile); // hx10w4 BF03
+        finalFile = r08DictReads(finalFile); // hx10w3 R08
+        finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
+        finalFile = narrowStrNullLocals(finalFile); // hx11 W7
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -9767,7 +9939,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, borrowLiteralBoxes(finalFile));
+        fs.writeFileSync(outFile, splitLongRustLines(borrowLiteralBoxes(finalFile)));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
@@ -11038,6 +11210,11 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
+        content = hx10w2R08(content); // hx10 wave-2 R08
+                content = hx10w3R03(content); // hx10 wave-3 R03
+        content = r05FieldChainInserts(content); // hx10 R05
+        content = bf03PlainDictChains(content); // hx10w4 BF03
+        content = r08DictReads(content); // hx10w3 R08
         return content;
     }
 
@@ -11924,6 +12101,29 @@ impl std::ops::DerefMut for ${coreName} {
     /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
     hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
+        // A destructuring temp the printer declares `Vec<Value>` reads element 0
+        // through the slice: `<tmp>.get(0).cloned().unwrap_or(Value::Null)`.
+        const typedSuffix = '.get(0).cloned().unwrap_or(Value::Null)';
+        if (!e.endsWith(suffix) && e.endsWith(typedSuffix)) {
+            const tmp = e.slice(0, e.length - typedSuffix.length).trim();
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(tmp)) return false;
+            const masked = this.maskStringsAndComments(content);
+            const decls = [...masked.matchAll(new RegExp(`let ${tmp}\\s*:\\s*Vec<Value>\\s*=\\s*`, 'g'))];
+            if (decls.length === 0) return false;
+            if (new RegExp(`&mut\\s+${tmp}\\b|(?<!let\\s)(?<!let\\s+mut\\s)(?<![A-Za-z0-9_.])${tmp}\\s*=(?!=)`).test(masked)) return false;
+            const tail = '.as_array().cloned().unwrap_or_default()';
+            // Every `let` of the temp must bind a bool-headed tuple call: the
+            // name is reused across the fn's destructures, so one is not enough.
+            for (const d of decls) {
+                const at = (d.index as number) + d[0].length;
+                const end = this.endOfRustStatement(masked, at);
+                if (end < 0) return false;
+                const init = content.slice(at, end).trim();
+                if (!init.endsWith(tail)) return false;
+                if (!this.hx4X03IsBoolTupleCall(init.slice(0, init.length - tail.length).trim(), content, own, memo)) return false;
+            }
+            return true;
+        }
         if (!e.endsWith(suffix)) return false;
         const recv = e.slice(0, e.length - suffix.length).trim();
         if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(recv)) {
@@ -12015,13 +12215,25 @@ impl std::ops::DerefMut for ${coreName} {
     /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
     hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
-        if (m === null) return false;
-        const decls = [...before.matchAll(new RegExp(`let (?:mut )?${m[1]}\\s*=\\s*`, 'g'))];
+        // The printer declares the destructuring temp `Vec<Value>`: element 0 reads through the slice.
+        const typed = /^(__destr_tmp[A-Za-z0-9_]*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
+        if (m === null && typed === null) return false;
+        const tmpName = (typed ?? m)![1];
+        const typedTail = '.as_array().cloned().unwrap_or_default()';
+        const decls = [...before.matchAll(typed !== null
+            ? new RegExp(`let ${tmpName}\\s*:\\s*Vec<Value>\\s*=\\s*`, 'g')
+            : new RegExp(`let (?:mut )?${tmpName}\\s*=\\s*`, 'g'))];
         if (decls.length === 0) return false;
         const d = decls[decls.length - 1];
         const at = (d.index as number) + d[0].length;
-        const end = this.endOfRustStatement(before, at);
-        if (end < 0 || new RegExp(`(?<![A-Za-z0-9_.])${m[1]}\\s*=(?!=)`).test(before.slice(end))) return false;
+        const stmtEnd = this.endOfRustStatement(before, at);
+        if (stmtEnd < 0 || new RegExp(`(?<![A-Za-z0-9_.])${tmpName}\\s*=(?!=)`).test(before.slice(stmtEnd))) return false;
+        let end = stmtEnd;
+        if (typed !== null) {
+            const typedInit = before.slice(at, stmtEnd).trim();
+            if (!typedInit.endsWith(typedTail)) return false;
+            end = at + typedInit.length - typedTail.length;
+        }
         return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
     }
 
@@ -12089,6 +12301,7 @@ impl std::ops::DerefMut for ${coreName} {
         const e = this.stripOuterParens(raw.trim());
         if (depth > 6 || e === '') return false;
         if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.unwrap_or\(""\)\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)+"\)$/.test(e)) return true;
         if (/^[A-Za-z_][A-Za-z0-9_]*\.as_bool\(\) == Some\((?:true|false)\)$/.test(e)) return true;
         const parts: string[] = [];
         let d = 0; let startAt = 0;
@@ -12625,6 +12838,7 @@ impl std::ops::DerefMut for ${coreName} {
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
         content = this.x39Affix(content); // hx5 X39
+        content = this.nativeLiteralAffixTest(content);
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
         const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
@@ -13013,6 +13227,15 @@ impl std::ops::DerefMut for ${coreName} {
             at = close + 1;
         }
         return out + content.slice(at);
+    }
+
+    // `X.as_str().is_some_and(|__s| __s.starts_with("lit"))` -> `X.as_str().unwrap_or("").starts_with("lit")`.
+    // Closure-free and exact for a NON-EMPTY literal: a non-`Str` receiver gives `""`, which starts/ends
+    // with no non-empty literal, so the result is `false` exactly like the `None` arm. Empty literals keep the closure.
+    nativeLiteralAffixTest(content: string): string {
+        if (!content.includes('is_some_and(|__s| __s.')) return content;
+        const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_str\(\)\.is_some_and\(\|__s\| __s\.(starts_with|ends_with)\(("(?:[^"\\]|\\.)+")\)\)/g;
+        return content.replace(re, '$1.as_str().unwrap_or("").$2($3)');
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box

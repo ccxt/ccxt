@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseexchange.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class coinbaseexchange
  * @augments Exchange
@@ -9,7 +9,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
  * class instead. For Coinbase International derivatives see coinbaseinternational.
  */
 export default class coinbaseexchange extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbaseexchange#fetchCurrencies
@@ -324,6 +324,6 @@ export default class coinbaseexchange extends Exchange {
      */
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
 }

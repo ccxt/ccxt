@@ -528,8 +528,7 @@ export default class nado extends Exchange {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams(paramsRecvWindow);
-            const triggerDirection = triggerDirectionAndParams[0];
+            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -1048,7 +1047,7 @@ export default class nado extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            productIds.push(this.parseToInt(market['id']));
+            productIds.push(this.parseToInt(this.safeString(market, 'id')));
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1060,7 +1059,7 @@ export default class nado extends Exchange {
         const [recvWindow, paramsRecvWindow] = this.handleOptionIntegerAndParams(paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         const tx = {
             'sender': sender,
-            'recvTime': this.numberToString(this.milliseconds() + recvWindow),
+            'recvTime': this.numberToString(this.sum(this.milliseconds(), recvWindow)),
         };
         const request = {
             'tx': tx,
@@ -1219,12 +1218,12 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            ordersRequest['product_ids'] = [this.parseToInt(market['id'])];
+            ordersRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
+        }
+        if (limit !== undefined) {
+            ordersRequest['limit'] = Math.min(limit, 500);
         }
         const [ordersRequestUntil, paramsUntil] = this.handleUntilOption('max_time', ordersRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            ordersRequestUntil['limit'] = Math.min(limit, 500);
-        }
         const request = {
             'orders': ordersRequestUntil,
         };
@@ -1325,12 +1324,12 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            matchesRequest['product_ids'] = [this.parseToInt(market['id'])];
+            matchesRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
+        }
+        if (limit !== undefined) {
+            matchesRequest['limit'] = Math.min(limit, 500);
         }
         const [matchesRequestUntil, paramsUntil] = this.handleUntilOption('max_time', matchesRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            matchesRequestUntil['limit'] = Math.min(limit, 500);
-        }
         const request = {
             'matches': matchesRequestUntil,
         };
@@ -1753,7 +1752,7 @@ export default class nado extends Exchange {
             const settle = contract ? quote : undefined;
             let symbol = base + '/' + quote;
             if (contract) {
-                symbol += ':' + settle;
+                symbol = base + '/' + quote + ':' + quote;
             }
             const tradingStatus = this.safeString(market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -1833,7 +1832,7 @@ export default class nado extends Exchange {
         const result = {};
         const assets = this.toArray(response);
         for (let i = 0; i < assets.length; i++) {
-            const currency = assets[i];
+            const currency = this.safeValue(assets, i);
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
             if (code === undefined) {
@@ -1897,7 +1896,7 @@ export default class nado extends Exchange {
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const tickers = await this.fetchTickers([symbolValue], params);
         const ticker = this.safeDict(tickers, symbolValue);
         if (ticker === undefined) {
@@ -2241,18 +2240,19 @@ export default class nado extends Exchange {
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        const request = {
-            'candlesticks': {
-                'product_id': this.parseToInt(market['id']),
-                'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
-            },
+        const candlesticks = {
+            'product_id': this.parseToInt(market['id']),
+            'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = Math.min(limit, 500);
+            candlesticks['limit'] = Math.min(limit, 500);
         }
         if (until !== undefined) {
-            request['candlesticks']['max_time'] = this.parseToInt(until / 1000);
+            candlesticks['max_time'] = this.parseToInt(until / 1000);
         }
+        const request = {
+            'candlesticks': candlesticks,
+        };
         const response = await this.archivePost(this.deepExtend(request, paramsOmitted));
         //
         //     {
@@ -3052,7 +3052,8 @@ export default class nado extends Exchange {
         return '0x' + address + this.padHex(encoded, 24, false);
     }
     async queryContracts(params = {}) {
-        if (this.safeDict(this.options, 'gatewayContracts') === undefined) {
+        const gatewayContracts = this.safeDict(this.options, 'gatewayContracts');
+        if (gatewayContracts === undefined) {
             const request = {
                 'type': 'contracts',
             };
@@ -3065,9 +3066,6 @@ export default class nado extends Exchange {
         return '0x' + this.padHex(this.intToBase16(productId), 40);
     }
     padHex(value, length, left = true) {
-        if (length === undefined) {
-            throw new ArgumentsRequired(this.id + ' padHex() requires length');
-        }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
@@ -3095,8 +3093,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signCancellation(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3114,8 +3111,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signCancellationProducts(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3132,8 +3128,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signFetchTriggerOrders(tx, chainId, endpointAddress) {
         const domain = {
@@ -3149,14 +3144,13 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signHash(hash, privateKey) {
         if (privateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
-        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+        const signature = ecdsa(hash, privateKey.slice(-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();
@@ -3178,7 +3172,10 @@ export default class nado extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const pathSuffix = (path !== '') ? ('/' + this.implodeParams(path, params)) : '';
+        let pathSuffix = '';
+        if (path !== '') {
+            pathSuffix = '/' + this.implodeParams(path, params);
+        }
         let url = baseApiUrl + pathSuffix;
         const query = this.omit(params, this.extractParams(path));
         const headersValue = {};
@@ -3187,7 +3184,7 @@ export default class nado extends Exchange {
         }
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(query);
+                url = baseApiUrl + pathSuffix + '?' + this.urlencode(query);
             }
         }
         else {
@@ -3197,7 +3194,7 @@ export default class nado extends Exchange {
         const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

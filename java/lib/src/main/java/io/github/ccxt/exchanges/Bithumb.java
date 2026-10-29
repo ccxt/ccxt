@@ -35,7 +35,7 @@ public class Bithumb extends BithumbApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bithumb" );
@@ -561,7 +561,7 @@ public class Bithumb extends BithumbApi
     public String amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue(market.get("precision"), "amount"), DECIMAL_PLACES);
     }
 
     public String getGen2MarketId(Map<String, Object> market)
@@ -571,8 +571,8 @@ public class Bithumb extends BithumbApi
         {
             return marketId;
         }
-        String quoteId = this.safeString2(market, "quoteId", "quote");
-        String baseId = this.safeString2(market, "baseId", "base");
+        String quoteId = this.safeString2(market, "quoteId", "quote", "");
+        String baseId = this.safeString2(market, "baseId", "base", "");
         return ((quoteId + "-") + baseId);
     }
 
@@ -631,35 +631,35 @@ public class Bithumb extends BithumbApi
                     {
                         continue;
                     }
-                    ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                        j39v1.put("id", marketId);
-                        j39v1.put("symbol", ((base + "/") + quote));
-                        j39v1.put("base", base);
-                        j39v1.put("quote", quote);
-                        j39v1.put("settle", null);
-                        j39v1.put("baseId", baseId);
-                        j39v1.put("quoteId", quoteId);
-                        j39v1.put("settleId", null);
-                        j39v1.put("type", "spot");
-                        j39v1.put("spot", true);
-                        j39v1.put("margin", false);
-                        j39v1.put("swap", false);
-                        j39v1.put("future", false);
-                        j39v1.put("option", false);
-                        j39v1.put("active", true);
-                        j39v1.put("contract", false);
-                        j39v1.put("linear", null);
-                        j39v1.put("inverse", null);
-                        j39v1.put("contractSize", null);
-                        j39v1.put("expiry", null);
-                        j39v1.put("expiryDatetime", null);
-                        j39v1.put("strike", null);
-                        j39v1.put("optionType", null);
-                        j39v1.put("precision", new HashMap<String, Object>() {{
+                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", marketId);
+                    j39v1.put("symbol", ((base + "/") + quote));
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", true);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                             put( "amount", Long.parseLong("4") );
                             put( "price", Long.parseLong("4") );
                         }});
-                        j39v1.put("limits", new HashMap<String, Object>() {{
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -677,9 +677,9 @@ public class Bithumb extends BithumbApi
                                 put( "max", null );
                             }} );
                         }});
-                        j39v1.put("created", null);
-                        j39v1.put("info", entry);
-                        yield j39v1; } }));
+                    j39v1.put("created", null);
+                    j39v1.put("info", entry);
+                    ((List<Object>)result).add(j39v1);
                 }
             } else
             {
@@ -816,7 +816,7 @@ public class Bithumb extends BithumbApi
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Map<String, Object> account = this.account();
                 Map<String, Object> currency = this.currency((String) (code));
-                String lowerCurrencyId = this.safeStringLower(currency, "id");
+                String lowerCurrencyId = this.safeStringLower(currency, "id", "");
                 account.put("total", this.safeString(balances, ("total_" + lowerCurrencyId)));
                 account.put("used", this.safeString(balances, ("in_use_" + lowerCurrencyId)));
                 account.put("free", this.safeString(balances, ("available_" + lowerCurrencyId)));
@@ -1148,7 +1148,11 @@ public class Bithumb extends BithumbApi
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
-                List<String> symbolsForMarketIds = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
+                List<String> symbolsForMarketIds = this.symbols;
+                if (!java.util.Objects.equals(symbols, null))
+                {
+                    symbolsForMarketIds = symbols;
+                }
                 Integer symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
@@ -1215,10 +1219,10 @@ public class Bithumb extends BithumbApi
                 Integer responsesLength = ((List<?>)responses).size();
                 for (var i = 0; (responsesLength != null && i < responsesLength); i++)
                 {
-                    Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
-                    if (Boolean.TRUE.equals(this.isDictionary(response)) && ((switch ((Object)(response)) { case List<?> j39v15 -> j39v15.contains("data"); case Map<?, ?> j39v14 -> j39v14.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
+                    Object response = this.safeValue(responses, i);
+                    if (Boolean.TRUE.equals(this.isDictionary(response)) && (!java.util.Objects.equals(this.safeValue(response, "data"), null)))
                     {
-                        response = Helpers.GetValue(response, "data");
+                        response = this.safeValue(response, "data");
                     }
                     String expectedMarketId = null;
                     List<Object> requestedMarketIds = (List<Object>) this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
@@ -1898,7 +1902,7 @@ public class Bithumb extends BithumbApi
 
     }
 
-    public Map<String, Object> createOrderRequest(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2034,7 +2038,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> response = null;
             if ((generation != null && generation == 2))
             {
-                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, paramsGeneration);
+                request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGeneration);
                 response = (this.privatePostV2Orders(request)).join();
             } else
             {
@@ -2067,13 +2071,13 @@ public class Bithumb extends BithumbApi
             {
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
-                j39v16.put("info", response);
-                j39v16.put("symbol", symbol);
-                j39v16.put("type", type);
-                j39v16.put("side", side);
-                j39v16.put("id", id);
-                yield j39v16; } }));
+            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
+                j39v14.put("info", response);
+                j39v14.put("symbol", symbol);
+                j39v14.put("type", type);
+                j39v14.put("side", side);
+                j39v14.put("id", id);
+                yield j39v14; } }));
         }).thenApply(Order::new);
 
     }
@@ -2105,8 +2109,9 @@ public class Bithumb extends BithumbApi
             {
                 throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
             }
-            ((Map<String, Object>)paramsGeneration).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, paramsGeneration)).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(paramsGeneration, new HashMap<String, Object>() {{
+                put( "createMarketBuyOrderRequiresPrice", false );
+            }}))).join();
         }).thenApply(Order::new);
 
     }
@@ -2631,14 +2636,9 @@ public class Bithumb extends BithumbApi
             if ((generation != null && generation == 2))
             {
                 Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-                if (Boolean.TRUE.equals(twap))
-                {
-                    ((Map<String, Object>)paramsGeneration).put("state", "progress");
-                } else
-                {
-                    ((Map<String, Object>)paramsGeneration).put("state", "wait");
-                }
-                List<Order> orders = (this.fetchOrders(symbol, since, limit, paramsGeneration)).join();
+                List<Order> orders = (this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, new HashMap<String, Object>() {{
+                    put( "state", ((Boolean.TRUE.equals(twap))) ? "progress" : "wait" );
+                }}))).join();
                 return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
             } else
             {
@@ -3009,9 +3009,9 @@ public class Bithumb extends BithumbApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "side", ((Map<String, Object>)order).get("side") );
+                put( "side", Bithumb.this.safeString(order, "side") );
             }};
-            return (this.cancelOrder(((String)((Map<String, Object>)order).get("id")), java.util.Objects.toString(((Map<String, Object>)order).get("symbol"), null), this.extend(request, parameters))).join();
+            return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), this.extend(request, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3054,9 +3054,8 @@ public class Bithumb extends BithumbApi
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(paramsGeneration, "tag", (String) null);
-            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            String tagWithdrawTag = this.safeString(paramsGeneration, "tag");
+            Map<String, Object> paramsWithdrawTag = this.omit(paramsGeneration, "tag");
             this.checkAddress(address, code, tagWithdrawTag);
             String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
             Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
@@ -3771,7 +3770,7 @@ public class Bithumb extends BithumbApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (query == null || key == null ? null : query.get(key));
+            Object value = this.safeValue(query, key);
             if ((value instanceof List))
             {
                 String encodedKey = (this.encodeURIComponent(key) + "[]");
@@ -3806,8 +3805,8 @@ public class Bithumb extends BithumbApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Map<String, Object> requestHeaders = null;
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         Object requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3817,7 +3816,7 @@ public class Bithumb extends BithumbApi
         }
         String url = (this.implodeHostname(apiUrl) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
-        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
         if (java.util.Objects.equals(apiName, "public"))
@@ -3827,7 +3826,7 @@ public class Bithumb extends BithumbApi
             }};
             if (Boolean.TRUE.equals(hasQuery))
             {
-                url = (url + ("?" + this.urlencode(query)));
+                url = (((this.implodeHostname(apiUrl) + endpoint) + "?") + this.urlencode(query));
             }
         } else
         {
@@ -3844,7 +3843,7 @@ public class Bithumb extends BithumbApi
                     put( "nonce", Bithumb.this.uuid() );
                     put( "timestamp", Bithumb.this.milliseconds() );
                 }};
-                Object auth = null;
+                Object auth = "";
                 if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
                     requestHeaders.put("Content-Type", "application/json");
@@ -3856,12 +3855,11 @@ public class Bithumb extends BithumbApi
                 } else if (Boolean.TRUE.equals(hasQuery))
                 {
                     auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
-                    url = (url + ("?" + auth));
+                    url = (((this.implodeHostname(apiUrl) + endpoint) + "?") + auth);
                 }
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    Object authString = (((java.util.Objects.equals(auth, null)))) ? "" : auth;
-                    request.put("query_hash", this.hash(this.encode(authString), sha512()));
+                    request.put("query_hash", this.hash(this.encode(auth), sha512()));
                     request.put("query_hash_alg", "SHA512");
                 }
                 String token = jwt(request, this.encode(this.secret), sha256());
@@ -3874,9 +3872,9 @@ public class Bithumb extends BithumbApi
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 Object bodyParts = new ArrayList<Object>(Arrays.asList(((String)encodedBody).split(java.util.regex.Pattern.quote("%20"))));
                 requestBody = String.join("+", (List<String>)bodyParts);
-                String nonce = String.valueOf(this.nonce());
-                Object auth = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+                String nonce = this.numberToString(this.nonce());
+                String authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
+                String signature = (String) this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());
                 String signature64 = this.stringToBase64(signature);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
@@ -3900,7 +3898,7 @@ public class Bithumb extends BithumbApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3926,29 +3924,26 @@ public class Bithumb extends BithumbApi
             }
             throw new ExchangeError((String)feedback) ;
         }
-        if ((switch ((Object)(response)) { case List<?> j39v19 -> j39v19.contains("status"); case Map<?, ?> j39v18 -> j39v18.containsKey("status"); case null, default -> false; }))
+        // generation 1:
+        //
+        //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        //
+        String status = this.safeString(response, "status");
+        if (!java.util.Objects.equals(status, null))
         {
-            // generation 1:
-            //
-            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            //
-            String status = this.safeString(response, "status");
             String message = this.safeString(response, "message");
-            if (!java.util.Objects.equals(status, null))
+            if (java.util.Objects.equals(status, "0000"))
             {
-                if (java.util.Objects.equals(status, "0000"))
-                {
-                    return null;  // no error
-                } else if (java.util.Objects.equals(message, "거래 진행중인 내역이 존재하지 않습니다."))
-                {
-                    // https://github.com/ccxt/ccxt/issues/9017
-                    return null;  // no error
-                }
-                Object feedback = ((this.id + " ") + message);
-                this.throwExactlyMatchedException(this.exceptions, status, feedback);
-                this.throwExactlyMatchedException(this.exceptions, message, feedback);
-                throw new ExchangeError((String)feedback) ;
+                return null;  // no error
+            } else if (java.util.Objects.equals(message, "거래 진행중인 내역이 존재하지 않습니다."))
+            {
+                // https://github.com/ccxt/ccxt/issues/9017
+                return null;  // no error
             }
+            Object feedback = ((this.id + " ") + message);
+            this.throwExactlyMatchedException(this.exceptions, status, feedback);
+            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            throw new ExchangeError((String)feedback) ;
         }
         return null;
     }

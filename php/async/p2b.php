@@ -16,7 +16,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class p2b extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'p2b',
             'name' => 'p2b',
@@ -575,10 +575,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        $tickerInner = $ticker;
-        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
-            $tickerInner = $this->safe_dict($ticker, 'ticker');
-        }
+        $tickerInner = $this->safe_dict($ticker, 'ticker', $ticker);
         $last = $this->safe_string($tickerInner, 'last');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -1196,25 +1193,25 @@ class p2b extends Exchange {
         }
         $untilParam = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        $until = null;
-        $sinceResolved = 0;
+        $until = $this->parse_to_int(0);
+        $sinceResolved = $this->parse_to_int(0);
         if ($untilParam !== null) {
-            $until = $untilParam;
+            $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
                 if (($untilParam - $since) > 86400000) {
                     throw new BadRequest($this->id . ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                $sinceResolved = $since;
+                $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $untilParam - 86400000;
+                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
             }
         } elseif ($since !== null) {
-            $until = $since + 86400000;
-            $sinceResolved = $since;
+            $until = $this->parse_to_int($since + 86400000);
+            $sinceResolved = $this->parse_to_int($since);
         } else {
             $now = $this->milliseconds();
-            $until = $now;
-            $sinceResolved = $now - 86400000;
+            $until = $this->parse_to_int($now);
+            $sinceResolved = $this->parse_to_int($now - 86400000);
         }
         $market = $this->market($symbol);
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
@@ -1288,25 +1285,25 @@ class p2b extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $until = null;
-        $sinceResolved = 0;
+        $until = $this->parse_to_int(0);
+        $sinceResolved = $this->parse_to_int(0);
         if ($untilParam !== null) {
-            $until = $untilParam;
+            $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
                 if (($untilParam - $since) > 86400000) {
                     throw new BadRequest($this->id . ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                $sinceResolved = $since;
+                $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $untilParam - 86400000;
+                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
             }
         } elseif ($since !== null) {
-            $until = $since + 86400000;
-            $sinceResolved = $since;
+            $until = $this->parse_to_int($since + 86400000);
+            $sinceResolved = $this->parse_to_int($since);
         } else {
             $now = $this->milliseconds();
-            $until = $now;
-            $sinceResolved = $now - 86400000;
+            $until = $this->parse_to_int($now);
+            $sinceResolved = $this->parse_to_int($now - 86400000);
         }
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);
@@ -1443,10 +1440,12 @@ class p2b extends Exchange {
             }
         }
         if ($apiName === 'private') {
-            $paramsOmitted['request'] = '/api/v2/' . $path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            $paramsOmitted['nonce'] = (string) $this->incrementing_nonce();
+            $paramsOmitted = $this->extend($paramsOmitted, array(
+                'request' => '/api/v2/' . $path,
+                'nonce' => (string) $this->incrementing_nonce(),
+            ));
             $payload = base64_encode($this->json($paramsOmitted));  // Body json encoded in base64
             $headersSigned = array(
                 'Content-Type' => 'application/json',
@@ -1460,7 +1459,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

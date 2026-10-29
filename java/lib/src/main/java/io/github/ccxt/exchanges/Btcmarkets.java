@@ -33,7 +33,7 @@ public class Btcmarkets extends BtcmarketsApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "btcmarkets" );
@@ -564,22 +564,22 @@ public class Btcmarkets extends BtcmarketsApi
         }
         Map<String, Object> cryptoPaymentDetail = (Map<String, Object>) this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
-        String address = this.safeString(cryptoPaymentDetail, "address");
+        String addressRaw = this.safeString(cryptoPaymentDetail, "address");
+        Object address = null;
         Object tag = null;
-        if (!java.util.Objects.equals(address, null))
+        if (!java.util.Objects.equals(addressRaw, null))
         {
-            List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
+            List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)addressRaw).split(java.util.regex.Pattern.quote("?dt="))));
             Integer numParts = ((List<?>)addressParts).size();
             if ((numParts != null && numParts > 1))
             {
-                address = (String) (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
+                address = (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
                 tag = (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
+            } else
+            {
+                address = addressRaw;
             }
         }
-        String addressTo = address;
-        Object tagTo = tag;
-        List<String> addressFrom = null;
-        List<String> tagFrom = null;
         String fee = this.safeString(transaction, "fee");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String currencyId = this.safeString(transaction, "assetName");
@@ -597,11 +597,11 @@ public class Btcmarkets extends BtcmarketsApi
             h2kMap0.put("datetime", this.iso8601(timestamp));
             h2kMap0.put("network", null);
             h2kMap0.put("address", address);
-            h2kMap0.put("addressTo", addressTo);
-            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
             h2kMap0.put("tag", tag);
-            h2kMap0.put("tagTo", tagTo);
-            h2kMap0.put("tagFrom", tagFrom);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tagFrom", null);
             h2kMap0.put("type", type);
             h2kMap0.put("amount", this.parseNumber(amount));
             h2kMap0.put("currency", code);
@@ -693,8 +693,8 @@ public class Btcmarkets extends BtcmarketsApi
         mapLiteral2.put("contract", false);
         mapLiteral2.put("linear", null);
         mapLiteral2.put("inverse", null);
-        mapLiteral2.put("taker", ((Map<String, Object>)fees).get("taker"));
-        mapLiteral2.put("maker", ((Map<String, Object>)fees).get("maker"));
+        mapLiteral2.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral2.put("maker", this.safeNumber(fees, "maker", (Object) null));
         mapLiteral2.put("contractSize", null);
         mapLiteral2.put("expiry", null);
         mapLiteral2.put("expiryDatetime", null);
@@ -926,7 +926,6 @@ public class Btcmarkets extends BtcmarketsApi
         //
         String marketId = this.safeString(ticker, "marketId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "lastPrice");
         String baseVolume = this.safeString(ticker, "volume24h");
@@ -934,7 +933,7 @@ public class Btcmarkets extends BtcmarketsApi
         String change = this.safeString(ticker, "price24h");
         String percentage = this.safeString(ticker, "pricePct24h");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
+            put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Btcmarkets.this.iso8601(timestamp) );
             put( "high", Btcmarkets.this.safeString(ticker, "high24h") );
@@ -1269,7 +1268,7 @@ public class Btcmarkets extends BtcmarketsApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 // numericIds[i] = parseInt (ids[i]);
-                ((List<Object>)numericIds).add(Helpers.parseInt((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                ((List<Object>)numericIds).add(this.parseToInt(this.safeString(ids, i)));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ids", numericIds );
@@ -1355,10 +1354,7 @@ public class Btcmarkets extends BtcmarketsApi
         if (java.util.Objects.equals(market.get("quote"), "AUD"))
         {
             currency = this.safeString(market, "quote");
-            String amountString = this.numberToString(amount);
-            String priceString = this.numberToString(price);
-            String otherUnitsAmount = Precise.stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
         } else
         {
             currency = this.safeString(market, "base");
@@ -1376,7 +1372,7 @@ public class Btcmarkets extends BtcmarketsApi
             h2kMap1.put("type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
             h2kMap1.put("currency", currency);
             h2kMap1.put("rate", rate);
-            h2kMap1.put("cost", Helpers.parseFloat(feeCost));
+            h2kMap1.put("cost", this.parseNumber(feeCost));
             return h2kMap1;
         }
     }
@@ -1665,9 +1661,8 @@ public class Btcmarkets extends BtcmarketsApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            String tagWithdrawTag = this.safeString(parameters, "tag");
+            Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1714,7 +1709,7 @@ public class Btcmarkets extends BtcmarketsApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -1733,8 +1728,9 @@ public class Btcmarkets extends BtcmarketsApi
                 }
             } else
             {
-                requestBody = this.json(query);
-                auth = (auth + requestBody);
+                String jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = (((java.util.Objects.requireNonNullElse(method, "GET") + request) + nonce) + jsonBody);
             }
             String signature = (String) this.hmac(this.encode(auth), secret, sha512(), "base64");
             requestHeaders = new HashMap<String, Object>() {{
@@ -1770,7 +1766,7 @@ public class Btcmarkets extends BtcmarketsApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

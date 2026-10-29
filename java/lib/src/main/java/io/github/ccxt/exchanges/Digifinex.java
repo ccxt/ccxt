@@ -50,7 +50,7 @@ public class Digifinex extends DigifinexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "digifinex" );
@@ -739,14 +739,13 @@ public class Digifinex extends DigifinexApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
-        Object networkEntries = rawCurrency;
-        Map<String, Object> firstEntry = (Map<String, Object>) this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}); // it must have at least one entry
-        String id = this.safeString(firstEntry, "currency");
+        List<Object> networkEntries = this.toArray(rawCurrency);
+        String id = this.safeString(this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}), "currency"); // it must have at least one entry
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkEntries).size(); j++)
         {
-            Object networkEntry = (networkEntries == null || j < 0 || j >= ((List<?>)networkEntries).size() ? null : ((List<?>)networkEntries).get(j));
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkEntries, j, (Object) null);
             String networkId = this.safeString2(networkEntry, "chain", "currency");
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -931,35 +930,35 @@ public class Digifinex extends DigifinexApi
                     }
                 }
                 Boolean isActive = Boolean.TRUE.equals(isTradingSwap) || ((isAllowedRaw == null || isAllowedRaw != 0));
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", margin);
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", isActive);
-                    j39v1.put("contract", swap);
-                    j39v1.put("linear", isLinear);
-                    j39v1.put("inverse", isInverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "contract_value", (Object) null));
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", margin);
+                j39v1.put("swap", swap);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", isActive);
+                j39v1.put("contract", swap);
+                j39v1.put("linear", isLinear);
+                j39v1.put("inverse", isInverse);
+                j39v1.put("contractSize", this.safeNumber(market, "contract_value", (Object) null));
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "amount_precision"))) );
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -977,9 +976,9 @@ public class Digifinex extends DigifinexApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1017,44 +1016,44 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new ExchangeError((this.id + " fetchMarketsV1() missing id")) ;
                 }
-                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
-                var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
-                var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
+                String baseId = this.safeString(idParts, 0);
+                String quoteId = this.safeString(idParts, 1);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", null);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", null);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", id);
+                j39v2.put("symbol", ((base + "/") + quote));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", null);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", null);
+                j39v2.put("type", "spot");
+                j39v2.put("spot", true);
+                j39v2.put("margin", null);
+                j39v2.put("swap", false);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", null);
+                j39v2.put("contract", false);
+                j39v2.put("linear", null);
+                j39v2.put("inverse", null);
+                j39v2.put("contractSize", null);
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "volume_precision"))) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1072,8 +1071,8 @@ public class Digifinex extends DigifinexApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("info", market);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });
@@ -1109,11 +1108,11 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
+        List<Object> rows = this.toArray(response);
+        for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
-            String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
+            String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String free = this.safeString2(balance, "free", "avail_balance");
             String total = this.safeString2(balance, "total", "equity");
@@ -1156,9 +1155,9 @@ public class Digifinex extends DigifinexApi
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginAssets(query)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1207,7 +1206,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             String balanceRequest = "list";
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && java.util.Objects.equals(marketType, "swap"))
             {
                 balanceRequest = "data";
             }
@@ -1403,7 +1402,7 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
-                }}, (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)));
+                }}, this.safeValue(tickers, i));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1496,19 +1495,12 @@ public class Digifinex extends DigifinexApi
             List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> result = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
-            {
-                result = data;
-            } else
+            Map<String, Object> result = data;
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 result = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
                 }}, firstTicker);
-            }
-            if (java.util.Objects.equals(result, null))
-            {
-                throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
@@ -2164,8 +2156,8 @@ public class Digifinex extends DigifinexApi
                 }
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
@@ -2232,7 +2224,7 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 Map<String, Object> individualOrder = new HashMap<String, Object>() {{}};
-                individualOrder.put("order_id", (data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                individualOrder.put("order_id", this.safeString(data, i));
                 individualOrder.put("instrument_id", market.get("id"));
                 individualOrder.put("amount", this.safeNumber(rawOrder, "amount", (Object) null));
                 individualOrder.put("price", this.safeNumber(rawOrder, "price", (Object) null));
@@ -2273,9 +2265,8 @@ public class Digifinex extends DigifinexApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrderRequest", paramsMarketType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        String marketType = (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : marketTypeRaw;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean swap = (java.util.Objects.equals(marketType, "swap"));
+        Boolean swap = ((java.util.Objects.equals(marginMode, null)) && (java.util.Objects.equals(marketTypeRaw, "swap")));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
         String marketIdRequest = "symbol";
@@ -2328,7 +2319,7 @@ public class Digifinex extends DigifinexApi
         } else
         {
             postOnlyParsed = ((Boolean.TRUE.equals(postOnly))) ? 1 : 2;
-            request.put("market", marketType);
+            request.put("market", (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : marketTypeRaw);
             String suffix = "";
             if (java.util.Objects.equals(type, "market"))
             {
@@ -2449,7 +2440,7 @@ public class Digifinex extends DigifinexApi
             {
                 market = this.market(symbol);
             }
-            String idValue = String.valueOf(id);
+            String idValue = this.numberToString(id);
             String marketType = null;
             Map<String, Object> paramsMarketType = null;
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
@@ -2473,9 +2464,9 @@ public class Digifinex extends DigifinexApi
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotPostMarginOrderCancel(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2508,7 +2499,7 @@ public class Digifinex extends DigifinexApi
             //         "data": "1590923061186531328"
             //     }
             //
-            if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
+            if (Boolean.TRUE.equals(isMargin) || (java.util.Objects.equals(marketType, "spot")))
             {
                 List<Object> canceledOrders = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
                 Integer numCanceledOrders = ((List<?>)canceledOrders).size();
@@ -2530,7 +2521,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseCancelOrders(Map<String, Object> response, Map<String, Object> symbolsById)
+    public List<Object> parseCancelOrders(Map<String, Object> response, Map<String, Object> symbolsById)
     {
         Object success = (List<String>)(this.safeList(response, "success", new ArrayList<Object>(Arrays.asList())));
         Object error = (List<String>)(this.safeList(response, "error", new ArrayList<Object>(Arrays.asList())));
@@ -2597,11 +2588,9 @@ public class Digifinex extends DigifinexApi
                 List<Object> orders = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                    Map<String, Object> orderItem = new HashMap<String, Object>() {{
-                        put( "id", orderId );
-                        put( "symbol", marketSymbol );
-                    }};
+                    Map<String, Object> orderItem = new HashMap<String, Object>();
+                    orderItem.put("id", this.safeString(ids, i, ""));
+                    orderItem.put("symbol", marketSymbol);
                     ((List<Object>)orders).add(orderItem);
                 }
                 return (this.cancelOrdersForSymbols(orders, paramsOmitted)).join();
@@ -2713,12 +2702,12 @@ public class Digifinex extends DigifinexApi
                     String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                     boolean isCanceled = this.inArray(orderId, data);
                     String status = ((isCanceled)) ? "canceled" : "failed";
-                    ((List<Object>)result).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                        j39v6.put("info", orderId);
-                        j39v6.put("id", orderId);
-                        j39v6.put("symbol", (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                        j39v6.put("status", status);
-                        yield j39v6; } }), (Map<String, Object>) null));
+                    ((List<Object>)result).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("info", orderId);
+                        j39v3.put("id", orderId);
+                        j39v3.put("symbol", (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+                        j39v3.put("status", status);
+                        yield j39v3; } }), (Map<String, Object>) null));
                 }
                 return result;
             }
@@ -2984,9 +2973,9 @@ public class Digifinex extends DigifinexApi
                 request.put(marketIdRequest, market.get("id"));
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrderCurrent(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3118,9 +3107,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrderHistory(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3222,8 +3211,9 @@ public class Digifinex extends DigifinexApi
             Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", paramsMarketType, (String) null);
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
+            String idValue = this.numberToString(id);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
+                put( "order_id", idValue );
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -3236,9 +3226,9 @@ public class Digifinex extends DigifinexApi
                 request.put("market", marketType);
             }
             Map<String, Object> response = null;
-            if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin")))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrder(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3299,10 +3289,10 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Object data = this.safeValue(response, "data");
-            Object order = (((java.util.Objects.equals(marketType, "swap")))) ? data : this.safeValue(data, 0);
+            Object order = (((!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap"))))) ? data : this.safeValue(data, 0);
             if (java.util.Objects.equals(order, null))
             {
-                throw new OrderNotFound((((this.id + " fetchOrder() order ") + String.valueOf(id)) + " not found")) ;
+                throw new OrderNotFound((((this.id + " fetchOrder() order ") + idValue) + " not found")) ;
             }
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -3372,9 +3362,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginMytrades(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3432,7 +3422,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             String responseRequest = "list";
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap")))
             {
                 responseRequest = "data";
             }
@@ -3560,9 +3550,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginFinancelog(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3608,7 +3598,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> ledger = null;
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap")))
             {
                 ledger = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -4259,7 +4249,7 @@ public class Digifinex extends DigifinexApi
         }};
     }
 
-    public Object parseBorrowRates(List<Object> info, String codeKey)
+    public Map<String, Object> parseBorrowRates(List<Object> info, String codeKey)
     {
         //
         //     {
@@ -5193,16 +5183,16 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                j39v7.put("tier", this.sum(i, 1));
-                j39v7.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"));
-                j39v7.put("currency", marketResolved.get("settle"));
-                j39v7.put("minNotional", null);
-                j39v7.put("maxNotional", this.safeNumber(tier, "max_limit", (Object) null));
-                j39v7.put("maintenanceMarginRate", null);
-                j39v7.put("maxLeverage", this.safeNumber(tier, "leverage", (Object) null));
-                j39v7.put("info", tier);
-                yield j39v7; } }));
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("tier", this.sum(i, 1));
+            j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"));
+            j39v4.put("currency", marketResolved.get("settle"));
+            j39v4.put("minNotional", null);
+            j39v4.put("maxNotional", this.safeNumber(tier, "max_limit", (Object) null));
+            j39v4.put("maintenanceMarginRate", null);
+            j39v4.put("maxLeverage", this.safeNumber(tier, "leverage", (Object) null));
+            j39v4.put("info", tier);
+            ((List<Object>)tiers).add(j39v4);
         }
         return tiers;
     }
@@ -5318,23 +5308,24 @@ public class Digifinex extends DigifinexApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+        List<Object> rows = this.toArray(response);
+        for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
-            String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
+            String code = this.safeCurrencyCode(this.safeString(entry, "currency"), (Map<String, Object>) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
-                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
-                if (java.util.Objects.equals(depositWithdrawFee, null))
+                if (!(depositWithdrawFees.containsKey(code)))
                 {
-                    depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info", new ArrayList<Object>(Arrays.asList()));
+                    Map<String, Object> feeStructure = (Map<String, Object>) this.depositWithdrawFee(new HashMap<String, Object>() {{}});
+                    feeStructure.put("info", new ArrayList<Object>(Arrays.asList()));
+                    depositWithdrawFees.put(code, feeStructure);
                 }
-                Object depositWithdrawInfo = Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info");
+                Object depositWithdrawFee = (depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code));
+                Object depositWithdrawInfo = ((Map<String, Object>)depositWithdrawFee).get("info");
                 ((List<Object>)depositWithdrawInfo).add(entry);
                 String networkId = this.safeString(entry, "chain");
-                Object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
+                Double withdrawFee = this.safeNumber(entry, "min_withdraw_fee", (Object) null);
                 Map<String, Object> withdrawResult = new HashMap<String, Object>();
                 withdrawResult.put("fee", withdrawFee);
                 withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
@@ -5347,15 +5338,15 @@ public class Digifinex extends DigifinexApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
                     }
                 } else
                 {
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "withdraw", withdrawResult);
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "deposit", depositResult);
+                    ((Map<String, Object>)depositWithdrawFee).put("withdraw", withdrawResult);
+                    ((Map<String, Object>)depositWithdrawFee).put("deposit", depositResult);
                 }
             }
         }
@@ -5364,7 +5355,7 @@ public class Digifinex extends DigifinexApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((Map<String, Object>) ((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code))), currency));
         }
         return depositWithdrawFees;
     }
@@ -5387,7 +5378,7 @@ public class Digifinex extends DigifinexApi
 
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("addMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5410,7 +5401,7 @@ public class Digifinex extends DigifinexApi
 
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("reduceMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5451,7 +5442,7 @@ public class Digifinex extends DigifinexApi
                 status = "ok";
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), (switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>(); j39v11.put("status", status); yield j39v11; } }));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("status", status); yield j39v5; } }));
         });
 
     }
@@ -5604,8 +5595,8 @@ public class Digifinex extends DigifinexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
-        String endpoint = this.safeString(api, 1);
+        Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
+        String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {
@@ -5630,8 +5621,8 @@ public class Digifinex extends DigifinexApi
         }
         if (Boolean.TRUE.equals(signed))
         {
-            Object auth = null;
-            Object nonce = null;
+            Object auth = "";
+            Object nonce = "";
             if (java.util.Objects.equals(pathPart, "/swap/v2"))
             {
                 nonce = String.valueOf(this.milliseconds());
@@ -5648,7 +5639,7 @@ public class Digifinex extends DigifinexApi
                 }
             } else
             {
-                nonce = String.valueOf(this.nonce());
+                nonce = String.valueOf(this.seconds());
                 auth = urlencoded;
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
@@ -5694,24 +5685,24 @@ public class Digifinex extends DigifinexApi
         }
     }
 
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // fall back to default error handler
         }
-        String code = this.safeString(response, "code");
-        if ((java.util.Objects.equals(code, "0")) || (java.util.Objects.equals(code, "200")))
+        String codeError = this.safeString(response, "code");
+        if ((java.util.Objects.equals(codeError, "0")) || (java.util.Objects.equals(codeError, "200")))
         {
             return null;  // no error
         }
-        String feedback = ((this.id + " ") + responseBody);
-        if (java.util.Objects.equals(code, null))
+        String feedback = ((this.id + " ") + body);
+        if (java.util.Objects.equals(codeError, null))
         {
             throw new BadResponse(feedback) ;
         }
         List<Object> unknownError = new ArrayList<Object>(Arrays.asList(ExchangeError.class, feedback));
-        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), codeError, unknownError);
         var ExceptionClass = ((List<Object>) ExceptionClassmessageVariable).get(0);
         var message = ((List<Object>) ExceptionClassmessageVariable).get(1);
         Helpers.throwDynamicException(ExceptionClass, message);return null;

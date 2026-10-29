@@ -1,11 +1,11 @@
 import Exchange from './abstract/blockchaincom.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class blockchaincom
  * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blockchaincom#fetchMarkets
@@ -247,5 +247,5 @@ export default class blockchaincom extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

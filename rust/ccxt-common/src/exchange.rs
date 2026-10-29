@@ -40,9 +40,24 @@ pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
 
 // HTTP/JSON timing counters — accumulated by `fetch_typed`, read+reset
 // by the CLI / benchmarks via `take_http_timings()`.
-static HTTP_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-static JSON_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-static HTTP_CALLS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+#[derive(Default)]
+struct HttpTimings { http_nanos: u64, json_nanos: u64, http_calls: u64 }
+
+// One owner thread holds the three counters; a caller hands it an add and never
+// waits, so there is no lock on the HTTP path. A read is ordered behind every
+// add this thread already posted.
+static TIMINGS: once_cell::sync::Lazy<crate::value::OwnerThread<HttpTimings>> =
+    once_cell::sync::Lazy::new(|| {
+        crate::value::OwnerThread::spawn("ccxt-http-timings", HttpTimings::default())
+    });
+
+fn timings_add(http_calls: u64, http_nanos: u64, json_nanos: u64) {
+    TIMINGS.post(move |t| {
+        t.http_calls += http_calls;
+        t.http_nanos += http_nanos;
+        t.json_nanos += json_nanos;
+    });
+}
 
 tokio::task_local! {
     // URLs whose WS drive loop is active on the current task's call stack. A
@@ -50,32 +65,96 @@ tokio::task_local! {
     // getBook, htx's snapshot req) must NOT start a second drive loop — that
     // would block the outer loop on a hash the outer loop is responsible for
     // resolving. Instead it just sends its subscribe frame and returns; the
-    // outer loop processes the reply. Task-local so it survives task migration.
-    static WS_DRIVEN_URLS: std::sync::Mutex<std::collections::HashSet<String>>;
+    // outer loop processes the reply. Task-local so it survives task migration;
+    // immutable, so a nested drive extends it with its own scope, not a lock.
+    static WS_DRIVEN_URLS: Vec<String>;
 }
 
 /// Snapshot + reset the global HTTP/JSON timings. Returns
 /// `(http_nanos, json_nanos, http_calls)` and zeroes them.
 pub fn take_http_timings() -> (u64, u64, u64) {
-    use std::sync::atomic::Ordering::Relaxed;
-    (
-        HTTP_NANOS.swap(0, Relaxed),
-        JSON_NANOS.swap(0, Relaxed),
-        HTTP_CALLS.swap(0, Relaxed),
-    )
+    TIMINGS.run(|t| (
+        std::mem::take(&mut t.http_nanos),
+        std::mem::take(&mut t.json_nanos),
+        std::mem::take(&mut t.http_calls),
+    ))
 }
 
 // ── Internals (Rust-typed runtime state, not exposed to transpiled code) ─────
+
+// ── Rate limiter: one owner task, channel hand-off ──────────────────────────
+// The leaky bucket is stateful and must serialize requests, so a single task
+// owns it and every caller hands it a request and awaits the reply. No lock is
+// held across the sleep and the bucket refill is never observed half-applied.
+pub struct ThrottleHandle {
+    tx: std::sync::OnceLock<tokio::sync::mpsc::UnboundedSender<ThrottleJob>>,
+}
+
+struct ThrottleJob {
+    refill_rate: f64,
+    capacity:    f64,
+    delay_ms:    f64,
+    cost:        f64,
+    reply:       tokio::sync::oneshot::Sender<()>,
+}
+
+impl Default for ThrottleHandle {
+    fn default() -> Self { ThrottleHandle { tx: std::sync::OnceLock::new() } }
+}
+
+impl ThrottleHandle {
+    fn sender(&self) -> &tokio::sync::mpsc::UnboundedSender<ThrottleJob> {
+        self.tx.get_or_init(|| {
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<ThrottleJob>();
+            tokio::spawn(async move {
+                let mut tokens: f64 = 0.0;
+                let mut last_ms: i64 = 0;
+                while let Some(job) = rx.recv().await {
+                    let n = now_ms();
+                    if last_ms == 0 { last_ms = n; }
+                    tokens = (tokens + job.refill_rate * (n - last_ms).max(0) as f64).min(job.capacity);
+                    last_ms = n;
+                    if tokens < 0.0 {
+                        let wait = ((-tokens) / job.refill_rate).max(job.delay_ms);
+                        tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
+                        let n2 = now_ms();
+                        tokens = (tokens + job.refill_rate * (n2 - last_ms).max(0) as f64).min(job.capacity);
+                        last_ms = n2;
+                    }
+                    tokens -= job.cost;
+                    let _ = job.reply.send(());
+                }
+            });
+            tx
+        })
+    }
+
+    /// Queues one request on the bucket's owner and returns once it has been
+    /// served (which is what serializes concurrent callers on one instance).
+    pub(crate) async fn wait(&self, refill_rate: f64, capacity: f64, delay_ms: f64, cost: f64) {
+        let (reply, done) = tokio::sync::oneshot::channel::<()>();
+        let job = ThrottleJob { refill_rate, capacity, delay_ms, cost, reply };
+        if self.sender().send(job).is_err() { return; }
+        let _ = done.await;
+    }
+}
+
+fn now_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0)
+}
 
 pub struct Internals {
     pub http_client:    Option<reqwest::Client>,
     pub describe_cb:    Option<DescribeCallback>,
     pub last_rest_ts:   i64,
     pub headers:        HashMap<String, String>,
-    /// Leaky-bucket rate-limiter state, `(tokens, last_refill_ms)`, shared and
-    /// interior-mutable so the `&self` async `throttle()` can serialize requests
-    /// on one exchange instance. See `Exchange::throttle`.
-    pub throttle:       std::sync::Arc<tokio::sync::Mutex<(f64, i64)>>,
+    /// Leaky-bucket rate-limiter state, `(tokens, last_refill_ms)`, owned by one
+    /// task so the `&self` async `throttle()` can serialize requests on one
+    /// exchange instance without a lock. See `ThrottleHandle`.
+    pub throttle:       ThrottleHandle,
     /// Cached dispatch table built from `self.api`. Maps the snake-case
     /// implicit API name (e.g. `public_get_exchange_info`) to
     /// `(path, api_scope, http_verb, endpoint_config)`.
@@ -159,7 +238,7 @@ pub trait DerivedExchange {
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
 // (its fields — `reqwest::Client`, `Arc<dyn Fn + Send + Sync>`,
-// `Arc<tokio::Mutex<_>>`, maps, `Vec<String>` — are all thread-safe). No manual
+// `ThrottleHandle`, maps, `Vec<String>` — are all thread-safe). No manual
 // `unsafe impl` and no `PhantomPinned` are needed now that dispatch is static
 // (review #1: thread safety is compiler-proven, not asserted).
 
@@ -177,7 +256,7 @@ impl Default for Internals {
             describe_cb:      None,
             last_rest_ts:     0,
             headers:          HashMap::new(),
-            throttle:         std::sync::Arc::new(tokio::sync::Mutex::new((0.0, 0))),
+            throttle:         ThrottleHandle::default(),
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
             dynamic_dispatch_miss: None,
@@ -189,6 +268,7 @@ impl Default for Internals {
 //
 // Every transpiler-visible field is `Value`. Both camelCase and snake_case
 // names appear because the TS source uses both interchangeably.
+// Plain-map state below is single-owner (no lock, no tag): build/hx10w2-R08.ts emits native reads.
 
 #[derive(Clone)]
 pub struct Exchange {
@@ -256,6 +336,7 @@ pub struct Exchange {
     pub ws_socks_proxy:      Value,
 
     // market data caches
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub markets:           Value,
     pub markets_by_id:     Value,
     pub currencies:        Value,
@@ -275,6 +356,7 @@ pub struct Exchange {
     pub exceptions:        Value,
     pub urls:              Value,
     pub api:               Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub options:           Value,
     pub headers:           Value,
     pub accounts:          Value,
@@ -295,6 +377,7 @@ pub struct Exchange {
     pub bidsasks:          Value,
     pub ohlcvs:            Value,
     pub clients:           Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
     pub liquidations:      Value,
     pub myLiquidations:    Value,
@@ -351,6 +434,72 @@ pub struct Exchange {
 
     // private runtime state (typed)
     pub internals: Internals,
+}
+
+/// Base fields holding a plain, single-owner dict container.
+///
+/// Each one is a dict or `Null` for the whole life of the exchange and the
+/// runtime never tags it (`__cacheKind` / `__book_id` / `__ws_subs_url` /
+/// `__live_id`), so reading and writing them is the stdlib map op and nothing
+/// else. `build/hx10w4-BF03.ts` emits those ops natively for the generated
+/// tiers; the test below holds the invariant they are proven from.
+pub const PLAIN_DICT_FIELDS: [&str; 3] = ["options", "markets", "balance"];
+
+/// The container invariant above, checked against the real constructor and
+/// against the runtime's own write-through helper.
+#[cfg(test)]
+mod plain_dict_container_proof {
+    use super::*;
+
+    fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
+        match name {
+            "options" => &mut ex.options,
+            "markets" => &mut ex.markets,
+            "balance" => &mut ex.balance,
+            other => panic!("not a plain-dict field: {other}"),
+        }
+    }
+
+    #[test]
+    fn fields_hold_a_dict_or_null() {
+        let mut ex = Exchange::new(None);
+        for name in PLAIN_DICT_FIELDS {
+            let v = slot(&mut ex, name).clone();
+            assert!(v.as_map().is_some() || v.is_null(), "{name} is neither a dict nor null");
+        }
+    }
+
+    #[test]
+    fn literal_key_entry_matches_get_value_mut() {
+        // `if let Value::Dict(bind) = get_value_mut(&mut f, &Value::Str("k"..))`
+        // against the emitted `entry("k").or_insert(Null)` and the same head test.
+        let seeds: [Option<Value>; 3] = [None, Some(Value::Int(7)), Some(Value::Map(HashMap::new()))];
+        for start in [Value::Null, Value::Map(HashMap::new())] {
+            for seed in &seeds {
+                let mut base = start.clone();
+                if let (Some(v), Value::Dict(m)) = (seed.clone(), &mut base) {
+                    std::sync::Arc::make_mut(m).insert("k".to_string(), v);
+                }
+
+                let mut helper = base.clone();
+                let from_helper = crate::runtime::get_value_mut(&mut helper, &Value::Str("k".into())).clone();
+                // What the emitted `if let Value::Dict(bind)` lets the body see.
+                let seen_helper = if from_helper.as_map().is_some() { from_helper } else { Value::Null };
+
+                let mut native = base;
+                let mut seen_native = Value::Null;
+                if let Value::Dict(m) = &mut native {
+                    let entry = std::sync::Arc::make_mut(m).entry("k".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(inner) = entry {
+                        seen_native = Value::Dict(inner.clone());
+                    }
+                }
+
+                assert_eq!(seen_helper, seen_native, "head binding diverged (seed {seed:?})");
+                assert_eq!(helper, native, "slot state diverged (seed {seed:?})");
+            }
+        }
+    }
 }
 
 impl Default for Exchange {
@@ -1228,31 +1377,39 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // If an ancestor ws_run on this task is already driving `url`, don't
         // start a nested loop — the subscribe frame was sent above; report the
         // current settled state and let the outer loop resolve `hashes`.
-        let nested_same = WS_DRIVEN_URLS
-            .try_with(|s| s.lock().unwrap().contains(&url))
+        let driving = WS_DRIVEN_URLS
+            .try_with(|v| v.iter().any(|u| u == &url))
             .unwrap_or(false);
-        if nested_same {
+        if driving {
             return match client.take_settled(&hashes) {
                 Some(Ok(v)) => v,
                 _ => Value::Null,
             };
         }
-        // Drive the loop, marking `url` for the duration so a nested watch on
-        // the same url takes the branch above. Establish the task-local set on
-        // the first (top-level) drive; nested-different-url calls extend it.
-        if WS_DRIVEN_URLS.try_with(|_| ()).is_ok() {
-            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().insert(url.clone()); });
-            let r = self.ws_drive_loop(client, hashes, url.clone()).await;
-            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().remove(&url); });
-            r
-        } else {
-            let mut set = std::collections::HashSet::new();
-            set.insert(url.clone());
-            WS_DRIVEN_URLS
-                .scope(std::sync::Mutex::new(set), self.ws_drive_loop(client, hashes, url.clone()))
-                .await
-        }
+        // Mark `url` for the duration of this drive so a nested watch on the same
+        // url takes the branch above. The inner scope carries the ancestors' urls
+        // plus this one, and restores the outer set on the way out.
+        let mut urls = WS_DRIVEN_URLS.try_with(|v| v.clone()).unwrap_or_default();
+        urls.push(url.clone());
+        WS_DRIVEN_URLS
+            .scope(urls, self.ws_drive_loop(client, hashes, url.clone()))
+            .await
     } }
+
+    /// One inbound frame → the venue's `handle_message`, through the typed
+    /// handle this loop owns. Still hands over the untyped view, so generated
+    /// handlers are unchanged until R01's dispatcher retype lands.
+    fn ws_handle_message<'a>(
+        &'a mut self,
+        client: &'a mut crate::pro::ws_client::ClientHandle,
+        message: Value,
+    ) -> std::pin::Pin<Box<dyn ::std::future::Future<Output = ()> + Send + 'a>> {
+        Box::pin(async move {
+            let _ = self
+                .dispatch_to_derived("handle_message", vec![client.as_value(), message])
+                .await;
+        })
+    }
 
     /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
     /// `WS_DRIVEN_URLS` task-local scope.
@@ -1317,10 +1474,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 let s = msg.to_json().to_string();
                 eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
             }
-            let client_value = crate::pro::ws_client::client_value(&url);
-            let _ = self
-                .dispatch_to_derived("handle_message", vec![client_value, msg])
-                .await;
+            let mut client_handle = crate::pro::ws_client::ClientHandle::from_value(
+                crate::pro::ws_client::client_value(&url));
+            self.ws_handle_message(&mut client_handle, msg).await;
         }
     } }
 
@@ -1410,7 +1566,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         headers: HashMap<String, String>,
         body:    Option<String>,
     ) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
-        let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        timings_add(1, 0, 0);
         self.last_request_url     = Value::Str(url.to_string().into());
         self.last_request_headers = Value::Map(headers.iter()
             .map(|(k, v)| (k.clone(), Value::Str(v.clone().into())))
@@ -1482,8 +1638,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let response_headers_value = Value::Map(response_headers.into_iter().collect());
         self.last_response_headers = response_headers_value.clone();
         let text   = resp.text().await?;
-        HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
+        timings_add(0, __http_t0.elapsed().as_nanos() as u64, 0);
         if self.is_verbose() {
             eprintln!("[ccxt] ← {status} {} bytes", text.len());
             const CAP: usize = 16384;
@@ -1500,8 +1655,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Ok(j)  => Value::from_json(&j),
             Err(_) => Value::Null,
         };
-        JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
+        timings_add(0, 0, __json_t0.elapsed().as_nanos() as u64);
         // Venues also report failures in a 2xx body, so every response goes through
         // the derived handle_errors; a Null result falls back to httpExceptions.
         let handled = crate::exchange::DerivedExchange::handle_errors(

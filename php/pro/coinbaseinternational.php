@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class coinbaseinternational extends \ccxt\async\coinbaseinternational {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -112,8 +112,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $requestId;
     }
 
-    public function get_ws_url($isPrivate = false): string {
-        if ($this->isNativeDeribitCredentials()) {
+    public function get_ws_url(bool $isPrivate = false): string {
+        if ($this->isNativeDeribitCredentials() === true) {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if ($isPrivate) {
@@ -136,7 +136,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'client_id' => $this->apiKey,
                 'client_secret' => $this->secret,
             );
-            if (!$this->isNativeDeribitCredentials()) {
+            if ($this->isNativeDeribitCredentials() === false) {
                 $params = array(
                     'grant_type' => 'coinbase_cdp',
                     'token' => $this->create_auth_token($this->seconds(), null, null, $this->isEddsaSecret()),
@@ -158,11 +158,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         );
     }
 
-    public function subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
+    public function subscribe(array $channels, array $messageHashes, bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_subscribe(...))($channels, $messageHashes, $isPrivate, $params);
     }
 
-    private function do_subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
+    private function do_subscribe(array $channels, array $messageHashes, bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * subscribes to websocket $channels
@@ -199,16 +199,16 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $extendedRequest = $this->deep_extend($request, $paramsResolved);
         $channelsLength = count($channels);
         if ($channelsLength === 1) {
-            return Async\await($this->watch($url, $messageHashes[0], $extendedRequest, $channels[0], $extendedRequest));
+            return Async\await($this->watch($url, $this->safe_string($messageHashes, 0, ''), $extendedRequest, $this->safe_string($channels, 0, ''), $extendedRequest));
         }
         return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $channels, $extendedRequest));
     }
 
-    public function un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+    public function un_subscribe(array $channels, bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_un_subscribe(...))($channels, $isPrivate, $params);
     }
 
-    private function do_un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+    private function do_un_subscribe(array $channels, bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * unsubscribes from websocket $channels
@@ -233,7 +233,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $unWatchMessageHashes = array();
         $channelsLength = count($channels);
         for ($i = 0; $i < $channelsLength; $i++) {
-            $unWatchMessageHashes[] = 'unsubscribe:' . $channels[$i];
+            $unWatchMessageHashes[] = 'unsubscribe:' . $this->safe_string($channels, $i, '');
         }
         $request = array(
             'jsonrpc' => '2.0',
@@ -246,7 +246,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client = $this->client($url);
         $this->watch_multiple($url, $unWatchMessageHashes, $this->deep_extend($request, $paramsResolved), $unWatchMessageHashes);
         for ($i = 0; $i < $channelsLength; $i++) {
-            $this->clean_unsubscription($client, $channels[$i], $unWatchMessageHashes[$i]);
+            $this->clean_unsubscription($client, $this->safe_string($channels, $i, ''), $this->safe_string($unWatchMessageHashes, $i, ''));
         }
         return true;
     }
@@ -268,7 +268,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $paramsResolved = $this->handleRouteAndParams('watchBalance', $params);
-        list($currency, $paramsCurrency) = $this->handle_option_and_params($paramsResolved, 'watchBalance', 'currency', 'any');
+        list($currency, $paramsCurrency) = $this->handle_option_string_and_params($paramsResolved, 'watchBalance', 'currency', 'any');
         $channel = 'user.portfolio.' . $currency;
         return Async\await($this->subscribe(array( $channel ), array( 'balance' ), true, $paramsCurrency));
     }
@@ -304,13 +304,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
         $channel = 'user.trades.any.any.' . $interval;
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $market['symbol'];
-            $channel = 'user.trades.' . $market['id'] . '.' . $interval;
+            $channel = 'user.trades.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $trades = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
         return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limit, true);
@@ -333,13 +333,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          * @return {array} the exchange response
          */
         $paramsResolved = $this->handleRouteAndParams('unWatchMyTrades', $params);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
         $channel = 'user.trades.any.any.' . $interval;
         if ($symbol !== null) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
-            $channel = 'user.trades.' . $this->market_id($symbol) . '.' . $interval;
+            $channel = 'user.trades.' . $this->safe_string($this->market($symbol), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe(array( $channel ), true, $paramsInterval));
     }
@@ -383,13 +383,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
         $channel = 'user.orders.any.any.' . $interval;
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $market['symbol'];
-            $channel = 'user.orders.' . $market['id'] . '.' . $interval;
+            $channel = 'user.orders.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $orders = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
         $limitResolved = $limit;
@@ -422,11 +422,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols, null, false);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'user.orders.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+            $channels[] = 'user.orders.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         $orders = Async\await($this->subscribe($channels, $channels, true, $paramsInterval));
         $limitResolved = $limit;
@@ -454,13 +454,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          * @return {array} the exchange response
          */
         $paramsResolved = $this->handleRouteAndParams('unWatchOrders', $params);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
         $channel = 'user.orders.any.any.' . $interval;
         if ($symbol !== null) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
-            $channel = 'user.orders.' . $this->market_id($symbol) . '.' . $interval;
+            $channel = 'user.orders.' . $this->safe_string($this->market($symbol), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe(array( $channel ), true, $paramsInterval));
     }
@@ -510,7 +510,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
         $channels = array();
         $symbolsLength = 0;
         if ($symbolsResolved !== null) {
@@ -518,7 +518,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
             for ($i = 0; $i < $symbolsLength; $i++) {
-                $channels[] = 'user.changes.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+                $channels[] = 'user.changes.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
             }
         } else {
             $channels[] = 'user.changes.any.any.' . $interval;
@@ -551,7 +551,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
         $channels = array();
         $symbolsLength = 0;
         if ($symbolsResolved !== null) {
@@ -559,7 +559,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
             for ($i = 0; $i < $symbolsLength; $i++) {
-                $channels[] = 'user.changes.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+                $channels[] = 'user.changes.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
             }
         } else {
             $channels[] = 'user.changes.any.any.' . $interval;
@@ -701,9 +701,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTicker', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchTicker', 'interval', '100ms');
         $isPrivate = $interval === 'raw';
-        $channel = 'ticker.' . $market['id'] . '.' . $interval;
+        $channel = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         return Async\await($this->subscribe(array( $channel ), array( $channel ), $isPrivate, $paramsInterval));
     }
 
@@ -749,13 +749,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols, null, false);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
         $isPrivate = $interval === 'raw';
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
-            $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
+            $channels[] = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $ticker = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
         if ($this->newUpdates) {
@@ -790,11 +790,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols, null, false);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'ticker.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+            $channels[] = 'ticker.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
     }
@@ -905,8 +905,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
-            $channels[] = 'quote.' . $market['id'];
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
+            $channels[] = 'quote.' . $this->safe_string($market, 'id', '');
         }
         $ticker = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
         if ($this->newUpdates) {
@@ -941,7 +941,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'quote.' . $this->market_id($symbolsResolved[$i]);
+            $channels[] = 'quote.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '');
         }
         return Async\await($this->un_subscribe($channels, false, $paramsResolved));
     }
@@ -960,7 +960,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $ticker = $this->parse_ws_bid_ask($data);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         $this->bidsasks[$symbol] = $ticker;
         $channel = $this->safe_string($params, 'channel');
         $client->resolve($ticker, $channel);
@@ -1039,10 +1039,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $market = $this->market($current[0]);
-            $currentTimeframe = $current[1];
+            $currentTimeframe = $this->safe_string($current, 1);
             $resolution = $this->safe_string($this->timeframes, $currentTimeframe, $currentTimeframe);
-            $channels[] = 'chart.trades.' . $market['id'] . '.' . $resolution;
+            $market = $this->market($this->safe_string($current, 0));
+            $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;
         }
         $resolved = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
         $symbol = $this->safe_string($resolved, 0);
@@ -1101,10 +1101,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolsAndTimeframesLength = count($symbolsAndTimeframes);
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $market = $this->market($current[0]);
-            $timeframe = $current[1];
+            $timeframe = $this->safe_string($current, 1);
             $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $channels[] = 'chart.trades.' . $market['id'] . '.' . $resolution;
+            $market = $this->market($this->safe_string($current, 0));
+            $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;
         }
         return Async\await($this->un_subscribe($channels, false, $paramsResolved));
     }
@@ -1115,7 +1115,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $parts = explode('.', $messageHash);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $resolution = $this->safe_string($parts, 3);
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
@@ -1189,13 +1189,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols, null, false);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         $isPrivate = $interval === 'raw';
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
-            $channels[] = 'trades.' . $market['id'] . '.' . $interval;
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
+            $channels[] = 'trades.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $trades = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
         $limitResolved = $limit;
@@ -1248,11 +1248,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $symbolsResolved = $this->market_symbols($symbols, null, false);
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'trades.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+            $channels[] = 'trades.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
     }
@@ -1264,8 +1264,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $parts = explode('.', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
+        $symbol = $this->safe_string($market, 'symbol', '');
+        if ($symbol !== null && !(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
@@ -1325,22 +1325,22 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         $isPrivate = $interval === 'raw';
-        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_bool_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         $paramsChannel = $paramsDepthEndpoint;
-        $descriptor = $interval;
+        $descriptor = '.' . $interval;
         if ($useDepthEndpoint) {
-            list($depth, $paramsDepth) = $this->handle_option_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            list($group, $paramsGroup) = $this->handle_option_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            list($groupKey, $paramsGroup) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             $paramsChannel = $paramsGroup;
-            $descriptor = $group . '.' . $depth . '.' . $interval;
+            $descriptor = '.' . $groupKey . '.' . $depth . '.' . $interval;
         }
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbols[$i]);
-            $channels[] = 'book.' . $market['id'] . '.' . $descriptor;
+            $market = $this->market($this->safe_string($symbols, $i, ''));
+            $channels[] = 'book.' . $this->safe_string($market, 'id', '') . $descriptor;
         }
         $orderbook = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsChannel));
         return $orderbook->limit();
@@ -1386,20 +1386,20 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
-        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_bool_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         $paramsChannel = $paramsDepthEndpoint;
-        $descriptor = $interval;
+        $descriptor = '.' . $interval;
         if ($useDepthEndpoint) {
-            list($depth, $paramsDepth) = $this->handle_option_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            list($group, $paramsGroup) = $this->handle_option_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            list($groupKey, $paramsGroup) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             $paramsChannel = $paramsGroup;
-            $descriptor = $group . '.' . $depth . '.' . $interval;
+            $descriptor = '.' . $groupKey . '.' . $depth . '.' . $interval;
         }
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'book.' . $this->market_id($symbols[$i]) . '.' . $descriptor;
+            $channels[] = 'book.' . $this->safe_string($this->market($this->safe_string($symbols, $i, '')), 'id', '') . $descriptor;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsChannel));
     }
@@ -1420,15 +1420,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $this->orderbooks[$symbol] = $isGrouped ? $this->order_book(array(), $limit) : $this->counted_order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        if (!$isGrouped && ($type !== 'snapshot') && ($orderbook['nonce'] === null)) {
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if (!$isGrouped && ($type !== 'snapshot') && ($nonce === null)) {
             return;
         }
         if ($isGrouped) {
-            $parsedSnapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
-            $orderbook->reset($parsedSnapshot);
+            $orderbook->reset($this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks'));
         } else {
             $previousChangeId = $this->safe_integer($data, 'prev_change_id');
-            if (($type !== 'snapshot') && ($orderbook['nonce'] !== null) && ($previousChangeId !== $orderbook['nonce'])) {
+            if (($type !== 'snapshot') && ($nonce !== null) && ($previousChangeId !== $nonce)) {
                 // drop the stale book and reject only this channels future
                 unset($this->orderbooks[$symbol]);
                 if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {
@@ -1493,7 +1493,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function handle_deltas(mixed $bookside, array $deltas) {
         $deltasLength = count($deltas);
         for ($i = 0; $i < $deltasLength; $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
         }
     }
 
@@ -1651,7 +1651,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'client_id' => $this->apiKey,
                 'client_secret' => $this->secret,
             );
-            if (!$this->isNativeDeribitCredentials()) {
+            if ($this->isNativeDeribitCredentials() === false) {
                 $paramsAuth = array(
                     'grant_type' => 'coinbase_cdp',
                     'token' => $this->create_auth_token($this->seconds(), null, null, $this->isEddsaSecret()),
@@ -1670,11 +1670,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($future);
     }
 
-    public function request_ws(string $method, $params = array(), $isPrivate = false) {
+    public function request_ws(string $method, $params = array(), bool $isPrivate = false) {
         return Async\async(self::do_request_ws(...))($method, $params, $isPrivate);
     }
 
-    private function do_request_ws(string $method, $params = array(), $isPrivate = false) {
+    private function do_request_ws(string $method, $params = array(), bool $isPrivate = false) {
         /**
          * @ignore
          * sends a websocket JSON-RPC $request
@@ -1744,7 +1744,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $request['price'] = $this->parse_number($this->price_to_precision($symbol, $price));
         }
         $postOnly = $this->safe_bool_2($paramsResolved, 'postOnly', 'post_only');
-        if ($this->isNativeDeribitCredentials()) {
+        if ($this->isNativeDeribitCredentials() === true) {
             $reduceOnly = $this->safe_bool_2($paramsResolved, 'reduceOnly', 'reduce_only');
             if ($reduceOnly !== null) {
                 $request['reduce_only'] = $reduceOnly;
@@ -1774,7 +1774,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             }
         }
         $paramsRequest = $this->omit($paramsResolved, array( 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ));
-        if ($this->isNativeDeribitCredentials()) {
+        if ($this->isNativeDeribitCredentials() === true) {
             $paramsRequest = $this->omit($paramsRequest, array( 'reduceOnly', 'reduce_only' ));
         }
         $result = Async\await($this->request_ws('private/' . $side, $this->extend($request, $paramsRequest), true));
@@ -2164,11 +2164,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->request_ws('private/get_cancel_on_disconnect', $paramsResolved, true));
     }
 
-    public function unsubscribe_all_ws($isPrivate = false, $params = array()) {
+    public function unsubscribe_all_ws(bool $isPrivate = false, $params = array()) {
         return Async\async(self::do_unsubscribe_all_ws(...))($isPrivate, $params);
     }
 
-    private function do_unsubscribe_all_ws($isPrivate = false, $params = array()) {
+    private function do_unsubscribe_all_ws(bool $isPrivate = false, $params = array()) {
         /**
          * @ignore
          * unsubscribes from all websocket channels

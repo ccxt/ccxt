@@ -2,7 +2,7 @@ import coincheckRest from '../coincheck.js';
 import type { Int, Market, OrderBook, Trade, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coincheck extends coincheckRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coincheck#watchOrderBook

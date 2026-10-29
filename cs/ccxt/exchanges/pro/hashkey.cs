@@ -58,7 +58,7 @@ public partial class hashkey : ccxt.hashkey
             { "topic", topic },
             { "event", "sub" },
         };
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -71,12 +71,12 @@ public partial class hashkey : ccxt.hashkey
 
     public virtual string? getPrivateUrl(object listenKey)
     {
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " getPrivateUrl() has no private websocket url")) ;
         }
-        return ((wsUrl + "/") + (listenKey));
+        return ((string?)((object)(((wsUrl + "/") + (listenKey)))));
     }
 
     /**
@@ -102,7 +102,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string topic = ("kline_" + interval);
         string messageHash = ((("ohlcv:" + symbolValue) + ":") + (timeframeVar));
@@ -145,14 +145,18 @@ public partial class hashkey : ccxt.hashkey
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = this.safeSymbol(marketId, market);
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
-        {
-            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
-        }
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         string? klineType = this.safeString(parameters, "klineType");
         string? timeframe = this.findTimeframe(klineType);
+        if ((timeframe == null))
+        {
+            return;
+        }
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        {
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
+        }
         if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -205,7 +209,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string topic = "realtimes";
         string messageHash = ("ticker:" + symbolValue);
         return ccxt.BaseExchange.ToTicker(await this.wathPublic(market, topic, messageHash, parameters));
@@ -243,7 +247,7 @@ public partial class hashkey : ccxt.hashkey
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}));
-        string? symbol = ticker.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", "");
         string messageHash = ("ticker:" + symbol);
         this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
@@ -269,7 +273,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string topic = "trade";
         string messageHash = ("trades:" + symbolValue);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
@@ -309,8 +313,8 @@ public partial class hashkey : ccxt.hashkey
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        string? symbol = this.safeString(market, "symbol", "");
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -349,11 +353,11 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string topic = "depth";
         string messageHash = ("orderbook:" + symbolValue);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.wathPublic(market, topic, messageHash, parameters));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -427,7 +431,7 @@ public partial class hashkey : ccxt.hashkey
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            messageHash = (("orders" + ":") + (symbolResolved));
         }
         object orders = await this.watchPrivate(messageHash);
         Int64? limitResolved = limit;
@@ -485,7 +489,7 @@ public partial class hashkey : ccxt.hashkey
         orders.append(ccxt.BaseExchange.FromOrder(parsed));
         string messageHash = "orders";
         client.resolve(orders, messageHash);
-        string? symbol = parsed.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "");
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
@@ -566,7 +570,7 @@ public partial class hashkey : ccxt.hashkey
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = (("myTrades" + ":") + (symbolResolved));
         }
         object trades = await this.watchPrivate(messageHash);
         Int64? limitResolved = limit;
@@ -607,7 +611,7 @@ public partial class hashkey : ccxt.hashkey
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
-        string? symbol = parsed.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
@@ -750,11 +754,11 @@ public partial class hashkey : ccxt.hashkey
         positions.append(parsed);
         string messageHash = "positions";
         client.resolve(parsed, messageHash);
-        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        string? symbol = this.safeString(parsed, "symbol", "");
         client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
@@ -814,8 +818,10 @@ public partial class hashkey : ccxt.hashkey
         string? url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
         this.setBalanceCache(client, typeMarketType, messageHash);
-        bool? fetchBalanceSnapshot = this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true).Item1;
-        bool? awaitBalanceSnapshot = this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false).Item1;
+        (bool?, object) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = fetchBalanceSnapshotVariable.Item1;
+        (bool?, object) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(typeMarketType, ":fetchBalanceSnapshot"));
@@ -850,7 +856,7 @@ public partial class hashkey : ccxt.hashkey
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve();
             client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), ("balance:" + (type)));
         }

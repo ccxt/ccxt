@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -986,12 +986,8 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string_2(order, 'orderId', 'order_id')
         baseId = self.safe_string_2(order, 'baseCurrency', 'target_currency')
         quoteId = self.safe_string_2(order, 'targetCurrency', 'quote_currency')
-        base = None
-        quote = None
-        if baseId is not None:
-            base = self.safe_currency_code(baseId)
-        if quoteId is not None:
-            quote = self.safe_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
@@ -1202,19 +1198,15 @@ class coinone(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 0)
             secondPart = self.safe_string(parts, 1)
             code = self.safe_currency_code(currencyId)
-            depositAddress = self.safe_dict(result, code)
-            if depositAddress is None:
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': None,
-                    'address': None,
-                    'tag': None,
-                }
-            address = self.safe_string(depositAddress, 'address', value)
+            address = self.safe_string(self.safe_value(result, code), 'address', value)
             self.check_address(address)
-            depositAddress['address'] = address
-            depositAddress['info'] = address
+            depositAddress = {
+                'info': address,
+                'currency': code,
+                'network': None,
+                'address': address,
+                'tag': self.safe_string(self.safe_value(result, code), 'tag'),
+            }
             if (secondPart == 'tag' or secondPart == 'memo'):
                 depositAddress['tag'] = value
                 depositAddress['info'] = [address, value]
@@ -1260,7 +1252,7 @@ class coinone(Exchange, ImplicitAPI):
             if apiName == 'v2_1Private':
                 nonce = self.uuid()
             else:
-                nonce = str(self.nonce())
+                nonce = self.number_to_string(self.nonce())
             json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
@@ -1278,7 +1270,7 @@ class coinone(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

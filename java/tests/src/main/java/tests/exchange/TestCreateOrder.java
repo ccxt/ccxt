@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class TestCreateOrder extends BaseTest {
     // ----------------------------------------------------------------------------
-    public Object tcoDebug(BaseExchange exchange, Object symbol, Object message)
+    public Object tcoDebug(BaseExchange exchange, String symbol, String message)
     {
         // just for debugging purposes
         Boolean debugCreateOrder = true;
@@ -32,7 +32,7 @@ public class TestCreateOrder extends BaseTest {
         return true;
     }
     // ----------------------------------------------------------------------------
-    public CompletableFuture<Object> testCreateOrder(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testCreateOrder(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -52,47 +52,47 @@ public class TestCreateOrder extends BaseTest {
         Object initialBaseBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "base")), "free");
         Object initialQuoteBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "quote")), "free");
         Assert(!java.util.Objects.equals(initialQuoteBalance, null), (((logPrefix + " - testing account not have balance of") + Helpers.GetValue(market, "quote")) + " in fetchBalance() which is required to test"));
-        tcoDebug(exchange, symbol, ((((((((("fetched balance for " + symbol) + " : ") + String.valueOf(initialBaseBalance)) + " ") + Helpers.GetValue(market, "base")) + "/") + initialQuoteBalance) + " ") + Helpers.GetValue(market, "quote")));
-        var bestBidbestAskVariable = (TestSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol)).join();
+        tcoDebug(exchange, (String) (symbol), (String) (((((((((("fetched balance for " + symbol) + " : ") + String.valueOf(initialBaseBalance)) + " ") + Helpers.GetValue(market, "base")) + "/") + initialQuoteBalance) + " ") + Helpers.GetValue(market, "quote"))));
+        var bestBidbestAskVariable = (TestSharedMethods.fetchBestBidAsk(exchange, "createOrder", (String) (symbol))).join();
         var bestBid = ((List<Object>) bestBidbestAskVariable).get(0);
         var bestAsk = ((List<Object>) bestBidbestAskVariable).get(1);
         // **************** [Scenario 1 - START] **************** //
-        tcoDebug(exchange, symbol, "### SCENARIO 1 ###");
+        tcoDebug(exchange, (String) (symbol), "### SCENARIO 1 ###");
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-        (tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
+        (tcoCreateUnfillableOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
         if (Boolean.TRUE.equals(isSwapFuture))
         {
             // for swap markets, we test sell orders too
-            (tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
+            (tcoCreateUnfillableOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
         }
-        tcoDebug(exchange, symbol, "### SCENARIO 1 PASSED ###");
+        tcoDebug(exchange, (String) (symbol), "### SCENARIO 1 PASSED ###");
         // **************** [Scenario 2 - START] **************** //
-        tcoDebug(exchange, symbol, "### SCENARIO 2 ###");
+        tcoDebug(exchange, (String) (symbol), "### SCENARIO 2 ###");
         // create an order which IS GUARANTEED to have a fill (full or partial)
-        (tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
+        (tcoCreateFillableOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
         if (Boolean.TRUE.equals(isSwapFuture))
         {
             // for swap markets, we test sell orders too
-            (tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
+            (tcoCreateFillableOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
         }
-        tcoDebug(exchange, symbol, "### SCENARIO 2 PASSED ###");
+        tcoDebug(exchange, (String) (symbol), "### SCENARIO 2 PASSED ###");
         // **************** [Scenario 3 - START] **************** //
         return true;
         });
 
     }
     // ----------------------------------------------------------------------------
-    public CompletableFuture<Object> tcoCreateUnfillableOrder(BaseExchange exchange, Object market, Object logPrefix2, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSell2, Object... optionalArgs)
+    public CompletableFuture<Object> tcoCreateUnfillableOrder(BaseExchange exchange, Map<String, Object> market, String logPrefix2, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, String buyOrSell2, Object... optionalArgs)
     {
-        final Object logPrefix3 = logPrefix2;
+        final String logPrefix3 = logPrefix2;
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
-        final Object buyOrSell3 = buyOrSell2;
+        final String buyOrSell3 = buyOrSell2;
         return BaseExchange.supplyAsync(() -> {
-            Object logPrefix = logPrefix3;
+            String logPrefix = logPrefix3;
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
-            Object buyOrSell = buyOrSell3;
+            String buyOrSell = buyOrSell3;
         // below we set limit price, where the order will not be completed.
         // We do not use the extreme "limits" values for that market, because, even though min purchase amount for BTC/USDT can be 0.01 BTC, it means with 10$ you can buy 1000 BTC, which leads to unrealistic outcome. So, we just use around 5%-10% far price from the current price.
         // test fetched order object
@@ -101,8 +101,8 @@ public class TestCreateOrder extends BaseTest {
         Object predefinedAmount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         try
         {
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object minimunPrices = exchange.safeDict(((Map<String, Object>)market).get("limits"), "price", new HashMap<String, Object>() {{}});
+            Object symbol = market.get("symbol");
+            Object minimunPrices = exchange.safeDict(market.get("limits"), "price", new HashMap<String, Object>() {{}});
             Object minimumPrice = Helpers.GetValue(minimunPrices, "min");
             Object maximumPrice = Helpers.GetValue(minimunPrices, "max");
             Object limitBuyPrice_nonFillable = Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
@@ -118,23 +118,23 @@ public class TestCreateOrder extends BaseTest {
             Object createdOrder = null;
             if (java.util.Objects.equals(buyOrSell, "buy"))
             {
-                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
-                createdOrder = (tcoCreateOrderSafe(exchange, symbol, "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
+                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), limitBuyPrice_nonFillable, predefinedAmount);
+                createdOrder = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
             } else
             {
-                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitSellPrice_nonFillable, predefinedAmount);
-                createdOrder = (tcoCreateOrderSafe(exchange, symbol, "limit", "sell", orderAmount, limitSellPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
+                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), limitSellPrice_nonFillable, predefinedAmount);
+                createdOrder = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", "sell", orderAmount, limitSellPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
             }
-            Object fetchedOrder = (TestSharedMethods.fetchOrder(exchange, symbol, ((Map<String, Object>)createdOrder).get("id"), skippedProperties)).join();
+            Object fetchedOrder = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (((Map<String, Object>)createdOrder).get("id")), skippedProperties)).join();
             if (!java.util.Objects.equals(fetchedOrder, null))
             {
-                TestOrder.testOrder(exchange, skippedProperties, "createOrder", fetchedOrder, symbol, exchange.milliseconds());
+                TestOrder.testOrder(exchange, skippedProperties, "createOrder", fetchedOrder, (String) (symbol), exchange.milliseconds());
             }
             TestSharedMethods.AssertOrderState(exchange, skippedProperties, "createdOrder", createdOrder, "open", false);
             TestSharedMethods.AssertOrderState(exchange, skippedProperties, "fetchedOrder", fetchedOrder, "open", true);
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "createdOrder", createdOrder, "side", new ArrayList<Object>(Arrays.asList(null, buyOrSell)));
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "fetchedOrder", fetchedOrder, "side", new ArrayList<Object>(Arrays.asList(null, buyOrSell)));
-            (tcoCancelOrder(exchange, symbol, ((Map<String, Object>)createdOrder).get("id"))).join();
+            (tcoCancelOrder(exchange, (String) (symbol), ((Map<String, Object>)createdOrder).get("id"))).join();
         } catch(Exception e)
         {
             throw new RuntimeException((String)((logPrefix + " failed for Scenario 1: ") + String.valueOf(e))) ;
@@ -143,15 +143,15 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public CompletableFuture<Object> tcoCreateFillableOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSellString2, Object... optionalArgs)
+    public CompletableFuture<Object> tcoCreateFillableOrder(BaseExchange exchange, Map<String, Object> market, String logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, String buyOrSellString2, Object... optionalArgs)
     {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
-        final Object buyOrSellString3 = buyOrSellString2;
+        final String buyOrSellString3 = buyOrSellString2;
         return BaseExchange.supplyAsync(() -> {
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
-            Object buyOrSellString = buyOrSellString3;
+            String buyOrSellString = buyOrSellString3;
         //
         //
         // just for case, cancel any possible unfilled amount (though it is not be expected because the order was fillable)
@@ -163,28 +163,28 @@ public class TestCreateOrder extends BaseTest {
         Object predefinedAmount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         try
         {
-            Boolean isSwapFuture = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true));
+            Boolean isSwapFuture = (java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true));
             Boolean isBuy = (java.util.Objects.equals(buyOrSellString, "buy"));
             String entrySide = ((Boolean.TRUE.equals(isBuy))) ? "buy" : "sell";
             String exitSide = ((Boolean.TRUE.equals(isBuy))) ? "sell" : "buy";
             Object entryorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
             Object exitorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object entryAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, entryorderPrice);
-            Object entryorderFilled = (tcoCreateOrderSafe(exchange, symbol, "limit", entrySide, entryAmount, entryorderPrice, new HashMap<String, Object>() {{}}, skippedProperties)).join();
-            (tcoTryCancelOrder(exchange, symbol, entryorderFilled, skippedProperties)).join();
-            Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(entryorderFilled, "id"), skippedProperties)).join();
-            tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
+            Object symbol = market.get("symbol");
+            Object entryAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), entryorderPrice);
+            Object entryorderFilled = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", entrySide, entryAmount, entryorderPrice, new HashMap<String, Object>() {{}}, skippedProperties)).join();
+            (tcoTryCancelOrder(exchange, (String) (symbol), entryorderFilled, skippedProperties)).join();
+            Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(entryorderFilled, "id")), skippedProperties)).join();
+            tcoAssertFilledOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
             Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSwapFuture))
             {
                 parameters.put("reduceOnly", true);
             }
-            Object exitorderPriceArg = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? null : exitorderPrice;
-            Object exitorderFilled = (tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();
-            Object exitorderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(exitorderFilled, "id"), skippedProperties)).join();
-            tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
+            Object exitorderPriceArg = (((java.util.Objects.equals(market.get("spot"), true)))) ? null : exitorderPrice;
+            Object exitorderFilled = (tcoCreateOrderSafe(exchange, (String) (symbol), "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();
+            Object exitorderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(exitorderFilled, "id")), skippedProperties)).join();
+            tcoAssertFilledOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
             throw new RuntimeException(("failed for Scenario 2: " + String.valueOf(e))) ;
@@ -193,10 +193,10 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public Object tcoAssertFilledOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
+    public Object tcoAssertFilledOrder(BaseExchange exchange, Map<String, Object> market, String logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, String requestedSide, Object requestedAmount)
     {
         // test filled amount
-        String precisionAmount = exchange.safeString(((Map<String, Object>)market).get("precision"), "amount");
+        String precisionAmount = exchange.safeString(market.get("precision"), "amount");
         Object entryorderAmountString = exchange.numberToString(requestedAmount);
         String filledString = exchange.safeString(fetchedOrder, "filled");
         Assert(!java.util.Objects.equals(filledString, null), ((logPrefix + " order should be filled, but it is not. ") + exchange.json(fetchedOrder)));
@@ -215,7 +215,7 @@ public class TestCreateOrder extends BaseTest {
         return true;
     }
     // ----------------------------------------------------------------------------
-    public CompletableFuture<Object> tcoCancelOrder(BaseExchange exchange, Object symbol, Object... optionalArgs)
+    public CompletableFuture<Object> tcoCancelOrder(BaseExchange exchange, String symbol, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -227,16 +227,16 @@ public class TestCreateOrder extends BaseTest {
         if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), false)) && (!java.util.Objects.equals(orderId, null)))
         {
             usedMethod = "cancelOrder";
-            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
+            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, symbol, new HashMap<String, Object>() {{}}})).join();
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
+            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), false)))
         {
             throw new RuntimeException((String)(logPrefix + " cancelOrders method is not unified yet, coming soon...")) ;
         }
-        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + ((Map<String, Object>)cancelResult).get("id")));
+        tcoDebug(exchange, (String) (symbol), (String) (((("canceled order using " + usedMethod) + ":") + ((Map<String, Object>)cancelResult).get("id"))));
         // todo:
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
@@ -246,25 +246,25 @@ public class TestCreateOrder extends BaseTest {
     }
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
-    public CompletableFuture<Object> tcoCreateOrderSafe(BaseExchange exchange, Object symbol, Object orderType2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> tcoCreateOrderSafe(BaseExchange exchange, String symbol, String orderType2, String side, Object amount, Object... optionalArgs)
     {
-        final Object orderType3 = orderType2;
+        final String orderType3 = orderType2;
         return BaseExchange.supplyAsync(() -> {
-            Object orderType = orderType3;
+            String orderType = orderType3;
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Object skippedProperties = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        tcoDebug(exchange, symbol, ((((((((("Executing createOrder " + orderType) + " ") + side) + " ") + amount) + " ") + price) + " ") + exchange.json(parameters)));
+        tcoDebug(exchange, (String) (symbol), (String) (((((((((("Executing createOrder " + orderType) + " ") + side) + " ") + amount) + " ") + price) + " ") + exchange.json(parameters))));
         Object order = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{symbol, (String) (orderType), (String) (side), amount, price, Helpers.toMapArg(parameters)})).join();
         try
         {
-            TestOrder.testOrder(exchange, skippedProperties, "createOrder", order, symbol, System.currentTimeMillis());
+            TestOrder.testOrder(exchange, skippedProperties, "createOrder", order, (String) (symbol), System.currentTimeMillis());
         } catch(Exception e)
         {
             if (!java.util.Objects.equals(orderType, "market"))
             {
                 // if it was limit order, try to cancel it before exiting the script
-                (tcoTryCancelOrder(exchange, symbol, order, skippedProperties)).join();
+                (tcoTryCancelOrder(exchange, (String) (symbol), order, skippedProperties)).join();
             }
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
@@ -272,29 +272,29 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public Object tcoMininumAmount(BaseExchange exchange, Object market)
+    public Object tcoMininumAmount(BaseExchange exchange, Map<String, Object> market)
     {
-        Object amountValues = exchange.safeDict(((Map<String, Object>)market).get("limits"), "amount", new HashMap<String, Object>() {{}});
+        Object amountValues = exchange.safeDict(market.get("limits"), "amount", new HashMap<String, Object>() {{}});
         Object amountMin = exchange.safeNumber(amountValues, "min", (Object) null);
-        Assert(!java.util.Objects.equals(amountMin, null), (Helpers.add(Helpers.add(exchange.id, " "), ((Map<String, Object>)market).get("symbol")) + " can not determine minimum amount for order"));
+        Assert(!java.util.Objects.equals(amountMin, null), (Helpers.add(Helpers.add(exchange.id, " "), market.get("symbol")) + " can not determine minimum amount for order"));
         return amountMin;
     }
-    public Object tcoMininumCost(BaseExchange exchange, Object market)
+    public Object tcoMininumCost(BaseExchange exchange, Map<String, Object> market)
     {
-        Object costValues = exchange.safeDict(((Map<String, Object>)market).get("limits"), "cost", new HashMap<String, Object>() {{}});
+        Object costValues = exchange.safeDict(market.get("limits"), "cost", new HashMap<String, Object>() {{}});
         Object costMin = exchange.safeNumber(costValues, "min", (Object) null);
-        Assert(!java.util.Objects.equals(costMin, null), (Helpers.add(Helpers.add(exchange.id, " "), ((Map<String, Object>)market).get("symbol")) + " can not determine minimum cost for order"));
+        Assert(!java.util.Objects.equals(costMin, null), (Helpers.add(Helpers.add(exchange.id, " "), market.get("symbol")) + " can not determine minimum cost for order"));
         return costMin;
     }
-    public Object tcoGetMinimumAmountForLimitPrice(BaseExchange exchange, Object market, Object price, Object... optionalArgs)
+    public Object tcoGetMinimumAmountForLimitPrice(BaseExchange exchange, Map<String, Object> market, Object price, Object... optionalArgs)
     {
         // this method calculates the minimum realistic order amount:
         // at first it checks the "minimum hardcap limit" (i.e. 7 DOGE), however, if exchange also has "minimum cost" limits,
         // then we need to calculate the amount using cost, because of price is volatile, today's 7 DOGE cost could be 1$
         // but "minimum cost" requirement could be 5$ (which translates to 35 DOGE amount)
         Object predefinedAmount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object minimumAmount = tcoMininumAmount(exchange, market);
-        Object minimumCost = tcoMininumCost(exchange, market);
+        Object minimumAmount = tcoMininumAmount(exchange, (Map<String, Object>) (market));
+        Object minimumCost = tcoMininumCost(exchange, (Map<String, Object>) (market));
         Object finalAmount = minimumAmount;
         if (!java.util.Objects.equals(minimumCost, null))
         {
@@ -308,7 +308,7 @@ public class TestCreateOrder extends BaseTest {
             finalAmount = Helpers.mathMax(finalAmount, predefinedAmount);
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
-        Object amountPrecision = exchange.safeNumber(((Map<String, Object>)market).get("precision"), "amount", (Object) null);
+        Object amountPrecision = exchange.safeNumber(market.get("precision"), "amount", (Object) null);
         Boolean isTickSizePrecision = Helpers.isEqual(exchange.precisionMode, 4);
         if (java.util.Objects.equals(amountPrecision, null))
         {
@@ -323,15 +323,15 @@ public class TestCreateOrder extends BaseTest {
         }
         finalAmount = Helpers.add(finalAmount, amountPrecision);
         finalAmount = Helpers.multiply(finalAmount, 1.1); // add around 10% to ensure "cost" is enough
-        finalAmount = Helpers.parseFloat(exchange.decimalToPrecision(finalAmount, 2, Helpers.GetValue(((Map<String, Object>)market).get("precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
+        finalAmount = Helpers.parseFloat(exchange.decimalToPrecision(finalAmount, 2, Helpers.GetValue(market.get("precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
-    public CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, Object symbol, Object order, Object skippedProperties)
+    public CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, String symbol, Object order, Object skippedProperties)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-        Object orderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(order, "id"), skippedProperties)).join();
+        Object orderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(order, "id")), skippedProperties)).join();
         if (java.util.Objects.equals(orderFetched, null))
         {
             return true;
@@ -340,18 +340,18 @@ public class TestCreateOrder extends BaseTest {
         // if it was not reported as closed/filled, then try to cancel it
         if (java.util.Objects.equals(needsCancel, true))
         {
-            tcoDebug(exchange, symbol, "trying to cancel the remaining amount of partially filled order...");
+            tcoDebug(exchange, (String) (symbol), "trying to cancel the remaining amount of partially filled order...");
             try
             {
-                (tcoCancelOrder(exchange, symbol, Helpers.GetValue(order, "id"))).join();
+                (tcoCancelOrder(exchange, (String) (symbol), Helpers.GetValue(order, "id"))).join();
             } catch(Exception e)
             {
                 // order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable, we don't throw new RuntimeException(e)xception
-                tcoDebug(exchange, symbol, (" a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: " + String.valueOf(e)));
+                tcoDebug(exchange, (String) (symbol), (" a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: " + String.valueOf(e)));
             }
         } else
         {
-            tcoDebug(exchange, symbol, "order is already closed/filled, no need to cancel it");
+            tcoDebug(exchange, (String) (symbol), "order is already closed/filled, no need to cancel it");
         }
         return true;
         });

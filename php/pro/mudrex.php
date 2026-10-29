@@ -14,7 +14,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class mudrex extends \ccxt\async\mudrex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -81,9 +81,10 @@ class mudrex extends \ccxt\async\mudrex {
         $messageHash = 'ticker:' . $symbolValue;
         $url = $this->urls['api']['ws'];
         $this->set_broker_headers();
-        $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
-        $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
-        $assetId = strtolower($baseIdString) . strtolower($quoteIdString);
+        $baseIdString = $this->safe_string($market, 'baseId', '');
+        $quoteIdString = $this->safe_string($market, 'quoteId', '');
+        $assetId = strtolower($baseIdString);
+        $assetId = $assetId . strtolower($quoteIdString);
         $subscribe = array(
             'id' => $this->request_id(),
             'method' => 'SUBSCRIBE',
@@ -109,9 +110,11 @@ class mudrex extends \ccxt\async\mudrex {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $market = $this->market($symbolsNormalized[$i]);
                 $messageHashes[] = 'ticker:' . $market['symbol'];
-                $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
-                $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
-                $assets[] = strtolower($baseIdString) . strtolower($quoteIdString);
+                $baseIdString = $this->safe_string($market, 'baseId', '');
+                $quoteIdString = $this->safe_string($market, 'quoteId', '');
+                $assetId = strtolower($baseIdString);
+                $assetId = $assetId . strtolower($quoteIdString);
+                $assets[] = $assetId;
             }
         }
         $url = $this->urls['api']['ws'];
@@ -155,8 +158,8 @@ class mudrex extends \ccxt\async\mudrex {
         if ($priceType === 'mark') {
             $prefix = 'markKline';
         }
-        $streamBaseId = ($market['baseId'] !== null) ? $market['baseId'] : '';
-        $streamQuoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
+        $streamBaseId = $this->safe_string($market, 'baseId', '');
+        $streamQuoteId = $this->safe_string($market, 'quoteId', '');
         $stream = $prefix . '@' . $interval . '@' . strtolower($streamBaseId) . strtolower($streamQuoteId);
         $messageHash = $stream;
         $url = $this->urls['api']['ws'];
@@ -197,7 +200,7 @@ class mudrex extends \ccxt\async\mudrex {
     public function handle_error_message(Client $client, array $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
-        $msg = $this->safe_string($error, 'msg');
+        $msg = $this->safe_string($error, 'msg', '');
         $feedback = $this->id . ' ' . $msg;
         if ($code === '429') {
             throw new RateLimitExceeded($feedback);

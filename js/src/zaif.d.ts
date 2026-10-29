@@ -1,11 +1,11 @@
 import Exchange from './abstract/zaif.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 /**
  * @class zaif
  * @augments Exchange
  */
 export default class zaif extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name zaif#fetchMarkets
@@ -127,5 +127,5 @@ export default class zaif extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     customNonce(): string;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

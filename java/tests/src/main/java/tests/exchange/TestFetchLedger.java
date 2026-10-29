@@ -14,20 +14,20 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLedger extends BaseTest {
-    public CompletableFuture<Object> testFetchLedger(BaseExchange exchange, Object skippedProperties, Object code)
+    public CompletableFuture<Object> testFetchLedger(BaseExchange exchange, Object skippedProperties, String code)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLedger";
-        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{Helpers.toStringArg(code), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code, now);
+            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), (String) (code), now);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), items);
         return true;
         });
 

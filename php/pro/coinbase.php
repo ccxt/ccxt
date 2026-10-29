@@ -13,7 +13,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbase extends \ccxt\async\coinbase {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -59,11 +59,11 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function subscribe(string $name, bool $isPrivate, mixed $symbol = null, $params = array()) {
+    public function subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
         return Async\async(self::do_subscribe(...))($name, $isPrivate, $symbol, $params);
     }
 
-    private function do_subscribe(string $name, bool $isPrivate, mixed $symbol = null, $params = array()) {
+    private function do_subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
         /**
          * @ignore
          * subscribes to a websocket channel
@@ -82,16 +82,7 @@ class coinbase extends \ccxt\async\coinbase {
         $market = null;
         $messageHash = $name;
         $productIds = array();
-        if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
-            $symbols = $this->market_symbols($symbol);
-            $marketIds = $this->market_ids($symbols);
-            if ($marketIds === null) {
-                $productIds = array();
-            } else {
-                $productIds = $marketIds;
-            }
-            $messageHash = $messageHash . '::' . implode(',', $symbols);
-        } elseif ($symbol !== null) {
+        if ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash = $name . '::' . $symbol;
             $productIds = array( $this->safe_string($market, 'id') );
@@ -111,11 +102,11 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
     }
 
-    public function un_subscribe(string $topic, string $name, bool $isPrivate, mixed $symbol = null) {
+    public function un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
         return Async\async(self::do_un_subscribe(...))($topic, $name, $isPrivate, $symbol);
     }
 
-    private function do_un_subscribe(string $topic, string $name, bool $isPrivate, mixed $symbol = null) {
+    private function do_un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
         /**
          * @ignore
          * unSubscribes to a websocket channel
@@ -139,20 +130,10 @@ class coinbase extends \ccxt\async\coinbase {
         $watchMessageHash = $name;
         $unWatchMessageHash = 'unsubscribe:' . $name;
         $productIds = array();
-        if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
-            $symbols = $this->market_symbols($symbol);
-            $marketIds = $this->market_ids($symbols);
-            if ($marketIds === null) {
-                $productIds = array();
-            } else {
-                $productIds = $marketIds;
-            }
-            $watchMessageHash = $watchMessageHash . '::' . implode(',', $symbols);
-            $unWatchMessageHash = $unWatchMessageHash . '::' . implode(',', $symbols);
-        } elseif ($symbol !== null) {
+        if ($symbol !== null) {
             $market = $this->market($symbol);
             $watchMessageHash = $name . '::' . $symbol;
-            $unWatchMessageHash = $unWatchMessageHash . '::' . $symbol;
+            $unWatchMessageHash = 'unsubscribe:' . $name . '::' . $symbol;
             $productIds = array( $this->safe_string($market, 'id') );
         }
         $url = $this->urls['api']['ws'];
@@ -297,12 +278,12 @@ class coinbase extends \ccxt\async\coinbase {
                 throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
             }
             $currentToken = $this->safe_string($this->options, 'wsToken');
-            $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
+            $tokenTimestamp = $this->parse_to_int($this->safe_integer($this->options, 'wsTokenTimestamp', 0));
             $seconds = $this->seconds();
             $tokenExpiry = $tokenTimestamp + 90;
             if ($currentToken === null || $tokenExpiry < $seconds) {
                 // we should generate new token
-                $token = $this->create_auth_token($seconds, null, null, $this->isEddsaApiKey());
+                $token = $this->create_auth_token($seconds, '', null, $this->isEddsaApiKey());
                 $this->options['wsToken'] = $token;
                 $this->options['wsTokenTimestamp'] = $seconds;
             }
@@ -378,7 +359,7 @@ class coinbase extends \ccxt\async\coinbase {
         $ticker = Async\await($this->subscribe_multiple($name, false, $symbolsResolved, $params));
         if ($this->newUpdates) {
             $tickers = array();
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $tickers[$symbol] = $ticker;
             return $tickers;
         }
@@ -515,7 +496,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $result = $this->parse_ws_ticker($ticker);
                 $result['timestamp'] = $timestamp;
                 $result['datetime'] = $datetime;
-                $symbol = $result['symbol'];
+                $symbol = $this->safe_string($result, 'symbol', '');
                 if ($symbol !== null) {
                     $this->tickers[$symbol] = $result;
                 }
@@ -745,7 +726,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
         $name = 'level2';
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $orderbook = Async\await($this->subscribe($name, false, $symbolValue, $params));
         return $orderbook->limit();
     }
@@ -1022,7 +1003,7 @@ class coinbase extends \ccxt\async\coinbase {
             $marketId = $this->safe_string($event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'level2::' . $symbol;
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');

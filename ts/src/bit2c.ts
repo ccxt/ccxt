@@ -17,7 +17,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, Orde
  * @augments Exchange
  */
 export default class bit2c extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -302,8 +302,9 @@ export default class bit2c extends Exchange {
             const code = codes[i];
             const account = this.account ();
             const currency = this.currency (code);
-            const uppercase = currency['id'].toUpperCase ();
-            if (uppercase in response) {
+            const currencyId = this.safeString (currency, 'id', '');
+            const uppercase = currencyId.toUpperCase ();
+            if (this.safeString (response, uppercase) !== undefined) {
                 account['free'] = this.safeString (response, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeString (response, uppercase);
             }
@@ -486,7 +487,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market (symbol);
         const optionValue = this.safeString (this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption ('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        const method = this.safeString (this.handleOptionAndParams ({}, 'fetchTrades', 'method', optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request: Dict = {
             'pair': market['id'],
         };
@@ -728,8 +729,9 @@ export default class bit2c extends Exchange {
         //
         let orderUnified: NullableDict = undefined;
         let isNewOrder = false;
-        if ('NewOrder' in order) {
-            orderUnified = order['NewOrder'];
+        const newOrder = this.safeValue (order, 'NewOrder');
+        if (newOrder !== undefined) {
+            orderUnified = newOrder;
             isNewOrder = true;
         } else {
             orderUnified = order;
@@ -877,10 +879,7 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
-        if (response !== undefined) {
-            responseList = this.toArray (response);
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -972,11 +971,8 @@ export default class bit2c extends Exchange {
             tradeMarket = this.safeMarket (undefined, market);
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
-                if ((side !== undefined) && (side !== '')) {
-                    side = 'buy';
-                } else {
-                    side = 'sell';
-                }
+                // safeValue already drops an empty string, so a present isBid is a buy here
+                side = 'buy';
             }
         }
         const marketResolved = this.safeMarket (undefined, tradeMarket);
@@ -1050,7 +1046,7 @@ export default class bit2c extends Exchange {
         } as DepositAddress;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -1091,7 +1087,7 @@ export default class bit2c extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

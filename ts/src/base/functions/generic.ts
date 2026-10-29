@@ -7,31 +7,31 @@ import { isNumber, isDict, isArray } from './type.js';
 // ----------------------------------------------------------------------------
 
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
-const values = (x: any[] | Dictionary<any>) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
-const index = (x: any[]) => new Set (values (x));
+const values = (x: any[] | Dictionary<any>): any[] => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
+const index = (x: any[]): Set<any> => new Set (values (x));
 const extend = (...args: any[]) => Object.assign ({}, ...args); // NB: side-effect free
 const clone = (x: any) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
 
 // ----------------------------------------------------------------------------
 
-const ordered = (x: any[] | Dictionary<any>) => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
+const ordered = (x: any[] | Dictionary<any>): any[] | Dictionary<any> => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
 
-const unique = (x: any[]) => Array.from (index (x));
+const unique = (x: any[]): any[] => Array.from (index (x));
 
-const arrayConcat = (a: any[], b: any[]) => a.concat (b);
+const arrayConcat = (a: any[], b: any[]): any[] => a.concat (b);
 
 // ------------------------------------------------------------------------
 
-const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
+const inArray = (needle: any, haystack: any[]): boolean => haystack.includes (needle);
 
-const toArray = (object: Dictionary<any> | any[] | undefined | null) => {
+const toArray = (object: Dictionary<any> | any[] | undefined | null): any[] => {
     if ((object === undefined) || (object === null)) {
         return [];
     }
     return Object.values (object);
 };
 
-const isEmpty = (object: any[] | Dictionary<any> | null | undefined) => {
+const isEmpty = (object: any[] | Dictionary<any> | null | undefined): boolean => {
     if (object === null || object === undefined) {
         return true;
     }
@@ -44,7 +44,7 @@ const isEmpty = (object: any[] | Dictionary<any> | null | undefined) => {
     return false;
 };
 
-const keysort = (x: Dictionary<any> | undefined, out: Dictionary<any> = {}) => {
+const keysort = (x: Dictionary<any> | undefined, out: Dictionary<any> = {}): Dictionary<any> => {
     if (x === undefined) {
         return out;
     }
@@ -54,7 +54,7 @@ const keysort = (x: Dictionary<any> | undefined, out: Dictionary<any> = {}) => {
     return out;
 };
 
-const sort = (array: string[]| any) => {
+const sort = (array: string[]| any): string[] => {
     const newArray = array.slice();
     newArray.sort();
     return newArray;
@@ -76,7 +76,7 @@ const sort = (array: string[]| any) => {
     }
 */
 
-const groupBy = (x: Dictionary<any> | undefined, k: string, out: Dictionary<any> = {}) => {
+const groupBy = (x: Dictionary<any> | undefined, k: string, out: Dictionary<any> = {}): Dictionary<any> => {
     if (x === undefined) {
         return out;
     }
@@ -90,7 +90,7 @@ const groupBy = (x: Dictionary<any> | undefined, k: string, out: Dictionary<any>
     return out;
 };
 
-const indexBy = (x: Dictionary<any> | undefined, k: IndexType, out: Dictionary<any> = {}) => {
+const indexBy = (x: Dictionary<any> | undefined, k: IndexType, out: Dictionary<any> = {}): Dictionary<any> => {
     if (x === undefined) {
         return out;
     }
@@ -102,7 +102,7 @@ const indexBy = (x: Dictionary<any> | undefined, k: IndexType, out: Dictionary<a
     return out;
 };
 
-const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
+const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefined, out: Dictionary<any>[] = []): Dictionary<any>[] => {
     if (x === undefined) {
         return out;
     }
@@ -114,7 +114,7 @@ const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefi
     return out;
 };
 
-const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy = (array: any[], key: IndexType, descending: boolean = false, defaultValue:any = 0, direction: number = descending ? -1 : 1): any[] => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -126,7 +126,7 @@ const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:a
     }
 });
 
-const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending: boolean = false, direction: number = descending ? -1 : 1): any[] => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     if (a[key1] < b[key1]) {
         return -direction;
     } else if (a[key1] > b[key1]) {
@@ -142,7 +142,7 @@ const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = fa
     }
 });
 
-const flatten = function flatten (x: any[], out: any[] = []) {
+const flatten = function flatten (x: any[], out: any[] = []): any[] {
 
     for (const v of x) {
         if (isArray (v)) {
@@ -154,9 +154,9 @@ const flatten = function flatten (x: any[], out: any[] = []) {
     return out;
 };
 
-const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
+const pluck = (x: Dictionary<any>, k: any): any[] => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any> | undefined, ...args: any) => {
+const omit = (x: Dictionary<any> | undefined, ...args: any): any => {
     if (x === undefined) {
         return x;
     }
@@ -225,7 +225,7 @@ const deepExtend = function (...args: any) {
     return result;
 }
 
-const merge = (target: Dictionary<any>, ...args: any) => {
+const merge = (target: Dictionary<any>, ...args: any): Dictionary<any> => {
     // doesn't overwrite defined keys with undefined
     const overwrite: Dictionary<any> = {};
     const merged = Object.assign ({}, ...args);

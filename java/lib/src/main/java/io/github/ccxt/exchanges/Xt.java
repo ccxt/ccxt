@@ -48,7 +48,7 @@ public class Xt extends XtApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "xt" );
@@ -1618,7 +1618,7 @@ public class Xt extends XtApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
-            MarketInterface parsed = this.parseMarket(Helpers.GetValue(markets, i));
+            MarketInterface parsed = this.parseMarket(this.safeValue(markets, i));
             if (!java.util.Objects.equals(parsed, null))
             {
                 ((List<Object>)result).add(parsed);
@@ -2247,11 +2247,12 @@ public class Xt extends XtApi
             //         }
             //     }
             //
-            Object ticker = this.safeValue(response, "result");
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return this.parseTicker(Helpers.GetValue(ticker, 0), market);
+                List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+                return this.parseTicker((tickers == null || 0 >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(0)), market);
             }
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -3226,7 +3227,7 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3327,7 +3328,7 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3928,7 +3929,7 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5478,7 +5479,7 @@ public class Xt extends XtApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5499,12 +5500,12 @@ public class Xt extends XtApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "SUB", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "SUB", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String addOrReduce, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5660,7 +5661,7 @@ public class Xt extends XtApi
                 }
             } else
             {
-                result.put(symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
+                result.put(symbol, this.parseMarketLeverageTiers(entry, market));
             }
         }
         return result;
@@ -6293,7 +6294,7 @@ public class Xt extends XtApi
      * @method
      * @param {object[]} breakList the "result" array of a position/break-list response
      */
-    public Object indexPositionBreakList(List<Object> breakList)
+    public Map<String, Object> indexPositionBreakList(List<Object> breakList)
     {
         Map<String, Object> breakBySymbolSide = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)breakList).size(); i++)
@@ -6303,8 +6304,7 @@ public class Xt extends XtApi
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            String key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
-            breakBySymbolSide.put(key, breakEntry);
+            breakBySymbolSide.put((String)((this.safeString(breakEntry, "symbol", "") + "_") + this.safeString(breakEntry, "positionSide", "")), breakEntry);
         }
         return breakBySymbolSide;
     }
@@ -6317,9 +6317,7 @@ public class Xt extends XtApi
      */
     public Object mergePositionBreakInfo(Map<String, Object> entry, Map<String, Object> breakBySymbolSide)
     {
-        String marketId = this.safeString(entry, "symbol");
-        String key = ((marketId + "_") + this.safeString(entry, "positionSide"));
-        Map<String, Object> breakEntry = (Map<String, Object>) this.safeDict(breakBySymbolSide, key, (Object) null);
+        Map<String, Object> breakEntry = (Map<String, Object>) this.safeDict(breakBySymbolSide, ((this.safeString(entry, "symbol", "") + "_") + this.safeString(entry, "positionSide", "")), (Object) null);
         if (java.util.Objects.equals(breakEntry, null))
         {
             return entry;
@@ -6412,7 +6410,7 @@ public class Xt extends XtApi
             //     }
             //
             List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> breakBySymbolSide = (Map<String, Object>) this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
+            Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -6508,7 +6506,7 @@ public class Xt extends XtApi
             //     }
             //
             List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> breakBySymbolSide = (Map<String, Object>) this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
+            Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
@@ -6946,7 +6944,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         //
         // spot: error
@@ -7019,7 +7017,7 @@ public class Xt extends XtApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
-        Object endpoint = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = null;
         if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
@@ -7041,7 +7039,7 @@ public class Xt extends XtApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + payload);
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.extend(this.omit(parameters, this.extractParams(path)));
         String urlencoded = this.urlencode(this.keysort(query));
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
@@ -7050,18 +7048,17 @@ public class Xt extends XtApi
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials(true);
-            String defaultRecvWindow = this.safeString(this.options, "recvWindow");
-            String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
+            String recvWindow = this.safeString(query, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             String timestamp = this.numberToString(this.nonce());
             if ((java.util.Objects.equals(payload, "/v4/order")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-plan")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-profit")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create-batch")))
             {
                 String id = "CCXT";
                 if (((String)payload).indexOf("future") > -1)
                 {
-                    Helpers.addElementToObject(query, "clientMedia", id);
+                    query.put("clientMedia", id);
                 } else
                 {
-                    Helpers.addElementToObject(query, "media", id);
+                    query.put("media", id);
                 }
             }
             Boolean isUndefinedBody = ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(path, "order/{orderId}")) || (java.util.Objects.equals(path, "ws-token")));
@@ -7069,66 +7066,61 @@ public class Xt extends XtApi
             {
                 isUndefinedBody = false;
             }
-            signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : this.json(query);
-            String payloadString = null;
+            String jsonBody = this.json(query);
+            signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : jsonBody;
+            String payloadString = "";
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
-                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                String spotPrefix = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (Boolean.TRUE.equals(isUndefinedBody))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
                     {
-                        url = (url + ("?" + urlencoded));
-                        payloadString = (payloadString + ((((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
+                        url = (((apiUrl + payload) + "?") + urlencoded);
+                        payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + this.rawencode(this.keysort(query)));
                     } else
                     {
-                        payloadString = (payloadString + ((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload));
+                        payloadString = ((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = (payloadString + ((((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + signedBody));
+                    payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + jsonBody);
                 }
                 headersValue.put("xt-validate-algorithms", "HmacSHA256");
                 headersValue.put("xt-validate-recvwindow", recvWindow);
             } else
             {
-                payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                String futurePrefix = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
                     {
-                        url = (url + ("?" + urlencoded));
-                        payloadString = (payloadString + ((("#" + payload) + "#") + urlencoded));
+                        url = (((apiUrl + payload) + "?") + urlencoded);
+                        payloadString = ((((futurePrefix + "#") + payload) + "#") + urlencoded);
                     } else
                     {
-                        payloadString = (payloadString + ("#" + payload));
+                        payloadString = ((futurePrefix + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = (payloadString + ((("#" + payload) + "#") + signedBody));
+                    payloadString = ((((futurePrefix + "#") + payload) + "#") + jsonBody);
                 }
             }
-            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
             headersValue.put("xt-validate-appkey", this.apiKey);
             headersValue.put("xt-validate-timestamp", timestamp);
-            headersValue.put("xt-validate-signature", signature);
+            headersValue.put("xt-validate-signature", this.hmac(this.encode(payloadString), this.encode(this.secret), sha256()));
         } else
         {
             if (!java.util.Objects.equals(urlencoded, ""))
             {
-                url = (url + ("?" + urlencoded));
+                url = (((apiUrl + payload) + "?") + urlencoded);
             }
-        }
-        String bodyValue = null;
-        if (Boolean.TRUE.equals(signed))
-        {
-            bodyValue = signedBody;
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", bodyValue);
+            h2kMap1.put("body", signedBody);
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }

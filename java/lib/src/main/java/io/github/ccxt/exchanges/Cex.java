@@ -40,7 +40,7 @@ public class Cex extends CexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "cex" );
@@ -1033,7 +1033,7 @@ public class Cex extends CexApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
+    public Map<String, Object> parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(response.keySet());
@@ -1224,7 +1224,7 @@ public class Cex extends CexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1373,7 +1373,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", Cex.this.parseToInt(id) );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1402,7 +1402,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", Cex.this.parseToInt(id) );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1643,7 +1643,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", Cex.this.parseToInt(id) );
                 put( "cancelRequestId", ("c_" + String.valueOf((Cex.this.milliseconds()))) );
                 put( "timestamp", Cex.this.milliseconds() );
             }};
@@ -1950,10 +1950,10 @@ public class Cex extends CexApi
             Object transfer = null;
             if (!java.util.Objects.equals(toAccount, "") && !java.util.Objects.equals(fromAccount, ""))
             {
-                transfer = (this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, parameters)).join();
+                transfer = (this.transferBetweenSubAccounts((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
             } else
             {
-                transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
+                transfer = (this.transferBetweenMainAndSubAccount((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
             }
             Object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
             Map<String, Object> filled = new HashMap<String, Object>() {{}};
@@ -1967,7 +1967,7 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1978,7 +1978,7 @@ public class Cex extends CexApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
-            Object targetAccount = fromAccount;
+            String targetAccount = fromAccount;
             if (Boolean.TRUE.equals(fromMain))
             {
                 targetAccount = toAccount;
@@ -2016,7 +2016,7 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2155,7 +2155,7 @@ public class Cex extends CexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -2218,7 +2218,7 @@ public class Cex extends CexApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
@@ -2229,7 +2229,7 @@ public class Cex extends CexApi
             if (java.util.Objects.equals(body, null))
             {
                 throw new NullResponse((this.id + " returned empty response")) ;
-            } else if (java.util.Objects.equals(Helpers.GetValue(body, 0), "{"))
+            } else if (((String)body).startsWith("{"))
             {
                 String fixedVar = this.fixStringifiedJsonMembers(body);
                 responseFixed = this.parseJson(fixedVar);

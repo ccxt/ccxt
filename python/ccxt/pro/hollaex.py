@@ -9,14 +9,13 @@ import hashlib
 from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 
 
 class hollaex(ccxt.async_support.hollaex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hollaex, self).describe(), {
             'has': {
                 'ws': True,
@@ -73,7 +72,8 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'orderbook' + ':' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'orderbook' + ':' + marketId
         orderbook = await self.watch_public(messageHash, params)
         return orderbook.limit()
 
@@ -102,25 +102,25 @@ class hollaex(ccxt.async_support.hollaex):
         marketId = self.safe_string(message, 'symbol')
         channel = self.safe_string(message, 'topic')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
-        if symbol is None:
-            return
-        data = self.safe_dict(message, 'data')
-        timestamp = self.safe_string(data, 'timestamp')
-        timestampMs = self.parse8601(timestamp)
-        snapshot = self.parse_order_book(data, symbol, timestampMs)
-        orderbook = None
-        if not (symbol in self.orderbooks):
-            orderbook = self.order_book(snapshot)
-            self.orderbooks[symbol] = orderbook
-        else:
-            orderbook = self.orderbooks[symbol]
-            if orderbook is None:
-                return
-            orderbook.reset(snapshot)
-        if channel is not None:
-            messageHash = channel + ':' + marketId
-            client.resolve(orderbook, messageHash)
+        marketIdValue = self.safe_string(market, 'id', '')
+        symbol = self.safe_string(market, 'symbol')
+        if symbol is not None:
+            data = self.safe_dict(message, 'data')
+            timestamp = self.safe_string(data, 'timestamp')
+            timestampMs = self.parse8601(timestamp)
+            snapshot = self.parse_order_book(data, symbol, timestampMs)
+            orderbook = None
+            if not (symbol in self.orderbooks):
+                orderbook = self.order_book(snapshot)
+                self.orderbooks[symbol] = orderbook
+            else:
+                orderbook = self.orderbooks[symbol]
+                if orderbook is None:
+                    return
+                orderbook.reset(snapshot)
+            if channel is not None:
+                messageHash = channel + ':' + marketIdValue
+                client.resolve(orderbook, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -137,8 +137,9 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'trade' + ':' + market['id']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'trade' + ':' + marketId
         trades = await self.watch_public(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -164,7 +165,8 @@ class hollaex(ccxt.async_support.hollaex):
         channel = self.safe_string(message, 'topic')
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        marketIdValue = self.safe_string(market, 'id', '')
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -172,10 +174,10 @@ class hollaex(ccxt.async_support.hollaex):
             self.trades[symbol] = stored
         data = self.safe_list(message, 'data', [])
         parsedTrades = self.parse_trades(data, market)
-        for j in range(0, len(parsedTrades)):
-            stored.append(parsedTrades[j])
+        for i in range(0, len(parsedTrades)):
+            stored.append(self.safe_value(parsedTrades, i))
         if channel is not None:
-            messageHash = channel + ':' + marketId
+            messageHash = channel + ':' + marketIdValue
             client.resolve(stored, messageHash)
         client.resolve(stored, channel)
 
@@ -194,12 +196,12 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'usertrade'
-        market = None
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = messageHash + ':' + marketId
         trades = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -245,9 +247,9 @@ class hollaex(ccxt.async_support.hollaex):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
             stored.append(parsed)
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             if marketId is not None:
                 marketIds[marketId] = True
         # non-symbol specific
@@ -274,12 +276,12 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'order'
-        market = None
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = messageHash + ':' + marketId
         orders = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -361,12 +363,12 @@ class hollaex(ccxt.async_support.hollaex):
             rawOrders = data
         marketIds = {}
         for i in range(0, len(rawOrders)):
-            order = rawOrders[i]
+            order = self.safe_value(rawOrders, i)
             parsed = self.parse_order(order)
             stored.append(parsed)
-            symbol = order['symbol']
+            symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             if marketId is not None:
                 marketIds[marketId] = True
         # non-symbol specific
@@ -411,7 +413,7 @@ class hollaex(ccxt.async_support.hollaex):
         data = self.safe_dict(message, 'data', {})
         keys = list(data.keys())
         timestamp = self.safe_timestamp(message, 'time')
-        self.balance['info'] = data
+        self.balance['info'] = self.safe_dict(message, 'data', {})
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(keys)):
@@ -431,7 +433,7 @@ class hollaex(ccxt.async_support.hollaex):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'op': 'subscribe',
             'args': [messageHash],
@@ -441,18 +443,15 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_private(self, messageHash: str, params: dict = {}):
         self.check_required_credentials()
-        expires = self.safe_string(self.options, 'ws-expires')
-        if expires is None:
+        expires = self.safe_string(self.options, 'ws-expires', '')
+        if expires == '':
             timeoutMs = self.parse_to_int(self.timeout)
             timeout = self.parse_to_int(timeoutMs / 1000)
-            expires = self.sum(self.seconds(), timeout)
-            if expires is None:
-                raise ArgumentsRequired(self.id + ' watchPrivate() expires is required')
-            expires = str(expires)
+            expires = self.number_to_string(self.parse_to_int(self.sum(self.seconds(), timeout)))
             # we need to memoize these values to avoid generating a new url on each method execution
             # that would trigger a new connection on each received message
             self.options['ws-expires'] = expires
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         authParams = {

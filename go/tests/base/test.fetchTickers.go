@@ -71,12 +71,7 @@ func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 	for i := 0; i < len(values); i++ {
 		// todo: symbol check here
-		var ticker any = func() any {
-			if i >= 0 && i < len(values) {
-				return DerefScalar(values[i])
-			}
-			return nil
-		}()
+		var ticker any = DerefScalar(values[i])
 
 		{
 			func() (ret_ any) {
@@ -135,7 +130,8 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		if IsEqual(allMarkets, nil) {
 			return
 		}
-		var allMarketsLength int = len(ObjectKeys(allMarkets))
+		allMarketsMap, _ := allMarkets.(map[string]any)
+		var allMarketsLength int = len(allMarketsMap)
 		Assert((obtainedTickersLength <= allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), strconv.Itoa(obtainedTickersLength)), " tickers, "), strconv.Itoa(allMarketsLength)), " markets"))
 	}
 }

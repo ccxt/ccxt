@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class TestSafePosition extends BaseTest
 {
-        public Object preciseEqualPositionStr(Exchange exchange, Object result, Object key, Object expected)
+        public Object preciseEqualPositionStr(Exchange exchange, Object result, String key, String expected)
         {
             return Precise.stringEq(exchange.safeString(result, key), expected);
         }

@@ -356,10 +356,8 @@ export default class predictfun extends Exchange {
         else {
             const request = {};
             const tags = this.safeList(paramsValue, 'tags', []);
-            const tagsLength = tags.length;
-            if (tagsLength > 0) {
-                const tagsString = tags.join(',');
-                request['tagIds'] = tagsString;
+            if (tags.length > 0) {
+                request['tagIds'] = tags.join(',');
             }
             postOmitKeys.push('limit');
             const paramsCategories = this.omit(paramsValue, ['limit', 'tags']);
@@ -615,7 +613,7 @@ export default class predictfun extends Exchange {
         const orphanSlugs = [];
         for (let i = 0; i < queriesLength; i++) {
             const request = {
-                'query': queries[i],
+                'query': this.safeString(queries, i, ''),
                 'limit': limit,
                 'includeResolved': includeResolved,
             };
@@ -1428,7 +1426,7 @@ export default class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            const requested = this.safeOutcomeSymbol(undefined, market);
+            const requested = this.safeString(market, 'outcome', '');
             throw new BadSymbol(this.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -1708,7 +1706,7 @@ export default class predictfun extends Exchange {
     setSandboxMode(enable) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        const wasSandbox = this.safeBool(this.options, 'sandboxMode', false);
+        const wasSandbox = (this.safeBool(this.options, 'sandboxMode', false) === true);
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -1966,9 +1964,9 @@ export default class predictfun extends Exchange {
         const marketFeeRateBps = this.safeString(marketRow, 'feeRateBps', '200'); // should be at least 200
         const feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool(marketRow, 'isNegRisk', false);
-        const isNegRisk = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
+        const isNegRisk = (this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) === true);
         const marketIsYieldBearing = this.safeBool(marketRow, 'isYieldBearing', false);
-        const isYieldBearing = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
+        const isYieldBearing = (this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) === true);
         const defaultExpiration = this.safeInteger(this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
         let expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2138,7 +2136,7 @@ export default class predictfun extends Exchange {
         const wanted = {};
         const wantedOutcomes = this.toArray(outcomes);
         for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = this.outcome(wantedOutcomes[i]);
+            const outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
             const wantedId = this.safeString(outcomeObj, 'outcomeId', '');
             wanted[wantedId] = true;
         }
@@ -2625,18 +2623,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -2644,7 +2642,7 @@ export default class predictfun extends Exchange {
         if (success) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2654,7 +2652,7 @@ export default class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode === 401) {
+        if (code === 401) {
             this.options['jwtToken'] = undefined;
             this.options['jwtTokenExpiresAt'] = 0;
         }
@@ -2662,7 +2660,7 @@ export default class predictfun extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode === 400) {
+        if (code === 400) {
             throw new BadRequest(feedback);
         }
         throw new ExchangeError(feedback);
@@ -2765,13 +2763,7 @@ export default class predictfun extends Exchange {
         rHex = this.padHexToEven(rHex);
         sHex = this.padHexToEven(sHex);
         const yParity = this.safeInteger(signature, 'v');
-        const signedFields = [];
-        for (let i = 0; i < fields.length; i++) {
-            signedFields.push(fields[i]);
-        }
-        signedFields.push(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
-        signedFields.push(this.rlpEncodeBytes(rHex));
-        signedFields.push(this.rlpEncodeBytes(sHex));
+        const signedFields = this.arrayConcat(fields, [this.rlpEncodeBytes(this.intToRlpHex(yParity)), this.rlpEncodeBytes(rHex), this.rlpEncodeBytes(sHex)]);
         return '0x02' + this.rlpEncodeList(signedFields);
     }
     /**
@@ -2815,8 +2807,8 @@ export default class predictfun extends Exchange {
             const marketSymbol = this.safeString(outcomeObj, 'market');
             const marketObj = this.safeDict(this.markets, marketSymbol, {});
             const marketRow = this.safeDict(marketObj, 'info', {});
-            isNegRisk = this.safeBool(marketRow, 'isNegRisk', false);
-            isYieldBearing = this.safeBool(marketRow, 'isYieldBearing', false);
+            isNegRisk = (this.safeBool(marketRow, 'isNegRisk', false) === true);
+            isYieldBearing = (this.safeBool(marketRow, 'isYieldBearing', false) === true);
         }
         if (side === 'sell') {
             const ctfToken = this.safeString(params, 'token', this.conditionalTokensAddress(isNegRisk, isYieldBearing));
@@ -2847,7 +2839,7 @@ export default class predictfun extends Exchange {
             const receipts = [];
             const operatorsLength = operators.length;
             for (let i = 0; i < operatorsLength; i++) {
-                const operatorAddress = operators[i];
+                const operatorAddress = this.safeString(operators, i);
                 if (operatorAddress === undefined) {
                     throw new ArgumentsRequired(this.id + ' approve() could not resolve the operator to approve for chain ' + chainKey);
                 }
@@ -3037,7 +3029,7 @@ export default class predictfun extends Exchange {
             throw error;
         }
         for (let i = 0; i < messageHashesLength; i++) {
-            client.reject(error, messageHashes[i]);
+            client.reject(error, this.safeString(messageHashes, i, ''));
         }
     }
     /**
@@ -3346,10 +3338,10 @@ export default class predictfun extends Exchange {
      */
     outcomesByMarketId(marketId) {
         const result = [];
-        const cached = this.outcomes;
-        if ((marketId === undefined) || (cached === undefined)) {
+        if ((marketId === undefined) || (this.outcomes === undefined)) {
             return result;
         }
+        const cached = this.outcomes;
         const handles = Object.keys(cached);
         const handlesLength = handles.length;
         for (let i = 0; i < handlesLength; i++) {

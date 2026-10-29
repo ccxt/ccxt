@@ -17,7 +17,7 @@ import { ecdsa } from './base/functions/crypto.js';
  * @augments Exchange
  */
 export default class dydx extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'dydx',
             'name': 'dYdX',
@@ -526,6 +526,9 @@ export default class dydx extends Exchange {
         }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
+        if (settle === undefined) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const contract = true;
         const swap = true;
@@ -1109,7 +1112,6 @@ export default class dydx extends Exchange {
         //
         const marketId = this.safeString (position, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
         let quantity = this.safeString (position, 'size');
         if (side !== 'long') {
@@ -1119,7 +1121,7 @@ export default class dydx extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': symbol,
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'entryPrice': this.safeNumber (position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
@@ -1214,10 +1216,10 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: any, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         return {
             'r': r.padStart (64, '0'),
             's': s.padStart (64, '0'),
@@ -1225,7 +1227,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: any): Dict {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1252,7 +1254,9 @@ export default class dydx extends Exchange {
     signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee: any = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
-        return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
+        const signatureR = this.safeString (signature, 'r', '');
+        const signatureS = this.safeString (signature, 's', '');
+        return this.encodeDydxTxRaw (signDoc, signatureR + signatureS);
     }
 
     retrieveCredentials (): Dict {
@@ -1260,14 +1264,17 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        let privateKey = this.safeString (this.options, 'privateKey');
-        if (privateKey === undefined) {
+        const privateKeyOption = this.safeString (this.options, 'privateKey');
+        if (privateKeyOption !== undefined) {
+            credentials = this.retrieveDydxCredentials (privateKeyOption);
+        } else {
             const signature: Dict = this.signOnboardingAction ();
-            privateKey = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+            credentials = this.retrieveDydxCredentials (this.hashMessage (this.base16ToBinary (this.safeString (signature, 'r', '') + this.safeString (signature, 's', ''))));
         }
-        credentials = this.retrieveDydxCredentials (privateKey);
-        credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
-        credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
+        credentials = {
+            'privateKey': this.binaryToBase16 (credentials['privateKey']),
+            'publicKey': this.binaryToBase16 (credentials['publicKey']),
+        };
         this.options['dydxCredentials'] = credentials;
         return credentials;
     }
@@ -1303,9 +1310,10 @@ export default class dydx extends Exchange {
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
         const account = this.safeDict (response, 'info', {});
+        const pubKey = this.safeDict (account, 'pub_key', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
-            'key': account['pub_key']['key'],
+            'key': pubKey['key'],
         };
         this.options['dydxAccount'] = account;
         return this.safeDict (this.options, 'dydxAccount', {});
@@ -1321,7 +1329,7 @@ export default class dydx extends Exchange {
         return r;
     }
 
-    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): any[] {
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [string, Dict] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1403,7 +1411,8 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (paramsSubAccountId, 'goodTillBlock');
         let goodTillBlockTime: Num = undefined;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1462,10 +1471,10 @@ export default class dydx extends Exchange {
 
     createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
         const nameSp = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const prefixAddress = address + '-' + subAccountNumber.toString ();
-        const prefix = this.uuid5 (nameSp, prefixAddress);
-        const orderInfo = prefix + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
-        return this.uuid5 (nameSp, orderInfo);
+        const clientOrderIdString = this.numberToString (clientOrderId);
+        const clobPairIdString = this.numberToString (clobPairId);
+        const orderFlagsString = this.numberToString (orderFlags);
+        return this.uuid5 (nameSp, this.uuid5 (nameSp, address + '-' + this.numberToString (subAccountNumber)) + '-' + clientOrderIdString + '-' + clobPairIdString + '-' + orderFlagsString);
     }
 
     async fetchLatestBlockHeight (params: Dict = {}): Promise<int> {
@@ -1528,7 +1537,7 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1548,10 +1557,13 @@ export default class dydx extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result');
+        const requestValue = this.safeDict (orderRequest, 'value', {});
+        const requestOrder = this.safeDict (requestValue, 'order', {});
+        const requestOrderId = this.safeDict (requestOrder, 'orderId', {});
         return this.safeOrder ({
             'info': result,
             'id': orderId,
-            'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
+            'clientOrderId': this.safeString (requestOrderId, 'clientId'),
         });
     }
 
@@ -1585,19 +1597,20 @@ export default class dydx extends Exchange {
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
-        const idString = id.toString ();
+        const idString = this.numberToString (id);
         if (idString.indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         const goodTillBlockOption = this.safeInteger (paramsOmitted, 'goodTillBlock');
         let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
-        const subAccountIdOption = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
+        const [ subAccountIdOption ] = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1617,6 +1630,7 @@ export default class dydx extends Exchange {
         }
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
+        const marketInfo = this.safeDict (market, 'info', {});
         const cancelPayload: Dict = {
             'orderId': {
                 'subaccountId': {
@@ -1625,7 +1639,7 @@ export default class dydx extends Exchange {
                 },
                 'clientId': clientOrderId,
                 'orderFlags': orderFlags,
-                'clobPairId': market['info']['clobPairId'],
+                'clobPairId': marketInfo['clobPairId'],
             },
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
@@ -1635,7 +1649,7 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1689,9 +1703,10 @@ export default class dydx extends Exchange {
         }
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
+        const marketInfo = this.safeDict (market, 'info', {});
         const cancelOrders: Dict = {
             'clientIds': clientOrderIds,
-            'clobPairId': market['info']['clobPairId'],
+            'clobPairId': marketInfo['clobPairId'],
         };
         const cancelPayload: Dict = {
             'subaccountId': {
@@ -1706,7 +1721,7 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1859,8 +1874,8 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: Str, account: any): Promise<Dict> {
-        const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
+    async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {
+        const txBytes = this.encodeDydxTxForSimulation (message, memo, this.safeString (account, 'sequence'), this.safeDict (account, 'pub_key', {}));
         const request: Dict = {
             'txBytes': txBytes,
         };
@@ -1986,7 +2001,7 @@ export default class dydx extends Exchange {
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2175,7 +2190,7 @@ export default class dydx extends Exchange {
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2483,7 +2498,7 @@ export default class dydx extends Exchange {
         return this.safeBalance (result);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const timeDifference = this.safeInteger (this.options, 'timeDifference');
         if (timeDifference === undefined) {
             throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
@@ -2514,13 +2529,12 @@ export default class dydx extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = apiUrl;
+        let url: string = apiUrl + '/' + pathWithParams;
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const paramsSorted: Dict = this.keysort (paramsOmitted);
-        url += '/' + pathWithParams;
         if (method === 'GET') {
             if (Object.keys (paramsSorted).length > 0) {
-                url += '?' + this.urlencode (paramsSorted);
+                url = apiUrl + '/' + pathWithParams + '?' + this.urlencode (paramsSorted);
             }
         } else {
             requestBody = this.json (paramsSorted);
@@ -2533,7 +2547,7 @@ export default class dydx extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

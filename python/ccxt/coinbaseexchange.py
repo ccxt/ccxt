@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseexchange(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'id': 'coinbaseexchange',
             'name': 'Coinbase Exchange',
@@ -666,7 +666,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             market = rawMarkets[i]
             id = self.safe_string(market, 'id')
-            baseId, quoteId = id.split('-')
+            parts = id.split('-')
+            baseId = parts[0]
+            quoteId = parts[1]
             # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             # const baseId = this.safeString (market, 'base_currency');
             # const quoteId = this.safeString (market, 'quote_currency');
@@ -782,8 +784,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rawBalances = self.to_array(response)
+        for i in range(0, len(rawBalances)):
+            balance = self.safe_dict(rawBalances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -891,7 +894,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         low = None
         open = None
         volume = None
-        symbol = None if (market is None) else market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if isinstance(ticker, list):
             last = self.safe_string(ticker, 4)
         else:
@@ -1185,8 +1188,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1546,12 +1550,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
         elif type == 'market':
-            cost = costParam
-            if cost is None:
-                if price is not None:
-                    cost = amount * price
-            if cost is not None:
-                request['funds'] = self.cost_to_precision(symbol, cost)
+            if costParam is not None:
+                request['funds'] = self.cost_to_precision(symbol, costParam)
+            elif price is not None:
+                request['funds'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, paramsCost))
@@ -2038,7 +2040,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             self.options['coinbaseAccounts'] = accounts  # cache it
             self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
         currencyId = currency['id']
-        account = self.safe_dict(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        accountsByCurrencyId = self.safe_dict(self.options, 'coinbaseAccountsByCurrencyId')
+        account = self.safe_dict(accountsByCurrencyId, currencyId)
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
@@ -2075,8 +2078,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             payload = ''
             if method != 'GET':
                 if len(query) > 0:
-                    requestBody = self.json(query)
-                    payload = requestBody
+                    payload = self.json(query)
+                    requestBody = payload
             what = nonce + method + request + payload
             secret = None
             try:
@@ -2093,9 +2096,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 400) or (code == 404):
-            if body[0] == '{':
+            if body.startswith('{'):
                 message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)

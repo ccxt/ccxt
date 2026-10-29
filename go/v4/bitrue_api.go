@@ -8,28 +8,28 @@
 package ccxt
 
 // SpotKlinePublicGetPublicJson returns a channel that yields a JSON object.
-func (this *Bitrue) SpotKlinePublicGetPublicJson(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotKlinePublicGetPublicJson", args...)
+func (this *Bitrue) SpotKlinePublicGetPublicJson(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotKlinePublicGetPublicJson", args...))
 }
 
 // SpotKlinePublicGetPublicCurrencyJson returns a channel that yields a JSON object.
-func (this *Bitrue) SpotKlinePublicGetPublicCurrencyJson(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotKlinePublicGetPublicCurrencyJson", args...)
+func (this *Bitrue) SpotKlinePublicGetPublicCurrencyJson(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotKlinePublicGetPublicCurrencyJson", args...))
 }
 
 // SpotV1PublicGetPing returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetPing(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetPing", args...)
+func (this *Bitrue) SpotV1PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetPing", args...))
 }
 
 // SpotV1PublicGetTime returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetTime(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetTime", args...)
+func (this *Bitrue) SpotV1PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetTime", args...))
 }
 
 // SpotV1PublicGetExchangeInfo returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetExchangeInfo(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetExchangeInfo", args...)
+func (this *Bitrue) SpotV1PublicGetExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetExchangeInfo", args...))
 }
 
 // SpotV1PublicGetDepth returns a channel that yields a JSON object.
@@ -38,38 +38,38 @@ func (this *Bitrue) SpotV1PublicGetDepth(args ...any) <-chan EndpointResult[map[
 }
 
 // SpotV1PublicGetTrades returns a channel that yields a JSON array.
-func (this *Bitrue) SpotV1PublicGetTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetTrades", args...)
+func (this *Bitrue) SpotV1PublicGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("spotV1PublicGetTrades", args...))
 }
 
 // SpotV1PublicGetHistoricalTrades returns a channel that yields a JSON array.
-func (this *Bitrue) SpotV1PublicGetHistoricalTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetHistoricalTrades", args...)
+func (this *Bitrue) SpotV1PublicGetHistoricalTrades(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("spotV1PublicGetHistoricalTrades", args...))
 }
 
 // SpotV1PublicGetAggTrades returns a channel that yields a JSON array.
-func (this *Bitrue) SpotV1PublicGetAggTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetAggTrades", args...)
+func (this *Bitrue) SpotV1PublicGetAggTrades(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("spotV1PublicGetAggTrades", args...))
 }
 
 // SpotV1PublicGetTicker24hr returns a channel that yields a JSON array.
-func (this *Bitrue) SpotV1PublicGetTicker24hr(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
+func (this *Bitrue) SpotV1PublicGetTicker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("spotV1PublicGetTicker24hr", args...))
 }
 
 // SpotV1PublicGetTickerPrice returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetTickerPrice(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
+func (this *Bitrue) SpotV1PublicGetTickerPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetTickerPrice", args...))
 }
 
 // SpotV1PublicGetTickerBookTicker returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetTickerBookTicker(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
+func (this *Bitrue) SpotV1PublicGetTickerBookTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...))
 }
 
 // SpotV1PublicGetMarketKline returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PublicGetMarketKline(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
+func (this *Bitrue) SpotV1PublicGetMarketKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PublicGetMarketKline", args...))
 }
 
 // SpotV1PrivateGetOrder returns a channel that yields a JSON object.
@@ -98,8 +98,8 @@ func (this *Bitrue) SpotV1PrivateGetMyTrades(args ...any) <-chan EndpointResult[
 }
 
 // SpotV1PrivateGetEtfNetValueSymbol returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV1PrivateGetEtfNetValueSymbol(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV1PrivateGetEtfNetValueSymbol", args...)
+func (this *Bitrue) SpotV1PrivateGetEtfNetValueSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV1PrivateGetEtfNetValueSymbol", args...))
 }
 
 // SpotV1PrivateGetWithdrawHistory returns a channel that yields a JSON object.
@@ -128,28 +128,28 @@ func (this *Bitrue) SpotV1PrivateDeleteOrder(args ...any) <-chan EndpointResult[
 }
 
 // SpotV2PrivateGetMyTrades returns a channel that yields a JSON object.
-func (this *Bitrue) SpotV2PrivateGetMyTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotV2PrivateGetMyTrades", args...)
+func (this *Bitrue) SpotV2PrivateGetMyTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotV2PrivateGetMyTrades", args...))
 }
 
 // FapiV1PublicGetPing returns a channel that yields a JSON object.
-func (this *Bitrue) FapiV1PublicGetPing(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("fapiV1PublicGetPing", args...)
+func (this *Bitrue) FapiV1PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("fapiV1PublicGetPing", args...))
 }
 
 // FapiV1PublicGetTime returns a channel that yields a JSON object.
-func (this *Bitrue) FapiV1PublicGetTime(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("fapiV1PublicGetTime", args...)
+func (this *Bitrue) FapiV1PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("fapiV1PublicGetTime", args...))
 }
 
 // FapiV1PublicGetContracts returns a channel that yields a JSON array.
-func (this *Bitrue) FapiV1PublicGetContracts(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("fapiV1PublicGetContracts", args...)
+func (this *Bitrue) FapiV1PublicGetContracts(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("fapiV1PublicGetContracts", args...))
 }
 
 // FapiV1PublicGetDepth returns a channel that yields a JSON object.
-func (this *Bitrue) FapiV1PublicGetDepth(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("fapiV1PublicGetDepth", args...)
+func (this *Bitrue) FapiV1PublicGetDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("fapiV1PublicGetDepth", args...))
 }
 
 // FapiV1PublicGetTicker returns a channel that yields a JSON object or a JSON array.
@@ -158,8 +158,8 @@ func (this *Bitrue) FapiV1PublicGetTicker(args ...any) <-chan AsyncResult[any] {
 }
 
 // FapiV1PublicGetKlines returns a channel that yields a JSON array.
-func (this *Bitrue) FapiV1PublicGetKlines(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("fapiV1PublicGetKlines", args...)
+func (this *Bitrue) FapiV1PublicGetKlines(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("fapiV1PublicGetKlines", args...))
 }
 
 // FapiV2PrivateGetMyTrades returns a channel that yields a JSON object.
@@ -233,23 +233,23 @@ func (this *Bitrue) FapiV2PrivatePostFuturesTransfer(args ...any) <-chan Endpoin
 }
 
 // DapiV1PublicGetPing returns a channel that yields a JSON object.
-func (this *Bitrue) DapiV1PublicGetPing(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("dapiV1PublicGetPing", args...)
+func (this *Bitrue) DapiV1PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("dapiV1PublicGetPing", args...))
 }
 
 // DapiV1PublicGetTime returns a channel that yields a JSON object.
-func (this *Bitrue) DapiV1PublicGetTime(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("dapiV1PublicGetTime", args...)
+func (this *Bitrue) DapiV1PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("dapiV1PublicGetTime", args...))
 }
 
 // DapiV1PublicGetContracts returns a channel that yields a JSON array.
-func (this *Bitrue) DapiV1PublicGetContracts(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("dapiV1PublicGetContracts", args...)
+func (this *Bitrue) DapiV1PublicGetContracts(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("dapiV1PublicGetContracts", args...))
 }
 
 // DapiV1PublicGetDepth returns a channel that yields a JSON object.
-func (this *Bitrue) DapiV1PublicGetDepth(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("dapiV1PublicGetDepth", args...)
+func (this *Bitrue) DapiV1PublicGetDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("dapiV1PublicGetDepth", args...))
 }
 
 // DapiV1PublicGetTicker returns a channel that yields a JSON object or a JSON array.
@@ -258,8 +258,8 @@ func (this *Bitrue) DapiV1PublicGetTicker(args ...any) <-chan AsyncResult[any] {
 }
 
 // DapiV1PublicGetKlines returns a channel that yields a JSON array.
-func (this *Bitrue) DapiV1PublicGetKlines(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("dapiV1PublicGetKlines", args...)
+func (this *Bitrue) DapiV1PublicGetKlines(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("dapiV1PublicGetKlines", args...))
 }
 
 // DapiV2PrivateGetMyTrades returns a channel that yields a JSON object.
@@ -333,16 +333,16 @@ func (this *Bitrue) DapiV2PrivatePostFuturesTransfer(args ...any) <-chan Endpoin
 }
 
 // OpenV1PrivatePostPoseidonApiV1ListenKey returns a channel that yields a JSON object.
-func (this *Bitrue) OpenV1PrivatePostPoseidonApiV1ListenKey(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("openV1PrivatePostPoseidonApiV1ListenKey", args...)
+func (this *Bitrue) OpenV1PrivatePostPoseidonApiV1ListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("openV1PrivatePostPoseidonApiV1ListenKey", args...))
 }
 
 // OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey returns a channel that yields a JSON object.
-func (this *Bitrue) OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("openV1PrivatePutPoseidonApiV1ListenKeyListenKey", args...)
+func (this *Bitrue) OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("openV1PrivatePutPoseidonApiV1ListenKeyListenKey", args...))
 }
 
 // OpenV1PrivateDeletePoseidonApiV1ListenKeyListenKey returns a channel that yields a JSON object.
-func (this *Bitrue) OpenV1PrivateDeletePoseidonApiV1ListenKeyListenKey(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey", args...)
+func (this *Bitrue) OpenV1PrivateDeletePoseidonApiV1ListenKeyListenKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey", args...))
 }

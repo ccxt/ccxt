@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\phemex as Exchange;
 
 class phemex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
@@ -1211,7 +1211,7 @@ class phemex extends Exchange {
             throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a market argument');
         }
         $amount = $this->safe_string($bidask, $amountKey);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $amount = $this->from_ev($amount, $market);
         }
         return array(
@@ -1235,10 +1235,9 @@ class phemex extends Exchange {
             for ($k = 0; $k < count($bidasks); $k++) {
                 $orders[] = $this->custom_parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
             }
-            $result[$side] = $orders;
+            $descending = ($i === 0);
+            $result[$side] = $this->sort_by($orders, 0, $descending);
         }
-        $result[$bidsKey] = $this->sort_by($result[$bidsKey], 0, true);
-        $result[$asksKey] = $this->sort_by($result[$asksKey], 0);
         return $result;
     }
 
@@ -1263,7 +1262,7 @@ class phemex extends Exchange {
         );
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        if (($market['linear'] === true) && $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) && $isStableSettled) {
             $response = $this->v2GetMdV2Orderbook($this->extend($request, $params));
         } else {
             if (($limit !== null) && ($limit <= 30)) {
@@ -1331,7 +1330,7 @@ class phemex extends Exchange {
         return $this->to_en($price, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_en(mixed $en, mixed $scale): ?string {
+    public function from_en(?string $en, ?int $scale): ?string {
         if ($en === null || $scale === null) {
             return null;
         }
@@ -1377,7 +1376,7 @@ class phemex extends Exchange {
         //     ]
         //
         $baseVolume = null;
-        if (($market !== null) && ($market['spot'] === true)) {
+        if (($market !== null) && ($this->safe_bool($market, 'spot', false))) {
             $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ohlcv, 7), $market));
         } else {
             $baseVolume = $this->safe_number($ohlcv, 7);
@@ -1420,7 +1419,7 @@ class phemex extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'until' ));
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        $usesSpecialFromToEndpoint = ((($market['linear'] === true) || $isStableSettled)) && (($since !== null) || ($until !== null));
+        $usesSpecialFromToEndpoint = ((($this->safe_bool($market, 'linear', false)) || $isStableSettled)) && (($since !== null) || ($until !== null));
         $maxLimit = 1000;
         if ($usesSpecialFromToEndpoint) {
             $maxLimit = 2000;
@@ -1428,7 +1427,7 @@ class phemex extends Exchange {
         $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         $request['limit'] = $limitResolved;
         $sinceSeconds = null;
-        if (($market['linear'] === true) || $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) || $isStableSettled) {
             if (($until !== null) || ($since !== null)) {
                 $candleDuration = $this->parse_timeframe($timeframe);
                 if ($since !== null) {
@@ -1440,7 +1439,7 @@ class phemex extends Exchange {
                     } else {
                         // when since is defined 'to' is mandatory
                         $now = $this->seconds();
-                        $to = $this->parse_to_int($fromSeconds . ($maxLimit * $candleDuration));
+                        $to = $this->parse_to_int($this->parse_to_int($fromSeconds) . ($maxLimit * $candleDuration));
                         $request['to'] = ($to > $now) ? $now : $to;
                     }
                 } elseif ($until !== null) {
@@ -1588,8 +1587,8 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             // 'id': 123456789, // optional request id
         );
-        if ($market['swap'] === true) {
-            if (($market['inverse'] === true) || $market['settle'] === 'USD') {
+        if ($this->safe_bool($market, 'swap', false)) {
+            if (($this->safe_bool($market, 'inverse', false)) || $market['settle'] === 'USD') {
                 $response = $this->v1GetMdTicker24hr($this->extend($request, $params));
             } else {
                 $response = $this->v2GetMdV2Ticker24hr($this->extend($request, $params));
@@ -1701,7 +1700,7 @@ class phemex extends Exchange {
         );
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        if (($market['linear'] === true) && $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) && $isStableSettled) {
             $response = $this->v2GetMdV2Trade($this->extend($request, $params));
         } else {
             $response = $this->v1GetMdTrade($this->extend($request, $params));
@@ -1931,7 +1930,8 @@ class phemex extends Exchange {
             $side = $this->safe_string_lower($trade, $tradeLength - 3);
             $priceString = $this->safe_string($trade, $tradeLength - 2);
             $amountString = $this->safe_string($trade, $tradeLength - 1);
-            if ((is_float($trade[$tradeLength - 2]) || is_int($trade[$tradeLength - 2]))) {
+            $priceAmount = $trade[$tradeLength - 2];
+            if ((is_float($priceAmount) || is_int($priceAmount))) {
                 $priceString = $this->from_ep($priceString, $marketResolved);
                 $amountString = $this->from_ev($amountString, $marketResolved);
             }
@@ -1984,7 +1984,7 @@ class phemex extends Exchange {
                 $feeCostString = $this->from_er($this->omit_zero($this->safe_string($trade, 'execFeeEv')), $marketResolved);
                 if ($feeCostString !== null) {
                     $feeRateString = $this->from_er($this->safe_string($trade, 'feeRateEr'), $marketResolved);
-                    if ($marketResolved['spot'] === true) {
+                    if ($this->safe_bool($marketResolved, 'spot', false)) {
                         $feeCurrencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));
                     } else {
                         $info = $this->safe_dict($marketResolved, 'info');
@@ -2746,7 +2746,7 @@ class phemex extends Exchange {
             }
         }
         $orderParams = $this->omit($paramsOmitted, array( 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ));
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $qtyType = $this->safe_string($orderParams, 'qtyType', 'ByBase');
             if (($typeValue === 'Market') || ($typeValue === 'Stop') || ($typeValue === 'MarketIfTouched')) {
                 if ($price !== null) {
@@ -2782,7 +2782,7 @@ class phemex extends Exchange {
                 $amountString = $this->amount_to_precision($symbol, $amount);
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $hedged = $this->safe_bool($orderParams, 'hedged', false);
             $orderParams = $this->omit($orderParams, 'hedged');
             $posSide = $this->safe_string_lower($orderParams, 'posSide');
@@ -2903,7 +2903,7 @@ class phemex extends Exchange {
         }
         if ($isStableSettled) {
             $response = $this->privatePostGOrders($this->extend($request, $orderParams));
-        } elseif ($market['contract'] === true) {
+        } elseif ($this->safe_bool($market, 'contract', false)) {
             $response = $this->privatePostOrders($this->extend($request, $orderParams));
         } else {
             $response = $this->privatePostSpotOrders($this->extend($request, $orderParams));
@@ -3054,7 +3054,7 @@ class phemex extends Exchange {
                 $request['posSide'] = 'Merged';
             }
             $response = $this->privatePutGOrdersReplace($this->extend($request, $paramsOmitted3));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = $this->privatePutOrdersReplace($this->extend($request, $paramsOmitted3));
         } else {
             $response = $this->privatePutSpotOrders($this->extend($request, $paramsOmitted3));
@@ -3099,7 +3099,7 @@ class phemex extends Exchange {
                 $request['posSide'] = 'Merged';
             }
             $response = $this->privateDeleteGOrdersCancel($this->extend($request, $paramsOmitted));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = $this->privateDeleteOrdersCancel($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->privateDeleteSpotOrders($this->extend($request, $paramsOmitted));
@@ -3145,7 +3145,7 @@ class phemex extends Exchange {
             //        data: '1'
             //    }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = $this->privateDeleteOrdersAll($this->extend($request, $paramsOmitted));
             //
             //    {
@@ -3204,7 +3204,7 @@ class phemex extends Exchange {
         $marketSettle = $this->safe_string($market, 'settle');
         if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
             $response = $this->privateGetApiDataGFuturesOrdersByOrderId($this->extend($request, $paramsOmitted));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $response = $this->privateGetApiDataSpotsOrdersByOrderId($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->privateGetExchangeOrder($this->extend($request, $paramsOmitted));
@@ -3221,7 +3221,7 @@ class phemex extends Exchange {
                 }
             }
             $order = $this->safe_dict($data, 0, array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $rows = $this->safe_list($data, 'rows', array());
             $numRows = count($rows);
             if ($numRows < 1) {
@@ -3268,7 +3268,7 @@ class phemex extends Exchange {
         if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
             $request['currency'] = $marketSettle;
             $response = $this->privateGetExchangeOrderV2OrderList($this->extend($request, $params));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = $this->privateGetExchangeOrderList($this->extend($request, $params));
         } else {
             $response = $this->privateGetApiDataSpotsOrders($this->extend($request, $params));
@@ -3309,7 +3309,7 @@ class phemex extends Exchange {
         try {
             if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
                 $response = $this->privateGetGOrdersActiveList($this->extend($request, $params));
-            } elseif ($market['swap'] === true) {
+            } elseif ($this->safe_bool($market, 'swap', false)) {
                 $response = $this->privateGetOrdersActiveList($this->extend($request, $params));
             } else {
                 $response = $this->privateGetSpotOrders($this->extend($request, $params));
@@ -3366,7 +3366,7 @@ class phemex extends Exchange {
         if (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT')) {
             $request['currency'] = $this->safe_string($params, 'settle', 'USDT');
             $response = $this->privateGetExchangeOrderV2OrderList($this->extend($request, $params));
-        } elseif ($market !== null && ($market['swap'] === true)) {
+        } elseif ($market !== null && ($this->safe_bool($market, 'swap', false))) {
             $response = $this->privateGetExchangeOrderList($this->extend($request, $params));
         } else {
             $response = $this->privateGetExchangeSpotOrder($this->extend($request, $params));
@@ -4174,7 +4174,7 @@ class phemex extends Exchange {
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         $priceDiff = null;
-        if ($marketResolved['linear'] === true) {
+        if ($this->safe_bool($marketResolved, 'linear', false)) {
             if ($side === 'long') {
                 $priceDiff = Precise::string_sub($markPriceString, $entryPriceString);
             } else {
@@ -4335,14 +4335,14 @@ class phemex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = array();
-        if ($market['linear'] !== true) {
+        if (!$this->safe_bool($market, 'linear', false)) {
             $response = $this->v1GetMdTicker24hr($this->extend($request, $params));
         } else {
             $response = $this->v2GetMdV2Ticker24hr($this->extend($request, $params));
@@ -4523,7 +4523,7 @@ class phemex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
         $marginModeValue = strtolower($marginMode);
@@ -4575,7 +4575,7 @@ class phemex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($hedged) {
+        if ($hedged === true) {
             $request['targetPosMode'] = 'Hedged';
         } else {
             $request['targetPosMode'] = 'OneWay';
@@ -4702,7 +4702,7 @@ class phemex extends Exchange {
         //
         $marketId = $this->safe_string($info, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $riskLimits = ($marketResolved['info']['riskLimits']);
+        $riskLimits = $this->safe_list($marketResolved['info'], 'riskLimits', array());
         $tiers = array();
         $minNotional = 0;
         for ($i = 0; $i < count($riskLimits); $i++) {
@@ -4737,17 +4737,15 @@ class phemex extends Exchange {
             }
         }
         $requestBody = null;
-        $privateHeaders = null;
+        $privateHeaders = array();
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->seconds();
             $xPhemexRequestExpiry = $this->safe_integer($this->options, 'x-phemex-request-expiry', 60);
             $expiry = $this->sum($timestamp, $xPhemexRequestExpiry);
             $expiryString = (string) $expiry;
-            $privateHeaders = array(
-                'x-phemex-access-token' => $this->apiKey,
-                'x-phemex-request-expiry' => $expiryString,
-            );
+            $privateHeaders['x-phemex-access-token'] = $this->apiKey;
+            $privateHeaders['x-phemex-request-expiry'] = $expiryString;
             $payload = '';
             if ($method === 'POST') {
                 $isOrderPlacement = ($path === 'g-orders') || ($path === 'spot/orders') || ($path === 'orders');
@@ -4902,16 +4900,16 @@ class phemex extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
-            if ($transfer['fromAccount'] === null) {
+            if ($this->safe_string($transfer, 'fromAccount') === null) {
                 $transfer['fromAccount'] = $fromAccount;
             }
-            if ($transfer['toAccount'] === null) {
+            if ($this->safe_string($transfer, 'toAccount') === null) {
                 $transfer['toAccount'] = $toAccount;
             }
-            if ($transfer['amount'] === null) {
+            if ($this->safe_string($transfer, 'amount') === null) {
                 $transfer['amount'] = $amount;
             }
-            if ($transfer['currency'] === null) {
+            if ($this->safe_string($transfer, 'currency') === null) {
                 $transfer['currency'] = $code;
             }
         }
@@ -5061,7 +5059,7 @@ class phemex extends Exchange {
         $market = $this->market($symbol);
         $marketSettle = $this->safe_string($market, 'settle');
         $isUsdtSettled = $marketSettle === 'USDT' || $marketSettle === 'USDC';
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
@@ -5070,9 +5068,9 @@ class phemex extends Exchange {
         }
         $customSymbol = null;
         if ($isUsdtSettled) {
-            $customSymbol = '.' . $market['id'] . 'FR8H'; // phemex requires a custom symbol for funding rate history
+            $customSymbol = '.' . $this->safe_string($market, 'id', '') . 'FR8H'; // phemex requires a custom symbol for funding rate history
         } else {
-            $customSymbol = '.' . $market['baseId'] . 'FR8H';
+            $customSymbol = '.' . $this->safe_string($market, 'baseId', '') . 'FR8H';
         }
         $request = array(
             'symbol' => $customSymbol,
@@ -5211,7 +5209,7 @@ class phemex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest is only supported for contract markets.');
         }
         $request = array(
@@ -5847,7 +5845,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -365,7 +365,7 @@ class extended extends extended$1["default"] {
         const keys = Object.keys(input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict(input, key, {});
             const numericIdString = this.safeString(item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
@@ -1030,7 +1030,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1099,7 +1099,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1140,7 +1140,7 @@ class extended extends extended$1["default"] {
     parseFundingHistories(histories, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < histories.length; i++) {
-            result.push(this.parseFundingHistory(histories[i], market));
+            result.push(this.parseFundingHistory(this.safeDict(histories, i, {}), market));
         }
         const symbol = (market === undefined) ? undefined : this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -1316,7 +1316,7 @@ class extended extends extended$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000);
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const limitResolved = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger(paramsPaginate, 'until', this.milliseconds());
         const endTime = this.safeInteger(paramsPaginate, 'endTime', until);
@@ -1354,7 +1354,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1625,7 +1625,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1737,7 +1737,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1879,7 +1879,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1908,8 +1908,7 @@ class extended extends extended$1["default"] {
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
         const currentAccountId = this.safeString(account, 'accountId', '');
-        const fromAccountResolved = (fromAccount === undefined) ? currentAccountId : fromAccount;
-        if (fromAccountResolved !== currentAccountId) {
+        if ((fromAccount !== undefined) && (fromAccount !== currentAccountId)) {
             throw new errors.BadRequest(this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2(params, 'toVault', 'receiverPositionId');
@@ -1920,7 +1919,7 @@ class extended extends extended$1["default"] {
         const amountString = this.currencyToPrecision(code, amount);
         const settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
         const request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1951,7 +1950,7 @@ class extended extends extended$1["default"] {
             'datetime': this.iso8601(now),
             'currency': currency['code'],
             'amount': this.parseNumber(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         };
@@ -2000,7 +1999,7 @@ class extended extends extended$1["default"] {
             return this.safeString(currencyByNumericId, 'code');
         }
         if (currency !== undefined) {
-            return currency['code'];
+            return this.safeString(currency, 'code');
         }
         let code = this.safeCurrencyCode(assetId);
         if (code === 'USD') {
@@ -2371,7 +2370,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -2459,7 +2458,7 @@ class extended extends extended$1["default"] {
             return this.safeDict(this.options, 'account', {});
         }
         const accountData = await this.fetchAccount(params);
-        this.options['account'] = accountData['info'];
+        this.options['account'] = this.safeDict(accountData, 'info', {});
         return this.safeDict(this.options, 'account', {});
     }
     createOrderSettlementData(isBuy, amountString, priceString, params = {}) {
@@ -2498,8 +2497,8 @@ class extended extends extended$1["default"] {
         };
         const msgHash = this.getExtendedOrderMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex(sig[0]);
-        const s = this.getExtendedSignatureHex(sig[1]);
+        const r = this.getExtendedSignatureHex(this.safeString(sig, 0));
+        const s = this.getExtendedSignatureHex(this.safeString(sig, 1));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2531,8 +2530,8 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0)),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1)),
         };
         return settlement;
     }
@@ -2562,8 +2561,8 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedTransferMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0)),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1)),
         };
         return settlement;
     }
@@ -2926,8 +2925,9 @@ class extended extends extended$1["default"] {
         let market = undefined;
         let orderSymbol = symbol;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            orderSymbol = market['symbol'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            orderSymbol = symbolMarket['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
@@ -3216,7 +3216,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -3382,7 +3382,8 @@ class extended extends extended$1["default"] {
         let result = '';
         while (Precise["default"].stringGt(decimalString, '0')) {
             const remainder = this.parseToInt(Precise["default"].stringMod(decimalString, '16'));
-            result = hexChars[remainder] + result;
+            const hexChar = this.safeString(hexChars, remainder, '');
+            result = hexChar + result;
             decimalString = Precise["default"].stringDiv(decimalString, '16', 0);
         }
         if (result === '') {
@@ -3495,7 +3496,7 @@ class extended extends extended$1["default"] {
             transferHash,
         ]);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3516,8 +3517,7 @@ class extended extends extended$1["default"] {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const version = this.safeString(api, 0);
-        const accessibility = this.safeString(api, 1);
+        const accessibility = api[1];
         const endpoint = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryPost = (path === 'user/deadmanswitch');
@@ -3538,7 +3538,7 @@ class extended extends extended$1["default"] {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let url = this.implodeHostname(baseApiUrl) + '/api/' + version + endpoint;
+        let url = this.implodeHostname(baseApiUrl) + '/api/' + api[0] + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }

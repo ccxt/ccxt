@@ -5,7 +5,7 @@ import type { NullableDict, Balances, Currency, CurrencyInterface, FundingRateHi
  * @augments Exchange
  */
 export default class deribit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
@@ -495,7 +495,7 @@ export default class deribit extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

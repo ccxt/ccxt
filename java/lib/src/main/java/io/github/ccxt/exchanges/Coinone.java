@@ -32,7 +32,7 @@ public class Coinone extends CoinoneApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinone" );
@@ -588,36 +588,36 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", null);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", null);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinone.this.parseNumber("1e-4") );
                         put( "price", Coinone.this.parseNumber("1e-4") );
                         put( "cost", Coinone.this.parseNumber("1e-8") );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -635,9 +635,9 @@ public class Coinone extends CoinoneApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", entry);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", entry);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1252,16 +1252,8 @@ public class Coinone extends CoinoneApi
         String id = this.safeString2(order, "orderId", "order_id");
         String baseId = this.safeString2(order, "baseCurrency", "target_currency");
         String quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
-        String base = null;
-        String quote = null;
-        if (!java.util.Objects.equals(baseId, null))
-        {
-            base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        }
-        if (!java.util.Objects.equals(quoteId, null))
-        {
-            quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        }
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -1545,23 +1537,14 @@ public class Coinone extends CoinoneApi
                 String currencyId = this.safeString(parts, 0);
                 String secondPart = this.safeString(parts, 1);
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> depositAddress = (Map<String, Object>) this.safeDict(result, code, (Object) null);
-                if (java.util.Objects.equals(depositAddress, null))
-                {
-                    {
-                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
-                        hx4NewMap2.put("info", value);
-                        hx4NewMap2.put("currency", code);
-                        hx4NewMap2.put("network", null);
-                        hx4NewMap2.put("address", null);
-                        hx4NewMap2.put("tag", null);
-                        depositAddress = hx4NewMap2;
-                    }
-                }
-                String address = this.safeString(depositAddress, "address", value);
+                String address = this.safeString(this.safeValue(result, code), "address", value);
                 this.checkAddress(address, (String) null, (String) null);
-                depositAddress.put("address", address);
+                Map<String, Object> depositAddress = new HashMap<String, Object>();
                 depositAddress.put("info", address);
+                depositAddress.put("currency", code);
+                depositAddress.put("network", null);
+                depositAddress.put("address", address);
+                depositAddress.put("tag", this.safeString(this.safeValue(result, code), "tag"));
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))
                 {
                     depositAddress.put("tag", value);
@@ -1579,7 +1562,7 @@ public class Coinone extends CoinoneApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1634,7 +1617,7 @@ public class Coinone extends CoinoneApi
                 nonce = this.uuid();
             } else
             {
-                nonce = String.valueOf(this.nonce());
+                nonce = this.numberToString(this.nonce());
             }
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("access_token", this.apiKey);
@@ -1662,7 +1645,7 @@ public class Coinone extends CoinoneApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

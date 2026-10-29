@@ -22,7 +22,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheByOutcomeById;
 
 class myriad extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myriad',
             'name' => 'Myriad',
@@ -282,8 +282,8 @@ class myriad extends Exchange {
             $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
-                $networkId = $this->safe_string($raw, 'networkId');
-                $marketId = $this->safe_string($raw, 'id');
+                $networkId = $this->safe_string($raw, 'networkId', '');
+                $marketId = $this->safe_string($raw, 'id', '');
                 $key = $networkId . ':' . $marketId;
                 if (!(is_array($seen) && array_key_exists($key ?? '', $seen))) {
                     $seen[$key] = true;
@@ -628,10 +628,8 @@ class myriad extends Exchange {
         $outcomeTitle = $this->safe_string($position, 'outcomeTitle', '');
         $outcome = $this->slug_to_outcome_symbol($marketSlug, $marketSlug, $outcomeTitle);
         $marketSymbol = $this->slug_to_market_symbol($marketSlug, $marketSlug);
-        $networkId = $this->safe_string($position, 'networkId');
-        $marketId = $this->safe_string($position, 'marketId');
         $outcomeId = $this->safe_string($position, 'outcomeId');
-        $id = $networkId . ':' . $marketId . '/' . $outcomeId;
+        $id = $this->safe_string($position, 'networkId', '') . ':' . $this->safe_string($position, 'marketId', '') . '/' . $this->safe_string($position, 'outcomeId', '');
         $shares = $this->safe_number($position, 'shares');
         $value = $this->safe_number($position, 'value');
         $profit = $this->safe_number($position, 'profit');
@@ -658,11 +656,11 @@ class myriad extends Exchange {
         ));
     }
 
-    public function fetch_trade_quote(?string $outcome, ?string $side, ?float $amount, $params = array()): PromiseInterface {
+    public function fetch_trade_quote(string $outcome, string $side, ?float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trade_quote(...))($outcome, $side, $amount, $params);
     }
 
-    private function do_fetch_trade_quote(?string $outcome, ?string $side, ?float $amount, $params = array()) {
+    private function do_fetch_trade_quote(string $outcome, string $side, ?float $amount, $params = array()) {
         /**
          * fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an $outcome-> Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
          *
@@ -716,7 +714,7 @@ class myriad extends Exchange {
         return $this->parse_trade_quote($this->extend($response, array( 'action' => $sideStr )), $outcomeObj);
     }
 
-    public function parse_trade_quote(array $quote, mixed $market = null): array {
+    public function parse_trade_quote(array $quote, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw myriad $quote response into a unified-ish $quote object
@@ -1078,11 +1076,11 @@ class myriad extends Exchange {
         return Async\await($this->create_orderbook_order($outcome, $type, $side, $amount, $price, $params));
     }
 
-    public function create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_amm_order(string $outcome, ?string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_amm_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_amm_order(string $outcome, ?string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * buys or sells $outcome shares by submitting the quote's $calldata as an on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
@@ -1102,7 +1100,7 @@ class myriad extends Exchange {
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        $sideLower = ($side !== null) ? strtolower($side) : null;
+        $sideLower = strtolower($side);
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
         if (($sideLower === 'buy') && (!$isCostDenominated)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -2098,7 +2096,7 @@ class myriad extends Exchange {
         return Precise::string_div($decimalString, $scale);
     }
 
-    public function parse_trade_tx(?string $txHash, array $quote, mixed $market, ?string $side): array {
+    public function parse_trade_tx(?string $txHash, array $quote, array $market, string $side): array {
         return $this->safe_prediction_order(array(
             'id' => $txHash,
             'clientOrderId' => null,
@@ -2787,8 +2785,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($outcomeObj['info'], 'networkId');
-        $marketId = $this->safe_string($outcomeObj['info'], 'marketId');
+        $networkId = $this->safe_string($outcomeInfo, 'networkId');
+        $marketId = $this->safe_string($outcomeInfo, 'marketId');
         $outcomeId = $this->safe_string($outcomeInfo, 'outcomeId', $this->safe_string($outcomeInfo, 'id'));
         $outcomeTitle = $this->safe_string($outcomeInfo, 'outcomeLabel', $this->safe_string($outcomeInfo, 'label', $this->safe_string($outcomeInfo, 'title')));
         $bucketKey = $this->safe_string($this->timeframes, $timeframe, '30d');
@@ -2860,7 +2858,7 @@ class myriad extends Exchange {
             }
         } else {
             $chartsDict = $this->safe_dict($selectedOutcome, 'price_charts', array());
-            $chart = $this->safe_value($chartsDict, $bucketKey);
+            $chart = $this->safe_dict($chartsDict, $bucketKey);
         }
         $pointsList = $this->safe_list($chart, 'prices', $this->safe_list($chart, 'data', $chart));
         $points = ($pointsList !== null) ? $pointsList : array();
@@ -2942,8 +2940,8 @@ class myriad extends Exchange {
         for ($i = 0; $i < count($outcomes); $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $networkId = $this->safe_string($info, 'networkId');
-            $marketId = $this->safe_string($info, 'marketId');
+            $networkId = $this->safe_string($info, 'networkId', '');
+            $marketId = $this->safe_string($info, 'marketId', '');
             $key = $networkId . ':' . $marketId;
             if (!(is_array($outcomesByMarket) && array_key_exists($key ?? '', $outcomesByMarket))) {
                 $outcomesByMarket[$key] = array();
@@ -3302,8 +3300,7 @@ class myriad extends Exchange {
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         $client = $this->client($url);
-        $connectSent = $this->safe_value($client->subscriptions, 'connect');
-        if ($connectSent === null) {
+        if (!(is_array($client->subscriptions) && array_key_exists('connect' ?? '', $client->subscriptions))) {
             $this->options['wsConnected'] = false;
             $requestId = $this->request_id($url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -3319,11 +3316,11 @@ class myriad extends Exchange {
         return Async\await($client->future('centrifugoConnected'));
     }
 
-    public function pong(Client $client, mixed $message = null) {
+    public function pong(Client $client, ?array $message = null) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message = null) {
+    private function do_pong(Client $client, ?array $message = null) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         Async\await($client->send('{}'));
     }
@@ -3415,8 +3412,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'orderbook:' . $networkId . ':' . $marketId;
         $messageHash = 'orderbook::' . $sym;
@@ -3424,7 +3421,7 @@ class myriad extends Exchange {
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         Async\await($this->connect_centrifugo($url));
         $client = $this->client($url);
-        $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+        $isNewSubscription = !(is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions));
         if ($isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -3506,8 +3503,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'trades::' . $sym;
@@ -3537,8 +3534,8 @@ class myriad extends Exchange {
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'myTrades';
@@ -3548,7 +3545,7 @@ class myriad extends Exchange {
 
     public function wallet_address_or_undefined(): ?string {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if (($this->walletAddress !== null) && (strlen($this->walletAddress) > 0)) {
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
             return strtolower($this->walletAddress);
         }
         if ($this->privateKey !== null) {
@@ -3677,8 +3674,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'prices:' . $networkId . ':' . $marketId;
         $messageHash = 'ticker::' . $sym;
@@ -3712,8 +3709,8 @@ class myriad extends Exchange {
         for ($i = 0; $i < $symbolsLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $networkId = $this->safe_string($info, 'networkId');
-            $marketId = $this->safe_string($info, 'marketId');
+            $networkId = $this->safe_string($info, 'networkId', '');
+            $marketId = $this->safe_string($info, 'marketId', '');
             $channel = 'prices:' . $networkId . ':' . $marketId;
             $resolvedSymbols[] = $this->safe_outcome_symbol($outcomes[$i], $outcomeObj);
             if (!(is_array($seenChannels) && array_key_exists($channel ?? '', $seenChannels))) {
@@ -3911,7 +3908,7 @@ class myriad extends Exchange {
         $url = $this->safe_string($this->urls['api'], 'ws');
         Async\await($this->connect_centrifugo($url));
         $client = $this->client($url);
-        $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+        $isNewSubscription = !(is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions));
         if ($isNewSubscription) {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -4002,18 +3999,16 @@ class myriad extends Exchange {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        $address = $this->walletAddress;
-        $hasWallet = ($address !== null) && (strlen($this->walletAddress) > 0);
-        if (!$hasWallet) {
-            if ($this->privateKey === null) {
-                throw new ArgumentsRequired($this->id . ' requires a walletAddress or privateKey to watch private channels');
-            }
-            $address = $this->eth_get_address_from_private_key($this->privateKey);
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
+            return strtolower($this->walletAddress);
         }
-        return strtolower($address);
+        if ($this->privateKey === null) {
+            throw new ArgumentsRequired($this->id . ' requires a walletAddress or privateKey to watch private channels');
+        }
+        return strtolower($this->eth_get_address_from_private_key($this->privateKey));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ($response === null) {
             return null;
@@ -4058,9 +4053,7 @@ class myriad extends Exchange {
         // included — the previous logic only sent a body for authenticated requests)
         $bodyValue = null;
         if ($method !== 'GET') {
-            $queryKeys = is_array($query) ? array_keys($query) : array();
-            $queryKeysLength = count($queryKeys);
-            if ($queryKeysLength > 0) {
+            if (count($query) > 0) {
                 $bodyValue = $this->json($query);
             }
         }

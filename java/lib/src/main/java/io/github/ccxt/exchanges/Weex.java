@@ -50,7 +50,7 @@ public class Weex extends WeexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "weex" );
@@ -1476,7 +1476,7 @@ public class Weex extends WeexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object rawTicker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                Object rawTicker = this.safeValue(response, i);
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -1551,7 +1551,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(ticker, "symbol");
         String markPrice = this.safeString(ticker, "markPrice");
         String marketType = "spot";
-        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("contract"), true))))
+        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "contract", false)))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
@@ -1934,32 +1934,36 @@ public class Weex extends WeexApi
                 {
                     request.put("priceType", priceType);
                 }
-                Object startTime = since;
-                Object endTime = until;
                 Long now = this.milliseconds();
+                Object startTime = since;
+                Object endTime = now;
+                if (!java.util.Objects.equals(until, null))
+                {
+                    endTime = until;
+                }
                 if ((java.util.Objects.equals(since, null)) || (java.util.Objects.equals(until, null)))
                 {
-                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                    Long duration = this.parseToInt((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L));
                     // the history endpoint returns at most maxHistoricalLimit candles and serves the
                     // newest ones inside the window, so a wider window would silently drop the candles
                     // right after since, keep the window at what one call can return
-                    Object historyLimit = maxHistoricalLimit;
+                    Long historyLimit = this.parseToInt(maxHistoricalLimit);
                     if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
                     {
-                        historyLimit = (limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit)));
+                        historyLimit = this.parseToInt((limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit))));
                     }
-                    Object timeDelta = ((((Number) historyLimit).longValue()) * duration);
+                    Long timeDelta = this.parseToInt((historyLimit * duration));
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
                     {
                         endTime = now;
-                        startTime = (now - (((Number) timeDelta).longValue()));
+                        startTime = (now - timeDelta);
                     } else if (java.util.Objects.equals(since, null))
                     {
                         if (java.util.Objects.equals(until, null))
                         {
                             throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since or until argument")) ;
                         }
-                        startTime = (until - (((Number) timeDelta).longValue()));
+                        startTime = (until - timeDelta);
                     } else
                     {
                         // this.sum, a bare + is string concatenation in the php port
@@ -1967,7 +1971,7 @@ public class Weex extends WeexApi
                     }
                 }
                 // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-                if ((!java.util.Objects.equals(endTime, null)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endTime, now)))
+                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endTime, now))
                 {
                     endTime = now;
                 }
@@ -2290,12 +2294,11 @@ public class Weex extends WeexApi
         String symbol = this.safeSymbol(marketId, market, (String) null, "swap");
         Long timestamp = this.safeInteger(contract, "time");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        Object interval = null;
+        String interval = null;
         String collectCycle = this.safeString(contract, "collectCycle");
         if (!java.util.Objects.equals(collectCycle, null))
         {
-            interval = Precise.stringDiv(collectCycle, "60");
-            interval = (interval + "h");
+            interval = (Precise.stringDiv(collectCycle, "60") + "h");
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -2627,7 +2630,7 @@ public class Weex extends WeexApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("contract"), true))
             {
-                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createContractOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
                 Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2635,7 +2638,7 @@ public class Weex extends WeexApi
                 {
                     throw new NotSupported((this.id + " createOrder() only supports swap markets in sandbox mode")) ;
                 }
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -2656,7 +2659,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2667,7 +2670,8 @@ public class Weex extends WeexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
+            Map<String, Object> response = null;
+            response = (this.privatePostApiV3Order(request)).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -2752,7 +2756,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2814,7 +2818,7 @@ public class Weex extends WeexApi
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, parameters, true);
+        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (parameters), true);
         String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
@@ -5203,7 +5207,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5224,7 +5228,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5270,8 +5274,7 @@ public class Weex extends WeexApi
         }
         if (((String)marketId).endsWith("SUSDT"))
         {
-            Long baseLength = (((long) ((String)marketId).length()) - 5L);
-            return (Helpers.slice(marketId, 0, baseLength) + "USDT");
+            return ((marketId == null ? null : ((String)marketId).substring(0, Math.max(((String)marketId).length() - 5, 0))) + "USDT");
         }
         return marketId;
     }
@@ -5279,18 +5282,18 @@ public class Weex extends WeexApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!this.isEmpty(query))
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -5302,7 +5305,7 @@ public class Weex extends WeexApi
         {
             requestBody = this.json(query);
         }
-        Map<String, Object> requestHeaders = null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isPrivate))
         {
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -5353,7 +5356,7 @@ public class Weex extends WeexApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         //
         //     {

@@ -15,7 +15,7 @@ import type{ Balances, Currency, Dict, NullableDict, FeeString, List, Int, Marke
  * @augments Exchange
  */
 export default class btcmarkets extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
@@ -444,20 +444,19 @@ export default class btcmarkets extends Exchange {
         }
         const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
-        let address = this.safeString (cryptoPaymentDetail, 'address');
+        const addressRaw = this.safeString (cryptoPaymentDetail, 'address');
+        let address: Str = undefined;
         let tag: Str = undefined;
-        if (address !== undefined) {
-            const addressParts = address.split ('?dt=');
+        if (addressRaw !== undefined) {
+            const addressParts = addressRaw.split ('?dt=');
             const numParts = addressParts.length;
             if (numParts > 1) {
                 address = addressParts[0];
                 tag = addressParts[1];
+            } else {
+                address = addressRaw;
             }
         }
-        const addressTo = address;
-        const tagTo = tag;
-        const addressFrom = undefined;
-        const tagFrom = undefined;
         const fee = this.safeString (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
@@ -473,11 +472,11 @@ export default class btcmarkets extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
-            'tagTo': tagTo,
-            'tagFrom': tagFrom,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber (amount),
             'currency': code,
@@ -559,8 +558,8 @@ export default class btcmarkets extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -768,7 +767,6 @@ export default class btcmarkets extends Exchange {
         //
         const marketId = this.safeString (ticker, 'marketId');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeString (ticker, 'lastPrice');
         const baseVolume = this.safeString (ticker, 'volume24h');
@@ -776,7 +774,7 @@ export default class btcmarkets extends Exchange {
         const change = this.safeString (ticker, 'price24h');
         const percentage = this.safeString (ticker, 'pricePct24h');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high24h'),
@@ -1070,7 +1068,7 @@ export default class btcmarkets extends Exchange {
         const numericIds: List = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push (parseInt (ids[i]));
+            numericIds.push (this.parseToInt (this.safeString (ids, i)));
         }
         const request: Dict = {
             'ids': numericIds,
@@ -1145,10 +1143,7 @@ export default class btcmarkets extends Exchange {
         let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
             currency = this.safeString (market, 'quote');
-            const amountString = this.numberToString (amount);
-            const priceString = this.numberToString (price);
-            const otherUnitsAmount = Precise.stringMul (amountString, priceString);
-            cost = this.costToPrecision (symbol, otherUnitsAmount);
+            cost = this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
         } else {
             currency = this.safeString (market, 'base');
             cost = this.amountToPrecision (symbol, amount);
@@ -1163,7 +1158,7 @@ export default class btcmarkets extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (feeCost),
+            'cost': this.parseNumber (feeCost),
         };
     }
 
@@ -1402,7 +1397,8 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        const tagWithdrawTag = this.safeString (params, 'tag');
+        const paramsWithdrawTag = this.omit (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1438,7 +1434,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -1458,8 +1454,9 @@ export default class btcmarkets extends Exchange {
                     request += '?' + this.urlencode (query);
                 }
             } else {
-                requestBody = this.json (query);
-                auth += requestBody;
+                const jsonBody = this.json (query);
+                requestBody = jsonBody;
+                auth = method + request + nonce + jsonBody;
             }
             const signature = this.hmac (this.encode (auth), secret, sha512, 'base64');
             requestHeaders = {
@@ -1485,7 +1482,7 @@ export default class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

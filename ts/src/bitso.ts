@@ -15,7 +15,7 @@ import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, Nullable
  * @augments Exchange
  */
 export default class bitso extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
             'name': 'Bitso',
@@ -498,11 +498,11 @@ export default class bitso extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'book');
-            const [ baseId, quoteId ] = (id as string).split ('_');
-            let base: Str = baseId.toUpperCase ();
-            let quote: Str = quoteId.toUpperCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
+            const parts = (id as string).split ('_');
+            const baseId = this.safeString (parts, 0, '');
+            const quoteId = this.safeString (parts, 1, '');
+            const base = this.safeCurrencyCode (baseId.toUpperCase ());
+            const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
@@ -1152,7 +1152,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker: Dict = params;
         if (markerInParams) {
-            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+            paramsMarker = this.extend (params, { 'marker': this.parseToInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
@@ -1385,7 +1385,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker: Dict = params;
         if (markerInParams) {
-            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+            paramsMarker = this.extend (params, { 'marker': this.parseToInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
@@ -1415,12 +1415,10 @@ export default class bitso extends Exchange {
         const response = await this.privateGetOrdersOid ({
             'oid': id,
         });
-        const payload = this.safeList (response, 'payload');
-        if (Array.isArray (payload)) {
-            const numOrders = payload.length;
-            if (numOrders === 1) {
-                return this.parseOrder (payload[0]);
-            }
+        const payload: Dict[] = this.safeList (response, 'payload', []);
+        const numOrders = payload.length;
+        if (numOrders === 1) {
+            return this.parseOrder (payload[0]);
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
@@ -1788,7 +1786,7 @@ export default class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+            if ((codes === undefined) || ((code !== undefined) && this.inArray (code, codes))) {
                 if (code !== undefined) {
                     result[code] = {
                         'deposit': {
@@ -1809,7 +1807,7 @@ export default class bitso extends Exchange {
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
+            if ((code !== undefined) && ((codes === undefined) || this.inArray (code, codes))) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 const resultValue = this.safeDict (result, code);
                 if (resultValue === undefined) {
@@ -1847,7 +1845,7 @@ export default class bitso extends Exchange {
             'LTC': 'Litecoin',
         };
         const currency = this.currency (code);
-        const method = (code in methods) ? methods[code] : undefined;
+        const method = this.safeString (methods, code);
         if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
@@ -1964,7 +1962,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -1988,8 +1986,7 @@ export default class bitso extends Exchange {
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             const nonce = this.incrementingNonce ().toString ();
             endpoint = '/api' + endpoint;
-            const content = [ nonce, method, endpoint ];
-            let request: string = content.join ('');
+            let request: string = nonce + method + endpoint;
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
                     const jsonBody = this.json (query);
@@ -2007,7 +2004,7 @@ export default class bitso extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2015,22 +2012,15 @@ export default class bitso extends Exchange {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let success = this.safeBool (response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                } else {
-                    success = false;
-                }
-            }
+            const success = this.safeBool (response, 'success', false);
             if (!success) {
                 const feedback = this.id + ' ' + this.json (response);
                 const error = this.safeDict (response, 'error');
                 if (error === undefined) {
                     throw new ExchangeError (feedback);
                 }
-                const code = this.safeString (error, 'code');
-                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                const codeError = this.safeString (error, 'code');
+                this.throwExactlyMatchedException (this.exceptions, codeError, feedback);
                 throw new ExchangeError (feedback);
             }
         }

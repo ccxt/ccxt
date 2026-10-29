@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitteam(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitteam, self).describe(), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',
@@ -682,7 +682,7 @@ class bitteam(Exchange, ImplicitAPI):
             fee = self.parse_number(withdrawCommissionFixed)
             feesByNetworkId[blockChain] = fee
         else:
-            feesByNetworkId = withdrawCommissionFixed
+            feesByNetworkId = self.extend(withdrawCommissionFixed, {})
         statuses = self.safe_dict(statusesResponse, numericId, {})
         deposit = self.safe_bool(statuses, 'depositStatus')
         withdraw = self.safe_bool(statuses, 'withdrawStatus')
@@ -1724,7 +1724,7 @@ class bitteam(Exchange, ImplicitAPI):
         bestAskVolume = None
         bids = self.safe_list(ticker, 'bids')
         asks = self.safe_list(ticker, 'asks')
-        if (bids is not None) and (isinstance(bids, list)) and (asks is not None) and (isinstance(asks, list)):
+        if (bids is not None) and (asks is not None):
             bestBid = self.safe_dict(bids, 0, {})
             bestBidPrice = self.safe_string(bestBid, 'price')
             bestBidVolume = self.safe_string(bestBid, 'quantity')
@@ -2392,18 +2392,18 @@ class bitteam(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         if code != 200:
             if code == 404:
                 if (url.find('/ccxt/order/') >= 0) and (method == 'GET'):
                     parts = url.split('/order/')
-                    orderId = self.safe_string(parts, 1)
+                    orderId = self.safe_string(parts, 1, '')
                     raise OrderNotFound(self.id + ' order ' + orderId + ' not found')
                 if url.find('/cmc/orderbook/') >= 0:
                     parts = url.split('/cmc/orderbook/')
-                    symbolId = self.safe_string(parts, 1)
+                    symbolId = self.safe_string(parts, 1, '')
                     raise BadSymbol(self.id + ' symbolId ' + symbolId + ' not found')
             feedback = self.id + ' ' + body
             message = self.safe_string(response, 'message')

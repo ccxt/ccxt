@@ -97,12 +97,7 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 			for i := 0; i < len(values); i++ {
-				var ticker any = func() any {
-					if i >= 0 && i < len(values) {
-						return DerefScalar(values[i])
-					}
-					return nil
-				}()
+				var ticker any = DerefScalar(values[i])
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
 			if (now - startTime) > int64(maxIdleTime) {

@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class xt(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(xt, self).describe(), {
             'id': 'xt',
             'name': 'XT',
@@ -888,7 +888,7 @@ class xt(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_time(self, params: dict = {}) -> Int:
@@ -1203,7 +1203,7 @@ class xt(Exchange, ImplicitAPI):
     def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
-            parsed = self.parse_market(markets[i])
+            parsed = self.parse_market(self.safe_value(markets, i))
             if parsed is not None:
                 result.append(parsed)
         return result
@@ -1748,9 +1748,10 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'result')
         if market['spot'] is True:
-            return self.parse_ticker(ticker[0], market)
+            tickers = self.safe_list(response, 'result', [])
+            return self.parse_ticker(tickers[0], market)
+        ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -4424,7 +4425,7 @@ class xt(Exchange, ImplicitAPI):
                 if self.in_array(symbol, symbols):
                     result[symbol] = self.parse_market_leverage_tiers(entry, market)
             else:
-                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
+                result[symbol] = self.parse_market_leverage_tiers(entry, market)
         return result
 
     def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
@@ -4919,8 +4920,7 @@ class xt(Exchange, ImplicitAPI):
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
-            key = self.safe_string(breakEntry, 'symbol') + '_' + self.safe_string(breakEntry, 'positionSide')
-            breakBySymbolSide[key] = breakEntry
+            breakBySymbolSide[self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')] = breakEntry
         return breakBySymbolSide
 
     def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:
@@ -4929,9 +4929,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict entry: a single entry from a position/list response
         :param dict breakBySymbolSide: the result of indexPositionBreakList()
         """
-        marketId = self.safe_string(entry, 'symbol')
-        key = marketId + '_' + self.safe_string(entry, 'positionSide')
-        breakEntry = self.safe_dict(breakBySymbolSide, key)
+        breakEntry = self.safe_dict(breakBySymbolSide, self.safe_string(entry, 'symbol', '') + '_' + self.safe_string(entry, 'positionSide', ''))
         if breakEntry is None:
             return entry
         return self.extend(entry, {
@@ -5456,7 +5454,7 @@ class xt(Exchange, ImplicitAPI):
         result = response if (market['swap'] is True) else self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         # spot: error
         #
@@ -5522,7 +5520,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params={}):
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5538,7 +5536,7 @@ class xt(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + payload
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend(self.omit(params, self.extract_params(path)))
         urlencoded = self.urlencode(self.keysort(query))
         headersValue = {
             'Content-Type': 'application/json',
@@ -5546,8 +5544,7 @@ class xt(Exchange, ImplicitAPI):
         signedBody = None
         if signed:
             self.check_required_credentials()
-            defaultRecvWindow = self.safe_string(self.options, 'recvWindow')
-            recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
+            recvWindow = self.safe_string(query, 'recvWindow', self.safe_string(self.options, 'recvWindow', '5000'))
             timestamp = self.number_to_string(self.nonce())
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 id = 'CCXT'
@@ -5558,38 +5555,35 @@ class xt(Exchange, ImplicitAPI):
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))
             if (method == 'PUT') and (endpoint == 'spot'):
                 isUndefinedBody = False
-            signedBody = None if isUndefinedBody else self.json(query)
-            payloadString = None
+            jsonBody = self.json(query)
+            signedBody = None if isUndefinedBody else jsonBody
+            payloadString = ''
             if (endpoint == 'spot') or (endpoint == 'user'):
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
+                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded != '':
-                        url += '?' + urlencoded
-                        payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
+                        url = apiUrl + payload + '?' + urlencoded
+                        payloadString = spotPrefix + '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
-                        payloadString += '#' + method + '#' + payload
+                        payloadString = spotPrefix + '#' + method + '#' + payload
                 else:
-                    payloadString += '#' + method + '#' + payload + '#' + signedBody
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + jsonBody
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
-                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
+                futurePrefix = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
                     if urlencoded != '':
-                        url += '?' + urlencoded
-                        payloadString += '#' + payload + '#' + urlencoded
+                        url = apiUrl + payload + '?' + urlencoded
+                        payloadString = futurePrefix + '#' + payload + '#' + urlencoded
                     else:
-                        payloadString += '#' + payload
+                        payloadString = futurePrefix + '#' + payload
                 else:
-                    payloadString += '#' + payload + '#' + signedBody
-            signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256)
+                    payloadString = futurePrefix + '#' + payload + '#' + jsonBody
             headersValue['xt-validate-appkey'] = self.apiKey
             headersValue['xt-validate-timestamp'] = timestamp
-            headersValue['xt-validate-signature'] = signature
+            headersValue['xt-validate-signature'] = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256)
         else:
             if urlencoded != '':
-                url += '?' + urlencoded
-        bodyValue = None
-        if signed:
-            bodyValue = signedBody
-        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
+                url = apiUrl + payload + '?' + urlencoded
+        return {'url': url, 'method': method, 'body': signedBody, 'headers': headersValue}

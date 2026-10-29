@@ -734,7 +734,7 @@ export default class pacifica extends Exchange {
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
         }
         const fees = this.safeDict(this.fees, type, {});
         const taker = this.safeNumber(fees, 'taker');
@@ -892,9 +892,8 @@ export default class pacifica extends Exchange {
         }
         const market = this.market(symbol);
         const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchLeverage', params);
-        const cacheAddress = this.walletAddress;
         let settings = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption('fetchLeverage', 'settings');
         }
         else {
@@ -993,11 +992,12 @@ export default class pacifica extends Exchange {
             return {};
         }
         const settingsBySymbol = {};
-        for (let i = 0; i < settings.length; i++) {
-            const marketId = settings[i]['symbol'];
+        for (let i = 0; i < settingsLen; i++) {
+            const setting = settings[i];
+            const marketId = this.safeString(setting, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            settingsBySymbol[symbol] = settings[i];
+            settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
     }
@@ -1014,9 +1014,8 @@ export default class pacifica extends Exchange {
     async fetchMarginMode(symbol, params = {}) {
         await this.loadAccountSettings();
         const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchMarginMode', params);
-        const cacheAddress = this.walletAddress;
         let settings = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption('fetchMarginMode', 'settings');
         }
         else {
@@ -1603,7 +1602,7 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'side': this.mapSide(side),
         };
-        let operationType = undefined;
+        let operationType = 'create_order';
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase();
         const triggerPrice = this.safeString(params, 'triggerPrice');
@@ -1867,7 +1866,7 @@ export default class pacifica extends Exchange {
     cancelOrdersRequest(ids, symbol = undefined, params = {}) {
         const actions = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const request = this.cancelOrderRequest(id, symbol, params);
             const action = {
                 'type': 'Cancel',
@@ -1991,12 +1990,9 @@ export default class pacifica extends Exchange {
     cancelOrderRequest(id, symbol = undefined, params = {}) {
         const market = this.market(symbol);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
-        let operationType = undefined;
+        let operationType = 'cancel_order';
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
-        }
-        else {
-            operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         const sigPayload = {
@@ -2750,9 +2746,9 @@ export default class pacifica extends Exchange {
         const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
         const rawIsolated = this.safeBool(position, 'isolated');
-        let isIsolated = (margin !== undefined && margin !== '0');
+        let isIsolated = (margin !== undefined) && (margin !== '0');
         if (rawIsolated !== undefined) {
-            isIsolated = rawIsolated;
+            isIsolated = (rawIsolated === true);
         }
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString(position, 'side');
@@ -3658,11 +3654,10 @@ export default class pacifica extends Exchange {
         const host = this.implodeHostname(baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const paramsLen = Object.keys(paramsOmitted).length;
         const headersValue = {
             'Content-Type': 'application/json',
         };
-        if ((method === 'GET') && (paramsLen > 0)) {
+        if ((method === 'GET') && (Object.keys(paramsOmitted).length > 0)) {
             url += '?' + this.urlencode(paramsOmitted);
             headersValue['Accept'] = '*/*';
         }
@@ -3692,24 +3687,27 @@ export default class pacifica extends Exchange {
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);
             for (let i = 0; i < sortedKeys.length; i++) {
-                const key = sortedKeys[i];
+                const key = this.safeString(sortedKeys, i, '');
                 result[key] = this.sortJsonKeys(value[key]);
             }
             return result;
         }
         else if (Array.isArray(value)) {
-            const result = [];
+            const sortedList = [];
             for (let i = 0; i < value.length; i++) {
-                result.push(this.sortJsonKeys(value[i]));
+                sortedList.push(this.sortJsonKeys(value[i]));
             }
-            return result;
+            return sortedList;
         }
         else {
             return value;
         }
     }
     prepareMessage(header, payload) {
-        if (header['type'] === undefined || header['timestamp'] === undefined || header['expiry_window'] === undefined) {
+        const headerType = this.safeString(header, 'type');
+        const headerTimestamp = this.safeInteger(header, 'timestamp');
+        const headerExpiryWindow = this.safeInteger(header, 'expiry_window');
+        if (headerType === undefined || headerTimestamp === undefined || headerExpiryWindow === undefined) {
             throw new ArgumentsRequired(this.id + ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         const data = this.extend(header, { 'data': payload });

@@ -20,7 +20,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class gemini extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gemini',
             'name' => 'Gemini',
@@ -916,8 +916,8 @@ class gemini extends Exchange {
         }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
-        if ($settleId !== null) {
-            $symbol = $symbol . ':' . $settle;
+        if ($settle !== null) {
+            $symbol = $base . '/' . $quote . ':' . $settle;
             $swap = true;
             $contractSize = $tickSize; // always same
             $linear = true; // always linear
@@ -1075,13 +1075,13 @@ class gemini extends Exchange {
         $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
         list($tickerA, $tickerB) = Async\await(Promise\all(array( $tickerPromiseA, $tickerPromiseB )));
         return $this->deep_extend($tickerA, array(
-            'open' => $tickerB['open'],
-            'high' => $tickerB['high'],
-            'low' => $tickerB['low'],
-            'change' => $tickerB['change'],
-            'percentage' => $tickerB['percentage'],
-            'average' => $tickerB['average'],
-            'info' => $tickerB['info'],
+            'open' => $this->safe_string($tickerB, 'open'),
+            'high' => $this->safe_string($tickerB, 'high'),
+            'low' => $this->safe_string($tickerB, 'low'),
+            'change' => $this->safe_string($tickerB, 'change'),
+            'percentage' => $this->safe_string($tickerB, 'percentage'),
+            'average' => $this->safe_string($tickerB, 'average'),
+            'info' => $this->safe_value($tickerB, 'info'),
         ));
     }
 
@@ -1967,7 +1967,7 @@ class gemini extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
         if ($nonceMethod === 'milliseconds') {
             return $this->milliseconds();
@@ -2155,12 +2155,12 @@ class gemini extends Exchange {
         $headersSigned = null;
         if ($apiName === 'private') {
             $this->check_required_credentials();
-            $apiKey = $this->apiKey;
-            if (mb_strpos($apiKey, 'account') === false) {
+            if (mb_strpos($this->apiKey, 'account') === false) {
                 throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            $nonce = (string) $this->incrementing_nonce();
+            $nonceValue = $this->incrementing_nonce();
+            $nonce = $this->number_to_string($nonceValue);
             $finalUrl = $url;
             $request = $this->extend(array(
                 'request' => $finalUrl,
@@ -2176,7 +2176,7 @@ class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         } else {
-            if (count($query) > 0) {
+            if (!($this->is_empty($query))) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2193,7 +2193,7 @@ class gemini extends Exchange {
         return array( 'url' => $fullUrl, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             if (gettype($body) === 'string') {
                 $feedback = $this->id . ' ' . $body;

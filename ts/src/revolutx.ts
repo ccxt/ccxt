@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -15,7 +15,7 @@ import { TICK_SIZE } from './base/functions/number.js';
  * @augments Exchange
  */
 export default class revolutx extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'revolutx',
             'name': 'Revolut X',
@@ -214,11 +214,8 @@ export default class revolutx extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
-        let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const queryKeys = Object.keys (query);
-        const queryLength = queryKeys.length;
         const apiName = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -227,25 +224,24 @@ export default class revolutx extends Exchange {
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
+        let bodyString = '';
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else if (method === 'DELETE') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else {
-                requestBody = this.json (query);
+                bodyString = this.json (query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = requestBody;
-            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase () + requestPath + queryString + bodyString;
             const signature = eddsa (this.encode (message), this.privateKey, ed25519);
             requestHeaders = {
@@ -254,21 +250,21 @@ export default class revolutx extends Exchange {
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                requestHeaders['Content-Type'] = 'application/json';
+                requestHeaders = this.extend (requestHeaders, { 'Content-Type': 'application/json' });
             }
         } else {
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else {
-                requestBody = this.json (query);
+                bodyString = this.json (query);
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
         const headersResult = requestHeaders;
-        const bodyResult = requestBody;
+        const bodyResult = (bodyString !== '') ? bodyString : undefined;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
@@ -550,7 +546,7 @@ export default class revolutx extends Exchange {
         }
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds: List = [];
+            const marketIds: Str[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -791,10 +787,7 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const market: Market = this.market (symbol);
         const request: Dict = {};
         if (market !== undefined) {
             request['symbol'] = market['id'];
@@ -853,7 +846,11 @@ export default class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        const data = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        let payload = response;
+        if (Array.isArray (payload)) {
+            payload = { 'data': payload };
+        }
+        const data = this.safeList (payload, 'data', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = this.safeDict (data, i, {});
@@ -1171,11 +1168,11 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const orderStates = this.safeList2 (params, 'orderStates', 'order_states');
+        const orderStates: Strings = this.safeList2 (params, 'orderStates', 'order_states');
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const orderTypes: Strings = this.safeList2 (params, 'orderTypes', 'order_types');
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
@@ -1244,11 +1241,11 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const orderStates = this.safeList2 (params, 'orderStates', 'order_states');
+        const orderStates: Strings = this.safeList2 (params, 'orderStates', 'order_states');
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const orderTypes: Strings = this.safeList2 (params, 'orderTypes', 'order_types');
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
@@ -1457,7 +1454,7 @@ export default class revolutx extends Exchange {
         return order;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         const statusCode = this.parseToInt (code);
         if (statusCode >= 400) {
             if (response === undefined) {

@@ -1,6 +1,5 @@
-import { Transpiler } from 'ast-transpiler';
+import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes } from './go-local-types.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -49,6 +48,11 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
         installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoParamTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoDictParams(cachedTranspiler.goTranspiler);
+        installCcxtGoGb05ParamTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoGb11HandleErrorsCode(cachedTranspiler.goTranspiler);
+        installCcxtGoSignTyping(cachedTranspiler.goTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

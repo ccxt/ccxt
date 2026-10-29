@@ -13,7 +13,7 @@ func newBequant() *Bequant {
 	return p
 }
 
-func (this *Bequant) Describe() any {
+func (this *Bequant) Describe() map[string]any {
 	return this.DeepExtend(this.Hitbtc.Describe(), map[string]any{
 		"id":        "bequant",
 		"name":      "Bequant",

@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchOHLCV extends BaseTest {
-    public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -36,7 +36,7 @@ public class TestFetchOHLCV extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
+            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), (String) (symbol), now);
         }
         // todo: sorted timestamps check
         return true;

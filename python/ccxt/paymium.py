@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class paymium(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paymium, self).describe(), {
             'id': 'paymium',
             'name': 'Paymium',
@@ -164,12 +164,11 @@ class paymium(Exchange, ImplicitAPI):
             code = currencies[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            free = 'balance_' + currencyId
-            if free in response:
+            freeAmount = self.safe_string(response, 'balance_' + currencyId)
+            if freeAmount is not None:
                 account = self.account()
-                used = 'locked_' + currencyId
-                account['free'] = self.safe_string(response, free)
-                account['used'] = self.safe_string(response, used)
+                account['free'] = freeAmount
+                account['used'] = self.safe_string(response, 'locked_' + currencyId)
                 result[code] = account
         return self.safe_balance(result)
 
@@ -298,7 +297,8 @@ class paymium(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(None, market)
         side = self.safe_string(trade, 'side')
         price = self.safe_string(trade, 'price')
-        amountField = 'traded_' + marketResolved['base'].lower()
+        baseId = self.safe_string(marketResolved, 'base', '')
+        amountField = 'traded_' + baseId.lower()
         amount = self.safe_string(trade, amountField)
         return self.safe_trade({
             'info': trade,
@@ -599,7 +599,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
@@ -610,8 +610,9 @@ class paymium(Exchange, ImplicitAPI):
         baseUrl = baseApiUrl
         url = baseUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        hasQuery = len(query) > 0
         if api[0] == 'public':
-            if len(query) > 0:
+            if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -622,8 +623,7 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Key': self.apiKey,
                 'Api-Nonce': nonce,
             }
-            hasQuery = len(query) > 0
-            signedBody = None
+            signedBody = ''
             if method == 'POST' and hasQuery:
                 signedBody = self.json(query)
             if method == 'POST':
@@ -633,13 +633,13 @@ class paymium(Exchange, ImplicitAPI):
             else:
                 if hasQuery:
                     queryString = self.urlencode(query)
-                    auth += queryString
+                    auth = nonce + url + queryString
                     url += '?' + queryString
             signedHeaders['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         errors = self.safe_value(response, 'errors')

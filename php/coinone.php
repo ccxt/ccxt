@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coinone as Exchange;
 
 class coinone extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -1013,14 +1013,8 @@ class coinone extends Exchange {
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $baseId = $this->safe_string_2($order, 'baseCurrency', 'target_currency');
         $quoteId = $this->safe_string_2($order, 'targetCurrency', 'quote_currency');
-        $base = null;
-        $quote = null;
-        if ($baseId !== null) {
-            $base = $this->safe_currency_code($baseId);
-        }
-        if ($quoteId !== null) {
-            $quote = $this->safe_currency_code($quoteId);
-        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
@@ -1253,20 +1247,15 @@ class coinone extends Exchange {
             $currencyId = $this->safe_string($parts, 0);
             $secondPart = $this->safe_string($parts, 1);
             $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_dict($result, $code);
-            if ($depositAddress === null) {
-                $depositAddress = array(
-                    'info' => $value,
-                    'currency' => $code,
-                    'network' => null,
-                    'address' => null,
-                    'tag' => null,
-                );
-            }
-            $address = $this->safe_string($depositAddress, 'address', $value);
+            $address = $this->safe_string($this->safe_value($result, $code), 'address', $value);
             $this->check_address($address);
-            $depositAddress['address'] = $address;
-            $depositAddress['info'] = $address;
+            $depositAddress = array(
+                'info' => $address,
+                'currency' => $code,
+                'network' => null,
+                'address' => $address,
+                'tag' => $this->safe_string($this->safe_value($result, $code), 'tag'),
+            );
             if (($secondPart === 'tag' || $secondPart === 'memo')) {
                 $depositAddress['tag'] = $value;
                 $depositAddress['info'] = array( $address, $value );
@@ -1322,7 +1311,7 @@ class coinone extends Exchange {
             if ($apiName === 'v2_1Private') {
                 $nonce = $this->uuid();
             } else {
-                $nonce = (string) $this->nonce();
+                $nonce = $this->number_to_string($this->nonce());
             }
             $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,
@@ -1343,7 +1332,7 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

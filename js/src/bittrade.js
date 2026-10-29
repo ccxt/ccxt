@@ -505,7 +505,8 @@ export default class bittrade extends Exchange {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
+        const precision = this.safeDict(this.market(symbol), 'precision', {});
+        return this.decimalToPrecision(cost, TRUNCATE, precision['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -515,7 +516,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        const method = this.safeString(this.options['fetchMarkets'], 'method', 'publicGetCommonSymbols');
         let response = undefined;
         if (method === 'publicGetCommonSymbols') {
             response = await this.publicGetCommonSymbols(params);
@@ -888,11 +889,12 @@ export default class bittrade extends Exchange {
         const timestamp = this.safeInteger2(trade, 'ts', 'created-at');
         const order = this.safeString(trade, 'order-id');
         let side = this.safeString(trade, 'direction');
-        let type = this.safeString(trade, 'type');
-        if (type !== undefined) {
-            const typeParts = type.split('-');
-            side = typeParts[0];
-            type = typeParts[1];
+        let type = undefined;
+        const typeRaw = this.safeString(trade, 'type');
+        if (typeRaw !== undefined) {
+            const typeParts = typeRaw.split('-');
+            side = this.safeString(typeParts, 0);
+            type = this.safeString(typeParts, 1);
         }
         const takerOrMaker = this.safeString(trade, 'role');
         const price = this.safeString(trade, 'price');
@@ -1216,13 +1218,14 @@ export default class bittrade extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeList(response['data'], 'list', []);
+        const data = this.safeDict(response, 'data', {});
+        const balances = this.safeList(data, 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const account = ((code !== undefined) && (code in result)) ? result[code] : this.account();
+            const account = this.safeDict(result, code, this.account());
             if (this.safeString(balance, 'type') === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
             }
@@ -1247,9 +1250,10 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
+        const method = this.safeString(this.options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance');
+        const account = this.safeDict(this.accounts, 0, {});
         const request = {
-            'id': this.accounts[0]['id'],
+            'id': account['id'],
         };
         let response = undefined;
         if (method === 'privateGetAccountAccountsIdBalance') {
@@ -1272,7 +1276,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
+        const method = this.safeString(this.options['fetchOrdersByStates'], 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory(this.extend(request, params));
@@ -1297,7 +1301,7 @@ export default class bittrade extends Exchange {
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return this.parseOrders(response['data'], market, since, limit);
+        return this.parseOrders(this.safeList(response, 'data', []), market, since, limit);
     }
     /**
      * @method
@@ -1343,7 +1347,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
+        const method = this.safeString(this.options['fetchOpenOrders'], 'method', 'fetch_open_orders_v1');
         if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
             return await this.fetchOpenOrdersV2(symbol, since, limit, params);
         }
@@ -1471,8 +1475,8 @@ export default class bittrade extends Exchange {
         const orderTypeRaw = this.safeString(order, 'type');
         if (orderTypeRaw !== undefined) {
             const orderType = orderTypeRaw.split('-');
-            side = orderType[0];
-            type = orderType[1];
+            side = this.safeString(orderType, 0);
+            type = this.safeString(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, 'state'));
         }
         const marketId = this.safeString(order, 'symbol');
@@ -1560,15 +1564,15 @@ export default class bittrade extends Exchange {
         }
         await this.loadAccounts();
         const market = this.market(symbol);
+        const account = this.safeDict(this.accounts, 0, {});
         const request = {
-            'account-id': this.accounts[0]['id'],
+            'account-id': account['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeDict(this.options, 'broker', {});
-            const brokerId = this.safeString(broker, 'id');
+            const brokerId = this.safeString(this.options['broker'], 'id', '');
             request['client-order-id'] = brokerId + this.uuid();
         }
         else {
@@ -1611,7 +1615,7 @@ export default class bittrade extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const method = this.handleOption('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        const method = this.safeString(this.options['createOrder'], 'method', 'privatePostOrderOrdersPlace');
         let response = undefined;
         if (method === 'privatePostOrderOrdersPlace') {
             response = await this.privatePostOrderOrdersPlace(this.extend(request, paramsOrder));
@@ -1760,7 +1764,7 @@ export default class bittrade extends Exchange {
         const failed = this.safeList2(orders, 'errors', 'failed', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString(success, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -2041,12 +2045,11 @@ export default class bittrade extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
-        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(paramsWithdrawTag, 'network');
         if (network !== undefined) {
             network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
         }
-        network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
+        network = this.safeStringLower(this.options['networks'], network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
@@ -2130,7 +2133,7 @@ export default class bittrade extends Exchange {
         const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2140,10 +2143,10 @@ export default class bittrade extends Exchange {
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString(response, 'err-code');
+                const codeError = this.safeString(response, 'err-code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'err-msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new ExchangeError(feedback);

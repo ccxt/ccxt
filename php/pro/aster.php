@@ -18,7 +18,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class aster extends \ccxt\async\aster {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -166,7 +166,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -174,15 +174,13 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -194,12 +192,11 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
-            $messageHashes[] = 'ticker:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@ticker';
+            $messageHashes[] = 'ticker:' . $this->safe_string($market, 'symbol', '');
         }
-        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
             $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
@@ -224,7 +221,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -232,15 +229,13 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -252,12 +247,11 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
-            $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@ticker';
+            $messageHashes[] = 'unsubscribe:ticker:' . $this->safe_string($market, 'symbol', '');
         }
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
     public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
@@ -316,7 +310,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
@@ -325,15 +319,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -346,14 +339,13 @@ class aster extends \ccxt\async\aster {
         );
         $use1sFreq = $this->safe_bool($paramsOmitted, 'use1sFreq', true);
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
             $suffix = '';
             if ($use1sFreq) {
                 $suffix = '@1s';
             }
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
-            $messageHashes[] = 'ticker:' . $market['symbol'];
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@markPrice' . $suffix;
+            $messageHashes[] = 'ticker:' . $this->safe_string($market, 'symbol', '');
         }
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
         if ($this->newUpdates) {
@@ -378,7 +370,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
@@ -387,15 +379,14 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -408,14 +399,13 @@ class aster extends \ccxt\async\aster {
         );
         $use1sFreq = $this->safe_bool($paramsOmitted, 'use1sFreq', true);
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
             $suffix = '';
             if ($use1sFreq) {
                 $suffix = '@1s';
             }
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
-            $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@markPrice' . $suffix;
+            $messageHashes[] = 'unsubscribe:ticker:' . $this->safe_string($market, 'symbol', '');
         }
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
     }
@@ -456,9 +446,9 @@ class aster extends \ccxt\async\aster {
         $marketType = $this->get_account_type_from_url($client->url);
         $ticker = $message;
         $parsed = $this->parse_ws_ticker($ticker, $marketType);
-        $symbol = $parsed['symbol'];
-        $messageHash = 'ticker:' . $symbol;
+        $symbol = $this->safe_string($parsed, 'symbol');
         if ($symbol !== null) {
+            $messageHash = 'ticker:' . $symbol;
             $this->tickers[$symbol] = $parsed;
             $client->resolve($this->tickers[$symbol], $messageHash);
         }
@@ -512,12 +502,12 @@ class aster extends \ccxt\async\aster {
         /**
          * watches best bid & ask for $symbols
          *
-         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-symbol
          * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
-         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-symbol-book-ticker-streams
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -525,13 +515,12 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -543,10 +532,9 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
-            $messageHashes[] = 'bidask:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@bookTicker';
+            $messageHashes[] = 'bidask:' . $this->safe_string($market, 'symbol', '');
         }
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
@@ -568,12 +556,12 @@ class aster extends \ccxt\async\aster {
         /**
          * unWatches best bid & ask for $symbols
          *
-         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-symbol
          * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
-         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-symbol-book-ticker-streams
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -581,13 +569,12 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsList = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
-        $firstMarket = $this->get_market_from_symbols($symbolsList);
-        $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $symbolsLength = count($symbolsList);
-        if ($symbolsLength === 0) {
+        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
             throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
+        $symbolsList = $symbolsNormalized;
+        $firstMarket = $this->get_market_from_symbols($symbolsList);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
         $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
@@ -599,10 +586,9 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsList); $i++) {
-            $symbol = $symbolsList[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
-            $messageHashes[] = 'unsubscribe:bidask:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsList, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@bookTicker';
+            $messageHashes[] = 'unsubscribe:bidask:' . $this->safe_string($market, 'symbol', '');
         }
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
@@ -626,15 +612,15 @@ class aster extends \ccxt\async\aster {
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $ticker = $this->parse_ws_bid_ask($data, $market);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
         }
-        $messageHash = 'bidask:' . $symbol;
+        $messageHash = 'bidask:' . $this->safe_string($ticker, 'symbol', '');
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(array $message, ?array $market = null): array {
+    public function parse_ws_bid_ask(array $message, array $market): array {
         $timestamp = $this->safe_integer($message, 'T');
         $bidAskSymbol = null;
         if ($market !== null) {
@@ -706,7 +692,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#tick-by-tick-$trades
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#aggregate-trade-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {string[]} $symbols unified symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -720,7 +706,6 @@ class aster extends \ccxt\async\aster {
         $type = $this->safe_string($firstMarket, 'type', 'swap');
         $symbolsLength = count($symbolsNormalized);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTradesForSymbols');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
@@ -736,16 +721,15 @@ class aster extends \ccxt\async\aster {
             'id' => 1,
         );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
+            $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $marketId = $this->safe_string_lower($market, 'id');
             if ($marketId === null) {
                 continue;
             }
             $subscriptionArgs[] = $marketId . '@aggTrade';
-            $messageHashes[] = 'trade::' . $market['symbol'];
+            $messageHashes[] = 'trade::' . $this->safe_string($market, 'symbol', '');
         }
-        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
@@ -766,7 +750,7 @@ class aster extends \ccxt\async\aster {
          * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
          * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
+         * @param {string[]} $symbols unified symbol of the $market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
@@ -778,7 +762,6 @@ class aster extends \ccxt\async\aster {
         $type = $this->safe_string($firstMarket, 'type', 'swap');
         $symbolsLength = count($symbolsNormalized);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTradesForSymbols');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
@@ -793,12 +776,11 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
-            $messageHashes[] = 'unsubscribe:trade:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@aggTrade';
+            $messageHashes[] = 'unsubscribe:trade:' . $this->safe_string($market, 'symbol', '');
         }
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -821,7 +803,7 @@ class aster extends \ccxt\async\aster {
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $parsed = $this->parse_ws_trade($trade, $market);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol');
         if ($symbol === null) {
             return;
         }
@@ -1058,7 +1040,6 @@ class aster extends \ccxt\async\aster {
         $type = $this->safe_string($firstMarket, 'type', 'swap');
         $symbolsLength = count($symbolsNormalized);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
@@ -1072,17 +1053,18 @@ class aster extends \ccxt\async\aster {
             'method' => 'SUBSCRIBE',
             'params' => $subscriptionArgs,
         );
-        $limitResolved = 20;
-        if ($limit === 5 || $limit === 10 || $limit === 20) {
-            $limitResolved = $limit;
+        $depthSuffix = '@depth20';
+        if ($limit === 5) {
+            $depthSuffix = '@depth5';
+        } elseif ($limit === 10) {
+            $depthSuffix = '@depth10';
         }
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . (string) $limitResolved;
-            $messageHashes[] = 'orderbook:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
+            $messageHashes[] = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         }
-        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         return $orderbook->limit();
     }
 
@@ -1099,7 +1081,7 @@ class aster extends \ccxt\async\aster {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#partial-book-depth-streams
          * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#diff-book-depth-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+         * @param {string[]} $symbols unified symbol of the $market to unwatch the trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->limit] orderbook $limit, default is null
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
@@ -1127,17 +1109,18 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         $limit = $this->safe_number($paramsOmitted, 'limit');
-        $paramsOmitted2 = $this->omit($paramsOmitted, 'limit');
-        if ($limit === null || ($limit !== 5 && $limit !== 10 && $limit !== 20)) {
-            $limit = 20;
+        $depthSuffix = '@depth20';
+        if ($limit === 5) {
+            $depthSuffix = '@depth5';
+        } elseif ($limit === 10) {
+            $depthSuffix = '@depth10';
         }
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . $limit;
-            $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
+            $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
+            $messageHashes[] = 'unsubscribe:orderbook:' . $this->safe_string($market, 'symbol', '');
         }
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted2), $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsOmitted, 'limit')), $messageHashes));
     }
 
     public function handle_order_book(Client $client, array $message) {
@@ -1250,7 +1233,6 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsLength = count($symbolsAndTimeframes);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
@@ -1268,7 +1250,7 @@ class aster extends \ccxt\async\aster {
             'method' => 'SUBSCRIBE',
             'params' => $subscriptionArgs,
         );
-        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+        for ($i = 0; $i < $symbolsLength; $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             if ($symbolString === null) {
@@ -1276,17 +1258,12 @@ class aster extends \ccxt\async\aster {
             }
             $market = $this->market($symbolString);
             $symbolString = $this->safe_string($market, 'symbol');
-            $unfiedTimeframe = $this->safe_string($data, 1);
-            $timeframeId = null;
-            if ($unfiedTimeframe === null) {
-                $timeframeId = null;
-            } else {
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            }
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
-            $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
+            $unfiedTimeframe = $this->safe_string($data, 1, '');
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@kline_' . $timeframeId;
+            $messageHashes[] = 'ohlcv:' . $this->safe_string($market, 'symbol', '') . ':' . $unfiedTimeframe;
         }
-        list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $stored->getLimit($symbol, $limit);
@@ -1315,7 +1292,6 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsLength = count($symbolsAndTimeframes);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
-        $paramsOmitted = $this->omit($paramsCallerMethodName, 'callerMethodName');
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
@@ -1333,7 +1309,7 @@ class aster extends \ccxt\async\aster {
             'method' => 'UNSUBSCRIBE',
             'params' => $subscriptionArgs,
         );
-        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+        for ($i = 0; $i < $symbolsLength; $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             if ($symbolString === null) {
@@ -1341,17 +1317,12 @@ class aster extends \ccxt\async\aster {
             }
             $market = $this->market($symbolString);
             $symbolString = $this->safe_string($market, 'symbol');
-            $unfiedTimeframe = $this->safe_string($data, 1);
-            $timeframeId = null;
-            if ($unfiedTimeframe === null) {
-                $timeframeId = null;
-            } else {
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            }
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
-            $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
+            $unfiedTimeframe = $this->safe_string($data, 1, '');
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@kline_' . $timeframeId;
+            $messageHashes[] = 'unsubscribe:ohlcv:' . $this->safe_string($market, 'symbol', '') . ':' . $unfiedTimeframe;
         }
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -1499,7 +1470,7 @@ class aster extends \ccxt\async\aster {
                 Async\await($this->fapiPrivatePutV3ListenKey()); // extend the expiry
             }
         } catch (Exception $error) {
-            $url = $this->safe_string($this->urls['api']['ws']['private'], $type) . '/' . $listenKey;
+            $url = $this->safe_string($this->urls['api']['ws']['private'], $type, '') . '/' . $listenKey;
             $client = $this->client($url);
             $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
             for ($i = 0; $i < count($messageHashes); $i++) {
@@ -1518,8 +1489,8 @@ class aster extends \ccxt\async\aster {
 
     public function get_private_url(string $type = 'spot'): string {
         $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
-        $listenKey = $this->safe_string($listenKeyOptions, $type);
-        $url = $this->safe_string($this->urls['api']['ws']['private'], $type) . '/' . $listenKey;
+        $listenKey = $this->safe_string($listenKeyOptions, $type, '');
+        $url = $this->safe_string($this->urls['api']['ws']['private'], $type, '') . '/' . $listenKey;
         return $url;
     }
 
@@ -1819,8 +1790,7 @@ class aster extends \ccxt\async\aster {
         if (!$this->is_empty($messageHashes)) {
             for ($i = 0; $i < count($newPositions); $i++) {
                 $position = $newPositions[$i];
-                $symbol = $this->safe_string($position, 'symbol');
-                $symbolMessageHash = $messageHash . '::' . $symbol;
+                $symbolMessageHash = $messageHash . '::' . $this->safe_string($position, 'symbol', '');
                 $client->resolve($position, $symbolMessageHash);
             }
             $client->resolve($newPositions, 'positions');
@@ -1917,7 +1887,7 @@ class aster extends \ccxt\async\aster {
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
         if ($market !== null) {
-            $messageHash .= '::' . $symbolResolved;
+            $messageHash = 'orders' . '::' . $this->safe_string($market, 'symbol', '');
         }
         $url = $this->get_private_url($typeMarketType);
         $client = $this->client($url);
@@ -1965,7 +1935,7 @@ class aster extends \ccxt\async\aster {
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
         if ($market !== null) {
-            $messageHash .= '::' . $symbolResolved;
+            $messageHash = 'myTrades' . '::' . $this->safe_string($market, 'symbol', '');
         }
         $url = $this->get_private_url($typeMarketType);
         $client = $this->client($url);
@@ -2002,8 +1972,7 @@ class aster extends \ccxt\async\aster {
             $fakeMarket = $this->safe_market_structure(array( 'type' => $type ));
             $trade = $this->parse_ws_trade($message, $fakeMarket);
             $orderId = $this->safe_string($trade, 'order');
-            $tradeFee = $this->safe_dict($trade, 'fee', array());
-            $tradeFee = $this->extend(array(), $tradeFee);
+            $tradeFee = $this->extend(array(), $this->safe_dict($trade, 'fee', array()));
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
@@ -2059,7 +2028,7 @@ class aster extends \ccxt\async\aster {
             $myTrades = $this->myTrades;
             $myTrades->append($trade);
             $client->resolve($this->myTrades, $messageHash);
-            $messageHashSymbol = $messageHash . '::' . $symbol;
+            $messageHashSymbol = $messageHash . '::' . $this->safe_string($trade, 'symbol', '');
             $client->resolve($this->myTrades, $messageHashSymbol);
         }
     }
@@ -2147,7 +2116,7 @@ class aster extends \ccxt\async\aster {
         }
         $cache = $this->orders;
         $parsed = $this->parse_ws_order($message, $market);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $cache->append($parsed);
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {

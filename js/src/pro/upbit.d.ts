@@ -2,7 +2,7 @@ import upbitRest from '../upbit.js';
 import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
-    describe(): any;
+    describe(): Dict;
     watchPublicMultiple(symbols: Strings, channel: Str, params?: Dict): Promise<any>;
     /**
      * @method

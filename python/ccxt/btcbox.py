@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class btcbox(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btcbox, self).describe(), {
             'id': 'btcbox',
             'name': 'BtcBox',
@@ -384,7 +384,7 @@ class btcbox(Exchange, ImplicitAPI):
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id', '')
             free = currencyId + '_balance'
             if free in response:
                 account = self.account()
@@ -773,7 +773,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_type('open', symbol, since, limit, params)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -784,12 +784,12 @@ class btcbox(Exchange, ImplicitAPI):
         url = apiUrl + '/' + self.version + '/' + path
         if apiName == 'public':
             if len(params) > 0:
-                url += '?' + self.urlencode(params)
+                url = apiUrl + '/' + self.version + '/' + path + '?' + self.urlencode(params)
         elif apiName == 'webApi':
-            url = self.urls['www'] + '/' + path
+            url = self.safe_string(self.urls, 'www', '') + '/' + path
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             query = self.extend({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -804,26 +804,26 @@ class btcbox(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
-        if httpCode >= 400:
+        if code >= 400:
             return None  # resort to defaultErrorHandler
         result = self.safe_bool(response, 'result')
         if result is None or result:
             return None  # either public API (no error codes expected) or success
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         feedback = self.id + ' ' + body
-        self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+        self.throw_exactly_matched_exception(self.exceptions, codeError, feedback)
         raise ExchangeError(feedback)  # unknown message
 
     def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         response = self.fetch2(path, api, method, params, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
-            response = self.strip(response)
-            if not self.is_json_encoded_object(response):
-                raise ExchangeError(self.id + ' ' + response)
-            response = json.loads(response)
+            strippedResponse = self.strip(response)
+            if not self.is_json_encoded_object(strippedResponse):
+                raise ExchangeError(self.id + ' ' + strippedResponse)
+            response = json.loads(strippedResponse)
         return response

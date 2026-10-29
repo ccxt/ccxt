@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class derive(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(derive, self).describe(), {
             'id': 'derive',
             'name': 'Derive',
@@ -782,9 +782,9 @@ class derive(Exchange, ImplicitAPI):
         """
         allInstruments = []
         maxPages, paramsMaxPages = self.handle_option_integer_and_params(params, 'getMarketsPaginated', 'maxMarketPages', 25)
-        pageSize, paramsOmitted = self.handle_option_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
-        page = 1
+        pageSize, paramsOmitted = self.handle_option_integer_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
         for i in range(0, maxPages):
+            page = i + 1
             requestExtension = {
                 'page': page,
                 'page_size': pageSize,
@@ -799,7 +799,6 @@ class derive(Exchange, ImplicitAPI):
             collected = len(allInstruments)
             if collected >= totalCount:
                 break
-            page += 1
         return allInstruments
 
     def parse_market(self, market: dict) -> Market:
@@ -832,7 +831,8 @@ class derive(Exchange, ImplicitAPI):
             margin = False
             settleId = 'USDC'
             settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote + ':' + settle
+            if settle is not None:
+                symbol = base + '/' + quote + ':' + settle
             swap = True
             linear = True
             inverse = False
@@ -847,7 +847,8 @@ class derive(Exchange, ImplicitAPI):
             expiry = self.safe_timestamp(optionDetails, 'expiry')
             strike = self.safe_number(optionDetails, 'strike')  # strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = self.safe_string(optionDetails, 'option_type')
-            symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + optionLetter
+            if settle is not None:
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + optionLetter
             if optionLetter == 'P':
                 optionType = 'put'
             else:
@@ -855,7 +856,6 @@ class derive(Exchange, ImplicitAPI):
             linear = True
             inverse = False
         contractSize = None if (spot) else 1
-        isContract = (swap or option)
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -872,7 +872,7 @@ class derive(Exchange, ImplicitAPI):
             'future': False,
             'option': option,
             'active': self.safe_bool(market, 'is_active'),
-            'contract': isContract,
+            'contract': (swap or option),
             'linear': linear,
             'inverse': inverse,
             'contractSize': contractSize,
@@ -1010,11 +1010,11 @@ class derive(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 't')
         stats = self.safe_dict(interest, 'stats', {})
         amount = self.safe_string(stats, 'oi')
-        markPrice = self.safe_string(interest, 'M')
         value = None
+        isOption = self.safe_bool(market, 'option', False)
         # for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (market is not None) and (market['option'] is not True):
-            value = Precise.string_mul(amount, markPrice)
+        if (market is not None) and (isOption is not True):
+            value = Precise.string_mul(amount, self.safe_string(interest, 'M'))
         return self.safe_open_interest({
             'symbol': self.safe_symbol(None, market),
             'openInterestAmount': self.parse_number(amount),
@@ -1375,8 +1375,9 @@ class derive(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['instrument_name'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instrument_name'] = symbolMarket['id']
         limitResolved = limit
         if limit is not None and limit > 1000:
             limitResolved = 1000
@@ -1538,7 +1539,7 @@ class derive(Exchange, ImplicitAPI):
         # todo: check active spot markets after launch of v3
         market = self.market(symbol)
         period = self.safe_string(self.timeframes, timeframe, timeframe)
-        priceType, paramsPrice = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
+        priceType, paramsPrice = self.handle_option_string_and_params(params, 'fetchOHLCV', 'price')
         until = self.safe_integer(paramsPrice, 'until')
         paramsOmitted = self.omit(paramsPrice, ['until'])
         duration = self.parse_timeframe(timeframe)
@@ -1855,7 +1856,7 @@ class derive(Exchange, ImplicitAPI):
 
     def sign_order(self, order: object, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
-        return self.sign_hash(hashOrder[-64:], privateKey[-64:])
+        return self.sign_hash(hashOrder, privateKey)
 
     def nonce_string(self) -> str:
         """
@@ -1883,13 +1884,13 @@ class derive(Exchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign_message(self, message: str, privateKey: str) -> str:
-        return self.sign_hash(self.hash_message(message), privateKey[-64:])
+        return self.sign_hash(self.hash_message(message), privateKey)
 
     def parse_units(self, num: str, dec: str = '1000000000000000000') -> Str:
         return Precise.string_mul(num, dec)
@@ -1935,18 +1936,18 @@ class derive(Exchange, ImplicitAPI):
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'  # shared across mainnet and testnet in v3
         priceString = self.number_to_string(price)
-        maxFee = None
-        paramsMaxFee = {}
-        maxFee, paramsMaxFee = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
-        if maxFee is None:
+        maxFeeOptionAndParams = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
+        maxFeeString = self.safe_string(maxFeeOptionAndParams, 0)
+        if maxFeeString is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
-        maxFeeString = self.number_to_string(maxFee)
+        paramsMaxFee = self.safe_dict(maxFeeOptionAndParams, 1, {})
         amountString = self.number_to_string(amount)
+        marketInfo = self.safe_dict(market, 'info', {})
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            self.convert_to_big_int(marketInfo['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
@@ -2097,11 +2098,12 @@ class derive(Exchange, ImplicitAPI):
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(paramsDeriveSubaccountId, 'max_fee', '0')
         amountString = self.number_to_string(amount)
+        marketInfo = self.safe_dict(market, 'info', {})
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            self.convert_to_big_int(marketInfo['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
@@ -2664,9 +2666,7 @@ class derive(Exchange, ImplicitAPI):
         #         "algo_slices_completed": null
         #     }
         #
-        order = self.safe_dict(rawOrder, 'data')
-        if order is None:
-            order = rawOrder
+        order = self.safe_dict(rawOrder, 'data', rawOrder)
         timestamp = self.safe_integer(rawOrder, 'creation_timestamp')  # the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
@@ -2752,8 +2752,9 @@ class derive(Exchange, ImplicitAPI):
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['instrument_name'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instrument_name'] = symbolMarket['id']
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
@@ -2827,8 +2828,9 @@ class derive(Exchange, ImplicitAPI):
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['instrument_name'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instrument_name'] = symbolMarket['id']
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
@@ -3072,8 +3074,9 @@ class derive(Exchange, ImplicitAPI):
         }
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['instrument_name'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instrument_name'] = symbolMarket['id']
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
@@ -3434,11 +3437,10 @@ class derive(Exchange, ImplicitAPI):
         }
         # margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         usedUsd = '0'
-        for i in range(0, len(response)):
-            subaccount = self.safe_dict(response, i)
-            positionsMargin = self.safe_string(subaccount, 'positions_initial_margin', '0')
-            ordersMargin = self.safe_string(subaccount, 'open_orders_margin', '0')
-            usedUsd = Precise.string_sub(usedUsd, Precise.string_add(positionsMargin, ordersMargin))
+        subaccounts = self.to_array(response)
+        for i in range(0, len(subaccounts)):
+            subaccount = self.safe_dict(subaccounts, i)
+            usedUsd = Precise.string_sub(usedUsd, Precise.string_add(self.safe_string(subaccount, 'positions_initial_margin', '0'), self.safe_string(subaccount, 'open_orders_margin', '0')))
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
                 balance = self.safe_dict(collaterals, j)
@@ -3448,8 +3450,7 @@ class derive(Exchange, ImplicitAPI):
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'amount')
                 else:
-                    amount = self.safe_string(balance, 'amount')
-                    account['total'] = Precise.string_add(account['total'], amount)
+                    account['total'] = Precise.string_add(self.safe_string(account, 'total'), self.safe_string(balance, 'amount'))
                 if code is not None:
                     result[code] = account
         usdcAccount = self.safe_dict(result, 'USDC')
@@ -4055,26 +4056,27 @@ class derive(Exchange, ImplicitAPI):
             if not ('subaccount_id' in self.options):
                 # remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 self.options['subaccount_id'] = subaccountIdInt
-            return [subaccountIdInt, paramsSubaccountId]
+            return [subaccountIdInt, self.extend(paramsSubaccountId)]
         optionsWallet = self.safe_integer(self.options, 'subaccount_id')
         if optionsWallet is not None:
-            return [optionsWallet, paramsSubaccountId]
+            # parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+            return [self.parse_to_int(optionsWallet), self.extend(paramsSubaccountId)]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
     def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:
         deriveWalletAddress, paramsDeriveWalletAddress = self.handle_option_string_and_params(params, methodName, 'deriveWalletAddress')
         if (deriveWalletAddress is not None) and (deriveWalletAddress != ''):
             self.options['deriveWalletAddress'] = deriveWalletAddress
-            return [deriveWalletAddress, paramsDeriveWalletAddress]
+            return [deriveWalletAddress, self.extend(paramsDeriveWalletAddress)]
         optionsWallet = self.safe_string(self.options, 'deriveWalletAddress')
         if (optionsWallet is not None) and (optionsWallet != ''):
-            return [optionsWallet, paramsDeriveWalletAddress]
+            return [optionsWallet, self.extend(paramsDeriveWalletAddress)]
         # v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if (self.walletAddress is not None) and (self.walletAddress != ''):
-            return [self.walletAddress, paramsDeriveWalletAddress]
+            return [self.walletAddress, self.extend(paramsDeriveWalletAddress)]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.')
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')
@@ -4086,7 +4088,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 

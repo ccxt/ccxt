@@ -15,7 +15,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class zaif extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
             'name' => 'Zaif',
@@ -277,7 +277,9 @@ class zaif extends Exchange {
         if ($name === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing name');
         }
-        list($baseId, $quoteId) = explode('/', $name);
+        $nameParts = explode('/', $name);
+        $baseId = $this->safe_string($nameParts, 0);
+        $quoteId = $this->safe_string($nameParts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -607,7 +609,7 @@ class zaif extends Exchange {
         $data = $this->safe_dict($response, 'return', array());
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $data['order_id'],
+            'id' => $this->number_to_string($data['order_id']),
         ), $market);
     }
 
@@ -887,8 +889,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce(): string {
-        $num = $this->number_to_string($this->milliseconds() / 1000);
-        $nonce = floatval($num);
+        $nonce = $this->milliseconds() / 1000;
         return sprintf('%.8f', $nonce);
     }
 
@@ -928,7 +929,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

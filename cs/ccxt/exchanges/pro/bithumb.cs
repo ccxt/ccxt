@@ -87,14 +87,15 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
         Dictionary<string, object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
         object request = new Dictionary<string, object>() {
             { "type", "ticker" },
-            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
+            { "symbols", new List<object>() {((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""))} },
             { "tickTypes", new List<object>() {tickTypes} },
         };
         if (isGenerationTwo)
@@ -140,22 +141,27 @@ public partial class bithumb : ccxt.bithumb
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
         }
-        IList<object> symbolsResolved = ((symbolsNormalized == null)) ? this.symbols : symbolsNormalized;
+        IList<object> symbolsResolved = this.symbols;
+        if ((symbolsNormalized != null))
+        {
+            symbolsResolved = symbolsNormalized;
+        }
         int symbolsLengthDefined = (symbolsResolved?.Count ?? 0);
-        object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLengthDefined; i++)
         {
             string? symbol = ((string)(symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
             Dictionary<string, object> market = this.market(symbol);
-            object streamMarketId = null;
+            string? streamMarketId = null;
             if (isGenerationTwo)
             {
                 streamMarketId = this.getGen2MarketId(market);
             } else
             {
-                streamMarketId = (add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null)));
+                streamMarketId = ((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""));
             }
             streamMarketIds.Add(streamMarketId);
             messageHashes.Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -291,7 +297,7 @@ public partial class bithumb : ccxt.bithumb
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -415,13 +421,14 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("orderbook" + ":") + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
-            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
+            { "symbols", new List<object>() {((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""))} },
         };
         if (isGenerationTwo)
         {
@@ -437,7 +444,7 @@ public partial class bithumb : ccxt.bithumb
             request = this.extend(request, paramsGeneration);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -533,14 +540,10 @@ public partial class bithumb : ccxt.bithumb
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
         string gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
-        Int64? timestamp = null;
+        Int64? timestamp = this.milliseconds();
         if ((gen2TimestampStr != null))
         {
             timestamp = this.parseToInt(((gen2TimestampStr == null) ? null : gen2TimestampStr.Substring(0, Math.Min(13, gen2TimestampStr.Length))));
-        }
-        if ((timestamp == null))
-        {
-            timestamp = this.milliseconds();
         }
         List<object> bidsSnapshot = new List<object>() {};
         List<object> asksSnapshot = new List<object>() {};
@@ -591,14 +594,6 @@ public partial class bithumb : ccxt.bithumb
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
-    {
-        for (int i = 0; i < getArrayLength(deltas); i++)
-        {
-            this.handleBookDelta(orderbook, getValue(deltas, i));
-        }
-    }
-
     /**
      * @method
      * @name bithumb#watchTrades
@@ -623,13 +618,14 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade:" + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
-            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
+            { "symbols", new List<object>() {((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""))} },
         };
         if (isGenerationTwo)
         {
@@ -695,14 +691,10 @@ public partial class bithumb : ccxt.bithumb
         //     }
         //
         IDictionary<string, object> content = this.safeDict(message, "content");
-        List<object> rawTrades = this.safeList(content, "list");
-        if ((rawTrades == null))
+        List<object> rawTrades = this.safeList(content, "list", new List<object>() {message});
+        for (int i = 0; i < rawTrades.Count; i++)
         {
-            rawTrades = new List<object>() {message};
-        }
-        for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
-        {
-            object rawTrade = rawTrades[i];
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
             string? marketId = this.safeString2(rawTrade, "symbol", "code");
             if ((marketId == null))
             {
@@ -874,7 +866,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "privateGen2"));
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myAsset";
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },
@@ -979,7 +972,8 @@ public partial class bithumb : ccxt.bithumb
             };
             this.options["ws"] = wsOptions;
         }
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "privateGen2"));
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = this.safeString(wsUrls, "privateGen2", "");
         var client = this.client(url);
         return client;
     }
@@ -1010,7 +1004,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "privateGen2"));
+        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
@@ -1022,7 +1017,7 @@ public partial class bithumb : ccxt.bithumb
         {
             Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = ((messageHash + ":") + symbolResolved);
+            messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
         }
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;
@@ -1061,7 +1056,6 @@ public partial class bithumb : ccxt.bithumb
         //
         string messageHash = "myOrder";
         ccxt.Order parsed = this.parseWsOrder(message);
-        string? symbol = parsed.symbol;
         // const orderId = this.safeString (parsed, 'id');
         if ((this.orders == null))
         {
@@ -1071,8 +1065,7 @@ public partial class bithumb : ccxt.bithumb
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         cachedOrders.append(ccxt.BaseExchange.FromOrder(parsed));
         client.resolve(cachedOrders, messageHash);
-        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
-        client.resolve(cachedOrders, symbolSpecificMessageHash);
+        client.resolve(cachedOrders, ((messageHash + ":") + this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "")));
     }
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)

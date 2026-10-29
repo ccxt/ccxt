@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class cryptocom(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptocom, self).describe(), {
             'id': 'cryptocom',
             'name': 'Crypto.com',
@@ -815,16 +815,16 @@ class cryptocom(Exchange, ImplicitAPI):
                 contract = False
             elif inst_type == 'PERPETUAL_SWAP':
                 type = 'swap'
-                symbol = symbol + ':' + quote
+                symbol = base + '/' + quote + ':' + quote
                 contract = True
             elif inst_type == 'FUTURE':
                 type = 'future'
-                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry)
+                symbol = base + '/' + quote + ':' + quote + '-' + self.yymmdd(expiry)
                 contract = True
             elif inst_type == 'WARRANT':
                 type = 'option'
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
-                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
+                symbol = base + '/' + quote + ':' + quote + '-' + self.yymmdd(expiry) + '-' + self.safe_string(market, 'strike', '') + '-' + symbolOptionType
                 contract = True
             isLinear = True if (contract is True) else None
             isInverse = False if (contract is True) else None
@@ -900,7 +900,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolsLength = len(symbols)
                 if symbolsLength > 1:
                     raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
-                symbol = symbols[0]
+                symbol = self.safe_string(symbols, 0)
             else:
                 symbol = symbols
             market = self.market(symbol)
@@ -1111,7 +1111,7 @@ class cryptocom(Exchange, ImplicitAPI):
         limitResolved = limit
         if (limit is not None) and (limit > 300):
             limitResolved = 300
-        if limitResolved is not None:
+        if limit is not None:
             request['count'] = limitResolved
         now = self.microseconds()
         duration = self.parse_timeframe(timeframe)
@@ -1325,7 +1325,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1466,8 +1466,8 @@ class cryptocom(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -1649,7 +1649,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: str, symbol: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def edit_order_request(self, id: Str, symbol: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id
@@ -1739,10 +1739,10 @@ class cryptocom(Exchange, ImplicitAPI):
         market = self.market(symbol)
         orderRequests = []
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             order = {
                 'instrument_name': market['id'],
-                'order_id': str(id),
+                'order_id': id,
             }
             orderRequests.append(order)
         request = {
@@ -1913,7 +1913,9 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def parse_address(self, addressString: Str) -> list:
         if addressString is not None and addressString.find('?') > 0:
-            address, rawTag = addressString.split('?')
+            addressParts = addressString.split('?')
+            address = addressParts[0]
+            rawTag = addressParts[1]
             splitted = rawTag.split('=')
             return [address, splitted[1]]
         return [addressString, None]
@@ -2520,7 +2522,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def custom_handle_margin_mode_and_params(self, methodName: object, params: dict = {}) -> list:
+    def custom_handle_margin_mode_and_params(self, methodName: str, params: dict = {}) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2560,17 +2562,10 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'network_list', [])
         networkListLength = len(networkList)
-        result = {
-            'info': fee,
-            'withdraw': {
-                'fee': None,
-                'percentage': None,
-            },
-            'deposit': {
-                'fee': None,
-                'percentage': None,
-            },
-            'networks': {},
+        networks = {}
+        withdrawFees = {
+            'fee': None,
+            'percentage': None,
         }
         if networkList is not None:
             for i in range(0, networkListLength):
@@ -2579,13 +2574,22 @@ class cryptocom(Exchange, ImplicitAPI):
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
                 if networkCode is not None:
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': {'fee': None, 'percentage': None},
                         'withdraw': {'fee': self.safe_number(networkInfo, 'withdrawal_fee'), 'percentage': False},
                     }
                 if networkListLength == 1:
-                    result['withdraw']['fee'] = self.safe_number(networkInfo, 'withdrawal_fee')
-                    result['withdraw']['percentage'] = False
+                    withdrawFees['fee'] = self.safe_number(networkInfo, 'withdrawal_fee')
+                    withdrawFees['percentage'] = False
+        result = {
+            'info': fee,
+            'withdraw': withdrawFees,
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': networks,
+        }
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -2910,7 +2914,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            result.append(self.parse_settlement(self.safe_dict(settlements, i, {}), market))
         return result
 
     def fetch_funding_rate(self, symbol: str, params: dict = {}):
@@ -3206,7 +3210,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def params_to_string(self, object: object, level: float) -> str:
@@ -3224,14 +3228,14 @@ class cryptocom(Exchange, ImplicitAPI):
             objectKeys = list(object.keys())
             paramsKeys = self.sort(objectKeys)
         for i in range(0, len((paramsKeys))):
-            key = (paramsKeys)[i]
+            key = self.safe_string(paramsKeys, i, '')
             returnString += key
             value = object[key]
             if value == 'None':
                 returnString += 'None'
             elif isinstance(value, list):
                 for j in range(0, len(value)):
-                    returnString += self.params_to_string(value[j], level + 1)
+                    returnString += self.params_to_string(value[j], depth + 1)
             else:
                 returnString += str(value)
         return returnString
@@ -3358,9 +3362,9 @@ class cryptocom(Exchange, ImplicitAPI):
         result = {}
         result['info'] = response
         for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+            symbol = self.safe_string(self.symbols, i, '')
             market = self.market(symbol)
-            isSwap = market['swap']
+            isSwap = self.safe_bool(market, 'swap')
             takerFeeKey = 'effective_spot_taker_rate_bps'
             if isSwap is True:
                 takerFeeKey = 'effective_deriv_taker_rate_bps'
@@ -3400,8 +3404,8 @@ class cryptocom(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        type = self.safe_string(api, 0)
-        access = self.safe_string(api, 1)
+        type = api[0]
+        access = api[1]
         apiUrl = self.safe_string(self.urls['api'], type)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -3412,7 +3416,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             requestParams = self.extend({}, params)
             paramsKeys = list(requestParams.keys())
             strSortKey = self.params_to_string(requestParams, 0)
@@ -3441,7 +3445,7 @@ class cryptocom(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         errorCode = self.safe_string(response, 'code')
         if errorCode != '0':
             feedback = self.id + ' ' + body

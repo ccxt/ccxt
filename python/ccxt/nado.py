@@ -34,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class nado(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(nado, self).describe(), {
             'id': 'nado',
             'name': 'Nado',
@@ -535,8 +535,7 @@ class nado(Exchange, ImplicitAPI):
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
             # the final omit drops triggerDirection from the request
-            triggerDirectionAndParams = self.handle_trigger_direction_and_params(paramsRecvWindow)
-            triggerDirection = triggerDirectionAndParams[0]
+            triggerDirection = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow), 0)
             directionSuffix = 'below'
             if triggerDirection == 'ascending':
                 directionSuffix = 'above'
@@ -1015,7 +1014,7 @@ class nado(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            productIds.append(self.parse_to_int(market['id']))
+            productIds.append(self.parse_to_int(self.safe_string(market, 'id')))
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(paramsSubaccount, 'stop', 'trigger')
@@ -1025,7 +1024,7 @@ class nado(Exchange, ImplicitAPI):
         recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsOmitted, 'fetchOrders', 'recvWindow', 5000)
         tx = {
             'sender': sender,
-            'recvTime': self.number_to_string(self.milliseconds() + recvWindow),
+            'recvTime': self.number_to_string(self.sum(self.milliseconds(), recvWindow)),
         }
         request = {
             'tx': tx,
@@ -1177,10 +1176,10 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         if market is not None:
-            ordersRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
+            ordersRequest['product_ids'] = [self.parse_to_int(self.safe_string(market, 'id'))]
         if limit is not None:
-            ordersRequestUntil['limit'] = min(limit, 500)
+            ordersRequest['limit'] = min(limit, 500)
+        ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
         request = {
             'orders': ordersRequestUntil,
         }
@@ -1277,10 +1276,10 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         if market is not None:
-            matchesRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)
+            matchesRequest['product_ids'] = [self.parse_to_int(self.safe_string(market, 'id'))]
         if limit is not None:
-            matchesRequestUntil['limit'] = min(limit, 500)
+            matchesRequest['limit'] = min(limit, 500)
+        matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)
         request = {
             'matches': matchesRequestUntil,
         }
@@ -1677,7 +1676,7 @@ class nado(Exchange, ImplicitAPI):
             settle = quote if contract else None
             symbol = base + '/' + quote
             if contract:
-                symbol += ':' + settle
+                symbol = base + '/' + quote + ':' + quote
             tradingStatus = self.safe_string(market, 'trading_status')
             active = (tradingStatus != 'not_tradable')
             priceIncrement = self.parse_x18(self.safe_string(market, 'price_increment_x18'))
@@ -1755,7 +1754,7 @@ class nado(Exchange, ImplicitAPI):
         result = {}
         assets = self.to_array(response)
         for i in range(0, len(assets)):
-            currency = assets[i]
+            currency = self.safe_value(assets, i)
             parsed = self.parse_currency(currency)
             code = self.safe_string(parsed, 'code')
             if code is None:
@@ -1814,7 +1813,7 @@ class nado(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         tickers = self.fetch_tickers([symbolValue], params)
         ticker = self.safe_dict(tickers, symbolValue)
         if ticker is None:
@@ -2147,16 +2146,17 @@ class nado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        request = {
-            'candlesticks': {
-                'product_id': self.parse_to_int(market['id']),
-                'granularity': self.safe_integer(self.timeframes, timeframe, self.parse_timeframe(timeframe)),
-            },
+        candlesticks = {
+            'product_id': self.parse_to_int(market['id']),
+            'granularity': self.safe_integer(self.timeframes, timeframe, self.parse_timeframe(timeframe)),
         }
         if limit is not None:
-            request['candlesticks']['limit'] = min(limit, 500)
+            candlesticks['limit'] = min(limit, 500)
         if until is not None:
-            request['candlesticks']['max_time'] = self.parse_to_int(until / 1000)
+            candlesticks['max_time'] = self.parse_to_int(until / 1000)
+        request = {
+            'candlesticks': candlesticks,
+        }
         response = self.archivePost(self.deep_extend(request, paramsOmitted))
         #
         #     {
@@ -2834,7 +2834,7 @@ class nado(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def convert_to_x18(self, value: Str):
+    def convert_to_x18(self, value: Str) -> Str:
         if value is None:
             raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
@@ -2897,7 +2897,8 @@ class nado(Exchange, ImplicitAPI):
         return '0x' + address + self.pad_hex(encoded, 24, False)
 
     def query_contracts(self, params: dict = {}) -> dict:
-        if self.safe_dict(self.options, 'gatewayContracts') is None:
+        gatewayContracts = self.safe_dict(self.options, 'gatewayContracts')
+        if gatewayContracts is None:
             request = {
                 'type': 'contracts',
             }
@@ -2908,9 +2909,7 @@ class nado(Exchange, ImplicitAPI):
     def order_verifying_contract(self, productId: Int) -> str:
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
-    def pad_hex(self, value: str, length: Int, left: bool = True) -> str:
-        if length is None:
-            raise ArgumentsRequired(self.id + ' padHex() requires length')
+    def pad_hex(self, value: str, length: float, left: bool = True) -> str:
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         if left:
             paddedLeft = zeros + value
@@ -2937,8 +2936,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, order)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_cancellation(self, cancellation: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2956,8 +2954,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, cancellation)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_cancellation_products(self, cancellation: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2974,8 +2971,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, cancellation)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_fetch_trigger_orders(self, tx: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2991,13 +2987,12 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, tx)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_hash(self, hash: str, privateKey: Str) -> str:
         if privateKey is None:
             raise ArgumentsRequired(self.id + ' signHash() requires privateKey')
-        signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        signature = self.ecdsa(hash, privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
@@ -3016,7 +3011,9 @@ class nado(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], endpoint)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        pathSuffix = ('/' + self.implode_params(path, params)) if (path != '') else ''
+        pathSuffix = ''
+        if path != '':
+            pathSuffix = '/' + self.implode_params(path, params)
         url = baseApiUrl + pathSuffix
         query = self.omit(params, self.extract_params(path))
         headersValue = {}
@@ -3024,14 +3021,14 @@ class nado(Exchange, ImplicitAPI):
             headersValue['Accept-Encoding'] = 'gzip, br, deflate'
         if method == 'GET':
             if len(query) > 0:
-                url += '?' + self.urlencode(query)
+                url = baseApiUrl + pathSuffix + '?' + self.urlencode(query)
         else:
             headersValue['Content-Type'] = 'application/json'
             requestBody = self.json(query)
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
-    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

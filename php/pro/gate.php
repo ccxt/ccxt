@@ -20,7 +20,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class gate extends \ccxt\async\gate {
-    public function describe(): mixed {
+    public function describe(): array {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }
@@ -485,8 +485,8 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->get_url_by_market($market);
         $isEuUrl = mb_strpos($url, 'gateeu') !== false;
         $isNonEuSpot = ($market['spot'] === true) && !$isEuUrl;
@@ -519,7 +519,7 @@ class gate extends \ccxt\async\gate {
             if ($limitResolved === 400) {
                 $finalInterval = '400';
             }
-            $payload = array( 'ob.' . $market['id'] . '.' . $finalInterval );
+            $payload = array( 'ob.' . $marketId . '.' . $finalInterval );
         } else {
             $channel = $messageType . '.order_book_update';
             $payload = array( $marketId, $interval );
@@ -550,8 +550,8 @@ class gate extends \ccxt\async\gate {
         }
         $market = $this->market($symbol);
         $url = $this->get_url_by_market($market);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $isEuUrl = mb_strpos($url, 'gateeu') !== false;
         $isNonEuSpot = ($market['spot'] === true) && !$isEuUrl;
         $intervalDefault = '100ms';
@@ -579,7 +579,7 @@ class gate extends \ccxt\async\gate {
             if ($limit === 400) {
                 $finalInterval = '400';
             }
-            $payload = array( 'ob.' . $market['id'] . '.' . $finalInterval );
+            $payload = array( 'ob.' . $marketId . '.' . $finalInterval );
         } else {
             $channel = $messageType . '.order_book_update';
             $payload = array( $marketId, $intervalOption );
@@ -793,8 +793,8 @@ class gate extends \ccxt\async\gate {
             if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
                 $bookSide->storeArray($this->parse_order_book_bid_ask($bidAsk));
             } else {
-                $price = $this->safe_float($bidAsk, 'p');
-                $amount = $this->safe_float($bidAsk, 's');
+                $price = $this->safe_number($bidAsk, 'p');
+                $amount = $this->safe_number($bidAsk, 's');
                 $bookSide->store($price, $amount);
             }
         }
@@ -833,7 +833,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $params['callerMethodName'] = 'watchTicker';
         $result = Async\await($this->watch_tickers(array( $symbolValue ), $params));
         return $this->safe_dict($result, $symbolValue);
@@ -925,7 +925,7 @@ class gate extends \ccxt\async\gate {
         $market = $this->market($symbolsNormalized[0]);
         $messageType = $this->get_type_by_market($market);
         $marketIds = $this->market_ids($symbolsNormalized);
-        list($channelName, $paramsMethod) = $this->handle_option_string_and_params($paramsCallerMethodName, $callerMethodNameOption, 'method');
+        list($channelName, $paramsMethod) = $this->handle_option_string_and_params($paramsCallerMethodName, $callerMethodNameOption, 'method', '');
         $url = $this->get_url_by_market($market);
         $channel = $messageType . '.' . $channelName;
         if ($callerMethodNameOption === null) {
@@ -1158,7 +1158,7 @@ class gate extends \ccxt\async\gate {
         }
         // todo add options support
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $marketId = $market['id'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
@@ -2251,7 +2251,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // subscribe
         //    {
@@ -2408,9 +2408,9 @@ class gate extends \ccxt\async\gate {
         if ($market === null) {
             return null;
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return 'spot';
-        } elseif ($market['option'] === true) {
+        } elseif ($this->safe_bool($market, 'option', false)) {
             return 'options';
         } else {
             return 'futures';

@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class blockchaincom(ccxt.async_support.blockchaincom):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'has': {
                 'ws': True,
@@ -68,7 +68,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         """
         await self.authenticate(params)
         messageHash = 'balance'
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         subscribe = {
             'action': 'subscribe',
             'channel': 'balances',
@@ -115,8 +115,6 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         # nobody is awaiting, so a replaced object would make updates landing
         # in that window invisible to the consumer forever (same class as
         # issue #26773)
-        if self.balance is None:
-            self.balance = {}
         self.balance['info'] = message
         balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
@@ -148,7 +146,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + symbolValue
         request = {
@@ -158,7 +156,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'granularity': self.parse_number(interval),
         }
         request = self.deep_extend(request, params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         ohlcv = await self.watch(url, messageHash, request, messageHash, request)
         limitResolved = limit
         if self.newUpdates:
@@ -187,8 +185,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         event = self.safe_string(message, 'event')
         if event == 'rejected':
-            jsonMessage = self.json(message)
-            raise ExchangeError(self.id + ' ' + jsonMessage)
+            raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'updated':
             marketId = self.safe_string(message, 'symbol')
             symbol = self.safe_symbol(marketId, None, '-')
@@ -221,8 +218,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'ticker:' + symbolValue
         request = {
             'action': 'subscribe',
@@ -264,7 +261,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         ticker = None
         if event == 'subscribed':
             return
@@ -328,8 +325,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'trades:' + symbolValue
         request = {
             'action': 'subscribe',
@@ -377,7 +374,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         parsed = self.parse_ws_trade(message, market)
         stored.append(parsed)
         self.trades[symbol] = stored
-        client.resolve(self.trades[symbol], messageHash)
+        client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -430,7 +427,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         message = {
             'action': 'subscribe',
             'channel': 'trading',
@@ -519,11 +516,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         event = self.safe_string(message, 'event')
         messageHash = 'orders'
-        cachedOrders = self.orders
-        if cachedOrders is None:
+        if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            cachedOrders = ArrayCacheBySymbolById(limit)
-            self.orders = cachedOrders
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
         if event == 'subscribed':
             return
         elif event == 'rejected':
@@ -635,7 +631,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         type = self.safe_string(params, 'type', 'l2')
         paramsOmitted = self.omit(params, 'type')
         messageHash = 'orderbook:' + symbol + ':' + type
@@ -683,16 +679,16 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "timestamp": "2022-08-08T22:03:19.014680Z"
         #     }
         #
-        event = self.safe_string(message, 'event')
+        event = self.safe_string(message, 'event', '')
         if event == 'subscribed':
             return
-        type = self.safe_string(message, 'channel')
+        type = self.safe_string(message, 'channel', '')
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol + ':' + type
         datetime = self.safe_string(message, 'timestamp')
         timestamp = self.parse8601(datetime)
-        if self.safe_value(self.orderbooks, symbol) is None:
+        if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.counted_order_book()
         orderbook = self.orderbooks[symbol]
         if event == 'snapshot':
@@ -717,23 +713,24 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
-        handlers = {
-            'ticker': self.handle_ticker,
-            'trades': self.handle_trades,
-            'prices': self.handle_ohlcv,
-            'l2': self.handle_order_book,
-            'l3': self.handle_order_book,
-            'auth': self.handle_authentication_message,
-            'balances': self.handle_balance,
-            'trading': self.handle_orders,
-        }
-        handler = self.safe_value(handlers, channel)
-        if handler is not None:
-            handler(client, message)
-            return
-        raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
+        if channel == 'ticker':
+            self.handle_ticker(client, message)
+        elif channel == 'trades':
+            self.handle_trades(client, message)
+        elif channel == 'prices':
+            self.handle_ohlcv(client, message)
+        elif channel == 'l2' or channel == 'l3':
+            self.handle_order_book(client, message)
+        elif channel == 'auth':
+            self.handle_authentication_message(client, message)
+        elif channel == 'balances':
+            self.handle_balance(client, message)
+        elif channel == 'trading':
+            self.handle_orders(client, message)
+        else:
+            raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_authentication_message(self, client: Client, message: dict):
         #
@@ -752,7 +749,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             future.resolve(True)
 
     async def authenticate(self, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.reusableFuture(messageHash)

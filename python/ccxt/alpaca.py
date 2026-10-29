@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class alpaca(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(alpaca, self).describe(), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -639,7 +639,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocTrades')
         request = {
@@ -712,7 +712,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        id = market['id']
+        id = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         request = {
             'symbols': id,
@@ -783,7 +783,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
         paginate = False
@@ -1121,7 +1121,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        id = market['id']
+        id = self.safe_string(market, 'id')
         request = {
             'symbol': id,
             'side': side,
@@ -1453,7 +1453,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         alpacaStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(alpacaStatus)
         feeValue = self.safe_string(order, 'commission')
@@ -1702,8 +1702,9 @@ class alpaca(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         addressValue = address
-        if (tagWithdrawTag is not None) and (tagWithdrawTag != ''):
-            addressValue = address + ':' + tagWithdrawTag
+        tagSuffix = self.safe_string(params, 'tag', '')
+        if tagSuffix != '':
+            addressValue = address + ':' + tagSuffix
         request = {
             'asset': currency['id'],
             'address': addressValue,
@@ -1898,7 +1899,8 @@ class alpaca(Exchange, ImplicitAPI):
         if activityType is not None:
             netAmount = self.safe_string(transaction, 'net_amount')
             isIncoming = (activityType == 'CSD') or ((activityType == 'TRANS') and not Precise.string_lt(netAmount, '0'))
-            timestamp = self.parse8601(self.safe_string(transaction, 'date') + 'T00:00:00Z')
+            date = self.safe_string(transaction, 'date', '')
+            timestamp = self.parse8601(date + 'T00:00:00Z')
             datetime = self.iso8601(timestamp)
             type = 'deposit' if isIncoming else 'withdrawal'
             amount = self.parse_number(Precise.string_abs(netAmount))
@@ -1923,7 +1925,7 @@ class alpaca(Exchange, ImplicitAPI):
             addressTo = self.safe_string(transaction, 'to_address')
             addressFrom = self.safe_string(transaction, 'from_address')
             type = self.parse_transaction_type(self.safe_string(transaction, 'direction'))
-            amount = self.safe_number(transaction, 'amount')
+            amount = self.parse_number(self.safe_string(transaction, 'amount'))
             currencyId = self.safe_string(transaction, 'asset')
             code = self.safe_currency_code(currencyId, currency)
             network = self.network_id_to_code(self.safe_string(transaction, 'chain'), code)
@@ -2087,8 +2089,8 @@ class alpaca(Exchange, ImplicitAPI):
             result[code] = cashAccount
         for i in range(0, len(positions)):
             position = self.safe_dict(positions, i)
-            positionSymbol = self.safe_string(position, 'symbol')
-            if positionSymbol is None:
+            positionSymbol = self.safe_string(position, 'symbol', '')
+            if positionSymbol == '':
                 continue
             baseId = None
             if positionSymbol.find('/') >= 0:
@@ -2097,7 +2099,7 @@ class alpaca(Exchange, ImplicitAPI):
             else:
                 # crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 baseLength = len(positionSymbol) - 3
-                if (baseLength > 0) and (positionSymbol[baseLength:] == 'USD'):
+                if (baseLength > 0) and positionSymbol.endswith('USD'):
                     baseId = positionSymbol[0:baseLength]
             if baseId is None:
                 continue  # an unrecognized position symbol shape must not break the whole balance
@@ -2131,7 +2133,7 @@ class alpaca(Exchange, ImplicitAPI):
         bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # default error handler
         # {
@@ -2140,8 +2142,8 @@ class alpaca(Exchange, ImplicitAPI):
         # }
         feedback = self.id + ' ' + body
         errorCode = self.safe_string(response, 'code')
-        if code is not None:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        # code is an int: it is never undefined, the guard was dead
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)

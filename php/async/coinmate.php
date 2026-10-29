@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinmate extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
@@ -1343,7 +1343,7 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -1357,8 +1357,9 @@ class coinmate extends Exchange {
         }
         $url = $apiUrl . '/' . $path;
         if ($apiName === 'public') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $publicQuery = $this->extend(array(), $params);
+            if (count($publicQuery) > 0) {
+                $url .= '?' . $this->urlencode($publicQuery);
             }
         } else {
             $this->check_required_credentials();
@@ -1381,7 +1382,7 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

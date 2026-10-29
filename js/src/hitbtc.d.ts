@@ -5,8 +5,8 @@ import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLC
  * @augments Exchange
  */
 export default class hitbtc extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name hitbtc#fetchMarkets
@@ -547,6 +547,6 @@ export default class hitbtc extends Exchange {
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

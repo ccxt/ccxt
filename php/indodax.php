@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\indodax as Exchange;
 
 class indodax extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
@@ -306,7 +306,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
@@ -542,8 +542,10 @@ class indodax extends Exchange {
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . $this->safe_string_lower($market, 'baseId');
-        $quoteVolume = 'vol_' . $this->safe_string_lower($market, 'quoteId');
+        $baseId = $this->safe_string_lower($market, 'baseId', '');
+        $quoteId = $this->safe_string_lower($market, 'quoteId', '');
+        $baseVolume = 'vol_' . $baseId;
+        $quoteVolume = 'vol_' . $quoteId;
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -814,10 +816,7 @@ class indodax extends Exchange {
         //        }
         //    }
         //
-        $side = null;
-        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
-            $side = $this->safe_string($order, 'type');
-        }
+        $side = $this->safe_string($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
         $symbol = null;
         $cost = null;
@@ -829,12 +828,12 @@ class indodax extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         if ($marketResolved !== null) {
             $symbol = $marketResolved['symbol'];
-            $quoteId = $marketResolved['quoteId'];
-            $baseId = $marketResolved['baseId'];
-            if (($marketResolved['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
+            $quoteId = $this->safe_string($marketResolved, 'quoteId', '');
+            $baseId = $this->safe_string($marketResolved, 'baseId', '');
+            if (($marketResolved['quoteId'] === 'idr') && ($this->safe_string($order, 'order_rp') !== null)) {
                 $quoteId = 'rp';
             }
-            if (($marketResolved['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
+            if (($marketResolved['baseId'] === 'idr') && ($this->safe_string($order, 'remain_rp') !== null)) {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
@@ -934,11 +933,12 @@ class indodax extends Exchange {
             return $this->parse_orders($rawOrders, $market, $since, $limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        $marketIds = is_array($rawOrders) ? array_keys($rawOrders) : array();
+        $ordersDict = $this->safe_dict($openOrdersResult, 'orders', array());
+        $marketIds = is_array($ordersDict) ? array_keys($ordersDict) : array();
         $exchangeOrders = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $marketOrders = $rawOrders[$marketId];
+            $marketOrders = $ordersDict[$marketId];
             $market = $this->safe_market($marketId);
             $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
             $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
@@ -1165,10 +1165,14 @@ class indodax extends Exchange {
         //
         $data = $this->safe_dict($response, 'return', array());
         $result = $this->deposit_withdraw_fee($response);
-        $result['withdraw']['fee'] = $this->safe_number($data, 'withdraw_fee');
-        $result['withdraw']['percentage'] = false;
-        $result['deposit']['fee'] = 0;
-        $result['deposit']['percentage'] = false;
+        $result['withdraw'] = array(
+            'fee' => $this->safe_number($data, 'withdraw_fee'),
+            'percentage' => false,
+        );
+        $result['deposit'] = array(
+            'fee' => 0,
+            'percentage' => false,
+        );
         return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
@@ -1257,14 +1261,14 @@ class indodax extends Exchange {
         $transactions = array();
         $currency = null;
         if ($code === null) {
-            $keys = is_array($withdraw) ? array_keys($withdraw) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $key = $keys[$i];
+            $withdrawKeys = is_array($withdraw) ? array_keys($withdraw) : array();
+            for ($i = 0; $i < count($withdrawKeys); $i++) {
+                $key = $withdrawKeys[$i];
                 $transactions = $this->array_concat($transactions, $withdraw[$key]);
             }
-            $keys = is_array($deposit) ? array_keys($deposit) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $key = $keys[$i];
+            $depositKeys = is_array($deposit) ? array_keys($deposit) : array();
+            for ($i = 0; $i < count($depositKeys); $i++) {
+                $key = $depositKeys[$i];
                 $transactions = $this->array_concat($transactions, $deposit[$key]);
             }
         } else {
@@ -1528,9 +1532,9 @@ class indodax extends Exchange {
         if ($isPublic) {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
-            $url .= $requestPath;
+            $url = $apiUrl . $requestPath;
             if (count($query) > 0) {
-                $url .= '?' . $this->urlencode_with_array_repeat($query);
+                $url = $apiUrl . $requestPath . '?' . $this->urlencode_with_array_repeat($query);
             }
         } else {
             $this->check_required_credentials();
@@ -1556,7 +1560,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1568,10 +1572,10 @@ class indodax extends Exchange {
             return null; // public endpoints may return []-arrays
         }
         $error = $this->safe_string($response, 'error', '');
-        if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
+        $status = $this->safe_string($response, 'success');
+        if (($status === null) && ($error === '')) {
             return null; // no 'success' property on public responses
         }
-        $status = $this->safe_string($response, 'success');
         if ($status === 'approved') {
             return null;
         }

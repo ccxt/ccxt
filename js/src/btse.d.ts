@@ -5,7 +5,7 @@ import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, Fun
  * @augments Exchange
  */
 export default class btse extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btse#fetchTime
@@ -411,7 +411,7 @@ export default class btse extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
-    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
+    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name btse#fetchDepositsWithdrawals
@@ -592,7 +592,7 @@ export default class btse extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
@@ -605,7 +605,7 @@ export default class btse extends Exchange {
             'BROKER-ID': string;
         } | undefined;
     };
-    futuresRequestId(market: any): string;
+    futuresRequestId(market: Dict): Str;
     cleanPath(path: string): string;
-    nonce(): number;
+    nonce(): int;
 }

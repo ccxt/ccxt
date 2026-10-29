@@ -1,11 +1,11 @@
 import Exchange from './abstract/dydx.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class dydx
  * @augments Exchange
  */
 export default class dydx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name dydx#fetchTime
@@ -149,22 +149,14 @@ export default class dydx extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
-    signMessage(message: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
+    signHash(hash: any, privateKey: any): Dict;
+    signMessage(message: any, privateKey: any): Dict;
     signOnboardingAction(): object;
     signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
     retrieveCredentials(): Dict;
     fetchDydxAccount(): Promise<Dict>;
     pow(n: string, m: Str): Str;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: {}): any[];
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [string, Dict];
     createOrderIdFromParts(address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string;
     fetchLatestBlockHeight(params?: Dict): Promise<int>;
     /**
@@ -246,7 +238,7 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    estimateTxFee(message: any, memo: Str, account: any): Promise<Dict>;
+    estimateTxFee(message: Dict, memo: Str, account: Dict): Promise<Dict>;
     /**
      * @method
      * @name dydx#transfer
@@ -351,9 +343,9 @@ export default class dydx extends Exchange {
      */
     fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
-    nonce(): number;
+    nonce(): int;
     getWalletAddress(): string;
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     setSandboxMode(enable: boolean): void;
 }

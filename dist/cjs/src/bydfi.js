@@ -495,10 +495,10 @@ class bydfi extends bydfi$1["default"] {
         const settleId = this.safeString(market, 'marginAsset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
+        const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
             return undefined;
         }
-        const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const inverse = this.safeBool(market, 'reverse');
         const limitMaxQty = this.safeString(market, 'limitMaxQty');
@@ -868,7 +868,7 @@ class bydfi extends bydfi$1["default"] {
         const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe) * 1000;
-        const timeDelta = duration * numberOfCandles;
+        const timeDelta = this.parseToInt(duration * numberOfCandles);
         let startTime = since;
         let until = untilParam;
         if (since === undefined && untilParam === undefined) {
@@ -1390,7 +1390,7 @@ class bydfi extends bydfi$1["default"] {
             throw new errors.BadRequest(this.id + ' createOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests = [];
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
@@ -1458,7 +1458,7 @@ class bydfi extends bydfi$1["default"] {
             throw new errors.BadRequest(this.id + ' editOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests = [];
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const id = this.safeString(rawOrder, 'id');
             const symbol = this.safeString(rawOrder, 'symbol');
@@ -1590,8 +1590,7 @@ class bydfi extends bydfi$1["default"] {
             'wallet': walletOption,
         };
         let response;
-        const trigger = false;
-        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrders', 'trigger', trigger);
+        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrders', 'trigger', false);
         if (!triggerOption) {
             //
             //     {
@@ -1669,8 +1668,7 @@ class bydfi extends bydfi$1["default"] {
         const [walletOption, paramsWallet] = this.handleOptionStringAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = walletOption;
         let response;
-        const trigger = false;
-        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrder', 'trigger', trigger);
+        const [triggerOption, paramsTrigger] = this.handleOptionBoolAndParams(paramsWallet, 'fetchOpenOrder', 'trigger', false);
         if (!triggerOption) {
             response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger));
         }
@@ -1772,13 +1770,14 @@ class bydfi extends bydfi$1["default"] {
     handleSinceAndUntil(methodName, since = undefined, params = {}) {
         const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams2(params, methodName, 'until', 'endTime');
         const now = this.milliseconds();
-        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        const sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         let startTime = since;
         let until = untilParam;
         if (since === undefined) {
             if (untilParam !== undefined) {
                 // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
+                const untilInt = this.parseToInt(untilParam);
+                startTime = untilInt - sevenDays;
             }
             else {
                 // both since and until are undefined
@@ -2437,7 +2436,7 @@ class bydfi extends bydfi$1["default"] {
             await this.loadMarkets();
         }
         let positionType = 'ONEWAY';
-        if (hedged) {
+        if (hedged === true) {
             positionType = 'HEDGE';
         }
         const wallet = 'W001';
@@ -2601,7 +2600,8 @@ class bydfi extends bydfi$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
+        const responseLength = response.length;
+        for (let i = 0; i < responseLength; i++) {
             const balance = this.safeDict(response, i);
             const symbol = this.safeString(balance, 'asset');
             const code = this.safeCurrencyCode(symbol);
@@ -2823,13 +2823,14 @@ class bydfi extends bydfi$1["default"] {
         };
         const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams2(params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds();
-        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        const sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         let startTime = since;
         let until = untilParam;
         if (since === undefined) {
             if (untilParam !== undefined) {
                 // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
+                const untilInt = this.parseToInt(untilParam);
+                startTime = untilInt - sevenDays;
             }
             else {
                 // both since and until are undefined
@@ -2956,7 +2957,6 @@ class bydfi extends bydfi$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
         let endpoint = '/' + path;
         let query = '';
         const sortedParams = this.keysort(params);
@@ -2992,12 +2992,11 @@ class bydfi extends bydfi$1["default"] {
                 };
             }
         }
-        url += endpoint;
         const bodyResolved = requestBody;
         const headersResolved = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3007,13 +3006,13 @@ class bydfi extends bydfi$1["default"] {
         //         "message": "Requires transaction permissions"
         //     }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== '200') {
+        if (codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;

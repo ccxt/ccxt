@@ -15,7 +15,7 @@ import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -1021,14 +1021,8 @@ export default class coinone extends Exchange {
         const id = this.safeString2 (order, 'orderId', 'order_id');
         const baseId = this.safeString2 (order, 'baseCurrency', 'target_currency');
         const quoteId = this.safeString2 (order, 'targetCurrency', 'quote_currency');
-        let base: Str = undefined;
-        let quote: Str = undefined;
-        if (baseId !== undefined) {
-            base = this.safeCurrencyCode (baseId);
-        }
-        if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode (quoteId);
-        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
@@ -1269,20 +1263,15 @@ export default class coinone extends Exchange {
             const currencyId = this.safeString (parts, 0);
             const secondPart = this.safeString (parts, 1);
             const code = this.safeCurrencyCode (currencyId);
-            let depositAddress = this.safeDict (result, code);
-            if (depositAddress === undefined) {
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': undefined,
-                    'address': undefined,
-                    'tag': undefined,
-                };
-            }
-            const address = this.safeString (depositAddress, 'address', value);
+            const address = this.safeString (this.safeValue (result, code), 'address', value);
             this.checkAddress (address);
-            depositAddress['address'] = address;
-            depositAddress['info'] = address;
+            const depositAddress: Dict = {
+                'info': address,
+                'currency': code,
+                'network': undefined,
+                'address': address,
+                'tag': this.safeString (this.safeValue (result, code), 'tag'),
+            };
             if ((secondPart === 'tag' || secondPart === 'memo')) {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [ address, value ];
@@ -1338,7 +1327,7 @@ export default class coinone extends Exchange {
             if (apiName === 'v2_1Private') {
                 nonce = this.uuid ();
             } else {
-                nonce = this.nonce ().toString ();
+                nonce = this.numberToString (this.nonce ());
             }
             const json = this.json (this.extend ({
                 'access_token': this.apiKey,
@@ -1359,7 +1348,7 @@ export default class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

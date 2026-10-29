@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class lighter(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(lighter, self).describe(), {
             'id': 'lighter',
             'name': 'Lighter',
@@ -401,7 +401,7 @@ class lighter(Exchange, ImplicitAPI):
 
     async def load_account(self, chainId: object, privateKey: Str, apiKeyIndex: str, accountIndex: str, params: dict = {}):
         self.init_auth_object(accountIndex, apiKeyIndex)
-        cachedAuths = self.safe_dict(self.options['auths'][accountIndex], apiKeyIndex)
+        cachedAuths = self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accountIndex, {}), apiKeyIndex)
         signer = self.safe_value(cachedAuths, 'signer')
         if signer is not None:
             return signer
@@ -410,7 +410,7 @@ class lighter(Exchange, ImplicitAPI):
         if lighterPrivateKeyIsSet and (libraryPath is not None) and (apiKeyIndex is not None) and (accountIndex is not None):
             # load lighter library, and create lighter client
             signer = await self.load_lighter_library(libraryPath, chainId, privateKey, self.parse_to_int(apiKeyIndex), self.parse_to_int(accountIndex), True)
-            self.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer
+            self.set_auth_entry(accountIndex, apiKeyIndex, {'signer': signer})
             return signer
         privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
         if privateKeyIsSet and (apiKeyIndex is not None) and (accountIndex is not None):
@@ -418,24 +418,27 @@ class lighter(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
             # load lighter library without creating lighter client
             signer = await self.load_lighter_library(libraryPath, chainId, '', self.parse_to_int(apiKeyIndex), self.parse_to_int(accountIndex), False)
-            self.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer
+            self.set_auth_entry(accountIndex, apiKeyIndex, {'signer': signer})
             res = await self.change_api_key()
             await self.handle_builder_fee_approval(self.parse_to_int(accountIndex), self.parse_to_int(apiKeyIndex))
             return res
         return signer
 
+    def set_auth_entry(self, accIdx: str, keyIdx: str, entry: dict):
+        updated = {}
+        updated[keyIdx] = self.extend(self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry)
+        auths = {}
+        auths[accIdx] = self.extend(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accIdx, {}), updated)
+        self.options['auths'] = self.extend(self.safe_dict(self.options, 'auths', {}), auths)
+
     def init_auth_object(self, strAccountIndex: str, strApiKeyIndex: str):
-        if not ('auths' in self.options):
-            self.options['auths'] = {}
-        if not (strAccountIndex in self.options['auths']):
-            self.options['auths'][strAccountIndex] = {}
-        if not (strApiKeyIndex in self.options['auths'][strAccountIndex]):
-            self.options['auths'][strAccountIndex][strApiKeyIndex] = {
+        if self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex) is None:
+            self.set_auth_entry(strAccountIndex, strApiKeyIndex, {
                 'signer': None,
                 'lighterPrivateKey': None,
                 'deadline': None,
                 'token': None,
-            }
+            })
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
         auths = self.safe_dict(self.options, 'auths')
@@ -457,10 +460,10 @@ class lighter(Exchange, ImplicitAPI):
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         self.init_auth_object(strAccountIndex, strApiKeyIndex)
-        signer = self.safe_dict(self.options['auths'][strAccountIndex][strApiKeyIndex], 'signer')
+        signer = self.safe_dict(self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer')
         if signer is not None:
             return True
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
         loaded = (signer is not None)
         return loaded
@@ -530,7 +533,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         txType, txInfo = self.lighter_sign_create_sub_account(signer, self.extend(signRaw, paramsAccountIndex))
         request = {
             'tx_type': txType,
@@ -561,9 +564,8 @@ class lighter(Exchange, ImplicitAPI):
             'api_key_index': self.parse_to_int(apiKeyIndex),
             'account_index': self.parse_to_int(accountIndex),
         }
-        token = self.lighter_create_auth_token(self.options['auths'][accountIndex][apiKeyIndex]['signer'], request)
-        self.options['auths'][accountIndex][apiKeyIndex]['deadline'] = deadline
-        self.options['auths'][accountIndex][apiKeyIndex]['token'] = token
+        token = self.lighter_create_auth_token(self.safe_value(cachedAuth, 'signer'), request)
+        self.set_auth_entry(accountIndex, apiKeyIndex, {'deadline': deadline, 'token': token})
         return token
 
     def pow(self, n: str, m: str) -> Str:
@@ -595,10 +597,10 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: str) -> str:
+    def sign_l1_and_prepare_tx_info(self, txInfo: str, message: str, privateKey: str) -> str:
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
-        decTxInfo = self.parse_json(txInfo)
+        decTxInfo = self.extend({}, self.parse_json(txInfo))
         decTxInfo['L1Sig'] = signature
         return self.json(decTxInfo)
 
@@ -629,7 +631,7 @@ class lighter(Exchange, ImplicitAPI):
 
     async def check_if_standard_tier(self, accountIndex: float) -> bool:
         tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
-        accountIndexStr = str(accountIndex)
+        accountIndexStr = self.number_to_string(accountIndex)
         isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
         if isStandardTier is not None:
             cachedIsStandard = (isStandardTier is True)
@@ -659,7 +661,7 @@ class lighter(Exchange, ImplicitAPI):
     async def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: dict = {}) -> dict:
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, self.extend(params, {'skipNonce': False}))
         expiry = self.milliseconds() + 365 * 864000
         signRaw = {
@@ -685,7 +687,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'changeApiKey', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signerNotLoad = self.options['auths'][strAccountIndex][strApiKeyIndex]['signer']
+        signerNotLoad = self.safe_value(self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer')
         privateKey, publicKey = self.lighter_generate_api_key(signerNotLoad)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, self.extend(paramsAccountIndex, {'skipNonce': False}))
         signRaw = {
@@ -695,7 +697,7 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         # create lighter client
-        signer = self.lighter_create_client(signerNotLoad, self.options['chainId'], privateKey, apiKeyIndex, accountIndex)
+        signer = self.lighter_create_client(signerNotLoad, self.safe_integer(self.options, 'chainId'), privateKey, apiKeyIndex, accountIndex)
         txType, txInfo, messageToSign = self.lighter_sign_change_pubkey(signer, self.extend(signRaw, paramsAccountIndex))
         newTxInfo = self.sign_l1_and_prepare_tx_info(txInfo, messageToSign, self.privateKey)
         request = {
@@ -703,8 +705,7 @@ class lighter(Exchange, ImplicitAPI):
             'tx_info': newTxInfo,
         }
         await self.publicPostSendTx(request)
-        self.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'] = privateKey
-        self.options['auths'][strAccountIndex][strApiKeyIndex]['signer'] = signer  # reassign signer in go
+        self.set_auth_entry(strAccountIndex, strApiKeyIndex, {'lighterPrivateKey': privateKey, 'signer': signer})  # reassign signer in go
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
         return signer
 
@@ -713,7 +714,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[dict]:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -731,7 +732,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.apiKeyIndex]: apiKeyIndex
         :param int [params.accountIndex]: accountIndex
         :param int [params.orderExpiry]: orderExpiry
-        :returns any[]: request to be sent to the exchange
+        :returns dict[]: request to be sent to the exchange
         """
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
@@ -819,14 +820,15 @@ class lighter(Exchange, ImplicitAPI):
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
         request['trigger_price'] = self.parse_to_int(Precise.string_mul(triggerPriceStr, priceScale))
         if self.safe_bool(self.options, 'builderFee', True):
-            request['integrator_account_index'] = self.options['integratorAccountIndex']
-            request['integrator_taker_fee'] = self.options['integratorTakerFee']
-            request['integrator_maker_fee'] = self.options['integratorMakerFee']
+            request['integrator_account_index'] = self.safe_integer(self.options, 'integratorAccountIndex')
+            request['integrator_taker_fee'] = self.safe_integer(self.options, 'integratorTakerFee')
+            request['integrator_maker_fee'] = self.safe_integer(self.options, 'integratorMakerFee')
         orders = []
-        orders.append(self.extend(request, paramsRequest))
+        firstOrder = self.extend(request, paramsRequest)
+        orders.append(firstOrder)
         if hasStopLoss or hasTakeProfit:
             # group order
-            orders[0]['client_order_index'] = 0  # client order index should be 0
+            firstOrder['client_order_index'] = 0  # client order index should be 0
             triggerOrderSide = ''
             if orderSide == 'BUY':
                 triggerOrderSide = 'sell'
@@ -840,17 +842,17 @@ class lighter(Exchange, ImplicitAPI):
             takeProfitOrderLimitPrice = self.safe_number_2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice)
             # amount should be 0 for child orders
             if stopLoss is not None:
-                orderObj = self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, self.extend(paramsRequest, {
+                orderObj = self.safe_dict(self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, self.extend(paramsRequest, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': True,
-                }))[0]
+                })), 0, {})
                 orderObj['client_order_index'] = 0
                 orders.append(orderObj)
             if takeProfit is not None:
-                orderObj = self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, self.extend(paramsRequest, {
+                orderObj = self.safe_dict(self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, self.extend(paramsRequest, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': True,
-                }))[0]
+                })), 0, {})
                 orderObj['client_order_index'] = 0
                 orders.append(orderObj)
         return orders
@@ -881,7 +883,7 @@ class lighter(Exchange, ImplicitAPI):
         # before order-req creation, we need to know account status
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         try:
             isStandardTier = await self.check_if_standard_tier(accountIndex)
             if isStandardTier:
@@ -912,14 +914,14 @@ class lighter(Exchange, ImplicitAPI):
             signingPayload = {
                 'grouping_type': groupingType,
                 'orders': orderRequests,
-                'nonce': order['nonce'],
+                'nonce': self.safe_integer(order, 'nonce'),
                 'api_key_index': apiKeyIndex,
                 'account_index': accountIndex,
             }
             if self.safe_bool(self.options, 'builderFee', True):
-                signingPayload['integrator_account_index'] = order['integrator_account_index']
-                signingPayload['integrator_taker_fee'] = order['integrator_taker_fee']
-                signingPayload['integrator_maker_fee'] = order['integrator_maker_fee']
+                signingPayload['integrator_account_index'] = self.safe_integer(order, 'integrator_account_index')
+                signingPayload['integrator_taker_fee'] = self.safe_integer(order, 'integrator_taker_fee')
+                signingPayload['integrator_maker_fee'] = self.safe_integer(order, 'integrator_maker_fee')
             txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
         return [txType, txInfo, order]
 
@@ -979,7 +981,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'editOrder', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         market = self.market(symbol)
         marketInfo = self.safe_dict(market, 'info', {})
         amountScale = self.pow('10', marketInfo['size_decimals'])
@@ -1006,9 +1008,9 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         if self.safe_bool(self.options, 'builderFee', True):
-            signRaw['integrator_account_index'] = self.options['integratorAccountIndex']
-            signRaw['integrator_taker_fee'] = self.options['integratorTakerFee']
-            signRaw['integrator_maker_fee'] = self.options['integratorMakerFee']
+            signRaw['integrator_account_index'] = self.safe_integer(self.options, 'integratorAccountIndex')
+            signRaw['integrator_taker_fee'] = self.safe_integer(self.options, 'integratorTakerFee')
+            signRaw['integrator_maker_fee'] = self.safe_integer(self.options, 'integratorMakerFee')
         txType, txInfo = self.lighter_sign_modify_order(signer, self.extend(signRaw, paramsOmitted))
         request = {
             'tx_type': txType,
@@ -1165,7 +1167,8 @@ class lighter(Exchange, ImplicitAPI):
             marketSymbol = self.safe_string(market, 'symbol')
             baseId = marketSymbol
             if marketSymbol is not None and marketSymbol.find('/') != -1:
-                baseId = marketSymbol.split('/')[0]
+                symbolParts = marketSymbol.split('/')
+                baseId = symbolParts[0]
             quoteId = 'USDC'
             settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
@@ -1270,7 +1273,7 @@ class lighter(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'asset_id')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'symbol'))
-        decimals = self.safe_string(rawCurrency, 'decimals')
+        decimals = self.safe_string(rawCurrency, 'decimals', '')
         isUSDC = (code == 'USDC')
         depositMin = None
         withdrawMin = None
@@ -1782,13 +1785,13 @@ class lighter(Exchange, ImplicitAPI):
                     asset = self.safe_dict(assets, j)
                     codeId = self.safe_string(asset, 'symbol')
                     code = self.safe_currency_code(codeId)
-                    balance = self.safe_dict(result, code, self.account())
+                    balance = self.extend(self.account(), self.safe_dict(result, code, {}))
                     balance['total'] = Precise.string_add(balance['total'], self.safe_string(asset, 'balance'))
                     balance['used'] = Precise.string_add(balance['used'], self.safe_string(asset, 'locked_balance'))
                     if code is not None:
                         result[code] = balance
             else:
-                perpBalance = self.safe_dict(result, 'USDC', self.account())
+                perpBalance = self.extend(self.account(), self.safe_dict(result, 'USDC', {}))
                 perpTotal = self.safe_string(perpBalance, 'total', '0')
                 perpFree = self.safe_string(perpBalance, 'free', '0')
                 perpUSDCTotal = self.safe_string(account, 'collateral', '0')
@@ -2069,7 +2072,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         market = self.market(symbol)
         request = {
             'market_id': market['id'],
@@ -2142,7 +2145,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         market = self.market(symbol)
         request = {
             'market_id': market['id'],
@@ -2360,7 +2363,7 @@ class lighter(Exchange, ImplicitAPI):
             '1': 'good-till-time',
             '2': 'post-only',
         }
-        return self.safe_string(timeInForces, str(tifInteger))
+        return self.safe_string(timeInForces, self.number_to_string(tifInteger))
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
@@ -2383,7 +2386,7 @@ class lighter(Exchange, ImplicitAPI):
         toAccountIndex, paramsToAccountIndex = self.handle_option_and_params_2(paramsAccountIndex, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex)
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)
         currency = self.currency(code)
         currencyCode = currency['code']
         if (currencyCode != 'USDC') and (currencyCode != 'ETH'):
@@ -2441,7 +2444,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchTransfers', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2542,7 +2545,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchDeposits', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2597,7 +2600,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2707,7 +2710,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'withdraw', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         currency = self.currency(code)
         currencyCode = currency['code']
         if (currencyCode != 'USDC') and (currencyCode != 'ETH'):
@@ -2803,7 +2806,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(paramsAccountIndex, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
+        await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)
         request = {
             'sort_by': 'timestamp',
             'limit': 100,
@@ -2972,7 +2975,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         market = self.market(symbol)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         signRaw = {
@@ -3002,7 +3005,7 @@ class lighter(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsAccountIndex, ['client_order_index', 'clientOrderId'])
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsOmitted)
         signRaw = {
             'market_index': self.parse_to_int(market['id']),
@@ -3045,7 +3048,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, method, 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         signRaw = {
             'time_in_force': 0,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
@@ -3095,7 +3098,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         timeInForce = 2  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         cancelTime = 0
@@ -3166,7 +3169,7 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'setMargin', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
+        signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         market = self.market(symbol)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         signRaw = {
@@ -3229,7 +3232,7 @@ class lighter(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
@@ -3238,11 +3241,11 @@ class lighter(Exchange, ImplicitAPI):
         #         "message": "string"
         #     }
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if code is not None and code != '0' and code != '200':
+        if codeError is not None and codeError != '0' and codeError != '200':
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

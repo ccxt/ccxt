@@ -14,7 +14,7 @@ import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeSt
  * @augments Exchange
  */
 export default class onetrading extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -1128,7 +1128,9 @@ export default class onetrading extends Exchange {
         if (periodUnit === undefined) {
             throw new ExchangeError (this.id + ' fetchOHLCV() missing periodUnit');
         }
-        const [ period, unit ] = periodUnit.split ('/');
+        const periodUnitParts = periodUnit.split ('/');
+        const period = periodUnitParts[0];
+        const unit = periodUnitParts[1];
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         const limitResolved = (limit === undefined) ? 1500 : limit;
@@ -1969,7 +1971,7 @@ export default class onetrading extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

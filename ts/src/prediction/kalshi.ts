@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint, NullableDict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, P
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -271,11 +271,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                const eventKey: string = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug (eventTitle) : '';
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
-                    if (eventKey !== '') {
+                    if (eventTitle !== undefined && eventTitle !== '') {
+                        const eventKey = this.shortenSlug (eventTitle);
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -405,7 +405,8 @@ export default class kalshi extends Exchange {
     override async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
         const tickers: string[] = [];
         const seen: Dict = {};
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        const outcomeSymbolsLength = outcomeSymbols.length;
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             const outcomeSymbol = outcomeSymbols[i];
             if (outcomeSymbol.indexOf (':') >= 0) {
                 continue;
@@ -449,7 +450,7 @@ export default class kalshi extends Exchange {
                 this.indexMarketOutcomes (parsed);
             }
         }
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             if (!this.hasOutcome (outcomeSymbols[i])) {
                 await this.fetchOutcome (outcomeSymbols[i]);
             }
@@ -457,7 +458,7 @@ export default class kalshi extends Exchange {
         return this.outcomes;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -564,15 +565,14 @@ export default class kalshi extends Exchange {
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        let eventParts: string[] = [];
-        if ((eventTicker !== undefined) && (eventTicker !== '')) {
-            eventParts = eventTicker.split ('-');
-        }
         let seriesTicker = eventTicker;
-        const eventPartsLength = eventParts.length;
-        if (eventPartsLength > 1) {
-            const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
-            seriesTicker = seriesParts.join ('-');
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
+            const eventParts = eventTicker.split ('-');
+            const eventPartsLength = eventParts.length;
+            if (eventPartsLength > 1) {
+                const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
+                seriesTicker = seriesParts.join ('-');
+            }
         }
         // market symbol (no outcome suffix)
         let subtitleOrTicker: Str = ticker;
@@ -990,15 +990,11 @@ export default class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes (outcomes);
-        const targets: any[] = [];
-        for (let i = 0; i < outcomes.length; i++) {
-            targets.push (outcomes[i]);
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
         const tickers: any[] = [];
-        for (let i = 0; i < targets.length; i++) {
-            const outcomeObj = this.outcome (targets[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
             if (ticker === undefined) {
                 continue;
@@ -1008,7 +1004,7 @@ export default class kalshi extends Exchange {
                 tickers.push (ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesByTicker[ticker];
+            const grouped = this.safeList (outcomesByTicker, ticker, []);
             grouped.push (outcomeObj);
             outcomesByTicker[ticker] = grouped;
         }
@@ -2056,7 +2052,7 @@ export default class kalshi extends Exchange {
         const filledCount = this.safeNumber (response, 'fill_count');
         if (filledCount !== undefined) {
             order['filled'] = filledCount;
-        } else if ((remainingCount !== undefined) && (amount !== undefined)) {
+        } else if (remainingCount !== undefined) {
             order['filled'] = amount - remainingCount;
         }
         if (remainingCount !== undefined) {
@@ -2650,7 +2646,7 @@ export default class kalshi extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'kalshi' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const access: string = this.safeString (api, 1, 'public');
+        const access: string = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi']);
         const implodedPath = this.implodeParams (path, params);

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\poloniex as Exchange;
 
 class poloniex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'poloniex',
             'name' => 'Poloniex',
@@ -863,7 +863,7 @@ class poloniex extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        if (is_array($market) && array_key_exists('ctType' ?? '', $market)) {
+        if ($this->safe_string($market, 'ctType') !== null) {
             return $this->parse_swap_market($market);
         } else {
             return $this->parse_spot_market($market);
@@ -980,10 +980,10 @@ class poloniex extends Exchange {
         $linear = $this->safe_string($market, 'ctType') === 'LINEAR';
         $symbol = $base . '/' . $quote;
         if ($linear) {
-            $symbol .= ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
         } else {
             // actually, exchange does not have any inverse future now
-            $symbol .= ':' . $base;
+            $symbol = $base . '/' . $quote . ':' . $base;
         }
         $alias = $this->safe_string($market, 'alias');
         $type = 'swap';
@@ -1471,7 +1471,7 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_integer_n($trade, array( 'ts', 'createTime', 'cT', 'cTime' ));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower_2($trade, 'side', 'takerSide');
         $fee = null;
         $priceString = $this->safe_string_2($trade, 'price', 'px');
@@ -1787,7 +1787,7 @@ class poloniex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
         if ($resultingTrades !== null) {
             if ((gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades)))) {
@@ -1873,7 +1873,7 @@ class poloniex extends Exchange {
 
     public function parse_open_orders(array $orders, array $market, array $result): array {
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i, array());
             $extended = $this->extend($order, array(
                 'status' => 'open',
                 'type' => 'limit',
@@ -2138,7 +2138,7 @@ class poloniex extends Exchange {
         $isContract = false;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
-            $symbol = $rawOrder['symbol'];
+            $symbol = $this->safe_string($rawOrder, 'symbol', '');
             $marketInner = $this->market($symbol);
             $marketInnerType = $this->safe_string($marketInner, 'type');
             $marketType = $this->safe_string($market, 'type');
@@ -2166,7 +2166,7 @@ class poloniex extends Exchange {
                 if (!(is_array($merged) && array_key_exists('mgnMode' ?? '', $merged))) {
                     $merged['mgnMode'] = 'CROSS';
                 }
-                if (!(is_array($merged) && array_key_exists('posSide' ?? '', $merged))) {
+                if ($this->safe_string($merged, 'posSide') === null) {
                     $merged['posSide'] = 'BOTH';
                 }
             }
@@ -2200,7 +2200,7 @@ class poloniex extends Exchange {
         $results = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             $entryMarket = $ordersMarkets[$i];
             $results[] = $this->parse_order($entry, $entryMarket);
         }
@@ -2208,6 +2208,8 @@ class poloniex extends Exchange {
     }
 
     public function order_request(string $symbol, string $type, string $side, ?float $amount, array $request, ?float $price = null, $params = array()): array {
+        // build the request on a copy: the caller keeps its own dict and reads ours
+        $result = $this->extend(array(), $request);
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
         $isContract = ($market['contract'] === true);
@@ -2221,13 +2223,14 @@ class poloniex extends Exchange {
         if ($isContract) {
             if ($marginMode !== null) {
                 $this->check_required_argument('createOrder', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
-                $request['mgnMode'] = strtoupper($marginMode);
+                // the argument check above leaves only 'cross' or 'isolated'
+                $result['mgnMode'] = ($marginMode === 'isolated') ? 'ISOLATED' : 'CROSS';
             }
             if (($hedged !== null) && ($hedged !== '')) {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!(is_array($query) && array_key_exists('posSide' ?? '', $query))) {
+                if ($this->safe_string($query, 'posSide') === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
@@ -2238,14 +2241,14 @@ class poloniex extends Exchange {
         $queryOmitted = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
             if ($market['spot'] !== true) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support trigger orders for ' . $market['type'] . ' markets');
+                throw new InvalidOrder($this->id . ' createOrder() does not support trigger orders for ' . $this->safe_string($market, 'type', '') . ' markets');
             }
             $upperCaseType = ($price === null) ? 'STOP' : 'STOP_LIMIT';
-            $request['stopPrice'] = $triggerPrice;
+            $result['stopPrice'] = $triggerPrice;
         } elseif ($isPostOnly) {
             $upperCaseType = 'LIMIT_MAKER';
         }
-        $request['type'] = $upperCaseType;
+        $result['type'] = $upperCaseType;
         if ($isMarket) {
             if ($side === 'buy') {
                 $quoteAmount = null;
@@ -2271,25 +2274,25 @@ class poloniex extends Exchange {
                 if ($market['spot'] === true) {
                     $amountKey = 'amount';
                 }
-                $request[$amountKey] = $quoteAmount;
+                $result[$amountKey] = $quoteAmount;
             } else {
                 $amountKey = 'sz';
                 if ($market['spot'] === true) {
                     $amountKey = 'quantity';
                 }
-                $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
+                $result[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
             $amountKey = 'sz';
             if ($market['spot'] === true) {
                 $amountKey = 'quantity';
             }
-            $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
+            $result[$amountKey] = $this->amount_to_precision($symbol, $amount);
             $priceKey = 'px';
             if ($market['spot'] === true) {
                 $priceKey = 'price';
             }
-            $request[$priceKey] = $this->price_to_precision($symbol, $price);
+            $result[$priceKey] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string_2($queryOmitted, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
@@ -2298,11 +2301,11 @@ class poloniex extends Exchange {
             if ($market['spot'] === true) {
                 $clientOrderIdKey = 'clientOrderId';
             }
-            $request[$clientOrderIdKey] = $clientOrderId;
+            $result[$clientOrderIdKey] = $clientOrderId;
             $queryOmitted = $this->omit($queryOmitted, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the request
-        return array( $request, $queryOmitted );
+        return array( $result, $queryOmitted );
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -2326,7 +2329,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['spot'] !== true) {
-            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders, only spot orders are accepted');
         }
         $request = array(
             'id' => $id,
@@ -2561,7 +2564,7 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
-        $idValue = (string) $id;
+        $idValue = $this->number_to_string($id);
         $request = array(
             'id' => $idValue,
         );
@@ -2961,7 +2964,7 @@ class poloniex extends Exchange {
         $networkCode = $this->network_id_to_code($networkCode, $code);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry !== null) {
-            $exchangeNetworkId = $networkEntry['id'];
+            $exchangeNetworkId = $this->safe_string($networkEntry, 'id');
         } else {
             $exchangeNetworkId = $this->network_code_to_id($networkCode, $code);
         }
@@ -2974,12 +2977,12 @@ class poloniex extends Exchange {
     public function parse_deposit_address_special(array $response, mixed $currency, array $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
-            $address = $this->safe_string($response, $networkEntry['id']);
+            $address = $this->safe_string($response, $this->safe_string($networkEntry, 'id'));
         }
         $tag = null;
         $this->check_address($address);
         if ($networkEntry !== null) {
-            $depositAddress = $this->safe_string($networkEntry['info'], 'depositAddress');
+            $depositAddress = $this->safe_string($this->safe_dict($networkEntry, 'info', array()), 'depositAddress');
             if ($depositAddress !== null) {
                 $tag = $address;
                 $address = $depositAddress;
@@ -2987,7 +2990,7 @@ class poloniex extends Exchange {
         }
         return array(
             'info' => $response,
-            'currency' => $currency['code'],
+            'currency' => $this->safe_string($currency, 'code'),
             'network' => $this->safe_string($networkEntry, 'network'),
             'address' => $address,
             'tag' => $tag,
@@ -3371,10 +3374,10 @@ class poloniex extends Exchange {
             $entries = $response;
         }
         for ($i = 0; $i < count($entries); $i++) {
-            $entry = $entries[$i];
+            $entry = $this->safe_dict($entries, $i, array());
             $currencies = is_array($entry) ? array_keys($entry) : array();
             $currencyId = $this->safe_string($currencies, 0);
-            $data[$currencyId] = $entry[$currencyId];
+            $data[$currencyId] = $this->safe_value($entry, $currencyId);
         }
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
@@ -3407,10 +3410,11 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($responseKeys); $i++) {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            $feeInfo = $response[$currencyId];
+            $feeInfo = $this->safe_dict($response, $currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
+                $parsedFee = $this->safe_dict($depositWithdrawFees, $code, array());
                 $childChains = $this->safe_list($feeInfo, 'childChains', array());
                 $chainsLength = count($childChains);
                 if ($chainsLength > 0) {
@@ -3433,18 +3437,20 @@ class poloniex extends Exchange {
                                 ),
                             );
                         }
-                        $depositWithdrawFees[$code]['networks'] = $this->extend($depositWithdrawFees[$code]['networks'], $networkObject);
+                        $parsedFee['networks'] = $this->extend($this->safe_dict($parsedFee, 'networks', array()), $networkObject);
                     }
                 }
+                $depositWithdrawFees[$code] = $parsedFee;
             }
         }
         return $depositWithdrawFees;
     }
 
     public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
-        $depositWithdrawFee = $this->deposit_withdraw_fee(array());
         $currencyCode = $this->safe_string($currency, 'code');
-        $depositWithdrawFee['info'][$currencyCode] = $fee;
+        $info = array();
+        $info[$currencyCode] = $fee;
+        $depositWithdrawFee = $this->deposit_withdraw_fee($info);
         $networkId = $this->safe_string($fee, 'blockchain');
         $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
         $withdrawResult = array(
@@ -3459,10 +3465,12 @@ class poloniex extends Exchange {
         $depositWithdrawFee['deposit'] = $depositResult;
         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
         if ($networkCode !== null) {
-            $depositWithdrawFee['networks'][$networkCode] = array(
+            $networks = array();
+            $networks[$networkCode] = array(
                 'withdraw' => $withdrawResult,
                 'deposit' => $depositResult,
             );
+            $depositWithdrawFee['networks'] = $networks;
         }
         return $depositWithdrawFee;
     }
@@ -3542,7 +3550,7 @@ class poloniex extends Exchange {
         // if it's being parsed from "withdraw()" method, get the original response
         $transactionValue = $transaction;
         if (is_array($transaction) && array_key_exists('withdrawNetworkEntry' ?? '', $transaction)) {
-            $transactionValue = $transaction['response'];
+            $transactionValue = $this->safe_dict($transaction, 'response', array());
         }
         $timestamp = $this->safe_timestamp($transactionValue, 'timestamp');
         $currencyId = $this->safe_string($transactionValue, 'currency');
@@ -3551,7 +3559,7 @@ class poloniex extends Exchange {
         $status = $this->parse_transaction_status($status);
         $txid = $this->safe_string($transactionValue, 'txid');
         $type = 'deposit';
-        if (is_array($transactionValue) && array_key_exists('withdrawalRequestsId' ?? '', $transactionValue)) {
+        if ($this->safe_string($transactionValue, 'withdrawalRequestsId') !== null) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transactionValue, 'withdrawalRequestsId', 'depositNumber');
@@ -3613,7 +3621,7 @@ class poloniex extends Exchange {
         }
         list($hedged, $paramsHedged) = $this->handle_param_bool($paramsMarginMode, 'hedged', false);
         if ($hedged === true) {
-            if (!(is_array($paramsHedged) && array_key_exists('posSide' ?? '', $paramsHedged))) {
+            if ($this->safe_string($paramsHedged, 'posSide') === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for hedged mode => "LONG" or "SHORT"');
             }
         }
@@ -3760,7 +3768,7 @@ class poloniex extends Exchange {
          * @return {array} $response from the exchange
          */
         $mode = 'ONE_WAY';
-        if ($hedged) {
+        if ($hedged === true) {
             $mode = 'HEDGE';
         }
         $request = array(
@@ -3900,7 +3908,7 @@ class poloniex extends Exchange {
             'positionMargin' => $this->parse_number($positionMargin),
             'initialMargin' => $initialMargin,
             'initialMarginPercentage' => null,
-            'leverage' => intval($leverage),
+            'leverage' => $this->safe_integer($position, 'lever'),
             'marginRatio' => $this->safe_number($position, 'mgnRatio'),
             'stopLossPrice' => $this->safe_number($position, 'slTrgPx'),
             'takeProfitPrice' => $this->safe_number($position, 'tpTrgPx'),
@@ -3983,34 +3991,35 @@ class poloniex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
-        $url = $this->urls['api']['spot'];
-        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
-            $url = $this->urls['api']['swap'];
-        }
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
+        $url = $this->safe_string($this->urls['api'], 'spot', '') . '/' . $implodedPath;
+        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
+            $url = $this->safe_string($this->urls['api'], 'swap', '') . '/' . $implodedPath;
+        }
+        // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
+        // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
+        // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         $bodyJson = null;
         $signedHeaders = null;
         if ($apiName === 'public' || $apiName === 'swapPublic') {
-            $url .= '/' . $implodedPath;
             if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($query);
+                $url = $url . '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $timestamp = (string) $this->nonce();
+            $timestamp = $this->number_to_string($this->nonce());
             $auth = $method . "\n"; // eslint-disable-line quotes
-            $url .= '/' . $implodedPath;
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
@@ -4024,15 +4033,14 @@ class poloniex extends Exchange {
                 $sortedQuery = $this->keysort($sortedQuery);
                 $auth .= "\n" . $this->urlencode($sortedQuery); // eslint-disable-line quotes
                 if (count($query) > 0) {
-                    $url .= '?' . $this->urlencode($query);
+                    $url = $url . '?' . $this->urlencode($query);
                 }
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $signedHeaders = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
                 'signTimestamp' => $timestamp,
-                'signature' => $signature,
+                'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64'),
             );
         }
         $bodyResolved = $bodyJson;
@@ -4040,7 +4048,7 @@ class poloniex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

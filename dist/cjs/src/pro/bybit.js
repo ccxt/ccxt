@@ -179,15 +179,14 @@ class bybit extends bybit$1["default"] {
         return requestId;
     }
     async getUrlByMarketType(symbol = undefined, isPrivate = false, method = undefined, params = {}) {
-        let accessibility = 'public';
-        if (isPrivate) {
-            accessibility = 'private';
-        }
+        const accessibility = (isPrivate) ? 'private' : 'public';
         const methodValue = (method === undefined) ? '' : method;
         let isUsdcSettled = undefined;
         let isSpot = undefined;
         let type = undefined;
         let market = undefined;
+        const wsUrls = this.safeDict(this.urls['api'], 'ws', {});
+        const accessibilityUrls = this.safeDict(wsUrls, accessibility, {});
         let url = this.urls['api']['ws'];
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -207,23 +206,23 @@ class bybit extends bybit$1["default"] {
             const isUnifiedMargin = this.safeBool(unified, 0, false);
             const isUnifiedAccount = this.safeBool(unified, 1, false);
             if (isUsdcSettled && (!isUnifiedMargin) && (!isUnifiedAccount)) {
-                url = url[accessibility]['usdc'];
+                url = accessibilityUrls['usdc'];
             }
             else {
-                url = url[accessibility]['contract'];
+                url = accessibilityUrls['contract'];
             }
         }
         else {
             if (isSpot) {
-                url = url[accessibility]['spot'];
+                url = accessibilityUrls['spot'];
             }
             else if ((type === 'swap') || (type === 'future')) {
                 const subType = this.handleSubTypeAndParams(methodValue, market, params, 'linear')[0];
-                url = url[accessibility][subType];
+                url = accessibilityUrls[subType];
             }
             else {
                 // option
-                url = url[accessibility]['option'];
+                url = accessibilityUrls['option'];
             }
         }
         url = this.implodeHostname(url);
@@ -269,7 +268,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -280,7 +279,7 @@ class bybit extends bybit$1["default"] {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+                'X-BAPI-RECV-WINDOW': this.numberToString(this.options['recvWindow']),
             },
         };
         return await this.watch(url, requestId, request, requestId, true);
@@ -315,7 +314,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -326,7 +325,7 @@ class bybit extends bybit$1["default"] {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+                'X-BAPI-RECV-WINDOW': this.numberToString(this.options['recvWindow']),
             },
         };
         return await this.watch(url, requestId, request, requestId, true);
@@ -352,7 +351,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         if ('orderFilter' in orderRequest) {
@@ -366,7 +365,7 @@ class bybit extends bybit$1["default"] {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+                'X-BAPI-RECV-WINDOW': this.numberToString(this.options['recvWindow']),
             },
         };
         return await this.watch(url, requestId, request, requestId, true);
@@ -391,12 +390,11 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchTicker', params);
         const paramsValue = this.cleanParams(params);
         const options = this.safeDict(this.options, 'watchTicker', {});
-        let topic = this.safeString(options, 'name', 'tickers');
+        const topic = this.safeString(options, 'name', 'tickers');
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new errors.BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
-        topic += '.' + market['id'];
-        const topics = [topic];
+        const topics = [topic + '.' + this.safeString(market, 'id', '')];
         return await this.watchTopics(url, [messageHash], topics, paramsValue);
     }
     /**
@@ -422,9 +420,9 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             topics.push(topic + '.' + marketId);
-            messageHashes.push('ticker:' + symbolsValue[i]);
+            messageHashes.push('ticker:' + this.safeString(symbolsValue, i, ''));
         }
         const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
@@ -459,7 +457,7 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             const symbol = symbolsValue[i];
             topics.push(topic + '.' + marketId);
             subMessageHashes.push('ticker:' + symbol);
@@ -652,10 +650,10 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             const topic = 'orderbook.1.' + marketId;
             topics.push(topic);
-            messageHashes.push('bidask:' + symbolsValue[i]);
+            messageHashes.push('bidask:' + this.safeString(symbolsValue, i, ''));
         }
         const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
@@ -726,7 +724,8 @@ class bybit extends bybit$1["default"] {
             const symbolString = market['symbol'];
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push('kline.' + timeframeId + '.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            rawHashes.push('kline.' + timeframeId + '.' + marketId);
             messageHashes.push('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [symbol, timeframe, stored] = await this.watchTopics(url, messageHashes, rawHashes, params);
@@ -764,7 +763,8 @@ class bybit extends bybit$1["default"] {
             const symbolString = market['symbol'];
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push('kline.' + timeframeId + '.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            rawHashes.push('kline.' + timeframeId + '.' + marketId);
             subMessageHashes.push('ohlcv::' + symbolString + '::' + unfiedTimeframe);
             messageHashes.push('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
@@ -920,7 +920,7 @@ class bybit extends bybit$1["default"] {
             };
             const selectedLimits = this.safeList2(limits, market['type'], 'default', []);
             if (!this.inArray(limit, selectedLimits)) {
-                throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
+                throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + this.safeString(market, 'type', '') + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
         const topics = [];
@@ -928,7 +928,7 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const marketId = this.marketId(symbol);
-            const topic = 'orderbook.' + limitResolved.toString() + '.' + marketId;
+            const topic = 'orderbook.' + this.numberToString(limitResolved) + '.' + marketId;
             topics.push(topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push(messageHash);
@@ -967,7 +967,7 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             const topic = channel + '.' + marketId;
             messageHashes.push('unsubscribe:orderbook:' + symbol);
             subMessageHashes.push('orderbook:' + symbol);
@@ -1115,7 +1115,8 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const topic = 'publicTrade.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            const topic = 'publicTrade.' + marketId;
             topics.push(topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push(messageHash);
@@ -1150,7 +1151,8 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const topic = 'publicTrade.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            const topic = 'publicTrade.' + marketId;
             topics.push(topic);
             const messageHash = 'unsubscribe:trade:' + symbol;
             messageHashes.push(messageHash);
@@ -1495,7 +1497,7 @@ class bybit extends bybit$1["default"] {
             execTypes = execTypeOption;
         }
         for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+            const rawTrade = this.safeDict(data, i, {});
             let parsed = undefined;
             if (spot && !executionFast) {
                 parsed = this.parseWsTrade(rawTrade);
@@ -1735,7 +1737,8 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchLiquidations', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(this.cleanParams(params), 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
-        const topic = method + '.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const topic = method + '.' + marketId;
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], paramsMethod);
         if (this.newUpdates) {
             return newLiquidation;
@@ -2272,13 +2275,13 @@ class bybit extends bybit$1["default"] {
             info = rawBalances;
         }
         if (topic === 'wallet') {
-            const data = this.safeValue(message, 'data', {});
+            const data = this.safeList(message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const result = this.safeDict(data, 0, {});
                 account = this.safeStringLower(result, 'accountType');
                 rawBalances = this.arrayConcat(rawBalances, this.safeList(result, 'coin', []));
             }
-            info = data;
+            info = this.safeList(message, 'data', []);
         }
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance(rawBalances[i], account);
@@ -2512,7 +2515,7 @@ class bybit extends bybit$1["default"] {
             }
             const success = this.safeBool(message, 'success');
             if ((success !== undefined) && (!success)) {
-                const ret_msg = this.safeString(message, 'ret_msg');
+                const ret_msg = this.safeString(message, 'ret_msg', '');
                 const request = this.safeDict(message, 'request', {});
                 const op = this.safeString(request, 'op');
                 if (op === 'auth') {

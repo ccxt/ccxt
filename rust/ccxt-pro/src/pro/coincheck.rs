@@ -292,13 +292,13 @@ impl CoincheckCore {
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-orderbook".into())).into()));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k(market, "id", &[Value::Str("".into())]), Value::Str("-orderbook".into())).into()));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -326,21 +326,15 @@ impl CoincheckCore {
         //         }
         //     ]
         //
-        let mut symbol: Value = self.symbol(self.safe_string(message.clone(), Value::Int(0), &[]));
+        let mut symbol: Value = self.safe_string(self.market(self.safe_string(message.clone(), Value::Int(0), &[])), Value::Str("symbol".into()), &[Value::Str("".into())]);
         let mut data: Value = self.safe_dict(message, Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut timestamp: Value = self.safe_timestamp_k(data.clone(), "last_update_at", &[]);
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp]);
-        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if (orderbook == Value::Null) {
-            orderbook = self.order_book(&[snapshot.clone()]);
-            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        }  else {
-            orderbook = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            orderbook.reset(snapshot);
-        }
+        let mut orderbook: Value = self.order_book(&[snapshot]);
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         client.resolve(&[orderbook, messageHash]);
 }
@@ -367,20 +361,19 @@ impl CoincheckCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-trades".into())).into()));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("-trades".into())).into()));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -403,7 +396,7 @@ impl CoincheckCore {
         //     ]
         //
         let mut first: Value = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut symbol: Value = self.symbol(self.safe_string(first, Value::Int(2), &[]));
+        let mut symbol: Value = self.safe_string(self.market(self.safe_string(first, Value::Int(2), &[])), Value::Str("symbol".into()), &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -412,8 +405,8 @@ impl CoincheckCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_279: bool = true;
-            while { if !__for_first_279 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_276 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut data: Value = self.safe_value(message.clone(), i.clone(), &[]);
             let mut trade: Value = self.parse_ws_trade(data, &[]);
             stored.append(trade);
@@ -439,9 +432,9 @@ impl CoincheckCore {
         //
         let mut symbol: Value = self.symbol(self.safe_string(trade.clone(), Value::Int(2), &[]));
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Int(0), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Int(5), &[]);
-        let mut priceString: Value = self.safe_string(trade.clone(), Value::Int(3), &[]);
-        let mut amountString: Value = self.safe_string(trade.clone(), Value::Int(4), &[]);
+        let mut side: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(5), &[]);
+        let mut priceString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
+        let mut amountString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(4), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(trade.clone(), Value::Int(1), &[]));
@@ -451,10 +444,10 @@ impl CoincheckCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m

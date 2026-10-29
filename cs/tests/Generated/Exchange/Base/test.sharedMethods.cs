@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((exchange != null)) ? exchange.id : "undefined";
             object methodString = ((method != null)) ? method : "undefined";
-            string? entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
+            string entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
             return ((((((" <<< " + (id)) + " ") + (methodString)) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -391,7 +391,7 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check
             if ((value != null))
             {
-                string? stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+                string stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
                 assert(exchange.inArray(value, expectedArray), ((((((("\"" + (stringValue(key))) + "\" key (value \"") + (stringValue(value))) + "\") is not from the expected list : [") + stingifiedArrayValue) + "]") + (logText)));
             }
         }

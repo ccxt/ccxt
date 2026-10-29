@@ -33,7 +33,7 @@ pub const KIND_ARRAY_CACHE_BY_OUTCOME_ID: &str = "ArrayCacheByOutcomeById";
 fn new_marker(kind: &str, max_size: Value) -> Value {
     // The mutable rolling buffer + hashmap + counters live in the shared cache
     // registry (keyed by __cache_id) so COW clones of the marker share them —
-    // see value::CACHE_STORE. The marker Dict keeps only the immutable tags.
+    // see value::WsStateStore. The marker Dict keeps only the immutable tags.
     let mut state: IndexMap<String, Value> = IndexMap::new();
     state.insert("_data".to_string(),             Value::Array(Vec::new()));
     state.insert("hashmap".to_string(),           Value::Map(IndexMap::new()));

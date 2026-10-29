@@ -15,7 +15,7 @@ func newHibachi() *Hibachi {
 	return p
 }
 
-func (this *Hibachi) Describe() any {
+func (this *Hibachi) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "hibachi",
 		"name":      "Hibachi",
@@ -335,7 +335,7 @@ func (this *Hibachi) GetAccountId() any {
 	var id int64 = this.ParseToInt(this.AccountId)
 	return id
 }
-func (this *Hibachi) ParseMarket(market any) any {
+func (this *Hibachi) ParseMarket(market any) map[string]any {
 	var marketId *string = this.SafeString(market, "symbol")
 	var numericId *float64 = this.SafeNumber(market, "id")
 	var marketType string = "swap"
@@ -343,12 +343,12 @@ func (this *Hibachi) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "settlementSymbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	if (base == nil) || (quote == nil) {
-		return nil
-	}
 	var settleId *string = this.SafeString(market, "settlementSymbol")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
+	if (base == nil) || (quote == nil) || (settle == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote + ":" + *settle
 	var created *int64 = this.SafeIntegerProduct(market, "marketCreationTimestamp", 1000)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -704,7 +704,7 @@ func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -763,7 +763,7 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -775,13 +775,13 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		"symbol": market["id"],
 	}
 	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
-
 	r1 := <-promiseAll(rawPromises)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
-	var pricesResponse any = GetValue(promises, 0)
+	var pricesResponsestatsResponseVariable []any = ListTyped(r1.Value)
+	pricesResponse := pricesResponsestatsResponseVariable[0]
+	statsResponse := pricesResponsestatsResponseVariable[1]
 	// {
 	//     "askPrice": "3514.650296",
 	//     "bidPrice": "3513.596112",
@@ -794,7 +794,6 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//     "symbol": "ETH/USDT-P",
 	//     "tradePrice": "2372.746570"
 	// }
-	var statsResponse any = GetValue(promises, 1)
 	// {
 	//     "high24h": "3819.507827",
 	//     "low24h": "3754.474162",
@@ -922,7 +921,7 @@ func (this *Hibachi) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -966,7 +965,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1007,12 +1006,6 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	if IsEqual(typeVar, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a type argument"))
-	}
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a side argument"))
-	}
 	var sideInternal int = 0
 	if IsEqual(side, "sell") {
 		sideInternal = 0
@@ -1026,8 +1019,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any,
 	var amountStr *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
 	var info map[string]any = SafeMapTyped(market, "info")
-	var underlying *string = SafeStringPtr(Add("1e", this.SafeString(info, "underlyingDecimals")))
-	var settlement *string = SafeStringPtr(Add("1e", this.SafeString(info, "settlementDecimals")))
+	var underlying string = "1e" + *this.SafeString(info, "underlyingDecimals", "")
 	var one string = "1"
 	var feeRateFactor string = "100000000" // 10^8
 	var priceFactor string = "4294967296"  // 2^32
@@ -1052,7 +1044,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any,
 	var encodedPrice []byte = this.BinaryConcat()
 	if IsEqual(typeVar, "limit") {
 		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
-		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
+		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), "1e"+*this.SafeString(info, "settlementDecimals", "")), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
 		var pricePadded string = (strings.Repeat("0", max(16-len(price16), 0)) + price16)[max(len(price16)-16, 0):]
 		// @ts-expect-error
@@ -1160,7 +1152,7 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1208,14 +1200,15 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonceValue any = this.IncrementingNonce()
+	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
@@ -1225,7 +1218,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateOrderRequest(nonce+int64(i), symbol, typeVar, side, amount, price, orderParams)
 		orderRequest["action"] = "place"
 		requestOrders = append(requestOrders, orderRequest)
 	}
@@ -1245,12 +1238,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	var ret []any = []any{}
 	var responseOrders []any = SafeListTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = func() any {
-			if i >= 0 && i < len(responseOrders) {
-				return DerefScalar(responseOrders[i])
-			}
-			return nil
-		}()
+		var responseOrder any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1334,7 +1322,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1380,14 +1368,15 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonceValue any = this.IncrementingNonce()
+	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
@@ -1398,7 +1387,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.EditOrderRequest(nonce+int64(i), id, symbol, typeVar, side, amount, price, orderParams)
 		orderRequest["action"] = "modify"
 		requestOrders = append(requestOrders, orderRequest)
 	}
@@ -1418,12 +1407,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	var ret []any = []any{}
 	var responseOrders []any = SafeListTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = func() any {
-			if i >= 0 && i < len(responseOrders) {
-				return DerefScalar(responseOrders[i])
-			}
-			return nil
-		}()
+		var responseOrder any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1513,7 +1497,7 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	_ = params
 	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var orderRequest map[string]any = this.CancelOrderRequest(GetValue(ids, i))
+		var orderRequest map[string]any = this.CancelOrderRequest(this.SafeString(ids, i, ""))
 		orderRequest["action"] = "cancel"
 		orders = append(orders, orderRequest)
 	}
@@ -1533,12 +1517,7 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	var ret []any = []any{}
 	var responseOrders []any = SafeListTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = func() any {
-			if i >= 0 && i < len(responseOrders) {
-				return DerefScalar(responseOrders[i])
-			}
-			return nil
-		}()
+		var responseOrder any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1571,7 +1550,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1726,7 +1705,7 @@ func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	})}
 	return nil
 }
-func (this *Hibachi) Nonce() any {
+func (this *Hibachi) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Hibachi) SignMessage(message any, privateKey any) string {
@@ -1737,10 +1716,10 @@ func (this *Hibachi) SignMessage(message any, privateKey any) string {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
 		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
-		var r *string = SafeStringPtr(signature["r"])
-		var s *string = SafeStringPtr(signature["s"])
+		var r *string = this.SafeString(signature, "r", "")
+		var s *string = this.SafeString(signature, "s", "")
 		var v string = this.IntToBase16(signature["v"])
-		return PadStart(r, 64, "0") + PadStart(s, 64, "0") + (strings.Repeat("0", max(2-len(v), 0)) + v)[max(len(v)-2, 0):]
+		return (strings.Repeat("0", max(64-len(*r), 0)) + *r)[max(len(*r)-64, 0):] + (strings.Repeat("0", max(64-len(*s), 0)) + *s)[max(len(*s)-64, 0):] + (strings.Repeat("0", max(2-len(v), 0)) + v)[max(len(v)-2, 0):]
 	}
 }
 
@@ -1766,7 +1745,7 @@ func (this *Hibachi) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1856,7 +1835,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1897,7 +1876,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//     ]
 	// }
 	//
-	var trades any = this.SafeList(response, "trades")
+	var trades []any = SafeListTyped(response, "trades")
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = ArrayTyped(trades)
@@ -1952,7 +1931,7 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1967,11 +1946,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1860 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1860.Err != nil {
-		panic(listEp1860.Err)
+	listEp1854 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1854.Err != nil {
+		panic(listEp1854.Err)
 	}
-	var response []any = listEp1860.Value
+	var response []any = listEp1854.Value
 
 	// [
 	//     {
@@ -2036,7 +2015,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2057,15 +2036,13 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 		request["startTime"] = since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrdersByStatus", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PrivateGetTradeOrdersHistory(this.Extend(request, paramsUntil))
@@ -2100,7 +2077,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 	//     }
 	//
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(orders, market)
+	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
 	return nil
@@ -2217,7 +2194,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2234,15 +2211,13 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		request["fromMs"] = since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["toMs"] = until
+		request["toMs"] = *until
 	}
 
 	r1 := <-this.PublicGetMarketDataKlines(this.Extend(request, paramsUntil))
@@ -2290,7 +2265,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2402,14 +2377,14 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) Position {
 		"percentage":                  nil,
 	})
 }
-func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Hibachi) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -2432,9 +2407,10 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	}
 	var bodyResult *string = nil
 	if hasJsonBody {
-		bodyResult = SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		bodyResult = &jsonText
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		headersValue["Authorization"] = this.ApiKey
 	}
@@ -2445,20 +2421,20 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Hibachi) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
-	if InOp(response, "status") {
-		//
-		//     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-		//
-		var status *string = this.SafeString(response, "status")
+	var status *string = this.SafeString(response, "status")
+	//
+	//     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+	//
+	if status != nil {
 		if status != nil && *status == "failed" {
-			var code *string = this.SafeString(response, "errorCode")
+			var codeError *string = this.SafeString(response, "errorCode")
 			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+			this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 			var message *string = this.SafeString(response, "message")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			panic(ExchangeError(feedback))
@@ -2582,7 +2558,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2945,12 +2921,7 @@ func (this *Hibachi) ParseSettlements(settlements []any, optionalArgs ...any) []
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(func() any {
-			if i >= 0 && i < len(settlements) {
-				return DerefScalar(settlements[i])
-			}
-			return nil
-		}(), market))
+		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
 	}
 	return result
 }
@@ -3094,7 +3065,7 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3146,7 +3117,7 @@ func (this *Hibachi) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3231,7 +3202,7 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3263,12 +3234,7 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -3293,7 +3259,7 @@ func NewHibachi(userConfig map[string]any) *Hibachi {
 func (this *Hibachi) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -3723,7 +3689,7 @@ func (this *Hibachi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Hibachi) FetchOrdersByStatus(status string, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -4015,7 +3981,10 @@ func (this *Hibachi) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

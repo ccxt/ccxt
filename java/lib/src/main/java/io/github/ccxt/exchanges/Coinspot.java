@@ -31,7 +31,7 @@ public class Coinspot extends CoinspotApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinspot" );
@@ -615,15 +615,17 @@ public class Coinspot extends CoinspotApi
         Object balances = this.safeValue2(response, "balance", "balances");
         if ((balances instanceof List))
         {
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            List<Object> rows = this.toArray(balances);
+            Integer numRows = ((List<?>)rows).size();
+            for (var i = 0; (numRows != null && i < numRows); i++)
             {
-                Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
-                List<Object> currencyIds = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
-                for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
+                Map<String, Object> currencies = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+                List<String> currencyIdsList = new ArrayList<String>(currencies.keySet());
+                for (var j = 0; j < ((List<?>)currencyIdsList).size(); j++)
                 {
-                    Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                    String currencyId = (currencyIdsList == null || j < 0 || j >= currencyIdsList.size() ? null : currencyIdsList.get(j));
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     Map<String, Object> account = this.account();
                     account.put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
@@ -634,10 +636,10 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            List<Object> currencyIds = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+            List<Object> currencyIdsMap = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            for (var i = 0; i < ((List<?>)currencyIdsMap).size(); i++)
             {
-                Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+                Object currencyId = (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));
@@ -1142,7 +1144,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1169,13 +1171,16 @@ public class Coinspot extends CoinspotApi
         String requestBody = null;
         Integer apiLength = ((List<?>)api).size();
         Boolean isVersionedApi = (apiLength != null && apiLength > 1);
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object accessType = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (Boolean.TRUE.equals(isVersionedApi))
+        {
+            accessType = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        }
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String fullPath = endpoint;
-        if (!java.util.Objects.equals(version, null))
+        if (Boolean.TRUE.equals(isVersionedApi))
         {
-            fullPath = (("/" + version) + endpoint);
+            fullPath = (("/" + (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0))) + endpoint);
         }
         String apiUrl = this.safeString(this.urls.get("api"), accessType);
         if (java.util.Objects.equals(apiUrl, null))
@@ -1187,7 +1192,7 @@ public class Coinspot extends CoinspotApi
         {
             this.checkRequiredCredentials(true);
             // coinspot requires an increasing nonce
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));

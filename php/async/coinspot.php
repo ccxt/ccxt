@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinspot extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -297,11 +297,13 @@ class coinspot extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
-            for ($i = 0; $i < count($balances); $i++) {
-                $currencies = $balances[$i];
-                $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
-                for ($j = 0; $j < count($currencyIds); $j++) {
-                    $currencyId = $currencyIds[$j];
+            $rows = $this->to_array($balances);
+            $numRows = count($rows);
+            for ($i = 0; $i < $numRows; $i++) {
+                $currencies = $this->safe_dict($rows, $i, array());
+                $currencyIdsList = is_array($currencies) ? array_keys($currencies) : array();
+                for ($j = 0; $j < count($currencyIdsList); $j++) {
+                    $currencyId = $currencyIdsList[$j];
                     $balance = $this->safe_dict($currencies, $currencyId);
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
@@ -312,9 +314,9 @@ class coinspot extends Exchange {
                 }
             }
         } else {
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $currencyIdsMap = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($currencyIdsMap); $i++) {
+                $currencyId = $currencyIdsMap[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balances, $currencyId);
@@ -774,7 +776,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -786,7 +788,7 @@ class coinspot extends Exchange {
         return null;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }
@@ -796,12 +798,14 @@ class coinspot extends Exchange {
         $requestBody = null;
         $apiLength = count($api);
         $isVersionedApi = $apiLength > 1;
-        $version = $isVersionedApi ? $api[0] : null;
-        $accessType = $isVersionedApi ? $api[1] : $api[0];
+        $accessType = $api[0];
+        if ($isVersionedApi) {
+            $accessType = $api[1];
+        }
         $endpoint = '/' . $this->implode_params($path, $params);
         $fullPath = $endpoint;
-        if ($version !== null) {
-            $fullPath = '/' . $version . $endpoint;
+        if ($isVersionedApi) {
+            $fullPath = '/' . $api[0] . $endpoint;
         }
         $apiUrl = $this->safe_string($this->urls['api'], $accessType);
         if ($apiUrl === null) {

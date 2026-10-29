@@ -14,7 +14,7 @@ import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV,
  * @augments Exchange
  */
 export default class tokocrypto extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',
@@ -703,7 +703,7 @@ export default class tokocrypto extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
@@ -777,7 +777,7 @@ export default class tokocrypto extends Exchange {
         if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const list: Dict[] = this.safeList (data, 'list', []);
         const result: List = [];
         for (let i = 0; i < list.length; i++) {
@@ -806,6 +806,58 @@ export default class tokocrypto extends Exchange {
                 }
             }
             const marginTradingEnable = this.safeString (market, 'marginTradingEnable');
+            let costMin: Num = undefined;
+            const precision: Dict = {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+            };
+            const limits: Dict = {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': costMin,
+                    'max': undefined,
+                },
+            };
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+                // PRICE_FILTER reports zero values for maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                limits['price'] = {
+                    'min': this.safeNumber (filter, 'minPrice'),
+                    'max': this.safeNumber (filter, 'maxPrice'),
+                };
+                precision['price'] = filter['tickSize'];
+            }
+            if ('LOT_SIZE' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'LOT_SIZE', {});
+                precision['amount'] = this.safeNumber (filter, 'stepSize');
+                limits['amount'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+                limits['market'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
             const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -831,64 +883,14 @@ export default class tokocrypto extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
-                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
                 'created': undefined,
                 'info': market,
             };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
-                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = filter['tickSize'];
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
             if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+                const filter: Dict = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
+                costMin = this.safeNumber2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
         }
@@ -1067,24 +1069,24 @@ export default class tokocrypto extends Exchange {
         if (buyerMaker !== undefined) {
             side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
-        } else if ('side' in trade) {
+        } else if (this.safeString (trade, 'side') !== undefined) {
             side = this.safeStringLower (trade, 'side');
         } else {
-            if ('isBuyer' in trade) {
+            if (this.safeString (trade, 'isBuyer') !== undefined) {
                 side = (this.safeBool (trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee: FeeString = undefined;
-        if ('commission' in trade) {
+        if (this.safeString (trade, 'commission') !== undefined) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        if ('isMaker' in trade) {
+        if (this.safeString (trade, 'isMaker') !== undefined) {
             takerOrMaker = (this.safeBool (trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
-        if ('maker' in trade) {
+        if (this.safeString (trade, 'maker') !== undefined) {
             takerOrMaker = (this.safeBool (trade, 'maker', false)) ? 'maker' : 'taker';
         }
         return this.safeTrade ({
@@ -1158,7 +1160,7 @@ export default class tokocrypto extends Exchange {
             //        "timestamp": 1787318052414
             //    }
             //
-            const data = this.safeDict (responseInner, 'data', {});
+            const data: Dict = this.safeDict (responseInner, 'data', {});
             const list = this.safeList (data, 'list', []);
             return this.parseTrades (list, market, since, limit);
         }
@@ -1270,7 +1272,7 @@ export default class tokocrypto extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
-        const isCoinm = ('baseVolume' in ticker);
+        const isCoinm = (this.safeString (ticker, 'baseVolume') !== undefined);
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
         if (isCoinm) {
@@ -1339,7 +1341,7 @@ export default class tokocrypto extends Exchange {
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
     isNativeMarket (market: Market): boolean {
-        const marketInfo = this.safeDict (market, 'info', {});
+        const marketInfo: Dict = this.safeDict (market, 'info', {});
         const symbolType = this.safeString (marketInfo, 'type');
         // a market with an unknown symbol type falls back to the binance backed
         // host, the route that answers with data for every symbol type 1 market
@@ -1385,7 +1387,7 @@ export default class tokocrypto extends Exchange {
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
-            const firstTicker = this.safeDict (response, 0, {});
+            const firstTicker: Dict = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -1543,7 +1545,7 @@ export default class tokocrypto extends Exchange {
             if (dataList !== undefined) {
                 data = dataList;
             } else {
-                const dataDict = this.safeDict (response, 'data', {});
+                const dataDict: Dict = this.safeDict (response, 'data', {});
                 data = this.safeList (dataDict, 'list', []);
             }
         }
@@ -1605,7 +1607,7 @@ export default class tokocrypto extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const balances: Dict[] = this.safeList (data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
@@ -1780,7 +1782,7 @@ export default class tokocrypto extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice'))),
@@ -1846,7 +1848,10 @@ export default class tokocrypto extends Exchange {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved: OrderType = (postOnly) ? 'LIMIT_MAKER' : type;
+        let typeResolved: OrderType = type;
+        if (postOnly) {
+            typeResolved = 'LIMIT_MAKER';
+        }
         // post only is expressed by the order type here, not by a time force
         let timeInForceResolved: Str = requestedTimeInForce;
         if (postOnly) {
@@ -1884,8 +1889,10 @@ export default class tokocrypto extends Exchange {
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         };
+        const baseId = this.safeString (market, 'baseId', '');
+        const quoteId = this.safeString (market, 'quoteId', '');
         const request: Dict = {
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': baseId + '_' + quoteId,
             'type': this.safeString (reverseOrderTypeMapping, uppercaseType),
         };
         if (side === 'buy') {
@@ -1922,7 +1929,8 @@ export default class tokocrypto extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (side === 'buy') {
-                const precision = market['precision']['price'];
+                const marketPrecision: Dict = this.safeDict (market, 'precision', {});
+                const precision = marketPrecision['price'];
                 let quoteAmount: Str | Num = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, paramsRequest ] = this.handleOptionBoolAndParams (paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -1982,7 +1990,10 @@ export default class tokocrypto extends Exchange {
         }
         if (timeInForceIsRequired) {
             const defaultTimeInForce = this.safeString (this.options, 'defaultTimeInForce', 'GTC');
-            const timeInForce = (timeInForceResolved === undefined) ? defaultTimeInForce : timeInForceResolved;
+            let timeInForce: string = defaultTimeInForce;
+            if (timeInForceResolved !== undefined) {
+                timeInForce = timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             const timeInForceCodes: Dict = {
@@ -2033,7 +2044,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710994975
         //     }
         //
-        const rawOrder = this.safeDict (response, 'data', {});
+        const rawOrder: Dict = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder, market);
     }
 
@@ -2082,9 +2093,9 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710056523
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const list: Dict[] = this.safeList (data, 'list', []);
-        const rawOrder = this.safeDict (list, 0, {});
+        const rawOrder: Dict = this.safeDict (list, 0, {});
         return this.parseOrder (rawOrder);
     }
 
@@ -2157,7 +2168,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1572860756458
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const orders: Dict[] = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2236,7 +2247,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710683634
         //     }
         //
-        const rawOrder = this.safeDict (response, 'data', {});
+        const rawOrder: Dict = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder);
     }
 
@@ -2299,7 +2310,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1573723498893
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const trades: Dict[] = this.safeList (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -2322,7 +2333,7 @@ export default class tokocrypto extends Exchange {
             'asset': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict (this.options, 'networks', {});
+        const networks: Dict = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
@@ -2347,7 +2358,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1660685915746
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'address');
         let tag: Str = this.safeString (data, 'addressTag', '');
         if (tag.length === 0) {
@@ -2422,7 +2433,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659758865998
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const deposits: Dict[] = this.safeList (data, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
@@ -2482,7 +2493,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659759062187
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const withdrawals: Dict[] = this.safeList (data, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
@@ -2503,7 +2514,7 @@ export default class tokocrypto extends Exchange {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses: Dict = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2595,7 +2606,7 @@ export default class tokocrypto extends Exchange {
         }
         let id = this.safeString (transaction, 'id');
         if (id === undefined) {
-            const data = this.safeDict (transaction, 'data', {});
+            const data: Dict = this.safeDict (transaction, 'data', {});
             id = this.safeString (data, 'withdrawId');
             type = 'withdrawal';
         }
@@ -2674,15 +2685,15 @@ export default class tokocrypto extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        if (!(apiName in this.urls['api']['rest'])) {
+        const restUrls = this.extend ({}, this.urls['api']['rest']);
+        if (!(apiName in restUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         const baseApiUrl = this.safeString (this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = baseApiUrl;
-        url += '/' + path;
+        let url = baseApiUrl + '/' + path;
         if (apiName === 'wapi') {
             url += '.html';
         }
@@ -2701,7 +2712,7 @@ export default class tokocrypto extends Exchange {
             }
         } else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
-            let query: Str = undefined;
+            let query = '';
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
@@ -2726,13 +2737,11 @@ export default class tokocrypto extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
-            let bodySigned: Str = query;
-            if (queryInUrl) {
-                bodySigned = undefined;
-            }
+            let bodySigned: Str = undefined;
             if (queryInUrl) {
                 url += '?' + query;
             } else {
+                bodySigned = query;
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
@@ -2744,7 +2753,7 @@ export default class tokocrypto extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
@@ -2768,19 +2777,18 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
-        let parsedMessage: NullableDict = undefined;
+        let responseParsed = response;
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse (messageInner);
+                    responseParsed = JSON.parse (messageInner);
                 } catch (e) {
                     // do nothing
-                    parsedMessage = undefined;
+                    responseParsed = response;
                 }
             }
         }
-        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
         const message = this.safeString (responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
@@ -2818,21 +2826,22 @@ export default class tokocrypto extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
-        if (('noCoin' in config) && !('coin' in params)) {
-            return config['noCoin'];
-        } else if (('noSymbol' in config) && !('symbol' in params)) {
-            return config['noSymbol'];
-        } else if (('noPoolId' in config) && !('poolId' in params)) {
-            return config['noPoolId'];
-        } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger (params, 'limit');
-            const byLimit = this.safeList (config, 'byLimit', []);
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
+        const paramsDict: Dict = this.extend ({}, params);
+        const byLimit: Num[][] = this.safeList (config, 'byLimit', []);
+        if (('noCoin' in paramsDict) && !('coin' in paramsDict)) {
+            return this.safeInteger (config, 'noCoin');
+        } else if (('noSymbol' in paramsDict) && !('symbol' in paramsDict)) {
+            return this.safeInteger (config, 'noSymbol');
+        } else if (('noPoolId' in paramsDict) && !('poolId' in paramsDict)) {
+            return this.safeInteger (config, 'noPoolId');
+        } else if ('limit' in paramsDict) {
+            const limit = this.safeInteger (paramsDict, 'limit');
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const entryLimit = this.safeInteger (entry, 0);
                 if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
-                    return entry[1];
+                    return this.safeInteger (entry, 1);
                 }
             }
         }

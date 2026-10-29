@@ -66,7 +66,7 @@ public partial class apex : ccxt.apex
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -100,8 +100,8 @@ public partial class apex : ccxt.apex
         {
             string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = ("recentlyTrade.H." + this.safeString(market, "id2"));
-            topics.Add(topic);
+            string? marketId = this.safeString(market, "id2", "");
+            topics.Add(("recentlyTrade.H." + marketId));
             string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
         }
@@ -138,13 +138,12 @@ public partial class apex : ccxt.apex
         //         ]
         //     }
         //
-        List<object> data = this.safeList(message, "data", new List<object>() {});
+        List<object> trades = this.safeList(message, "data", new List<object>() {});
         string? topic = this.safeString(message, "topic");
-        List<object> trades = data;
         List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -152,11 +151,11 @@ public partial class apex : ccxt.apex
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        int length = (trades?.Count ?? 0);
+        int length = trades.Count;
         for (Int64 j = 0; j < length; j++)
         {
             Int64 index = ((length - j) - 1);
-            ccxt.Trade parsed = this.parseWsTrade((trades != null && index < trades.Count ? trades[(int)index] : null), market);
+            ccxt.Trade parsed = this.parseWsTrade(this.safeDict(trades, index, new Dictionary<string, object>() {}), market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
@@ -216,7 +215,7 @@ public partial class apex : ccxt.apex
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     /**
@@ -236,12 +235,12 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        int symbolsLength = symbols?.Count ?? 0;
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -250,13 +249,13 @@ public partial class apex : ccxt.apex
         {
             string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = ((("orderBook" + ((object)limitValue).ToString()) + ".H.") + this.safeString(market, "id2"));
-            topics.Add(topic);
+            string? marketId = this.safeString(market, "id2", "");
+            topics.Add(((("orderBook" + this.numberToString(limitValue)) + ".H.") + marketId));
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchTopics(url, messageHashes, topics, parameters));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
@@ -299,8 +298,9 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public") + "&timestamp=") + timeStamp);
-            this.options["wsPublicUrl"] = url;
+            string wsEndpoint = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public", "");
+            this.options["wsPublicUrl"] = ((wsEndpoint + "&timestamp=") + timeStamp);
+            url = this.safeString(this.options, "wsPublicUrl", "");
         }
         return url;
     }
@@ -311,8 +311,9 @@ public partial class apex : ccxt.apex
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "&timestamp=") + timeStamp);
-            this.options["wsPrivateUrl"] = url;
+            string wsEndpoint = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "");
+            this.options["wsPrivateUrl"] = ((wsEndpoint + "&timestamp=") + timeStamp);
+            url = this.safeString(this.options, "wsPrivateUrl", "");
         }
         return url;
     }
@@ -357,9 +358,9 @@ public partial class apex : ccxt.apex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -413,11 +414,11 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? url = this.getWsPublicUrl();
         string messageHash = ("ticker:" + symbolValue);
-        string topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
-        List<object> topics = new List<object>() {topic};
+        string? marketId = this.safeString(market, "id2", "");
+        List<object> topics = new List<object>() {(("instrumentInfo" + ".H.") + marketId)};
         return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
 
@@ -443,11 +444,11 @@ public partial class apex : ccxt.apex
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            object symbol = (symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null);
+            string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
-            topics.Add(topic);
-            string messageHash = ("ticker:" + (symbol));
+            string? marketId = this.safeString(market, "id2", "");
+            topics.Add((("instrumentInfo" + ".H.") + marketId));
+            string messageHash = ("ticker:" + symbol);
             messageHashes.Add(messageHash);
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -562,12 +563,12 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
-            object symbolString = this.safeString(data, 0);
+            string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            symbolString = (market != null && market.ContainsKey("id2") ? market["id2"] : null);
+            string? marketId = this.safeString(market, "id2", "");
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.Add(((("candle." + timeframeId) + ".") + (symbolString)));
+            rawHashes.Add(((("candle." + timeframeId) + ".") + marketId));
             messageHashes.Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
@@ -621,17 +622,15 @@ public partial class apex : ccxt.apex
             marketType = "spot";
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
-        {
-            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
-        }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        string? symbol = this.safeString(market, "symbol", "");
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+        if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+            stored = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i]);
@@ -686,7 +685,7 @@ public partial class apex : ccxt.apex
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = (("myTrades" + ":") + symbolResolved);
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -773,7 +772,7 @@ public partial class apex : ccxt.apex
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = (("orders" + ":") + symbolResolved);
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -815,7 +814,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(lists); i++)
         {
-            object rawTrade = getValue(lists, i);
+            IDictionary<string, object> rawTrade = this.safeDict(lists, i, new Dictionary<string, object>() {});
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
             string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
@@ -824,7 +823,8 @@ public partial class apex : ccxt.apex
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string currentMessageHash = ("myTrades:" + (keys[i]));
+            string? key = ((string)keys[i]);
+            string currentMessageHash = ("myTrades:" + key);
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -872,7 +872,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(lists); i++)
         {
-            ccxt.Order parsed = this.parseOrder(getValue(lists, i));
+            ccxt.Order parsed = this.parseOrder(this.safeDict(lists, i, new Dictionary<string, object>() {}));
             string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
             orders.append(ccxt.BaseExchange.FromOrder(parsed));
@@ -880,14 +880,15 @@ public partial class apex : ccxt.apex
         List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; i < symbolsArray.Count; i++)
         {
-            string currentMessageHash = ("orders:" + (symbolsArray[i]));
+            string? orderKey = ((string)symbolsArray[i]);
+            string currentMessageHash = ("orders:" + orderKey);
             client.resolve(orders, currentMessageHash);
         }
         string messageHash = "orders";
         client.resolve(orders, messageHash);
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {
@@ -913,14 +914,13 @@ public partial class apex : ccxt.apex
             object positions = promises[i];
             for (int ii = 0; ii < getArrayLength(positions); ii++)
             {
-                IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
-                cache.append(position);
+                cache.append(getValue(positions, ii));
             }
         }
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -958,7 +958,7 @@ public partial class apex : ccxt.apex
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < getArrayLength(lists); i++)
         {
-            object rawPosition = getValue(lists, i);
+            IDictionary<string, object> rawPosition = this.safeDict(lists, i, new Dictionary<string, object>() {});
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
@@ -984,7 +984,7 @@ public partial class apex : ccxt.apex
         {
             string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+            string? symbolsString = this.safeString(parts, 1, "");
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
             IList<object> positions = ((IList<object>)this.filterByArray(newPositions, "symbol", symbols, false));
             if (!this.isEmpty(positions))
@@ -1089,7 +1089,7 @@ public partial class apex : ccxt.apex
             bool? success = this.safeBool(message, "success");
             if (((success != null)) && (success != true))
             {
-                string? ret_msg = this.safeString(message, "ret_msg");
+                string? ret_msg = this.safeString(message, "ret_msg", "");
                 IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
@@ -1269,7 +1269,7 @@ public partial class apex : ccxt.apex
         string messageHash = "authenticated";
         if (((success == true)) || ((code == 0)))
         {
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);
         } else
         {

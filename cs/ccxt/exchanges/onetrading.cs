@@ -457,7 +457,7 @@ public partial class onetrading : Exchange
         //         "epoch_millis": 1594358246716,
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "epoch_millis"));
+        return this.safeInteger(response, "epoch_millis") ?? 0;
     }
 
     /**
@@ -611,7 +611,7 @@ public partial class onetrading : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string? state = this.safeString(market, "state");
         string? type = this.safeString(market, "type");
@@ -1202,9 +1202,9 @@ public partial class onetrading : Exchange
         {
             throw new ExchangeError ((this.id + " fetchOHLCV() missing periodUnit")) ;
         }
-        var periodunitVariable = periodUnit.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        var period = periodunitVariable[0];
-        var unit = periodunitVariable[1];
+        List<object> periodUnitParts = periodUnit.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        string? period = ((string)(periodUnitParts != null && 0 < periodUnitParts.Count ? periodUnitParts[0] : null));
+        string? unit = ((string)(periodUnitParts != null && 1 < periodUnitParts.Count ? periodUnitParts[1] : null));
         int durationInSeconds = this.parseTimeframe(timeframeVar);
         Int64 duration = (durationInSeconds * 1000L);
         Int64? limitResolved = ((limit == null)) ? 1500 : limit;
@@ -1909,7 +1909,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "with_cancelled_and_rejected", true },
         };
-        return await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOpenOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2053,26 +2053,26 @@ public partial class onetrading : Exchange
         return this.parseTrades(tradeHistory, market, since, limit);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((apiName is "public"))
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if ((apiName is "private"))
+        } else if (apiName == "private")
         {
             this.checkRequiredCredentials();
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
@@ -2105,7 +2105,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

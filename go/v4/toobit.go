@@ -16,7 +16,7 @@ func newToobit() *Toobit {
 	return p
 }
 
-func (this *Toobit) Describe() any {
+func (this *Toobit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "toobit",
 		"name":      "Toobit",
@@ -835,7 +835,7 @@ func (this *Toobit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 		panic(r.Err)
 	}
 	response := r.Raw
-	this.Options.Store("exchangeInfo", response) // we store it in options for later use in fetchMarkets
+	this.Options["exchangeInfo"] = response // we store it in options for later use in fetchMarkets
 	//
 	//    {
 	//        "timezone": "UTC",
@@ -967,16 +967,13 @@ func (this *Toobit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	var coins []any = SafeListTyped(response, "coins")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(coins); i++ {
-		var coin any = func() any {
-			if i >= 0 && i < len(coins) {
-				return DerefScalar(coins[i])
-			}
-			return nil
-		}()
+		var coin any = coins[i]
 		var parsed map[string]any = this.ParseCurrency(coin)
 		if parsed != nil {
 			var code *string = SafeStringPtr(parsed["code"])
-			AddElementToObject(result, code, parsed)
+			if code != nil {
+				result[*code] = parsed
+			}
 		}
 	}
 
@@ -989,12 +986,7 @@ func (this *Toobit) ParseCurrency(rawCurrency any) map[string]any {
 	var networks map[string]any = map[string]any{}
 	var rawNetworks []any = SafeListTyped(rawCurrency, "chainTypes")
 	for j := 0; j < len(rawNetworks); j++ {
-		var rawNetwork any = func() any {
-			if j >= 0 && j < len(rawNetworks) {
-				return DerefScalar(rawNetworks[j])
-			}
-			return nil
-		}()
+		var rawNetwork any = rawNetworks[j]
 		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -1068,7 +1060,7 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var cachedInfo any = this.SafeDict(this.Options, "exchangeInfo")
 	var response any = cachedInfo
 	if cachedInfo != nil {
-		this.Options.Store("exchangeInfo", nil) // reset it to avoid using old cached data
+		this.Options["exchangeInfo"] = nil // reset it to avoid using old cached data
 	} else {
 
 		r := <-this.CommonGetApiV1ExchangeInfo(params)
@@ -1210,12 +1202,7 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(all) {
-				return DerefScalar(all[i])
-			}
-			return nil
-		}()
+		var market map[string]any = this.SafeDictMap(all, i, map[string]any{})
 		var parsed any = this.ParseMarket(market)
 		if !IsEqual(parsed, nil) {
 			result = append(result, parsed)
@@ -1225,17 +1212,12 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Toobit) ParseMarket(market any) any {
+func (this *Toobit) ParseMarket(market any) map[string]any {
 	var id *string = this.SafeString(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseAsset", "")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var baseParts []string = strings.Split(*baseId, "-")
-	var baseIdClean *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(baseParts) {
-			return baseParts[0]
-		}
-		return nil
-	}())
+	var baseIdClean *string = this.SafeString(baseParts, 0)
 	var base *string = this.SafeCurrencyCode(baseIdClean)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -1251,10 +1233,10 @@ func (this *Toobit) ParseMarket(market any) any {
 	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var minNotionalFilter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
 	var symbol any = *base + "/" + *quote
-	var isContract bool = (InOp(market, "contractMultiplier"))
+	var isContract bool = (this.SafeString(market, "contractMultiplier") != nil)
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
 	if isContract {
-		symbol = Add(symbol, Add(":", settle))
+		symbol = Add(*base+"/"+*quote+":", settle)
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
@@ -1345,7 +1327,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1424,7 +1406,7 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1439,11 +1421,11 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["limit"] = limit
 	}
 
-	listEp1418 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
-	if listEp1418.Err != nil {
-		panic(listEp1418.Err)
+	listEp1410 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
+	if listEp1410.Err != nil {
+		panic(listEp1410.Err)
 	}
-	var response []any = listEp1418.Value
+	var response []any = listEp1410.Value
 
 	//
 	//    [
@@ -1601,7 +1583,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1707,7 +1689,7 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1731,18 +1713,18 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1691 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
-		if listEp1691.Err != nil {
-			panic(listEp1691.Err)
+		listEp1683 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
+		if listEp1683.Err != nil {
+			panic(listEp1683.Err)
 		}
-		response = listEp1691.Value
+		response = listEp1683.Value
 	} else {
 
-		listEp1694 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
-		if listEp1694.Err != nil {
-			panic(listEp1694.Err)
+		listEp1686 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
+		if listEp1686.Err != nil {
+			panic(listEp1686.Err)
 		}
-		response = listEp1694.Value
+		response = listEp1686.Value
 	}
 	//
 	//    [
@@ -1764,7 +1746,7 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(response); i++ {
 		var ticker any = GetValue(response, i)
 		var marketId *string = this.SafeString(ticker, "s")
-		if (marketId != nil) && (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+		if (marketId != nil) && (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), marketId)) {
 			rows = append(rows, ticker)
 		}
 	}
@@ -1831,7 +1813,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1843,21 +1825,16 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbolsNormalized) {
-					return symbolsNormalized[0]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(symbolsNormalized[0])
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1802 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp1802.Err != nil {
-		panic(listEp1802.Err)
+	listEp1794 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp1794.Err != nil {
+		panic(listEp1794.Err)
 	}
-	var response []any = listEp1802.Value
+	var response []any = listEp1794.Value
 
 	//
 	//    [
@@ -1907,7 +1884,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1919,21 +1896,16 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbolsNormalized) {
-					return symbolsNormalized[0]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(symbolsNormalized[0])
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1871 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
-	if listEp1871.Err != nil {
-		panic(listEp1871.Err)
+	listEp1863 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
+	if listEp1863.Err != nil {
+		panic(listEp1863.Err)
 	}
-	var response []any = listEp1871.Value
+	var response []any = listEp1863.Value
 
 	//
 	//    [
@@ -1946,14 +1918,10 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	//            "t": "1755936610506"
 	//        }, ...
 	//
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseBidsAsksCustom(response, symbolsNormalized))}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseBidsAsksCustom(response, symbolsNormalized, map[string]any{}))}
 	return nil
 }
-func (this *Toobit) ParseBidsAsksCustom(tickers any, optionalArgs ...any) map[string]any {
-	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
-	_ = symbols
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
-	_ = params
+func (this *Toobit) ParseBidsAsksCustom(tickers any, symbols []string, params map[string]any) map[string]any {
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
 		var parsedTicker map[string]any = this.ParseBidAskCustom(GetValue(tickers, i))
@@ -2002,7 +1970,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2014,21 +1982,16 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbolsNormalized) {
-					return symbolsNormalized[0]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(symbolsNormalized[0])
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1959 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp1959.Err != nil {
-		panic(listEp1959.Err)
+	listEp1947 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp1947.Err != nil {
+		panic(listEp1947.Err)
 	}
-	var response []any = listEp1959.Value
+	var response []any = listEp1947.Value
 
 	//
 	//    [
@@ -2099,7 +2062,7 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2132,11 +2095,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		request["limit"] = limit
 	}
 
-	listEp2056 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
-	if listEp2056.Err != nil {
-		panic(listEp2056.Err)
+	listEp2044 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
+	if listEp2044.Err != nil {
+		panic(listEp2044.Err)
 	}
-	var response []any = listEp2056.Value
+	var response []any = listEp2044.Value
 
 	//
 	//    [
@@ -2183,7 +2146,7 @@ func (this *Toobit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2191,7 +2154,7 @@ func (this *Toobit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 	}
 	var response any = nil
-	var marketType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params)), 0))
+	marketType, _ := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	if this.InArray(marketType, []any{"swap", "future"}) {
 
 		r1 := <-this.PrivateGetApiV1FuturesBalance()
@@ -2259,7 +2222,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2270,24 +2233,24 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var response any = map[string]any{}
 	if market["spot"] == true {
 		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := GetValue(requestparamsRequestVariable, 0)
-		paramsRequest := GetValue(requestparamsRequestVariable, 1)
+		request := requestparamsRequestVariable[0]
+		paramsRequest := requestparamsRequestVariable[1]
 
 		r1 := <-this.PrivatePostApiV1SpotOrder(this.Extend(request, paramsRequest))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	} else {
 		requestparamsRequestVariable := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := GetValue(requestparamsRequestVariable, 0)
+		request := requestparamsRequestVariable[0]
 		paramsRequest := requestparamsRequestVariable[1]
 
 		r2 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, paramsRequest))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		response = r2.Raw
 	}
 
 	//
@@ -2336,14 +2299,8 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
-	cost := func() any {
-		if p, _ := costparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
+	var cost *string = nil
+	cost, paramsCost := this.HandleParamString(params, "cost")
 	if (typeVar == "market") && (side == "buy") {
 		if cost == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires params[\"cost\"] for market buy order"))
@@ -2353,8 +2310,8 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
-	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
+	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if isPostOnly {
 		request["type"] = "LIMIT_MAKER"
 	} else {
@@ -2378,24 +2335,18 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		"symbol":   market["id"],
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly")
-	reduceOnly := func() any {
-		if p, _ := reduceOnlyparamsReduceOnlyVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
+	var reduceOnly *bool = nil
+	reduceOnly, paramsReduceOnly := this.HandleParamBool(params, "reduceOnly")
 	if side == "buy" {
 		request["side"] = func() string {
-			if reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly == true {
 				return "BUY_CLOSE"
 			}
 			return "BUY_OPEN"
 		}()
 	} else if side == "sell" {
 		request["side"] = func() string {
-			if reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly == true {
 				return "SELL_CLOSE"
 			}
 			return "SELL_OPEN"
@@ -2414,8 +2365,8 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["priceType"] = "MARKET"
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
-	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
+	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if isPostOnly {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
@@ -2468,7 +2419,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		}
 	}
 	var paramsOmitted any = this.Omit(paramsTrigger, []any{"stopLoss", "takeProfit"})
-	if !(InOp(paramsOmitted, "newClientOrderId")) {
+	if this.SafeString(paramsOmitted, "newClientOrderId") == nil {
 		request["newClientOrderId"] = this.Uuid()
 	}
 	return []any{request, paramsOmitted}
@@ -2652,14 +2603,14 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		response = r.Value
+		response = r.Raw
 	} else {
 
 		r1 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	}
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
@@ -2693,7 +2644,7 @@ func (this *Toobit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2710,7 +2661,7 @@ func (this *Toobit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if marketType != nil && *marketType == "none" {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\""))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
 		r1 := <-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, paramsMarketType))
@@ -2756,16 +2707,15 @@ func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
 	}
-	var idsString string = Join(ids, ",")
 	var request map[string]any = map[string]any{
-		"ids": idsString,
+		"ids": Join(ids, ","),
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -2775,7 +2725,7 @@ func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 	if marketType != nil && *marketType == "none" {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\""))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
 		r1 := <-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request, paramsMarketType))
@@ -2823,7 +2773,7 @@ func (this *Toobit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2841,14 +2791,14 @@ func (this *Toobit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	} else {
 
 		r2 := <-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		response = r2.Raw
 	}
 
 	//
@@ -2911,7 +2861,7 @@ func (this *Toobit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2935,14 +2885,14 @@ func (this *Toobit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	} else {
 
 		r2 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsMarketType))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		response = r2.Raw
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
@@ -2976,7 +2926,7 @@ func (this *Toobit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2996,7 +2946,7 @@ func (this *Toobit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		market = this.Market(symbol)
 		requestUntil["symbol"] = market["id"]
 	}
-	var marketType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchOrders", market, paramsUntil)), 0))
+	marketType, _ := this.HandleMarketTypeAndParams("fetchOrders", market, paramsUntil)
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
 
@@ -3004,7 +2954,7 @@ func (this *Toobit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	} else {
 		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
 	}
@@ -3041,7 +2991,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3058,7 +3008,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["startTime"] = since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
-	var marketType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)), 0))
+	marketType, _ := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
@@ -3068,7 +3018,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	}
 	var ordersList []any = []any{}
 	var responseList []any = []any{}
@@ -3077,12 +3027,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	for i := 0; i < len(responseList); i++ {
 		ordersList = append(ordersList, map[string]any{
-			"result": func() any {
-				if i >= 0 && i < len(responseList) {
-					return DerefScalar(responseList[i])
-				}
-				return nil
-			}(),
+			"result": responseList[i],
 		})
 	}
 
@@ -3122,7 +3067,7 @@ func (this *Toobit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3147,14 +3092,14 @@ func (this *Toobit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		response = r1.Raw
 	} else {
 
 		r2 := <-this.PrivateGetApiV1FuturesUserTrades(requestUntil)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		response = r2.Raw
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
@@ -3183,7 +3128,7 @@ func (this *Toobit) transferBody(ch chan AsyncResult[TransferEntry], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3267,7 +3212,7 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3291,18 +3236,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3110 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3110.Err != nil {
-			panic(listEp3110.Err)
+		listEp3093 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3093.Err != nil {
+			panic(listEp3093.Err)
 		}
-		response = listEp3110.Value
+		response = listEp3093.Value
 	} else {
 
-		listEp3113 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3113.Err != nil {
-			panic(listEp3113.Err)
+		listEp3096 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3096.Err != nil {
+			panic(listEp3096.Err)
 		}
-		response = listEp3113.Value
+		response = listEp3096.Value
 	}
 
 	//
@@ -3386,7 +3331,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3399,20 +3344,15 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchTradingFees(): does not support " + *marketType + " markets"))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
-		var symbolparamsSymbolVariable []any = this.HandleParamString(paramsMarketType, "symbol")
-		symbol := func() any {
-			if p, _ := symbolparamsSymbolVariable[0].(*string); p != nil {
-				return *p
-			}
-			return nil
-		}()
-		var paramsSymbol map[string]any = MapTyped(symbolparamsSymbolVariable[1])
+		var symbol *string = nil
+		symbol, paramsSymbol := this.HandleParamString(paramsMarketType, "symbol")
 		if symbol == nil {
 			panic(BadRequest(this.Id + " fetchTradingFees requires a params[\"symbol\"]"))
 		}
-		market = this.Market(symbol)
+		var symbolMarket map[string]any = this.Market(symbol)
+		market = symbolMarket
 		var request map[string]any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": symbolMarket["id"],
 		}
 
 		r1 := <-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(request, paramsSymbol))
@@ -3431,10 +3371,9 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	//
 	var result map[string]any = map[string]any{}
 	var entry any = response
-	var marketId *string = this.SafeString(entry, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, market))
-	AddElementToObject(result, GetValue(market, "symbol"), fee)
+	var marketResolved map[string]any = this.SafeMarket(this.SafeString(entry, "symbol"), market)
+	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, marketResolved))
+	AddElementToObject(result, marketResolved["symbol"], fee)
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
@@ -3485,11 +3424,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277015 []any = TransactionsToList(r.Value)
-	if retRes277015 == nil {
+	var retRes276915 []any = TransactionsToList(r.Value)
+	if retRes276915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes276915)}
 	}
 	return nil
 }
@@ -3526,25 +3465,25 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278515 []any = TransactionsToList(r.Value)
-	if retRes278515 == nil {
+	var retRes278415 []any = TransactionsToList(r.Value)
+	if retRes278415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278415)}
 	}
 	return nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar string, code any, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsOrWithdrawalsHelperBody(ch, typeVar, code, since, limit, optionalArgs...)
 	return ch
 }
-func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar any, code any, since any, limit any, optionalArgs ...any) any {
+func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code any, since any, limit any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3560,19 +3499,19 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if !IsEqual(limit, nil) {
-		AddElementToObject(requestUntil, "limit", limit)
+		request["limit"] = limit
 	}
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response any = []any{}
-	if IsEqual(typeVar, "deposits") {
+	if typeVar == "deposits" {
 
 		r1 := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(requestUntil, paramsUntil))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Raw
-	} else if IsEqual(typeVar, "withdrawals") {
+	} else if typeVar == "withdrawals" {
 
 		r2 := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(requestUntil, paramsUntil))
 		if r2.Err != nil {
@@ -3581,7 +3520,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		response = r2.Raw
 	}
 	var transactType string = func() string {
-		if IsEqual(typeVar, "deposits") {
+		if typeVar == "deposits" {
 			return "deposit"
 		}
 		return "withdrawal"
@@ -3749,7 +3688,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3760,9 +3699,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
 	}
-	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(this.Extend(request, params))
-	var networkCode *string = SafeStringPtr(networkCodeparamsOmittedVariable[0])
-	var paramsOmitted map[string]any = MapTyped(networkCodeparamsOmittedVariable[1])
+	networkCode, paramsOmitted := this.HandleNetworkCodeAndParams(this.Extend(request, params))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : param[\"network\"] is required"))
 	}
@@ -3825,17 +3762,13 @@ func (this *Toobit) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
-	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
+	tag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address)
-	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
-	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
+	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() : param[\"network\"] is required"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3898,7 +3831,7 @@ func (this *Toobit) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3953,7 +3886,7 @@ func (this *Toobit) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3998,7 +3931,7 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4010,11 +3943,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 		"symbol": market["id"],
 	}
 
-	listEp3761 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3761.Err != nil {
-		panic(listEp3761.Err)
+	listEp3744 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3744.Err != nil {
+		panic(listEp3744.Err)
 	}
-	var response []any = listEp3761.Value
+	var response []any = listEp3744.Value
 	//
 	// [
 	//     {
@@ -4071,7 +4004,7 @@ func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4092,11 +4025,11 @@ func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		}
 	}
 
-	r1 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp3819 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))
+	if listEp3819.Err != nil {
+		panic(listEp3819.Err)
 	}
-	response := r1.Value
+	var response []any = listEp3819.Value
 
 	//
 	//    [
@@ -4159,14 +4092,14 @@ func (this *Toobit) ParsePosition(position any, optionalArgs ...any) Position {
 		"percentage":                  nil,
 	})
 }
-func (this *Toobit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Toobit) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4177,10 +4110,10 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if apiName == nil || *apiName != "private" {
+	if apiName != "private" {
 		// Public endpoints
 		if !isPost {
-			if len(ObjectKeys(query)) > 0 {
+			if !this.IsEmpty(query) {
 				url += "?" + this.Urlencode(query)
 			}
 		}
@@ -4192,7 +4125,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		extraQuery["timestamp"] = strconv.FormatInt(timestamp, 10)
 		var queryExtended map[string]any = this.Extend(query, extraQuery)
 		var queryString string = ""
-		var privateBody any = nil
+		var privateBody string = ""
 		if isPost || isDelete {
 			// everything else except Batch-Orders
 			if !IsArray(params) {
@@ -4204,20 +4137,16 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		} else {
 			queryString = this.Urlencode(queryExtended)
 		}
-		var payloadBody any = nil
+		var payload string = queryString
 		if isPost || isDelete {
-			payloadBody = privateBody
-		}
-		var payload any = queryString
-		if payloadBody != nil {
-			payload = Add(payloadBody, payload)
+			payload = privateBody + queryString
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 		if queryString != "" {
 			queryString += "&signature=" + signature
 			url += "?" + queryString
 		} else {
-			privateBody = Add(privateBody, "&signature="+signature)
+			privateBody += "&signature=" + signature
 		}
 		var privateHeaders map[string]any = map[string]any{
 			"Referrer":          "CCXT",
@@ -4225,9 +4154,9 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 			"X-BB-API-PLATFORM": this.SafeString(this.Options, "brokerId", "177321641268789"),
 			"Content-Type":      "application/x-www-form-urlencoded",
 		}
-		var requestBody any = nil
+		var requestBody *string = nil
 		if isPost || isDelete {
-			requestBody = privateBody
+			requestBody = SafeStringPtr(privateBody)
 		}
 		return map[string]any{
 			"url":     url,
@@ -4243,7 +4172,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Toobit) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Toobit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4267,7 +4196,7 @@ func NewToobit(userConfig map[string]any) *Toobit {
 func (this *Toobit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -4302,7 +4231,10 @@ func (this *Toobit) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeStri
  * @augments Exchange
  */
 export default class coinmate extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
             'name': 'CoinMate',
@@ -1277,7 +1277,7 @@ export default class coinmate extends Exchange {
         return this.parseOrder (data);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -1291,8 +1291,9 @@ export default class coinmate extends Exchange {
         }
         let url = apiUrl + '/' + path;
         if (apiName === 'public') {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            const publicQuery = this.extend ({}, params);
+            if (Object.keys (publicQuery).length > 0) {
+                url += '?' + this.urlencode (publicQuery);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -1315,7 +1316,7 @@ export default class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

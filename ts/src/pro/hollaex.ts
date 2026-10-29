@@ -3,16 +3,16 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
-import { ArgumentsRequired, AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, Market, NullableList } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, NullableList } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class hollaex extends hollaexRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -71,7 +71,8 @@ export default class hollaex extends hollaexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const messageHash = 'orderbook' + ':' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'orderbook' + ':' + marketId;
         const orderbook: WsOrderBook = await this.watchPublic (messageHash, params);
         return orderbook.limit ();
     }
@@ -101,28 +102,28 @@ export default class hollaex extends hollaexRest {
         const marketId = this.safeString (message, 'symbol');
         const channel = this.safeString (message, 'topic');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        if (symbol === undefined) {
-            return;
-        }
-        const data = this.safeDict (message, 'data');
-        const timestamp = this.safeString (data, 'timestamp');
-        const timestampMs = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestampMs);
-        let orderbook: WsOrderBook | undefined = undefined;
-        if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            if (orderbook === undefined) {
-                return;
+        const marketIdValue = this.safeString (market, 'id', '');
+        const symbol = this.safeString (market, 'symbol');
+        if (symbol !== undefined) {
+            const data = this.safeDict (message, 'data');
+            const timestamp = this.safeString (data, 'timestamp');
+            const timestampMs = this.parse8601 (timestamp);
+            const snapshot = this.parseOrderBook (data, symbol, timestampMs);
+            let orderbook: WsOrderBook | undefined = undefined;
+            if (!(symbol in this.orderbooks)) {
+                orderbook = this.orderBook (snapshot);
+                this.orderbooks[symbol] = orderbook;
+            } else {
+                orderbook = this.orderbooks[symbol];
+                if (orderbook === undefined) {
+                    return;
+                }
+                orderbook.reset (snapshot);
             }
-            orderbook.reset (snapshot);
-        }
-        if (channel !== undefined) {
-            const messageHash = channel + ':' + marketId;
-            client.resolve (orderbook, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketIdValue;
+                client.resolve (orderbook, messageHash);
+            }
         }
     }
 
@@ -142,8 +143,9 @@ export default class hollaex extends hollaexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const messageHash = 'trade' + ':' + market['id'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'trade' + ':' + marketId;
         const trades = await this.watchPublic (messageHash, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -171,7 +173,8 @@ export default class hollaex extends hollaexRest {
         const channel = this.safeString (message, 'topic');
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const marketIdValue = this.safeString (market, 'id', '');
+        const symbol = this.safeString (market, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -180,11 +183,11 @@ export default class hollaex extends hollaexRest {
         }
         const data = this.safeList (message, 'data', []);
         const parsedTrades = this.parseTrades (data, market);
-        for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+        for (let i = 0; i < parsedTrades.length; i++) {
+            stored.append (this.safeValue (parsedTrades, i));
         }
         if (channel !== undefined) {
-            const messageHash = channel + ':' + marketId;
+            const messageHash = channel + ':' + marketIdValue;
             client.resolve (stored, messageHash);
         }
         client.resolve (stored, channel);
@@ -206,12 +209,12 @@ export default class hollaex extends hollaexRest {
             await this.loadMarkets ();
         }
         let messageHash = 'usertrade';
-        let market: Market = undefined;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString (market, 'id', '');
+            messageHash = messageHash + ':' + marketId;
         }
         const trades = await this.watchPrivate (messageHash, params);
         let limitResolved: Int = limit;
@@ -262,9 +265,9 @@ export default class hollaex extends hollaexRest {
             const trade = rawTrades[i];
             const parsed = this.parseTrade (trade);
             stored.append (parsed);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }
@@ -297,12 +300,12 @@ export default class hollaex extends hollaexRest {
             await this.loadMarkets ();
         }
         let messageHash = 'order';
-        let market: Market = undefined;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString (market, 'id', '');
+            messageHash = messageHash + ':' + marketId;
         }
         const orders = await this.watchPrivate (messageHash, params);
         let limitResolved: Int = limit;
@@ -390,12 +393,12 @@ export default class hollaex extends hollaexRest {
         }
         const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = rawOrders[i];
+            const order = this.safeValue (rawOrders, i);
             const parsed = this.parseOrder (order);
             stored.append (parsed);
-            const symbol = order['symbol'];
+            const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }
@@ -446,7 +449,7 @@ export default class hollaex extends hollaexRest {
         const data = this.safeDict (message, 'data', {});
         const keys = Object.keys (data);
         const timestamp = this.safeTimestamp (message, 'time');
-        this.balance['info'] = data;
+        this.balance['info'] = this.safeDict (message, 'data', {});
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < keys.length; i++) {
@@ -470,7 +473,7 @@ export default class hollaex extends hollaexRest {
     }
 
     async watchPublic (messageHash: string, params: Dict = {}) {
-        const url: string = this.urls['api']['ws'];
+        const url: Str = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -481,20 +484,16 @@ export default class hollaex extends hollaexRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
-        let expires = this.safeString (this.options, 'ws-expires');
-        if (expires === undefined) {
+        let expires: string = this.safeString (this.options, 'ws-expires', '');
+        if (expires === '') {
             const timeoutMs = this.parseToInt (this.timeout);
             const timeout = this.parseToInt (timeoutMs / 1000);
-            expires = this.sum (this.seconds (), timeout);
-            if (expires === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchPrivate() expires is required');
-            }
-            expires = expires.toString ();
+            expires = this.numberToString (this.parseToInt (this.sum (this.seconds (), timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;
         }
-        const url: string = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams: Dict = {

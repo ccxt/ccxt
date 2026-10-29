@@ -3,7 +3,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): any;
     /**
      * @ignore
@@ -57,7 +57,6 @@ export default class hitbtc extends hitbtcRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name hitbtc#watchTicker

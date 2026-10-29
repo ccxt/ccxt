@@ -792,7 +792,7 @@ public partial class tokocrypto : Exchange
         //     "timestamp": 1737378074159
         // }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
+        return this.safeInteger(response, "timestamp") ?? 0;
     }
 
     /**
@@ -880,6 +880,61 @@ public partial class tokocrypto : Exchange
                 }
             }
             string? marginTradingEnable = this.safeString(market, "marginTradingEnable");
+            double? costMin = null;
+            Dictionary<string, object> precision = new Dictionary<string, object>() {
+                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
+                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
+                { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
+                { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
+            };
+            Dictionary<string, object> limits = new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", costMin },
+                    { "max", null },
+                } },
+            };
+            if (filtersByType.ContainsKey("PRICE_FILTER"))
+            {
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+                // PRICE_FILTER reports zero values for maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                limits["price"] = new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filter, "minPrice") },
+                    { "max", this.safeNumber(filter, "maxPrice") },
+                };
+                precision["price"] = (filter != null && filter.ContainsKey("tickSize") ? filter["tickSize"] : null);
+            }
+            if (filtersByType.ContainsKey("LOT_SIZE"))
+            {
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+                precision["amount"] = this.safeNumber(filter, "stepSize");
+                limits["amount"] = new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filter, "minQty") },
+                    { "max", this.safeNumber(filter, "maxQty") },
+                };
+            }
+            if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
+            {
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+                limits["market"] = new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filter, "minQty") },
+                    { "max", this.safeNumber(filter, "maxQty") },
+                };
+            }
             Dictionary<string, object> entry = new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", lowercaseId },
@@ -905,68 +960,15 @@ public partial class tokocrypto : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
-                { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                    { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
-                    { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
-                } },
-                { "limits", new Dictionary<string, object>() {
-                    { "leverage", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "price", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
+                { "precision", precision },
+                { "limits", limits },
                 { "created", null },
                 { "info", market },
             };
-            if (filtersByType.ContainsKey("PRICE_FILTER"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)entry["precision"])["price"] = this.safeNumber(filter, "tickSize");
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                ((IDictionary<string,object>)entry["limits"])["price"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minPrice") },
-                    { "max", this.safeNumber(filter, "maxPrice") },
-                };
-                ((IDictionary<string,object>)entry["precision"])["price"] = (filter != null && filter.ContainsKey("tickSize") ? filter["tickSize"] : null);
-            }
-            if (filtersByType.ContainsKey("LOT_SIZE"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)entry["precision"])["amount"] = this.safeNumber(filter, "stepSize");
-                ((IDictionary<string,object>)entry["limits"])["amount"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
-            if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)entry["limits"])["market"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
             if (filtersByType.ContainsKey("MIN_NOTIONAL"))
             {
                 IDictionary<string, object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(entry["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
+                costMin = this.safeNumber2(filter, "minNotional", "notional");
             }
             result.Add(entry);
         }
@@ -1153,29 +1155,29 @@ public partial class tokocrypto : Exchange
         {
             side = buyerMaker == true ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
-        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
+        } else if ((this.safeString(trade, "side") != null))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
+            if ((this.safeString(trade, "isBuyer") != null))
             {
                 side = (this.safeBool(trade, "isBuyer", false) == true) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
+        if ((this.safeString(trade, "commission") != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "commission") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAsset")) },
             };
         }
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
+        if ((this.safeString(trade, "isMaker") != null))
         {
             takerOrMaker = (this.safeBool(trade, "isMaker", false) == true) ? "maker" : "taker";
         }
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
+        if ((this.safeString(trade, "maker") != null))
         {
             takerOrMaker = (this.safeBool(trade, "maker", false) == true) ? "maker" : "taker";
         }
@@ -1366,7 +1368,7 @@ public partial class tokocrypto : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
-        bool isCoinm = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseVolume")));
+        bool isCoinm = ((this.safeString(ticker, "baseVolume") != null));
         string? baseVolume = null;
         string? quoteVolume = null;
         if (isCoinm)
@@ -1591,7 +1593,7 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
-        object limitValue = ((limit == null)) ? defaultLimit : mathMin(limit, maxLimit);
+        object limitValue = ((limit == null)) ? defaultLimit : Math.Min(limit.Value, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -1912,7 +1914,7 @@ public partial class tokocrypto : Exchange
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
-            { "reduceOnly", this.safeValue(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
             { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))) },
@@ -1985,14 +1987,18 @@ public partial class tokocrypto : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         // only supported for spot/margin api
-        object typeResolved = postOnly ? "LIMIT_MAKER" : type;
+        string typeResolved = type;
+        if (postOnly)
+        {
+            typeResolved = "LIMIT_MAKER";
+        }
         // post only is expressed by the order type here, not by a time force
         string? timeInForceResolved = requestedTimeInForce;
         if (postOnly)
         {
             timeInForceResolved = null;
         }
-        string initialUppercaseType = ((string)typeResolved).ToUpper();
+        string initialUppercaseType = typeResolved.ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         List<object> triggerKeys = ((triggerPrice != null)) ? new List<object>() {"triggerPrice", "stopPrice"} : new List<object>() {};
@@ -2031,8 +2037,10 @@ public partial class tokocrypto : Exchange
             { "TAKE_PROFIT_LIMIT", 6 },
             { "LIMIT_MAKER", 7 },
         };
+        string baseId = this.safeString(market, "baseId", "");
+        string? quoteId = this.safeString(market, "quoteId", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)) },
+            { "symbol", ((baseId + "_") + quoteId) },
             { "type", this.safeString(reverseOrderTypeMapping, uppercaseType) },
         };
         if ((side == "buy"))
@@ -2077,7 +2085,8 @@ public partial class tokocrypto : Exchange
         {
             if ((side == "buy"))
             {
-                object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
+                IDictionary<string, object> marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
+                object precision = (marketPrecision != null && marketPrecision.ContainsKey("price") ? marketPrecision["price"] : null);
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
                 (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2157,7 +2166,11 @@ public partial class tokocrypto : Exchange
         if (timeInForceIsRequired)
         {
             string? defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "GTC");
-            string? timeInForce = ((timeInForceResolved == null)) ? defaultTimeInForce : timeInForceResolved;
+            string? timeInForce = defaultTimeInForce;
+            if ((timeInForceResolved != null))
+            {
+                timeInForce = timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             Dictionary<string, object> timeInForceCodes = new Dictionary<string, object>() {
@@ -2358,7 +2371,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", 1 },
         }; // -1 = all, 1 = open, 2 = closed
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2378,7 +2391,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", 2 },
         }; // -1 = all, 1 = open, 2 = closed
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -2896,24 +2909,24 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName)))
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        Dictionary<string, object> restUrls = this.extend(new Dictionary<string, object>() {}, (this.urlsApi != null && this.urlsApi.ContainsKey("rest") ? this.urlsApi["rest"] : null));
+        if (!(((apiName != null) && (restUrls?.ContainsKey(apiName) == true))))
         {
-            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName);
+        string? baseApiUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("rest") ? this.urlsApi["rest"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = baseApiUrl;
-        url = url + ("/" + path);
-        if ((apiName is "wapi"))
+        string url = ((baseApiUrl + "/") + path);
+        if (apiName == "wapi")
         {
             url = url + ".html";
         }
@@ -2938,10 +2951,10 @@ public partial class tokocrypto : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (((apiName is "private")) || ((apiName is "sapi") && (path != "system/status")) || ((apiName is "sapiV3")) || ((apiName is "wapi") && (path != "systemStatus")) || ((apiName is "dapiPrivate")) || ((apiName is "dapiPrivateV2")) || ((apiName is "fapiPrivate")) || ((apiName is "fapiPrivateV2")))
+        } else if ((apiName == "private") || (apiName == "sapi" && (path != "system/status")) || (apiName == "sapiV3") || (apiName == "wapi" && (path != "systemStatus")) || (apiName == "dapiPrivate") || (apiName == "dapiPrivateV2") || (apiName == "fapiPrivate") || (apiName == "fapiPrivateV2"))
         {
             this.checkRequiredCredentials();
-            string? query = null;
+            string query = "";
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
@@ -2955,7 +2968,7 @@ public partial class tokocrypto : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if (((apiName is "sapi")) && ((path == "asset/dust")))
+            if ((apiName == "sapi") && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0))
@@ -2970,17 +2983,14 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((apiName is "wapi"));
-            string? bodySigned = query;
-            if (queryInUrl)
-            {
-                bodySigned = null;
-            }
+            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || (apiName == "wapi");
+            string? bodySigned = null;
             if (queryInUrl)
             {
                 url = url + ("?" + query);
             } else
             {
+                bodySigned = query;
                 headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
             }
             return new Dictionary<string, object>() {
@@ -3004,16 +3014,16 @@ public partial class tokocrypto : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if ((isEqual(code, 418)) || (isEqual(code, 429)))
+        if (((code == 418)) || ((code == 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if ((Convert.ToInt64(code) >= 400))
+        if ((code >= 400))
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3035,7 +3045,7 @@ public partial class tokocrypto : Exchange
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
-        object parsedMessage = null;
+        object responseParsed = response;
         if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
@@ -3043,15 +3053,14 @@ public partial class tokocrypto : Exchange
             {
                 try
                 {
-                    parsedMessage = parseJson(messageInner);
+                    responseParsed = JsonHelper.Deserialize(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing
-                    parsedMessage = null;
+                    responseParsed = response;
                 }
             }
         }
-        object responseParsed = ((parsedMessage != null)) ? parsedMessage : response;
         string? message = this.safeString(responseParsed, "msg");
         if ((message != null))
         {
@@ -3093,26 +3102,27 @@ public partial class tokocrypto : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
+        Dictionary<string, object> paramsDict = this.extend(new Dictionary<string, object>() {}, parameters);
+        List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
+        if ((paramsDict.ContainsKey("noCoin")) && !(paramsDict.ContainsKey("coin")))
         {
-            return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+            return this.safeInteger(config, "noCoin");
+        } else if ((paramsDict.ContainsKey("noSymbol")) && !(paramsDict.ContainsKey("symbol")))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
+            return this.safeInteger(config, "noSymbol");
+        } else if ((paramsDict.ContainsKey("noPoolId")) && !(paramsDict.ContainsKey("poolId")))
         {
-            return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+            return this.safeInteger(config, "noPoolId");
+        } else if (paramsDict.ContainsKey("limit"))
         {
-            Int64? limit = this.safeInteger(parameters, "limit");
-            List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
+            Int64? limit = this.safeInteger(paramsDict, "limit");
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
                 Int64? entryLimit = this.safeInteger(entry, 0);
                 if (((limit != null)) && ((entryLimit != null)) && ((limit == null || limit <= entryLimit)))
                 {
-                    return getValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }

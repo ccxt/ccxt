@@ -39,7 +39,7 @@ public class Polymarket extends PolymarketApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "polymarket" );
@@ -711,7 +711,7 @@ public class Polymarket extends PolymarketApi
                 }};
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
-                List<Object> firstEvents = (List<Object>)(this.safeList(first, "events", new ArrayList<Object>(Arrays.asList())));
+                List<Object> firstEvents = (List<Object>) this.safeList(first, "events", new ArrayList<Object>(Arrays.asList()));
                 Integer firstEventsLength = ((List<?>)firstEvents).size();
                 Map<String, Object> pagination = (Map<String, Object>) this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
@@ -755,7 +755,7 @@ public class Polymarket extends PolymarketApi
                 }
                 for (var ri = 0; ri < ((List<?>)restResponses).size(); ri++)
                 {
-                    List<Object> pageEvents = (List<Object>)(this.safeList((restResponses == null || ri < 0 || ri >= ((List<?>)restResponses).size() ? null : ((List<?>)restResponses).get(ri)), "events", new ArrayList<Object>(Arrays.asList())));
+                    List<Object> pageEvents = (List<Object>) this.safeList((restResponses == null || ri < 0 || ri >= ((List<?>)restResponses).size() ? null : ((List<?>)restResponses).get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
                     for (var ei = 0; ei < ((List<?>)pageEvents).size(); ei++)
                     {
                         ((List<Object>)allEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
@@ -785,7 +785,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} tag the tag label or slug
      * @returns {string} the gamma tag slug
      */
-    public String tagToSlug(Object tag)
+    public String tagToSlug(String tag)
     {
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -887,7 +887,7 @@ public class Polymarket extends PolymarketApi
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
-                baseRequest.put("tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
+                baseRequest.put("tag_slug", this.tagToSlug((String) (this.safeString(requestedTags, 0))));
             }
             if (java.util.Objects.equals(status, "active"))
             {
@@ -949,10 +949,10 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public Object parseEventToMarkets(Map<String, Object> eventVar)
+    public List<Object> parseEventToMarkets(Map<String, Object> eventVar)
     {
         String eventSlug = this.safeString(eventVar, "slug", this.safeString(eventVar, "id"));
-        List<Object> rawMarkets = (List<Object>)(this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         //
         // {
@@ -1135,67 +1135,67 @@ public class Polymarket extends PolymarketApi
                 // inner class, which cannot capture a reassigned local
                 Boolean winner = winnerRaw;
                 Object settleFraction = settleFractionRaw;
-                ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("outcome", outcomeHandle);
-                    j39v2.put("outcomeId", clobTokenId);
-                    j39v2.put("market", marketSymbol);
-                    j39v2.put("label", outcomeLabel);
-                    j39v2.put("price", outcomePrice);
-                    j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                    j39v2.put("winner", winner);
-                    j39v2.put("settleFraction", settleFraction);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("outcome", outcomeHandle);
+                j39v2.put("outcomeId", clobTokenId);
+                j39v2.put("market", marketSymbol);
+                j39v2.put("label", outcomeLabel);
+                j39v2.put("price", outcomePrice);
+                j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+                j39v2.put("winner", winner);
+                j39v2.put("settleFraction", settleFraction);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", tickSize );
                         put( "price", tickSize );
                     }});
-                    j39v2.put("negRisk", negRisk);
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("negRisk", negRisk);
+                j39v2.put("info", market);
+                ((List<Object>)outcomes).add(j39v2);
             }
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
             String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             Object marketResolvedOutcome = resolvedOutcome;
-            ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", conditionId);
-                j39v1.put("market", marketSymbol);
-                j39v1.put("marketType", marketType);
-                j39v1.put("executionModel", "clob");
-                j39v1.put("collateral", "USDC");
-                j39v1.put("base", "USDC");
-                j39v1.put("quote", "USDC");
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", "USDC");
-                j39v1.put("settleId", null);
-                j39v1.put("type", "prediction");
-                j39v1.put("spot", false);
-                j39v1.put("margin", false);
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("prediction", true);
-                j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                j39v1.put("resolved", marketResolved);
-                j39v1.put("resolvedOutcome", marketResolvedOutcome);
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-                j39v1.put("expiryDatetime", endDate);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("taker", 0);
-                j39v1.put("maker", 0);
-                j39v1.put("percentage", true);
-                j39v1.put("tierBased", false);
-                j39v1.put("feeSide", "get");
-                j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", conditionId);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("marketType", marketType);
+            j39v1.put("executionModel", "clob");
+            j39v1.put("collateral", "USDC");
+            j39v1.put("base", "USDC");
+            j39v1.put("quote", "USDC");
+            j39v1.put("settle", null);
+            j39v1.put("baseId", baseId);
+            j39v1.put("quoteId", "USDC");
+            j39v1.put("settleId", null);
+            j39v1.put("type", "prediction");
+            j39v1.put("spot", false);
+            j39v1.put("margin", false);
+            j39v1.put("swap", false);
+            j39v1.put("future", false);
+            j39v1.put("option", false);
+            j39v1.put("prediction", true);
+            j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+            j39v1.put("resolved", marketResolved);
+            j39v1.put("resolvedOutcome", marketResolvedOutcome);
+            j39v1.put("contract", false);
+            j39v1.put("linear", null);
+            j39v1.put("inverse", null);
+            j39v1.put("contractSize", null);
+            j39v1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            j39v1.put("expiryDatetime", endDate);
+            j39v1.put("strike", null);
+            j39v1.put("optionType", null);
+            j39v1.put("taker", 0);
+            j39v1.put("maker", 0);
+            j39v1.put("percentage", true);
+            j39v1.put("tierBased", false);
+            j39v1.put("feeSide", "get");
+            j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", tickSize );
                     put( "price", tickSize );
                 }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+            j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", 1 );
                         put( "max", 1 );
@@ -1213,10 +1213,10 @@ public class Polymarket extends PolymarketApi
                         put( "max", null );
                     }} );
                 }});
-                j39v1.put("outcomes", outcomes);
-                j39v1.put("info", market);
-                j39v1.put("created", null);
-                yield j39v1; } }));
+            j39v1.put("outcomes", outcomes);
+            j39v1.put("info", market);
+            j39v1.put("created", null);
+            ((List<Object>)result).add(j39v1);
         }
         return result;
     }
@@ -1256,7 +1256,7 @@ public class Polymarket extends PolymarketApi
                     {
                         this.markets = this.createSafeDictionary();
                     }
-                    List<Object> ccxtMarkets = (List<Object>) this.parseEventToMarkets(new HashMap<String, Object>() {{
+                    List<Object> ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
                     }});
                     Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
@@ -1267,7 +1267,7 @@ public class Polymarket extends PolymarketApi
                         {
                             throw new ExchangeError((this.id + " fetchOutcome() could not resolve mkt")) ;
                         }
-                        Helpers.addElementToObject(this.markets, ((Map<String, Object>)mkt).get("market"), mkt);
+                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)mkt).get("market"), mkt);
                     }
                     this.populateOutcomes();
                     if (!java.util.Objects.equals(this.safeDict(this.outcomes_by_id, outcomeSymbol, (Object) null), null))
@@ -1337,7 +1337,7 @@ public class Polymarket extends PolymarketApi
                         put( "limit", chunkSize );
                     }})).join();
                     List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
-                    List<Object> ccxtMarkets = (List<Object>) this.parseEventToMarkets(new HashMap<String, Object>() {{
+                    List<Object> ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
                     }});
                     for (var i = 0; i < ((List<?>)ccxtMarkets).size(); i++)
@@ -1347,7 +1347,7 @@ public class Polymarket extends PolymarketApi
                         {
                             throw new ExchangeError((this.id + " fetchOutcomes() could not resolve mkt")) ;
                         }
-                        Helpers.addElementToObject(this.markets, ((Map<String, Object>)mkt).get("market"), mkt);
+                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)mkt).get("market"), mkt);
                     }
                     startIndex = this.sum(startIndex, chunkSize);
                 }
@@ -1382,7 +1382,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}), this.clobPublicGetBook(new HashMap<String, Object>() {{
@@ -1490,7 +1490,9 @@ public class Polymarket extends PolymarketApi
                 List<Object> bookParams = new ArrayList<Object>(Arrays.asList());
                 for (long i = ((long) (switch ((Object) (startIndex)) { case null -> Long.parseLong("null"); case Long hx4J40v10 -> hx4J40v10.longValue(); case Integer hx4J40v10 -> hx4J40v10.longValue(); case Double hx4J40v10 -> hx4J40v10.longValue(); case Float hx4J40v10 -> hx4J40v10.longValue(); case java.math.BigDecimal hx4J40v10 -> hx4J40v10.longValue(); case String hx4J40v10 -> Long.parseLong(hx4J40v10); case Object hx4J40v10 -> Long.parseLong(String.valueOf(hx4J40v10)); })); ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, endIndex); i++)
                 {
-                    ((List<Object>)bookParams).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("token_id", (tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i)))); yield j39v3; } }));
+                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("token_id", (tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i))));
+                    ((List<Object>)bookParams).add(j39v3);
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
@@ -1654,7 +1656,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -1710,7 +1712,7 @@ public class Polymarket extends PolymarketApi
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 1); // fidelity in minutes
             Long nowS = this.seconds();
             Object startS = null;
@@ -1994,7 +1996,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
@@ -2050,7 +2052,7 @@ public class Polymarket extends PolymarketApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", this.safeString(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2394,7 +2396,7 @@ public class Polymarket extends PolymarketApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", this.safeString(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
@@ -2595,7 +2597,7 @@ public class Polymarket extends PolymarketApi
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
                     // a distinct salt per order so two identical orders don't collide, within a batch or across calls
-                    Object orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                    Long orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                     orderParams = this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "salt", Polymarket.this.numberToString(orderSalt) );
                     }});
@@ -2641,7 +2643,7 @@ public class Polymarket extends PolymarketApi
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        Object tokenId = outcomeObj.get("outcomeId");
+        String tokenId = this.safeString(outcomeObj, "outcomeId");
         String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2693,10 +2695,10 @@ public class Polymarket extends PolymarketApi
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-        String eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+        String eoa = this.ethChecksumAddress((String) (this.ethGetAddressFromPrivateKey(this.privateKey)));
         String funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
-        Object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        Long defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         String salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
         String timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
@@ -2766,7 +2768,7 @@ public class Polymarket extends PolymarketApi
             exchangeAddress = negRiskExchangeV2;
         }
         String domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
-        String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, domainVersion, signatureType);
+        String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, (String) (domainVersion), signatureType);
         String owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         Map<String, Object> orderBody = new HashMap<String, Object>();
         orderBody.put("deferExec", false);
@@ -2893,7 +2895,7 @@ public class Polymarket extends PolymarketApi
         }};
     }
 
-    public String signClobOrder(Map<String, Object> message, Object exchangeAddress, Object domainVersion, Object sigType)
+    public String signClobOrder(Map<String, Object> message, String exchangeAddress, String domainVersion, Object sigType)
     {
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
@@ -2952,7 +2954,7 @@ public class Polymarket extends PolymarketApi
             Object encoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
                 put( "Order", orderStruct );
             }}, message);
-            Map<String, Object> eoaSig = this.signMessage(encoded, this.privateKey);
+            Map<String, Object> eoaSig = this.signMessage(encoded, (String) (this.privateKey));
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
             String eoaSignature = ((("0x" + this.remove0xPrefix(eoaSig.get("r"))) + this.remove0xPrefix(eoaSig.get("s"))) + this.intToBase16(eoaSig.get("v")));
@@ -3001,8 +3003,8 @@ public class Polymarket extends PolymarketApi
             put( "TypedDataSign", typedDataSignStruct );
             put( "Order", orderStruct );
         }}, innerValue);
-        Map<String, Object> innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        Object innerSig = ((java.util.function.BinaryOperator<Object>) (hx4J40v6A, hx4J40v6B) -> { Object hx4J40v6P = hx4J40v6A instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6A; Object hx4J40v6Q = hx4J40v6B instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6B; if (hx4J40v6P instanceof Long hx4J40v6l && hx4J40v6Q instanceof Long hx4J40v6r) { return hx4J40v6l + hx4J40v6r; } if (hx4J40v6P instanceof Double || hx4J40v6Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; return hx4J40v6D.applyAsDouble(hx4J40v6P) + hx4J40v6D.applyAsDouble(hx4J40v6Q); } if (hx4J40v6P instanceof String || hx4J40v6Q instanceof String) { return String.valueOf(hx4J40v6P) + String.valueOf(hx4J40v6Q); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (hx4J40v5A, hx4J40v5B) -> { Object hx4J40v5P = hx4J40v5A instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5A; Object hx4J40v5Q = hx4J40v5B instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5B; if (hx4J40v5P instanceof Long hx4J40v5l && hx4J40v5Q instanceof Long hx4J40v5r) { return hx4J40v5l + hx4J40v5r; } if (hx4J40v5P instanceof Double || hx4J40v5Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v5D = hx4J40v5o -> { if (hx4J40v5o instanceof Double || hx4J40v5o instanceof Float || hx4J40v5o instanceof Long || hx4J40v5o instanceof Integer || hx4J40v5o instanceof java.math.BigDecimal) { return ((Number) hx4J40v5o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v5o)); } catch (NumberFormatException hx4J40v5e) { return 0.0; } }; return hx4J40v5D.applyAsDouble(hx4J40v5P) + hx4J40v5D.applyAsDouble(hx4J40v5Q); } if (hx4J40v5P instanceof String || hx4J40v5Q instanceof String) { return String.valueOf(hx4J40v5P) + String.valueOf(hx4J40v5Q); } return null; }).apply(this.remove0xPrefix(innerSigObj.get("r")), this.remove0xPrefix(innerSigObj.get("s"))), this.intToBase16(innerSigObj.get("v")));
+        Map<String, Object> innerSigObj = this.signMessage(innerEncoded, (String) (this.privateKey));
+        Object innerSig = ((java.util.function.BinaryOperator<Object>) (hx4J40v6A, hx4J40v6B) -> { Object hx4J40v6P = hx4J40v6A instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6A; Object hx4J40v6Q = hx4J40v6B instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6B; if (hx4J40v6P instanceof Long hx4J40v6l && hx4J40v6Q instanceof Long hx4J40v6r) { return hx4J40v6l + hx4J40v6r; } if (hx4J40v6P instanceof Double || hx4J40v6Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; return hx4J40v6D.applyAsDouble(hx4J40v6P) + hx4J40v6D.applyAsDouble(hx4J40v6Q); } if (hx4J40v6P instanceof String || hx4J40v6Q instanceof String) { return String.valueOf(hx4J40v6P) + String.valueOf(hx4J40v6Q); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (hx4J40v5A, hx4J40v5B) -> { Object hx4J40v5P = hx4J40v5A instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5A; Object hx4J40v5Q = hx4J40v5B instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5B; if (hx4J40v5P instanceof Long hx4J40v5l && hx4J40v5Q instanceof Long hx4J40v5r) { return hx4J40v5l + hx4J40v5r; } if (hx4J40v5P instanceof Double || hx4J40v5Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v5D = hx4J40v5o -> { if (hx4J40v5o instanceof Double || hx4J40v5o instanceof Float || hx4J40v5o instanceof Long || hx4J40v5o instanceof Integer || hx4J40v5o instanceof java.math.BigDecimal) { return ((Number) hx4J40v5o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v5o)); } catch (NumberFormatException hx4J40v5e) { return 0.0; } }; return hx4J40v5D.applyAsDouble(hx4J40v5P) + hx4J40v5D.applyAsDouble(hx4J40v5Q); } if (hx4J40v5P instanceof String || hx4J40v5Q instanceof String) { return String.valueOf(hx4J40v5P) + String.valueOf(hx4J40v5Q); } return null; }).apply(this.remove0xPrefix(this.safeString(innerSigObj, "r")), this.remove0xPrefix(this.safeString(innerSigObj, "s"))), this.intToBase16(innerSigObj.get("v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3111,7 +3113,7 @@ public class Polymarket extends PolymarketApi
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_id", outcomeObj.get("outcomeId") );
+                    put( "asset_id", Polymarket.this.safeString(outcomeObj, "outcomeId") );
                 }};
                 response = (this.clobPrivateDeleteCancelMarketOrders(this.extend(request, parameters))).join();
             } else
@@ -3205,7 +3207,7 @@ public class Polymarket extends PolymarketApi
             {
                 Object rawEvent = (rawEvents == null || rei < 0 || rei >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(rei));
                 Object eventForParsing = rawEvent;
-                List<Object> ccxtMarkets = (List<Object>) this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
+                List<Object> ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
                 Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
                 if (java.util.Objects.equals(ccxtMarketsLength, 0))
                 {
@@ -3227,7 +3229,7 @@ public class Polymarket extends PolymarketApi
                     if (!java.util.Objects.equals(detailedEvent, null))
                     {
                         eventForParsing = this.safeValue(detailedEvent, "event", detailedEvent);
-                        ccxtMarkets = (List<Object>) this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
+                        ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
                     }
                 }
                 for (var mi = 0; mi < ((List<?>)ccxtMarkets).size(); mi++)
@@ -3237,7 +3239,7 @@ public class Polymarket extends PolymarketApi
                     {
                         throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
                     }
-                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)m).get("market"), m);
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
                 }
                 Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) (eventForParsing));
                 ((List<Object>)result).add(parsedEvent);
@@ -3362,7 +3364,7 @@ public class Polymarket extends PolymarketApi
         //     "deploying": false,
         //     "requiresTranslation": false
         // }
-        List<Object> marketsList = (List<Object>) this.parseEventToMarkets((Map<String, Object>) (rawEvent));
+        List<Object> marketsList = this.parseEventToMarkets((Map<String, Object>) (rawEvent));
         String slug = this.safeString(rawEvent, "slug");
         // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
         // the snake_case fallbacks cover older payload shapes
@@ -3422,7 +3424,7 @@ public class Polymarket extends PolymarketApi
      * @param {object[]} rawEvents the raw gamma event objects
      * @returns {object[]} a list of event structures
      */
-    public Object parseEvents(Object rawEvents)
+    public List<Object> parseEvents(Object rawEvents)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawEvents).size(); i++)
@@ -3433,7 +3435,7 @@ public class Polymarket extends PolymarketApi
         return result;
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
@@ -3472,8 +3474,8 @@ public class Polymarket extends PolymarketApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String access = this.safeString(api, 1, "public");
+        String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
@@ -3551,10 +3553,10 @@ public class Polymarket extends PolymarketApi
                     throw new ArgumentsRequired((((this.id + " ") + path) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
-                Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                Object address = this.ethChecksumAddress((String) (this.ethGetAddressFromPrivateKey(this.privateKey)));
                 String timestamp = String.valueOf(this.seconds());
                 Long nonce = this.safeInteger(parameters, "nonce", 0);
-                String l1signature = this.signClobAuth(address, timestamp, nonce);
+                String l1signature = this.signClobAuth((String) (address), timestamp, nonce);
                 headersValue = this.extend(headersValue, new HashMap<String, Object>() {{
                     put( "POLY_ADDRESS", address );
                     put( "POLY_SIGNATURE", l1signature );
@@ -3573,7 +3575,7 @@ public class Polymarket extends PolymarketApi
                 Object address = null;
                 if (!java.util.Objects.equals(this.privateKey, null))
                 {
-                    address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                    address = this.ethChecksumAddress((String) (this.ethGetAddressFromPrivateKey(this.privateKey)));
                 } else
                 {
                     address = this.walletAddress;
@@ -3621,7 +3623,7 @@ public class Polymarket extends PolymarketApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String ethChecksumAddress(Object address)
+    public String ethChecksumAddress(String address)
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
@@ -3646,7 +3648,7 @@ public class Polymarket extends PolymarketApi
         return ("0x" + result);
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
@@ -3661,12 +3663,12 @@ public class Polymarket extends PolymarketApi
         }};
     }
 
-    public Map<String, Object> signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
-    public String signClobAuth(Object address, Object timestamp, Object nonce)
+    public String signClobAuth(String address, String timestamp, Object nonce)
     {
         // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
         Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -3696,7 +3698,7 @@ public class Polymarket extends PolymarketApi
             put( "message", "This message attests that I control the given wallet" );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-        Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
+        Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
         return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }
 
@@ -3770,7 +3772,7 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public Object setApiCredentials(Map<String, Object> response)
+    public Map<String, Object> setApiCredentials(Map<String, Object> response)
     {
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
@@ -3782,9 +3784,9 @@ public class Polymarket extends PolymarketApi
         }};
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        Helpers.addElementToObject(this.options, "l2ApiKey", creds.get("apiKey"));
-        Helpers.addElementToObject(this.options, "l2Secret", creds.get("secret"));
-        Helpers.addElementToObject(this.options, "l2Passphrase", creds.get("passphrase"));
+        this.options.put("l2ApiKey", creds.get("apiKey"));
+        this.options.put("l2Secret", creds.get("secret"));
+        this.options.put("l2Passphrase", creds.get("passphrase"));
         return creds;
     }
 
@@ -3887,7 +3889,7 @@ public class Polymarket extends PolymarketApi
         if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
         {
             io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
+            this.orderbooks.put(outcome, seededBook);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
         Long timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
@@ -3994,7 +3996,7 @@ public class Polymarket extends PolymarketApi
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, outcome, stored);
+            this.trades.put(outcome, stored);
         }
         stored.append(trade);
         client.resolve(stored, ("trades::" + outcome));
@@ -4015,8 +4017,8 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            String outcomeValue = this.safeString(outcomeObj, "outcome");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
+            String outcomeValue = this.safeString(outcomeObj, "outcome", "");
             String messageHash = ("orderbook::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
@@ -4046,8 +4048,8 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            String outcomeValue = this.safeString(outcomeObj, "outcome");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
+            String outcomeValue = this.safeString(outcomeObj, "outcome", "");
             String messageHash = ("trades::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
@@ -4075,24 +4077,24 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
             String outcomeValue = this.safeString(outcomeObj, "outcome");
+            if (java.util.Objects.equals(outcomeValue, null))
+            {
+                throw new ExchangeError((this.id + " watchTicker() missing outcome")) ;
+            }
             String messageHash = ("ticker::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            if (java.util.Objects.equals(outcomeValue, null))
-            {
-                throw new ExchangeError((this.id + " watchTicker() missing outcome")) ;
-            }
             if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeValue)))
             {
                 io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(outcomeValue, null))
                 {
-                    Helpers.addElementToObject(this.orderbooks, outcomeValue, seededBook);
+                    this.orderbooks.put(outcomeValue, seededBook);
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
@@ -4188,7 +4190,8 @@ public class Polymarket extends PolymarketApi
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
-                messageHash = ("orders::" + outcomeResolved);
+                String outcomeName = this.safeString(outcomeObj, "outcome", "");
+                messageHash = ("orders::" + outcomeName);
             }
             List<Object> orders = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -4224,7 +4227,8 @@ public class Polymarket extends PolymarketApi
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
-                messageHash = ("myTrades::" + outcomeResolved);
+                String outcomeName = this.safeString(outcomeObj, "outcome", "");
+                messageHash = ("myTrades::" + outcomeName);
             }
             List<Object> trades = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -4237,7 +4241,7 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public CompletableFuture<Object> subscribeUserChannel(Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeUserChannel(String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

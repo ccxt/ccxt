@@ -19,7 +19,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class poloniex extends \ccxt\async\poloniex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -107,7 +107,7 @@ class poloniex extends \ccxt\async\poloniex {
          */
         $this->check_required_credentials();
         $timestamp = $this->number_to_string($this->milliseconds());
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'private', '');
         $messageHash = 'authenticated';
         $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
@@ -169,7 +169,7 @@ class poloniex extends \ccxt\async\poloniex {
          * @return {array} data from the websocket stream
          */
         $publicOrPrivate = 'public';
-        if ($isPrivate) {
+        if ($isPrivate === true) {
             $publicOrPrivate = 'private';
         }
         $url = $this->safe_string($this->urls['api']['ws'], $publicOrPrivate);
@@ -242,8 +242,8 @@ class poloniex extends \ccxt\async\poloniex {
          * @param {array} [$params] extra parameters specific to the poloniex api
          * @return {array} data from the websocket stream
          */
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = (string) $this->nonce();
+        $url = $this->safe_string($this->urls['api']['ws'], 'private', '');
+        $messageHash = $this->number_to_string($this->nonce());
         $subscribe = array(
             'id' => $messageHash,
             'event' => $name,
@@ -572,7 +572,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $name = 'trades';
-        $url = $this->urls['api']['ws']['public'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'public', '');
         $marketIds = $this->market_ids($symbolsNormalized);
         $subscribe = array(
             'event' => 'subscribe',
@@ -751,7 +751,7 @@ class poloniex extends \ccxt\async\poloniex {
         // balance from a rest snapshot once per subscription - otherwise the
         // first resolves would only list the currencies that changed since
         // subscribing
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'private', '');
         $client = $this->client($url);
         $this->set_balance_cache($client, $name);
         $options = $this->safe_dict($this->options, 'watchBalance');
@@ -912,9 +912,9 @@ class poloniex extends \ccxt\async\poloniex {
             $marketId = $this->safe_string($item, 'symbol');
             if ($marketId !== null) {
                 $trade = $this->parse_ws_trade($item);
-                $symbol = $trade['symbol'];
+                $symbol = $this->safe_string($trade, 'symbol');
                 $type = 'trades';
-                $messageHash = $type . '::' . $symbol;
+                $messageHash = $type . '::' . $this->safe_string($trade, 'symbol', '');
                 $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1100,12 +1100,11 @@ class poloniex extends \ccxt\async\poloniex {
         //    }
         //
         $data = $this->safe_list($message, 'data', array());
-        $orders = $this->orders;
-        if ($orders === null) {
+        if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $orders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $orders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
+        $orders = $this->orders;
         $marketIds = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $this->safe_dict($data, $i);
@@ -1137,9 +1136,9 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
                     $totalCost = '0';
                     $totalAmount = '0';
-                    $previousOrderTrades = $previousOrder['trades'];
+                    $previousOrderTrades = $this->safe_list($previousOrder, 'trades', array());
                     for ($j = 0; $j < count($previousOrderTrades); $j++) {
-                        $previousOrderTrade = $previousOrderTrades[$j];
+                        $previousOrderTrade = $this->safe_dict($previousOrderTrades, $j, array());
                         $cost = $this->number_to_string($previousOrderTrade['cost']);
                         $amount = $this->number_to_string($previousOrderTrade['amount']);
                         $totalCost = Precise::string_add($totalCost, $cost);
@@ -1183,7 +1182,7 @@ class poloniex extends \ccxt\async\poloniex {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'orders::' . $symbol;
             $client->resolve($orders, $messageHash);
         }
@@ -1292,7 +1291,7 @@ class poloniex extends \ccxt\async\poloniex {
             $marketId = $this->safe_string($item, 'symbol');
             if ($marketId !== null) {
                 $ticker = $this->parse_ticker($item);
-                $symbol = $ticker['symbol'];
+                $symbol = $this->safe_string($ticker, 'symbol');
                 if ($symbol !== null) {
                     $this->tickers[$symbol] = $ticker;
                 }
@@ -1455,7 +1454,7 @@ class poloniex extends \ccxt\async\poloniex {
         if ($this->balance === null) {
             $this->balance = array();
         }
-        $this->balance['info'] = $data;
+        $this->balance['info'] = $this->safe_list($message, 'data', array());
         $firstBalance = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($firstBalance, 'ts');
         $this->balance['timestamp'] = $timestamp;
@@ -1478,7 +1477,7 @@ class poloniex extends \ccxt\async\poloniex {
     public function handle_my_trades(Client $client, array $parsedTrade) {
         // emulated using the orders' stream
         $messageHash = 'myTrades';
-        $symbol = $parsedTrade['symbol'];
+        $symbol = $this->safe_string($parsedTrade, 'symbol', '');
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
@@ -1555,7 +1554,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        $channel = $this->safe_string($message, 'channel');
+        $channel = $this->safe_string($message, 'channel', '');
         $marketIds = $this->safe_list($message, 'symbols', array());
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);

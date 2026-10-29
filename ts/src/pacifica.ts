@@ -15,7 +15,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class pacifica extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'pacifica',
             'name': 'Pacifica',
@@ -735,7 +735,7 @@ export default class pacifica extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
         }
         const fees = this.safeDict (this.fees, type, {});
         const taker = this.safeNumber (fees, 'taker');
@@ -895,9 +895,8 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchLeverage', 'settings');
         } else {
             const request: Dict = {
@@ -999,11 +998,12 @@ export default class pacifica extends Exchange {
             return {};
         }
         const settingsBySymbol: Dict = {};
-        for (let i = 0; i < settings.length; i++) {
-            const marketId = settings[i]['symbol'];
+        for (let i = 0; i < settingsLen; i++) {
+            const setting = settings[i];
+            const marketId = this.safeString (setting, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            settingsBySymbol[symbol] = settings[i];
+            settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
     }
@@ -1021,9 +1021,8 @@ export default class pacifica extends Exchange {
     override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadAccountSettings ();
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchMarginMode', 'settings');
         } else {
             const request: Dict = {
@@ -1612,7 +1611,7 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'side': this.mapSide (side),
         };
-        let operationType: Str = undefined;
+        let operationType = 'create_order';
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'triggerPrice');
@@ -1876,7 +1875,7 @@ export default class pacifica extends Exchange {
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params: Dict = {}): Dict {
         const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const request = this.cancelOrderRequest (id, symbol, params);
             const action: Dict = {
                 'type': 'Cancel',
@@ -2002,11 +2001,9 @@ export default class pacifica extends Exchange {
     cancelOrderRequest (id: any, symbol: Str = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
-        let operationType: Str = undefined;
+        let operationType = 'cancel_order';
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
-        } else {
-            operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const sigPayload: Dict = {
@@ -2778,9 +2775,9 @@ export default class pacifica extends Exchange {
         const symbol = marketResolved['symbol'];
         const margin = this.safeString (position, 'margin');
         const rawIsolated = this.safeBool (position, 'isolated');
-        let isIsolated = (margin !== undefined && margin !== '0');
+        let isIsolated: boolean = (margin !== undefined) && (margin !== '0');
         if (rawIsolated !== undefined) {
-            isIsolated = rawIsolated;
+            isIsolated = (rawIsolated === true);
         }
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString (position, 'side');
@@ -3661,7 +3658,7 @@ export default class pacifica extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3714,11 +3711,10 @@ export default class pacifica extends Exchange {
         const host = this.implodeHostname (baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
-        const paramsLen = Object.keys (paramsOmitted).length;
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
         };
-        if ((method === 'GET') && (paramsLen > 0)) {
+        if ((method === 'GET') && (Object.keys (paramsOmitted).length > 0)) {
             url += '?' + this.urlencode (paramsOmitted);
             headersValue['Accept'] = '*/*';
         }
@@ -3731,7 +3727,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3754,23 +3750,26 @@ export default class pacifica extends Exchange {
             const keys = Object.keys (value);
             const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
-                const key = sortedKeys[i];
+                const key = this.safeString (sortedKeys, i, '');
                 result[key] = this.sortJsonKeys (value[key]);
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result: Dict[] = [];
+            const sortedList: Dict[] = [];
             for (let i = 0; i < value.length; i++) {
-                result.push (this.sortJsonKeys (value[i]));
+                sortedList.push (this.sortJsonKeys (value[i]));
             }
-            return result;
+            return sortedList;
         } else {
             return value;
         }
     }
 
     prepareMessage (header: Dict, payload: Dict): string {
-        if (header['type'] === undefined || header['timestamp'] === undefined || header['expiry_window'] === undefined) {
+        const headerType = this.safeString (header, 'type');
+        const headerTimestamp = this.safeInteger (header, 'timestamp');
+        const headerExpiryWindow = this.safeInteger (header, 'expiry_window');
+        if (headerType === undefined || headerTimestamp === undefined || headerExpiryWindow === undefined) {
             throw new ArgumentsRequired (this.id + ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         const data = this.extend (header, { 'data': payload });
@@ -3789,7 +3788,7 @@ export default class pacifica extends Exchange {
         return signatureBase58;
     }
 
-    postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
+    postActionRequest (operationType: string, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');

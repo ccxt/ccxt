@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  * @augments Exchange
  */
 export default class bybit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bybit#enableDemoTrading
@@ -14,7 +14,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    nonce(): number;
+    nonce(): int;
     addPaginationCursorToResult(response: Dict): any[];
     /**
      * @method
@@ -1129,5 +1129,5 @@ export default class bybit extends Exchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

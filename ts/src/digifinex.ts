@@ -15,7 +15,7 @@ import type { Balances, Bool, BorrowInterest, CancellationRequest, CrossBorrowRa
  * @augments Exchange
  */
 export default class digifinex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',
             'name': 'DigiFinex',
@@ -523,13 +523,12 @@ export default class digifinex extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const networkEntries = rawCurrency as Dict[];
-        const firstEntry = this.safeDict (networkEntries, 0, {}); // it must have at least one entry
-        const id = this.safeString (firstEntry, 'currency');
+        const networkEntries = this.toArray (rawCurrency) as Dict[];
+        const id = this.safeString (this.safeDict (networkEntries, 0, {}), 'currency'); // it must have at least one entry
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
         for (let j = 0; j < networkEntries.length; j++) {
-            const networkEntry = networkEntries[j];
+            const networkEntry = this.safeDict (networkEntries, j);
             const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
@@ -772,7 +771,9 @@ export default class digifinex extends Exchange {
             if (id === undefined) {
                 throw new ExchangeError (this.id + ' fetchMarketsV1() missing id');
             }
-            const [ baseId, quoteId ] = id.split ('_');
+            const idParts = id.split ('_');
+            const baseId = this.safeString (idParts, 0);
+            const quoteId = this.safeString (idParts, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -856,10 +857,10 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
+            const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
             const account = this.account ();
             const free = this.safeString2 (balance, 'free', 'avail_balance');
             const total = this.safeString2 (balance, 'total', 'equity');
@@ -892,8 +893,8 @@ export default class digifinex extends Exchange {
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginAssets (query);
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotAssets (query);
@@ -939,7 +940,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let balanceRequest: Str = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && marketType === 'swap') {
             balanceRequest = 'data';
         }
         const balances = this.safeList (response, balanceRequest, []);
@@ -1107,7 +1108,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
                 'date': date,
-            }, tickers[i]);
+            }, this.safeValue (tickers, i));
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
@@ -1190,14 +1191,9 @@ export default class digifinex extends Exchange {
         const tickers = this.safeList (response, 'ticker', []);
         const data = this.safeDict (response, 'data', {});
         const firstTicker = this.safeDict (tickers, 0, {});
-        let result: Dict | undefined = undefined;
-        if (market['swap'] === true) {
-            result = data;
-        } else {
+        let result: Dict = data;
+        if (market['swap'] !== true) {
             result = this.extend ({ 'date': date }, firstTicker);
-        }
-        if (result === undefined) {
-            throw new NullResponse (this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker (result, market);
     }
@@ -1773,8 +1769,8 @@ export default class digifinex extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
@@ -1832,7 +1828,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const individualOrder: Dict = {};
-            individualOrder['order_id'] = data[i];
+            individualOrder['order_id'] = this.safeString (data, i);
             individualOrder['instrument_id'] = market['id'];
             individualOrder['amount'] = this.safeNumber (rawOrder, 'amount');
             individualOrder['price'] = this.safeNumber (rawOrder, 'price');
@@ -1864,9 +1860,8 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const [ marketTypeRaw, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrderRequest', paramsMarketType);
-        const marketType = (marginMode !== undefined) ? 'margin' : marketTypeRaw;
         const request: Dict = {};
-        const swap = (marketType === 'swap');
+        const swap = ((marginMode === undefined) && (marketTypeRaw === 'swap'));
         const isMarketOrder = (type === 'market');
         const isLimitOrder = (type === 'limit');
         let marketIdRequest: Str = 'symbol';
@@ -1908,7 +1903,7 @@ export default class digifinex extends Exchange {
             paramsRequest = this.omit (paramsMarginMode, [ 'reduceOnly', 'timeInForce', 'postOnly' ]);
         } else {
             postOnlyParsed = (postOnly) ? 1 : 2;
-            request['market'] = marketType;
+            request['market'] = (marginMode !== undefined) ? 'margin' : marketTypeRaw;
             let suffix = '';
             if (type === 'market') {
                 suffix = '_market';
@@ -1999,7 +1994,7 @@ export default class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const idValue: string = id.toString ();
+        const idValue = this.numberToString (id);
         let marketType: Str = undefined;
         let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
@@ -2016,8 +2011,8 @@ export default class digifinex extends Exchange {
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotPostMarginOrderCancel (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotPostSpotOrderCancel (this.extend (request, query));
@@ -2047,7 +2042,7 @@ export default class digifinex extends Exchange {
         //         "data": "1590923061186531328"
         //     }
         //
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        if (isMargin || (marketType === 'spot')) {
             const canceledOrders: Dict[] = this.safeList (response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
@@ -2117,9 +2112,8 @@ export default class digifinex extends Exchange {
             const marketSymbol = market['symbol'];
             const orders: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
-                const orderId = ids[i];
                 const orderItem: CancellationRequest = {
-                    'id': orderId,
+                    'id': this.safeString (ids, i, ''),
                     'symbol': marketSymbol,
                 };
                 orders.push (orderItem);
@@ -2452,8 +2446,8 @@ export default class digifinex extends Exchange {
             request[marketIdRequest] = market['id'];
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderCurrent (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotOrderCurrent (this.extend (request, query));
@@ -2563,8 +2557,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderHistory (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotOrderHistory (this.extend (request, query));
@@ -2651,8 +2645,9 @@ export default class digifinex extends Exchange {
         let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', paramsMarketType);
+        const idValue = this.numberToString (id);
         const request: Dict = {
-            'order_id': id,
+            'order_id': idValue,
         };
         if (marketType === 'swap') {
             if (market !== undefined) {
@@ -2662,8 +2657,8 @@ export default class digifinex extends Exchange {
             request['market'] = marketType;
         }
         let response = undefined;
-        if ((marginMode !== undefined) || (marketType === 'margin')) {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrder (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotOrder (this.extend (request, query));
@@ -2721,9 +2716,9 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const order = (marketType === 'swap') ? data : this.safeValue (data, 0);
+        const order = (!isMargin && (marketType === 'swap')) ? data : this.safeValue (data, 0);
         if (order === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id.toString () + ' not found');
+            throw new OrderNotFound (this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
         return this.parseOrder (order, market);
     }
@@ -2774,8 +2769,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginMytrades (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotMytrades (this.extend (request, query));
@@ -2830,7 +2825,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let responseRequest: Str = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             responseRequest = 'data';
         }
         const data: Dict[] = this.safeList (response, responseRequest, []);
@@ -2936,8 +2931,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginFinancelog (this.extend (request, query));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetSpotFinancelog (this.extend (request, query));
@@ -2980,7 +2975,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let ledger: NullableList = undefined;
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             ledger = this.safeList (response, 'data', []);
         } else {
             const data = this.safeDict (response, 'data', {});
@@ -4459,20 +4454,21 @@ export default class digifinex extends Exchange {
         //
         const depositWithdrawFees: Dict = {};
         const codesValue: Strings = this.marketCodes (codes);
-        for (let i = 0; i < response.length; i++) {
-            const entry = this.safeDict (response, i);
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const entry = this.safeDict (rows, i);
+            const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
-                const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
-                    depositWithdrawFees[code]['info'] = [];
+                if (!(code in depositWithdrawFees)) {
+                    const feeStructure = this.depositWithdrawFee ({});
+                    feeStructure['info'] = [];
+                    depositWithdrawFees[code] = feeStructure;
                 }
-                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                const depositWithdrawFee: Dict = depositWithdrawFees[code];
+                const depositWithdrawInfo = depositWithdrawFee['info'];
                 depositWithdrawInfo.push (entry);
                 const networkId = this.safeString (entry, 'chain');
-                const withdrawFee = this.safeValue (entry, 'min_withdraw_fee');
+                const withdrawFee = this.safeNumber (entry, 'min_withdraw_fee');
                 const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
@@ -4484,14 +4480,14 @@ export default class digifinex extends Exchange {
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode (networkId, code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        depositWithdrawFee['networks'][networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         };
                     }
                 } else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    depositWithdrawFee['withdraw'] = withdrawResult;
+                    depositWithdrawFee['deposit'] = depositResult;
                 }
             }
         }
@@ -4696,8 +4692,8 @@ export default class digifinex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
-        const signed = this.safeString (api, 0) === 'private';
-        const endpoint = this.safeString (api, 1);
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
         let pathPart: Str = '/swap/v2';
         if (endpoint === 'spot') {
             pathPart = '/v3';
@@ -4717,8 +4713,8 @@ export default class digifinex extends Exchange {
             urlencoded = this.urlencode (this.keysort (query));
         }
         if (signed) {
-            let auth: Str = undefined;
-            let nonce: Str = undefined;
+            let auth = '';
+            let nonce = '';
             if (pathPart === '/swap/v2') {
                 nonce = this.milliseconds ().toString ();
                 auth = nonce + method + payload;
@@ -4730,7 +4726,7 @@ export default class digifinex extends Exchange {
                     auth += urlencoded;
                 }
             } else {
-                nonce = this.nonce ().toString ();
+                nonce = this.seconds ().toString ();
                 auth = urlencoded;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
@@ -4758,20 +4754,20 @@ export default class digifinex extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fall back to default error handler
         }
-        const code = this.safeString (response, 'code');
-        if ((code === '0') || (code === '200')) {
+        const codeError = this.safeString (response, 'code');
+        if ((codeError === '0') || (codeError === '200')) {
             return undefined; // no error
         }
-        const feedback = this.id + ' ' + responseBody;
-        if (code === undefined) {
+        const feedback = this.id + ' ' + body;
+        if (codeError === undefined) {
             throw new BadResponse (feedback);
         }
         const unknownError = [ ExchangeError, feedback ];
-        const [ ExceptionClass, message ] = this.safeValue (this.exceptions['exact'], code, unknownError);
+        const [ ExceptionClass, message ] = this.safeValue (this.exceptions['exact'], codeError, unknownError);
         throw new ExceptionClass (message);
     }
 }

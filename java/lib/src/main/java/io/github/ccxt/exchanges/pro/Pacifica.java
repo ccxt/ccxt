@@ -32,7 +32,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -148,7 +148,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -247,14 +249,16 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -337,7 +341,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -430,14 +436,16 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
             }
-            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -509,14 +517,16 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String operationType = "cancel_all_orders";
-            Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
+            Map<String, Object> request = this.cancelAllOrdersRequest((String) (symbol), parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -573,7 +583,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -624,7 +636,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -694,14 +708,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             snapshot.put("nonce", nonce);
         }
+        String messageHash = ("orderbook:" + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
-            Helpers.addElementToObject(this.orderbooks, symbol, ob);
+            this.orderbooks.put(symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.reset(snapshot);
-        String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -752,7 +766,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -800,7 +816,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -845,7 +863,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = ("myTrades:" + symbolResolved);
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
@@ -853,7 +871,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -910,7 +930,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -959,7 +981,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(info, market);
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
             ((List<Object>)parsedTickers).add(ticker);
         }
         Map<String,Object> tickers = this.indexBy(parsedTickers, "symbol");
@@ -1022,10 +1044,10 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }
             trades.append(parsed);
         }
-        List<Object> keys = new ArrayList<Object>(symbols.keySet());
+        List<String> keys = new ArrayList<String>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            String currentMessageHash = ("myTrades:" + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
+            String currentMessageHash = ("myTrades:" + this.safeString(keys, i, ""));
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -1062,7 +1084,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1114,7 +1138,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1156,11 +1182,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String marketId = this.safeString(first, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
+        String messageHash = ("trade:" + symbol);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)entry).size(); i++)
@@ -1169,7 +1196,6 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
             trades.append(trade);
         }
-        String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
@@ -1293,7 +1319,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1346,7 +1374,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1395,9 +1425,10 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             return;
         }
+        String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
+            this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         Object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
@@ -1409,7 +1440,6 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) ohlcv).append(parsed);
-        String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }
 
@@ -1444,7 +1474,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = ((messageHash + ":") + symbolResolved);
+                messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
@@ -1452,7 +1482,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1506,7 +1538,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 urlKey = "test";
             }
-            String url = this.safeString(Helpers.GetValue((urlKey == null || this.urls == null ? null : ((Map<?, ?>)this.urls).get(urlKey)), "ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String url = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
@@ -1605,9 +1639,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             id = this.safeString(data, "id");
         }
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsHeaders = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsHeadersFinal = (Map<String, Object>) this.safeDict(wsHeaders, "headers", new HashMap<String, Object>() {{}});
         try
         {
-            this.handleErrors(0, error, "", postType, Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers"), this.json(data), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(0, error, "", postType, wsHeadersFinal, this.json(data), message, new HashMap<String, Object>() {{}}, "");
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -1649,7 +1686,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String subMessageHash = "tickers";
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> symbols = (this.tickers == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.tickers.keySet()));
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             ((Map<String,Object>)this.tickers).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
@@ -1672,7 +1709,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         if ((!java.util.Objects.equals(symbol, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            if ((!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
+            if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
             {
                 ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
@@ -1829,18 +1866,19 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return (String) (this.uuid());  // uuid v4
     }
 
-    public Object wrapAsPostAction(String operationType, Map<String, Object> request)
+    public Map<String, Object> wrapAsPostAction(String operationType, Map<String, Object> request)
     {
         if (java.util.Objects.equals(operationType, null))
         {
             throw new ArgumentsRequired((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
         String requestId = this.requestId();
+        Map<String, Object> postParams = new HashMap<String, Object>() {{}};
+        postParams.put(operationType, request);
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "id", requestId );
-            put( "params", new HashMap<String, Object>() {{}} );
+            put( "params", postParams );
         }};
-        Helpers.addElementToObject(payload.get("params"), operationType, request);
         return payload;
     }
 

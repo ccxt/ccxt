@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\toobit as Exchange;
 
 class toobit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'toobit',
             'name' => 'Toobit',
@@ -947,7 +947,7 @@ class toobit extends Exchange {
         $all = $this->array_concat($symbols, $contracts);
         $result = array();
         for ($i = 0; $i < count($all); $i++) {
-            $market = $all[$i];
+            $market = $this->safe_dict($all, $i, array());
             $parsed = $this->parse_market($market);
             if ($parsed !== null) {
                 $result[] = $parsed;
@@ -961,7 +961,7 @@ class toobit extends Exchange {
         $baseId = $this->safe_string($market, 'baseAsset', '');
         $quoteId = $this->safe_string($market, 'quoteAsset');
         $baseParts = explode('-', $baseId);
-        $baseIdClean = $baseParts[0];
+        $baseIdClean = $this->safe_string($baseParts, 0);
         $base = $this->safe_currency_code($baseIdClean);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -977,10 +977,10 @@ class toobit extends Exchange {
         $lotSizeFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $minNotionalFilter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
         $symbol = $base . '/' . $quote;
-        $isContract = (is_array($market) && array_key_exists('contractMultiplier' ?? '', $market));
+        $isContract = ($this->safe_string($market, 'contractMultiplier') !== null);
         $inverse = $this->safe_bool_2($market, 'isInverse', 'inverse');
         if ($isContract) {
-            $symbol .= ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
         }
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -1540,10 +1540,10 @@ class toobit extends Exchange {
         //            "t": "1755936610506"
         //        }, ...
         //
-        return $this->parse_bids_asks_custom($response, $symbolsNormalized);
+        return $this->parse_bids_asks_custom($response, $symbolsNormalized, array());
     }
 
-    public function parse_bids_asks_custom(array $tickers, ?array $symbols = null, $params = array()): array {
+    public function parse_bids_asks_custom(array $tickers, ?array $symbols, array $params): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);
@@ -1921,7 +1921,7 @@ class toobit extends Exchange {
             }
         }
         $paramsOmitted = $this->omit($paramsTrigger, array( 'stopLoss', 'takeProfit' ));
-        if (!(is_array($paramsOmitted) && array_key_exists('newClientOrderId' ?? '', $paramsOmitted))) {
+        if ($this->safe_string($paramsOmitted, 'newClientOrderId') === null) {
             $request['newClientOrderId'] = $this->uuid();
         }
         return array( $request, $paramsOmitted );
@@ -2160,9 +2160,8 @@ class toobit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $idsString = implode(',', $ids);
         $request = array(
-            'ids' => $idsString,
+            'ids' => implode(',', $ids),
         );
         $market = null;
         if ($symbol !== null) {
@@ -2716,9 +2715,10 @@ class toobit extends Exchange {
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' fetchTradingFees requires a params["symbol"]');
             }
-            $market = $this->market($symbol);
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => $symbolMarket['id'],
             );
             $response = $this->privateGetApiV1FuturesCommissionRate($this->extend($request, $paramsSymbol));
         }
@@ -2732,10 +2732,9 @@ class toobit extends Exchange {
         //
         $result = array();
         $entry = $response;
-        $marketId = $this->safe_string($entry, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $fee = $this->parse_trading_fee($entry, $market);
-        $result[$market['symbol']] = $fee;
+        $marketResolved = $this->safe_market($this->safe_string($entry, 'symbol'), $market);
+        $fee = $this->parse_trading_fee($entry, $marketResolved);
+        $result[$marketResolved['symbol']] = $fee;
         return $result;
     }
 
@@ -2794,10 +2793,10 @@ class toobit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         if ($limit !== null) {
-            $requestUntil['limit'] = $limit;
+            $request['limit'] = $limit;
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         $response = array();
         if ($type === 'deposits') {
             $response = $this->privateGetApiV1AccountDepositOrders($this->extend($requestUntil, $paramsUntil));
@@ -3285,7 +3284,7 @@ class toobit extends Exchange {
         if ($apiName !== 'private') {
             // Public endpoints
             if (!$isPost) {
-                if (count($query) > 0) {
+                if (!$this->is_empty($query)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
@@ -3297,7 +3296,7 @@ class toobit extends Exchange {
             $extraQuery['timestamp'] = (string) $timestamp;
             $queryExtended = $this->extend($query, $extraQuery);
             $queryString = '';
-            $privateBody = null;
+            $privateBody = '';
             if ($isPost || $isDelete) {
                 // everything else except Batch-Orders
                 if ((gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params)))) {
@@ -3309,13 +3308,9 @@ class toobit extends Exchange {
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = null;
-            if ($isPost || $isDelete) {
-                $payloadBody = $privateBody;
-            }
             $payload = $queryString;
-            if ($payloadBody !== null) {
-                $payload = $payloadBody . $payload;
+            if ($isPost || $isDelete) {
+                $payload = $privateBody . $queryString;
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
             if ($queryString !== '') {
@@ -3339,7 +3334,7 @@ class toobit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

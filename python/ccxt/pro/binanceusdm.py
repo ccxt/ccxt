@@ -11,7 +11,7 @@ import ccxt.async_support.binanceusdm as binanceusdmRest
 
 class binanceusdm(binance):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = binanceusdmRest()
         restDescribe = restInstance.describe()

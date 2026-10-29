@@ -2,7 +2,7 @@ import paradexRest from '../paradex.js';
 import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
-    describe(): any;
+    describe(): Dict;
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str): string;
     requestId(): number;
@@ -145,7 +145,7 @@ export default class paradex extends paradexRest {
     sbeReadEnum(frameHex: string, offset: number, values: Dict): Str;
     sbeReadString(frameHex: string, offset: number, length: number): string;
     sbeReadAddress(frameHex: string, offset: number): string;
-    sbeReadVarStrings(frameHex: string, offset: number, count: number, frameLength: number): any;
+    sbeReadVarStrings(frameHex: string, offset: number, count: number, frameLength: number): string[];
     parseSbeTrade(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbeOrderBook(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbeMarketSummary(frameHex: string, blockLength: number, frameLength: number): NullableDict;

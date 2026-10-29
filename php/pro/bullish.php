@@ -14,7 +14,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class bullish extends \ccxt\async\bullish {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -106,8 +106,7 @@ class bullish extends \ccxt\async\bullish {
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
         }
-        $fullUrl = $wsUrl . $url;
-        return Async\await($this->watch($fullUrl, $messageHash, $this->deep_extend($message, $params), $messageHash));
+        return Async\await($this->watch($wsUrl . $url, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
     public function watch_private(string $messageHash, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
@@ -153,7 +152,7 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'trades::' . $market['symbol'];
+        $messageHash = 'trades::' . $this->safe_string($market, 'symbol', '');
         $url = '/trading-api/v1/market-data/trades';
         $request = array(
             'topic' => 'anonymousTrades',
@@ -195,6 +194,9 @@ class bullish extends \ccxt\async\bullish {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
+        if ($symbol === null) {
+            return;
+        }
         $market = $this->market($symbol);
         $rawTrades = $this->safe_list($data, 'trades', array());
         $trades = $this->parse_trades($rawTrades, $market);
@@ -204,11 +206,12 @@ class bullish extends \ccxt\async\bullish {
             $this->trades[$symbol] = $tradesArrayCache;
         }
         $tradesArray = $this->trades[$symbol];
-        for ($i = 0; $i < count($trades); $i++) {
-            $tradesArray->append($trades[$i]);
+        $tradesList = $this->to_array($trades);
+        for ($i = 0; $i < count($tradesList); $i++) {
+            $tradesArray->append($tradesList[$i]);
         }
         $this->trades[$symbol] = $tradesArray;
-        $messageHash = 'trades::' . $market['symbol'];
+        $messageHash = 'trades::' . $this->safe_string($market, 'symbol', '');
         $client->resolve($tradesArray, $messageHash);
     }
 
@@ -230,14 +233,13 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTicker() has no public websocket url');
         }
-        $url = $wsUrl . '/trading-api/v1/market-data/tick/' . $market['id'];
         $messageHash = 'ticker::' . $symbolValue;
-        return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
+        return Async\await($this->watch($wsUrl . '/trading-api/v1/market-data/tick/' . $this->safe_string($market, 'id', ''), $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -293,9 +295,7 @@ class bullish extends \ccxt\async\bullish {
         $parsed = $this->parse_ticker($data, $market);
         if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
-            $rawTicker = $this->safe_dict($ticker, 'info', array());
-            $merged = $this->extend($rawTicker, $data);
-            $parsed = $this->parse_ticker($merged, $market);
+            $parsed = $this->parse_ticker($this->extend($this->safe_dict($ticker, 'info', array()), $data), $market);
         }
         $this->tickers[$symbol] = $parsed;
         $messageHash = 'ticker::' . $symbol;
@@ -322,7 +322,7 @@ class bullish extends \ccxt\async\bullish {
         }
         $market = $this->market($symbol);
         $url = '/trading-api/v1/market-data/orderbook';
-        $messageHash = 'orderbook::' . $market['symbol'];
+        $messageHash = 'orderbook::' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'topic' => 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol' => $market['id'],
@@ -385,13 +385,13 @@ class bullish extends \ccxt\async\bullish {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for ($i = 0; $i < count($entry); $i++) {
+        $entries = $this->to_array($entry);
+        for ($i = 0; $i < count($entries); $i++) {
             if (fmod($i, 2) !== 0) {
                 continue;
             }
-            $price = $this->safe_string($entry, $i);
-            $amount = $this->safe_string($entry, $i + 1);
-            $result[] = array( $price, $amount );
+            $price = $this->safe_string($entries, $i);
+            $result[] = array( $price, $this->safe_string($entries, $i + 1) );
         }
         return $result;
     }
@@ -421,7 +421,7 @@ class bullish extends \ccxt\async\bullish {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash = $messageHash . '::' . $symbolResolved;
+            $messageHash = $subscribeHash . '::' . $symbolResolved;
         }
         $request = array(
             'topic' => 'orders',
@@ -501,8 +501,7 @@ class bullish extends \ccxt\async\bullish {
             $orders = $this->orders;
             $symbols = array();
             for ($i = 0; $i < count($rawOrders); $i++) {
-                $rawOrder = $rawOrders[$i];
-                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrder = $this->parse_order($rawOrders[$i]);
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
                 if ($symbol !== null) {
@@ -545,7 +544,7 @@ class bullish extends \ccxt\async\bullish {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash .= '::' . $symbolResolved;
+            $messageHash = $subscribeHash . '::' . $symbolResolved;
         }
         $request = array(
             'topic' => 'trades',
@@ -618,8 +617,7 @@ class bullish extends \ccxt\async\bullish {
             $trades = $this->myTrades;
             $symbols = array();
             for ($i = 0; $i < count($rawTrades); $i++) {
-                $rawTrade = $rawTrades[$i];
-                $parsedTrade = $this->parse_trade($rawTrade);
+                $parsedTrade = $this->parse_trade($rawTrades[$i]);
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
                 if ($symbol !== null) {
@@ -802,8 +800,7 @@ class bullish extends \ccxt\async\bullish {
         $positions = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($rawPositions[$i]);
             $positions->append($position);
             $newPositions[] = $position;
         }

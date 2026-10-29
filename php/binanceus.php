@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\binanceus as binance;
 
 class binanceus extends binance {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',

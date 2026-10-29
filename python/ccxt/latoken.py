@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class latoken(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(latoken, self).describe(), {
             'id': 'latoken',
             'name': 'Latoken',
@@ -404,7 +404,7 @@ class latoken(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         timeDifference = self.safe_integer(self.options, 'timeDifference')
         if timeDifference is None:
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
@@ -464,7 +464,7 @@ class latoken(Exchange, ImplicitAPI):
         result = []
         rawMarkets = self.to_array(response)
         for i in range(0, len(rawMarkets)):
-            market = rawMarkets[i]
+            market = self.safe_value(rawMarkets, i)
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
@@ -602,7 +602,7 @@ class latoken(Exchange, ImplicitAPI):
         rawCurrencies = self.to_array(response)
         merged = []
         for i in range(0, len(rawCurrencies)):
-            rawCurrency = rawCurrencies[i]
+            rawCurrency = self.safe_value(rawCurrencies, i)
             bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
             bindings = self.safe_list(bindingEntry, 'bindings')
             mergedCurrency = rawCurrency
@@ -717,11 +717,12 @@ class latoken(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        maxTimestamp = None
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
         balances = self.safe_list(balancesByType, accountType, [])
+        firstBalance = self.safe_dict(balances, 0)
+        maxTimestamp = self.safe_integer(firstBalance, 'timestamp')
         for i in range(0, len(balances)):
             balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency')
@@ -1911,7 +1912,7 @@ class latoken(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if len(query) > 0:
+            if urlencodedQuery != '':
                 requestString += '?' + urlencodedQuery
         if apiName == 'private':
             self.check_required_credentials()
@@ -1931,7 +1932,7 @@ class latoken(Exchange, ImplicitAPI):
         url = apiUrl + requestString
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

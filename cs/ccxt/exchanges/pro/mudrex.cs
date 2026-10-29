@@ -77,11 +77,12 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + symbolValue);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
-        object baseIdString = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object quoteIdString = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
-        object assetId = (((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower());
+        string? baseIdString = this.safeString(market, "baseId", "");
+        string? quoteIdString = this.safeString(market, "quoteId", "");
+        string assetId = baseIdString.ToLower();
+        assetId = (assetId + quoteIdString.ToLower());
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
             { "method", "SUBSCRIBE" },
@@ -108,12 +109,14 @@ public partial class mudrex : ccxt.mudrex
             {
                 Dictionary<string, object> market = this.market(symbolsNormalized[i]);
                 messageHashes.Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
-                object baseIdString = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-                object quoteIdString = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
-                assets.Add((((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower()));
+                string? baseIdString = this.safeString(market, "baseId", "");
+                string? quoteIdString = this.safeString(market, "quoteId", "");
+                string assetId = baseIdString.ToLower();
+                assetId = (assetId + quoteIdString.ToLower());
+                assets.Add(assetId);
             }
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -159,11 +162,11 @@ public partial class mudrex : ccxt.mudrex
         {
             prefix = "markKline";
         }
-        object streamBaseId = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object streamQuoteId = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
-        string stream = (((((prefix + "@") + interval) + "@") + ((string)streamBaseId).ToLower()) + ((string)streamQuoteId).ToLower());
+        string? streamBaseId = this.safeString(market, "baseId", "");
+        string? streamQuoteId = this.safeString(market, "quoteId", "");
+        string stream = (((((prefix + "@") + interval) + "@") + streamBaseId.ToLower()) + streamQuoteId.ToLower());
         string messageHash = stream;
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -209,7 +212,7 @@ public partial class mudrex : ccxt.mudrex
     {
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         string? code = this.safeString(error, "code");
-        string? msg = this.safeString(error, "msg");
+        string? msg = this.safeString(error, "msg", "");
         string feedback = ((this.id + " ") + msg);
         if (code == "429")
         {

@@ -3,15 +3,37 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { hx10C07PromiseAll, hx10C07SelfTest } from './hx10w2-C07.js' // hx10 wave2 C07: promiseAll -> Task.WhenAll
+import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: handleErrors code / ws boolean flags
+import { hx10C08PromiseAll, hx10C08SnippetChecks } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
+import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
+import { hx10C05NativeArithmeticEquality } from './hx10w7-C05.js' // hx10 wave7 C05: isEqual over native arithmetic
+import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { csharpTupleReturns } from './csharp-local-types.js'
+import { CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES } from './csharp-local-types.js'
+import { hxC08NativeRuntimeStateReads, hxC08RuntimeStateSnippetChecks } from './hx10w2-C08.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
+import { c01NativeDictReads, c01SnippetChecks, c01ChainChecks } from './hx10w2-C01.js'
+import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } from './hx10w3-C01.js'
+import { hx10w3C03WsStateReads, hx10w3C03SnippetChecks, hx10w3C03ChainChecks } from './hx10w3-C03.js' // hx10 wave3 C03: ws client futures/subscriptions reads
+import { hx10w3C02CandidateReads, w3checks } from './hx10w3-C02.js'
+import { hx10W2C04NativeHelperCalls, hx10W2C04SelfTest } from './hx10w2-C04.js'
+import { c06_apply, hx10C06SnippetChecks } from './hx10w2-C06.js'
+import { c06w3ParseJson, c06w3Checks } from './hx10w3-C06.js' // hx10w3 C06: parseJson on a string-declared call
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
+import { hx10w2C02ListHelpers, hx10w2C02SnippetChecks } from './hx10w2-c02.js'
+import { c04Apply, c04SnippetChecks } from './hx10w3-C04.js' // hx10 wave3 C04
+import { bf01Apply, bf01SnippetChecks } from './hx10w4-BF01.js' // hx10 wave4 BF01
+import { hx10w10Bs04Apply, hx10w10SnippetChecks } from './hx10w10-BS04.js' // hx10 wave10 BS04
+import { c12CoreArgPassThrough, c12SnippetChecks } from './hx10w5-C12.js' // hx10 wave5 C12: ToInt64Arg twins
+import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
+import { cp06FromIsIdentity, cp06NativeCoreReturn, cp06SnippetChecks } from './hx10w10-CP06.js' // hx10 wave10 CP06: ToOrderBookSnapshot/ToInt64Value/FromDict
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
@@ -565,6 +587,12 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
     }
     if (/^-?\d+\.\d+$/.test (maskedArg)) {
         return { kind: 'double-literal' };
+    }
+    // `client.url` on a name declared `WebSocketClient`: the field is a plain `string`
+    const clientUrl = /^([A-Za-z_]\w*)\.url$/.exec (maskedArg);
+    if (clientUrl !== null) {
+        const owner = takeType (clientUrl[1]);
+        return ((owner !== undefined) && (owner.type === 'WebSocketClient')) ? { kind: 'name', type: 'string' } : undefined;
     }
     if (!/^[A-Za-z_]\w*$/.test (maskedArg) || (maskedArg === 'null')) {
         return undefined;
@@ -3288,6 +3316,12 @@ class NewTranspiler {
                     continue;
                 }
                 const helper = this.typedCoreFromHelper (typedType);
+                if (cp06FromIsIdentity (helper)) {
+                    // the reverse conversion is the identity for this family (FromDict hands its
+                    // own dictionary type back), so the consumer keeps the bare await expression
+                    from = close;
+                    continue;
+                }
                 if (helper === '') {
                     // a non-invertible family (Tickers / Balances / OrderBook): leave the call
                     // exactly as it was before this pass. Those names are typed only where the
@@ -3376,6 +3410,12 @@ class NewTranspiler {
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 const calledCore = typedCallRe.exec (expr);
                 const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
+                // CP04: the return already carries the core's own dictionary type
+                if (isTyped && cp04ReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier)) {
+                    tailOk[j] = true;
+                    j = lastLine;
+                    continue;
+                }
                 let wrapper = '';
                 if (isTyped && calledType !== typedType) {
                     wrapper = this.typedCoreToHelper (methodName, predictionTier, typedType);
@@ -3387,6 +3427,21 @@ class NewTranspiler {
                     }
                 }
                 if (wrapper === '') {
+                    tailOk[j] = true;
+                    j = lastLine;
+                    continue;
+                }
+                // CP06: the wrapper is unnecessary where the return expression already carries the
+                // helper's own type — FromDict is the identity, ToOrderBookSnapshot on a proven
+                // IOrderBook is the native `.Copy()`, ToInt64Value on Int64/Int64? folds
+                const cp06native = cp06NativeCoreReturn (wrapper, expr, content, lines.slice (i, bodyEnd + 1));
+                if (cp06native !== '') {
+                    const nativePad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                    const nativeTrailing = lines[lastLine].substring (semi + 1);
+                    lines[j] = `${nativePad}return ${cp06native};${nativeTrailing}`;
+                    for (let k = j + 1; k <= lastLine; k++) {
+                        lines[k] = null as any;
+                    }
                     tailOk[j] = true;
                     j = lastLine;
                     continue;
@@ -3482,7 +3537,8 @@ class NewTranspiler {
                 const middle = lines.slice (j + 1, lastLine);
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
-                if (this.syncCoreReturnIsAlreadyTyped (expr)) {
+                if (this.syncCoreReturnIsAlreadyTyped (expr)
+                        || cp04ReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)) {
                     j = lastLine;
                     continue;
                 }
@@ -5676,6 +5732,21 @@ class NewTranspiler {
                         : (targetType === 'Int64') ? 'ToInt64ArgRequired'
                             : (targetType === 'double?') ? 'ToDoubleArg' : 'ToDoubleArgRequired';
                     if (trimmed.startsWith (helper + '(') || trimmed.startsWith ('ccxt.BaseExchange.' + helper + '(')) {
+                        continue;
+                    }
+                    // C12: an operand already declared in the parameter's own box passes through bare
+                    if (c12CoreArgPassThrough (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), helper, trimmed)) {
+                        continue;
+                    }
+                    // CP04: a null literal converts to `Int64?`/`double?` on its own
+                    if (cp04NumericArgPassThrough (helper, trimmed)) {
+                        continue;
+                    }
+                    // M73: a plain numeric literal prints as the suffixed C# literal (`0d`, `1L`)
+                    const m73literal = m73NumericLiteralArg (helper, trimmed);
+                    if (m73literal !== '') {
+                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + m73literal;
+                        changed = true;
                         continue;
                     }
                     args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
@@ -8768,7 +8839,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9031,6 +9102,12 @@ function hx4C04ArrayCacheField (name: string): boolean {
     return [ 'this.orders', 'this.myTrades', 'this.liquidations' ].includes (name);
 }
 
+// a needle printed as a `+` chain of identifiers/literals with a string literal in it: C# concatenation
+// with a string operand is a non-null `string`, so the helper's `(string)` cast is the identity
+function hx4C04StringConcatNeedle (mask: string): boolean {
+    return mask.includes ('"') && /^[\s()+"\w]+$/.test (mask) && !/[A-Za-z_]\w*\s*\(/.test (mask) && /^[\s(]*("|\w)/.test (mask) && !/\+\s*[+)]|\(\s*\+/.test (mask);
+}
+
 function hx4C04RewriteLine (original: string, masked: string, typeOf, wsMapOf, keyName): string | undefined {
     const edits = [];
     let match;
@@ -9060,7 +9137,7 @@ function hx4C04RewriteLine (original: string, masked: string, typeOf, wsMapOf, k
             const receiver = typeOf (name);
             if ((receiver === undefined) || ((receiver.type !== 'string') && (receiver.type !== 'string?'))) continue;
             // the needle is never evaluated twice and is already a C# string (a null one throws in both forms)
-            if (!literal && !((key !== undefined) && ((key.type === 'string') || (key.type === 'string?')))) continue;
+            if (!literal && !((key !== undefined) && ((key.type === 'string') || (key.type === 'string?'))) && !hx4C04StringConcatNeedle (keyMask)) continue;
             const scan = `IndexOf(${keyText}, StringComparison.Ordinal)`;
             // a `string?` receiver answers the helper's -1 for null through `?.`
             edits.push ({ start: match.index, end: close + 1, text: (receiver.type === 'string') ? `${name}.${scan}` : `(${name}?.${scan} ?? -1)` });
@@ -9341,12 +9418,20 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true, c31 = true): string {
-    const baseOut = hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))))))));
-    const c33Out = hx4C33NativeHelperCalls (objectNull, baseOut);
+    const baseOut = hx10C05NativeCompareMath (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (hx10C05TupleSlotTypes (hxC08NativeRuntimeStateReads (content)), objectNull)))))))))))))))))); // hx10w2 C05, C08
+    const c04Out = hx10W2C04NativeHelperCalls (baseOut); // hx10w2 C04
+    const c33Out = hx4C33NativeHelperCalls (objectNull, c04Out);
     const c30Out = hx4C30NativeMath (objectNull, c33Out);
     const c31Out = (objectNull && c31) ? hx4C31NativeMath (c30Out) : c30Out;
     const c30Again = hx4C30NativeMath (objectNull, c31Out);
-    return hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c30Again)))); // hx4 C34..C36
+    const c01Out = c01NativeDictReads (c30Again); // hx10w2 C01
+    const c01w3Out = hx10w3C01ArrayParams (c01Out); // hx10w3 C01
+    const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01w3Out)))); // hx4 C34..C36
+    const c02Out = hx10w2C02ListHelpers (hx4Out); // hx10w2 C02
+    const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
+    const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
+    const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
+    return hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out)))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -9768,12 +9853,17 @@ export function csharpHx4SelfTest (): string[] {
         check ('guarded Int64? request field', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((since != null))\n        {\n            request["before"] = mathMax((since - 1), 0);\n        }', 'request["before"] = Math.Max((since.Value - 1), 0);');
         check ('unguarded Int64? request field keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        request["before"] = mathMax((since - 1), 0);', 'mathMax((since - 1), 0)');
         check ('ternary-guarded box-neutral local', '        int maxLimit = 300;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        request["limit"] = v;\n        object d = multiply(v, 2);', 'object v = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);');
-        check ('ternary local returned keeps helper', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'mathMin(limit, maxLimit)');
+        check ('ternary-guarded local returned emits Math.Min (C05)', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'Math.Min(limit.Value, maxLimit)');
         check ('C20 !(x == null) guard', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(limit == null))\n        {\n            request["size"] = mathMin(limit, 2000); // max\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 && guard', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) && (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
+        check ('C20 guard with statements between brace and call', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'request[\"size\"] = Math.Min(limit.Value, 2000);');
+        check ('C20 guard then limit rewritten keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            limit = this.parseToInt(5);\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
+        check ('C20 call after the guard block closed keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n        }\n        request[\"size\"] = mathMin(limit, 2000);', 'mathMin(limit, 2000)');
         check ('C20 || guard keeps helper', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) || (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('C20 guard on other name keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(since == null))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('ternary on another name keeps helper', '        int maxLimit = 300;\n        object v = ((since == null)) ? maxLimit : mathMin(limit, maxLimit);\n        object d = multiply(v, 2);', 'mathMin(limit, maxLimit)');
+        check ('C05 mod on Int64 operands', '        Int64? b = this.safeInteger(since0, \"b\");\n        bool r = this.isRoundNumber(mod(1000, b));', '(1000 % b)');
+        check ('C05 comparison against a countguard', '        List<object> xs = this.stringToCharsArray(since0);\n        for (Int64 i = 0; isLessThan(i, (xs?.Count ?? 0)); i++)\n        {\n        }', '(i < (xs?.Count ?? 0))');
     }
     problems.push (...hx4C18SelfTest ());
     problems.push (...hx4C19SelfTest ()); // hx4 C19
@@ -10416,11 +10506,30 @@ function c15MinMax (region, masked: string, line: number, start: number, close: 
     if (shape < 0) return undefined;
     // the whole-call shape needs a dominating `if ((id != null))` block opened right above
     if (shape === 0) {
-        const prev = (region.lines[line - 2] ?? '').trim ();
-        if (((region.lines[line - 1] ?? '').trim () !== '{') || !hx4C20NullGuardLine (prev, id)) return undefined;
+        if (!c15GuardBlockDominates (region, line, id)) return undefined;
     }
     if (field) return native;
     return c15BoxNeutralLocal (region, local[1], line) ? native : undefined;
+}
+
+// the innermost block holding `line` is the bare `{` of an `if ((id != null))` statement (nothing between the
+// `if` and the `{`), and `id` is not written, nor a lambda/closure opened, between that `{` and the call
+// (the former rule demanded the `{` directly above the call)
+function c15GuardBlockDominates (region, line: number, id: string): boolean {
+    let depth = 0;
+    const write = new RegExp ('(?<![\\w.])' + id + '[ ]*(?:=[^=>]|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + id + '\\b');
+    for (let k = line - 1; k > region.start; k--) {
+        const text = region.lines[k];
+        if (depth === 0 && text.trim () === '{') {
+            return hx4C20NullGuardLine ((region.lines[k - 1] ?? '').trim (), id);
+        }
+        for (let p = text.length - 1; p >= 0; p--) {
+            if (text[p] === '}') depth++;
+            if (text[p] === '{') { if (depth === 0) return false; depth--; }
+        }
+        if (write.test (text) || /=>/.test (text)) return false;
+    }
+    return false;
 }
 
 // `object v = ...` declared once, never written again, every read a direct argument of a helper that
@@ -10567,6 +10676,14 @@ function hx4C16SelfTest (): string[] {
     check ('object receiver keeps helper', 'f(object d, object v)', 'if (inOp(d, getValue(v, "id"))) { }', 'inOp(d, getValue(v, "id"))');
     check ('side-effecting key keeps helper', 'f(IDictionary<string, object> d)', 'if (inOp(d, this.k())) { }', 'inOp(d, this.k())');
     check ('identifier key left to the declared pass', 'f(IDictionary<string, object> d, object k)', 'if (inOp(d, k)) { }', 'inOp(d, k)');
+    const check04 = (name: string, sig: string, body: string, expected: string) => {
+        const out = hx4C04NativeHelperCalls (wrap (sig, body));
+        if (!out.includes (expected)) problems.push (`hx4 C04: ${name}\n${out}`);
+    };
+    check04 ('string? haystack, string-concat needle', 'f(string? msg, string? ch)', 'if ((ch != null) && (getIndexOf(msg, ((\"[\" + ch) + \"]\")) >= 0)) { }',
+        '((msg?.IndexOf(((\"[\" + ch) + \"]\"), StringComparison.Ordinal) ?? -1) >= 0)');
+    check04 ('concat of two identifiers keeps helper', 'f(string? msg, string? a, string? b)', 'if (getIndexOf(msg, (a + b)) >= 0) { }', 'getIndexOf(msg, (a + b))');
+    check04 ('call in needle keeps helper', 'f(string? msg, string? a)', 'if (getIndexOf(msg, (\"[\" + this.g(a))) >= 0) { }', 'getIndexOf(msg, (\"[\" + this.g(a)))');
     check ('object haystack keeps helper', 'f(object topic, List<object> keys)', 'if (getIndexOf(topic, keys[0]) >= 0) { }', 'getIndexOf(topic, keys[0])');
     return problems;
 }
@@ -10870,6 +10987,9 @@ export function hx4C17NativeHelperCalls (content: string): string {
             return (d !== undefined) && nullGuarded (region, arg, line);
         }
         if ([ 'this.uuid', 'this.uuid16', 'this.uuid22' ].includes (call[1]) && (ownReturns[call[1].slice (5)] === undefined)) return true;
+        // BinaryToBase16 (a null buffer throws in the hex loop) and IntToBase16 (Convert.ToInt64(null) is 0) never answer null
+        if ([ 'this.binaryToBase16', 'this.intToBase16' ].includes (call[1]) && (comma === undefined)
+                && !ownMember (call[1].slice (5)) && (ownReturns[call[1].slice (5)] === undefined)) return true;
         // SafeString / SafeString2 answer `defaultValue as string` for a missing / null value
         const arity = { 'this.safeString': 3, 'this.safeString2': 4 }[call[1]];
         if (arity !== undefined) {
@@ -10984,6 +11104,8 @@ export function hx4C17SelfTest (): string[] {
         }
     };
     check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
+    check ('binaryToBase16 box accumulates natively', 'object h = this.binaryToBase16(a);\nobject d = add(add(h, \"00\"), this.intToBase16(a));\nd = add(d, \"01\");', 'd = (d + \"01\");');
+    check ('implodeHostname box keeps helper', 'object u = this.implodeHostname(a);\nobject d = add(u, \"/x\");', 'add(u, \"/x\")');
     check ('string? chain', 'object q = add(add(c, "-"), a);', '((c + "-") + a)');
     check ('object param left keeps helper', 'object q = add(a, "x");', 'add(a, "x")');
     check ('object literal-initialised local', 'object x = "/";\nx = add(x, b);', 'x = (x + b);');
@@ -13783,4 +13905,119 @@ function x05TypedIsEqual (regionOf: (line: number) => any, line: number, args: s
     const n = hx4C05StripParens (lit);
     if (type.startsWith ('int') && (Math.abs (Number (n)) > 2147483647)) return undefined;
     return '(' + bare + ' == ' + n + ')';
+}
+
+// hx11 w8 retype-cs-parseint-parsefloat — parseInt / parseFloat on a proven C# string -> typed JsParse call.
+// `parseInt (s)` / `parseFloat (s)` (TS globals) bind the hand-written object helpers (Convert.ToDouble +
+// try/catch). When the operand is PRINTED as a C# string (an identifier the emitted signature/declarations
+// type `string` / `string?`, a `((string)ident)` cast the printer already emitted, or `ident.Replace("lit",
+// (string)"lit")` on such an identifier) the call becomes `JsParse.parseInt (s)` / `JsParse.parseFloat (s)`
+// (cs/ccxt/base/Exchange.JsParse.cs): typed `Int64?` / `double?`, never throws, ECMAScript prefix parsing
+// (no closure, no pasted body, no Convert.To*/Parse). parseInt keeps its `Int64?` type; parseFloat's `double?`
+// is only substituted in positions that already hold an object box (assignment / return / ternary arm /
+// `(object)` cast), where the double box is unchanged. Every other operand keeps the plain helper call.
+function hx11w8ParseInner (inner: string, typeOf: (name: string) => string | undefined): boolean {
+    const text = inner.trim ();
+    let m = /^([A-Za-z_]\w*)$/.exec (text);
+    if (m !== null) {
+        const t = typeOf (m[1]);
+        return (t === 'string') || (t === 'string?');
+    }
+    if (/^\(\(string\)[A-Za-z_]\w*\)$/.test (text)) {
+        return true;
+    }
+    m = /^([A-Za-z_]\w*)\.Replace\("[^"\\]*", \(string\)"[^"\\]*"\)$/.exec (text);
+    if (m !== null) {
+        const t = typeOf (m[1]);
+        return (t === 'string') || (t === 'string?');
+    }
+    return false;
+}
+
+export function hx11w8ParseNative (objectNull: boolean, content: string): string {
+    if (!objectNull || !/\bparse(?:Int|Float)\s*\(/.test (content) || /^namespace Tests;/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures: number[] = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    if (signatures.length === 0) {
+        return content;
+    }
+    const regions = signatures.map ((start, n) => {
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
+    });
+    let changed = false;
+    const out = lines.map ((line, i) => {
+        if (!/\bparse(?:Int|Float)\s*\(/.test (masked[i])) {
+            return line;
+        }
+        let region = regions[0];
+        for (const r of regions) {
+            if (r.start <= i) region = r;
+        }
+        if ((i <= region.start) || (i >= region.end)) {
+            return line;
+        }
+        const typeOf = (name: string) => csharpHelperReceiverType (region, name, i, region.params)?.type;
+        let result = '';
+        let from = 0;
+        const re = /(?<![\w.])parse(Int|Float)\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec (masked[i])) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = csharpHelperCallEnd (masked[i], open);
+            if ((close === undefined) || (m.index < from)) continue;
+            if (!hx11w8ParseInner (line.slice (open + 1, close), typeOf)) continue;
+            if (m[1] === 'Float') {
+                const before = masked[i].slice (0, m.index);
+                const after = masked[i].slice (close + 1);
+                const holdsBox = /(?:[^=!<>]=|\breturn|\?|:|\(object\))[ ]*$/.test (before) && /^[ ]*(?:\)*[ ]*;|\)+[ ]*;)/.test (after);
+                if (!holdsBox) continue;
+            }
+            result += line.slice (from, m.index) + 'JsParse.parse' + m[1] + line.slice (open, close + 1);
+            from = close + 1;
+        }
+        if (from === 0) {
+            return line;
+        }
+        changed = true;
+        return result + line.slice (from);
+    });
+    return changed ? out.join ('\n') : content;
+}
+
+export function hx11w8ParseSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, sig = 'public void Target (object o)') => `namespace ccxt;\n\npublic partial class BaseExchange\n{\n    ${sig}\n    {\n${body}\n    }\n}\n`;
+    const check = (name: string, body: string, expected: string, sig?: string) => {
+        const input = wrap (body, sig);
+        const output = hx11w8ParseNative (true, input);
+        if (output !== wrap (expected, sig)) problems.push (`hx11w8 parse: ${name}: ${output.replace (/\n/g, ' | ').slice (0, 300)}`);
+        if (hx11w8ParseNative (true, output) !== output) problems.push (`hx11w8 parse: ${name}: not idempotent`);
+    };
+    check ('string? local parseInt', '        string? s = this.safeString(o, "a");\n        Int64? n = parseInt(s);', '        string? s = this.safeString(o, "a");\n        Int64? n = JsParse.parseInt(s);');
+    check ('string param parseFloat assign', '        o = parseFloat(s);', '        o = JsParse.parseFloat(s);', 'public void Target (string s, object o)');
+    check ('object operand keeps helper', '        Int64? n = parseInt(o);', '        Int64? n = parseInt(o);');
+    check ('ambiguous object local keeps helper', '        object s = o;\n        Int64? n = parseInt(s);', '        object s = o;\n        Int64? n = parseInt(s);');
+    check ('parseFloat as operand keeps helper', '        string s = "1";\n        object r = add(parseFloat(s), 1);', '        string s = "1";\n        object r = add(parseFloat(s), 1);');
+    check ('parseFloat ternary arm', '        string? s = null;\n        o[0] = ((s == null)) ? null : parseFloat(s);', '        string? s = null;\n        o[0] = ((s == null)) ? null : JsParse.parseFloat(s);');
+    check ('Replace operand', '        string? s = this.safeString(o, "a");\n        Int64? n = parseInt(s.Replace(".", (string)""));', '        string? s = this.safeString(o, "a");\n        Int64? n = JsParse.parseInt(s.Replace(".", (string)""));');
+    check ('string cast operand', '        object s = o;\n        o = parseInt(((string)s));', '        object s = o;\n        o = JsParse.parseInt(((string)s));');
+    check ('arithmetic parent keeps type', '        string s = "1";\n        Int64? t = (parseInt(s) * 1000);', '        string s = "1";\n        Int64? t = (JsParse.parseInt(s) * 1000);');
+    if (hx11w8ParseNative (false, wrap ('        string s = "1"; Int64? n = parseInt(s);')) !== wrap ('        string s = "1"; Int64? n = parseInt(s);')) problems.push ('hx11w8 parse: fired in a non-final pass');
+    return problems;
 }

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\delta as Exchange;
 
 class delta extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',
@@ -345,22 +345,14 @@ class delta extends Exchange {
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $hasSlash = mb_strpos($symbol, '/') > -1;
-        $base = null;
-        $optionType = null;
-        if ($hasSlash) {
-            $base = $this->safe_string($symbolBase, 0);
-            $optionType = $this->safe_string($optionParts, 3);
-        } else {
-            $base = $this->safe_string($optionParts, 1);
-            $optionType = $this->safe_string($optionParts, 0);
-        }
-        $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3);
-        $expiry = null;
-        if ($rawExpiry !== null) {
-            $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
-        }
+        $partSource = $hasSlash ? $symbolBase : $optionParts;
+        $baseIndex = $hasSlash ? 0 : 1;
+        $base = $this->safe_string($partSource, $baseIndex, '');
+        $optionType = $this->safe_string($optionParts, $hasSlash ? 3 : 0, '');
+        $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3, '');
+        $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
         $settle = $quote;
-        $strike = $this->safe_string($optionParts, 2);
+        $strike = $this->safe_string($optionParts, 2, '');
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         $optionTypeUnified = 'put';
@@ -649,7 +641,7 @@ class delta extends Exchange {
         $keys = is_array($input) ? array_keys($input) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $item = $input[$key];
+            $item = $this->safe_dict($input, $key, array());
             $numericIdString = $this->safe_string($item, 'numericId');
             if ($numericIdString === null) {
                 continue;
@@ -1660,32 +1652,28 @@ class delta extends Exchange {
             $windowSeconds = $limit * $duration;
         }
         $until = $this->safe_integer_product($params, 'until', 0.001);
-        $untilIsDefined = $until !== null;
-        if ($untilIsDefined) {
-            $until = $this->parse_to_int($until);
-        }
         if ($since === null) {
             $end = $this->seconds();
-            if ($untilIsDefined) {
+            if ($until !== null) {
                 $end = $this->parse_to_int($until);
             }
             $request['end'] = $end;
-            if ($end === null) {
-                throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
-            }
             $request['start'] = $end - $windowSeconds;
         } else {
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
-            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $windowSeconds);
+            $request['end'] = ($until !== null) ? $until : $this->sum($start, $windowSeconds);
         }
         $price = $this->safe_string($params, 'price');
+        $marketId = $this->safe_string($market, 'id', '');
         if ($price === 'mark') {
-            $request['symbol'] = 'MARK:' . $market['id'];
+            $request['symbol'] = 'MARK:' . $marketId;
         } elseif ($price === 'index') {
-            $request['symbol'] = $market['info']['spot_index']['symbol'];
+            $marketInfo = $this->safe_dict($market, 'info');
+            $spotIndex = $this->safe_dict($marketInfo, 'spot_index');
+            $request['symbol'] = $this->safe_string($spotIndex, 'symbol');
         } else {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $marketId;
         }
         $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
         $response = $this->publicGetHistoryCandles($this->extend($request, $paramsOmitted));
@@ -1979,7 +1967,7 @@ class delta extends Exchange {
         if ($marketValue === null) {
             $symbol = $marketId;
         } else {
-            $symbol = $marketValue['symbol'];
+            $symbol = $this->safe_string($marketValue, 'symbol');
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
@@ -1996,7 +1984,8 @@ class delta extends Exchange {
         if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($marketValue !== null) {
-                $settlingAsset = $this->safe_dict($marketValue['info'], 'settling_asset', array());
+                $marketInfo = $this->safe_dict($marketValue, 'info');
+                $settlingAsset = $this->safe_dict($marketInfo, 'settling_asset', array());
                 $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             }
@@ -2128,7 +2117,7 @@ class delta extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'id' => intval($id),
+            'id' => $this->parse_to_int($id),
             'product_id' => $market['numericId'],
             // "limit_price": this.priceToPrecision (symbol, price),
             // "size": this.amountToPrecision (symbol, amount),
@@ -2138,7 +2127,7 @@ class delta extends Exchange {
             if ($sizeString === null) {
                 $sizeString = '0';
             }
-            $request['size'] = intval($sizeString);
+            $request['size'] = $this->parse_to_int($sizeString);
         }
         if ($price !== null) {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
@@ -2182,7 +2171,7 @@ class delta extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'id' => intval($id),
+            'id' => $this->parse_to_int($id),
             'product_id' => $market['numericId'],
         );
         $response = $this->privateDeleteOrders($this->extend($request, $params));
@@ -2365,7 +2354,7 @@ class delta extends Exchange {
             $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
         }
         if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
+            $request['start_time'] = $this->number_to_string($since * 1000);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -2431,7 +2420,7 @@ class delta extends Exchange {
             $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
         }
         if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
+            $request['start_time'] = $this->number_to_string($since * 1000);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -2588,7 +2577,7 @@ class delta extends Exchange {
         $currencyId = $this->safe_string($item, 'asset_id');
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
         $currencyValue = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
-        $code = ($currencyValue === null) ? null : $currencyValue['code'];
+        $code = $this->safe_string($currencyValue, 'code');
         $amount = $this->safe_string($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
         $after = $this->safe_string($item, 'balance');
@@ -2914,10 +2903,10 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
-        $amountString = (string) $amount;
+        $amountString = $this->number_to_string($amount);
         $deltaMargin = ($type === 'reduce') ? Precise::string_mul($amountString, '-1') : $amountString;
         $request = array(
             'product_id' => $market['numericId'],
@@ -3627,7 +3616,7 @@ class delta extends Exchange {
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $symbol = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         return array(
             'info' => $marginMode,
@@ -4183,37 +4172,38 @@ class delta extends Exchange {
         $requestBody = null;
         $requestHeaders = null;
         if ($apiName === 'public') {
-            if (count($query) > 0) {
+            if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
-            $requestHeaders = array(
+            $privateHeaders = array(
                 'api-key' => $this->apiKey,
                 'timestamp' => $timestamp,
             );
             $auth = $method . $timestamp . $requestPath;
             if ($method === 'GET') {
-                if (count($query) > 0) {
+                if (!$this->is_empty($query)) {
                     $queryString = '?' . $this->urlencode($query);
-                    $auth .= $queryString;
+                    $auth = $method . $timestamp . $requestPath . $queryString;
                     $url .= $queryString;
                 }
             } else {
                 $requestBody = $this->json($query);
-                $auth .= $requestBody;
-                $requestHeaders['Content-Type'] = 'application/json';
+                $auth = $method . $timestamp . $requestPath . $requestBody;
+                $privateHeaders['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $requestHeaders['signature'] = $signature;
+            $privateHeaders['signature'] = $signature;
+            $requestHeaders = $privateHeaders;
         }
         $bodyResult = $requestBody;
         $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

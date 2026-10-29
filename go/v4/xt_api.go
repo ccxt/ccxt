@@ -158,13 +158,13 @@ func (this *Xt) PublicLinearGetFutureMarketV1PublicQTickers(args ...any) <-chan 
 }
 
 // PublicLinearGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
-func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolCoins", args...)
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolCoins", args...))
 }
 
 // PublicLinearGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
-func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolDetail", args...)
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolDetail", args...))
 }
 
 // PublicLinearGetFutureMarketV1PublicSymbolList returns a channel that yields a JSON object.
@@ -263,13 +263,13 @@ func (this *Xt) PublicInverseGetFutureMarketV1PublicQTickers(args ...any) <-chan
 }
 
 // PublicInverseGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
-func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolCoins", args...)
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolCoins", args...))
 }
 
 // PublicInverseGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
-func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolDetail", args...)
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolDetail", args...))
 }
 
 // PublicInverseGetFutureMarketV1PublicSymbolList returns a channel that yields a JSON object.
@@ -333,8 +333,8 @@ func (this *Xt) PrivateSpotGetWithdrawHistory(args ...any) <-chan EndpointResult
 }
 
 // PrivateSpotPostOrder returns a channel that yields a JSON object.
-func (this *Xt) PrivateSpotPostOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateSpotPostOrder", args...)
+func (this *Xt) PrivateSpotPostOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateSpotPostOrder", args...))
 }
 
 // PrivateSpotPostWithdraw returns a channel that yields a JSON object.

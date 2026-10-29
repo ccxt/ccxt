@@ -269,7 +269,9 @@ class zaif extends zaif$1["default"] {
         if (name === undefined) {
             throw new errors.ExchangeError(this.id + ' parseMarket() missing name');
         }
-        const [baseId, quoteId] = name.split('/');
+        const nameParts = name.split('/');
+        const baseId = this.safeString(nameParts, 0);
+        const quoteId = this.safeString(nameParts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -571,7 +573,7 @@ class zaif extends zaif$1["default"] {
         const data = this.safeDict(response, 'return', {});
         return this.safeOrder({
             'info': response,
-            'id': data['order_id'].toString(),
+            'id': this.numberToString(data['order_id']),
         }, market);
     }
     /**
@@ -828,8 +830,7 @@ class zaif extends zaif$1["default"] {
         };
     }
     customNonce() {
-        const num = this.numberToString(this.milliseconds() / 1000);
-        const nonce = parseFloat(num);
+        const nonce = this.milliseconds() / 1000;
         return nonce.toFixed(8);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
@@ -871,7 +872,7 @@ class zaif extends zaif$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

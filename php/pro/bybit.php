@@ -21,7 +21,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class bybit extends \ccxt\async\bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }
@@ -196,15 +196,14 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_get_url_by_market_type(?string $symbol = null, ?bool $isPrivate = false, ?string $method = null, $params = array()) {
-        $accessibility = 'public';
-        if ($isPrivate) {
-            $accessibility = 'private';
-        }
+        $accessibility = ($isPrivate) ? 'private' : 'public';
         $methodValue = ($method === null) ? '' : $method;
         $isUsdcSettled = null;
         $isSpot = null;
         $type = null;
         $market = null;
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
+        $accessibilityUrls = $this->safe_dict($wsUrls, $accessibility, array());
         $url = $this->urls['api']['ws'];
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -223,19 +222,19 @@ class bybit extends \ccxt\async\bybit {
             $isUnifiedMargin = $this->safe_bool($unified, 0, false);
             $isUnifiedAccount = $this->safe_bool($unified, 1, false);
             if ($isUsdcSettled && (!$isUnifiedMargin) && (!$isUnifiedAccount)) {
-                $url = $url[$accessibility]['usdc'];
+                $url = $accessibilityUrls['usdc'];
             } else {
-                $url = $url[$accessibility]['contract'];
+                $url = $accessibilityUrls['contract'];
             }
         } else {
             if ($isSpot) {
-                $url = $url[$accessibility]['spot'];
+                $url = $accessibilityUrls['spot'];
             } elseif (($type === 'swap') || ($type === 'future')) {
                 $subType = $this->handle_sub_type_and_params($methodValue, $market, $params, 'linear')[0];
-                $url = $url[$accessibility][$subType];
+                $url = $accessibilityUrls[$subType];
             } else {
                 // option
-                $url = $url[$accessibility]['option'];
+                $url = $accessibilityUrls['option'];
             }
         }
         $url = $this->implode_hostname($url);
@@ -287,7 +286,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -298,7 +297,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'header' => array(
                 'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                'X-BAPI-RECV-WINDOW' => $this->number_to_string($this->options['recvWindow']),
             ),
         );
         return Async\await($this->watch($url, $requestId, $request, $requestId, true));
@@ -338,7 +337,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -349,7 +348,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'header' => array(
                 'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                'X-BAPI-RECV-WINDOW' => $this->number_to_string($this->options['recvWindow']),
             ),
         );
         return Async\await($this->watch($url, $requestId, $request, $requestId, true));
@@ -380,7 +379,7 @@ class bybit extends \ccxt\async\bybit {
             throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a symbol argument');
         }
         $orderRequest = $this->cancel_order_request($id, $symbol, $params);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {
@@ -394,7 +393,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'header' => array(
                 'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                'X-BAPI-RECV-WINDOW' => $this->number_to_string($this->options['recvWindow']),
             ),
         );
         return Async\await($this->watch($url, $requestId, $request, $requestId, true));
@@ -428,8 +427,7 @@ class bybit extends \ccxt\async\bybit {
         if (($market['spot'] !== true) && $topic !== 'tickers') {
             throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
         }
-        $topic .= '.' . $market['id'];
-        $topics = array( $topic );
+        $topics = array( $topic . '.' . $this->safe_string($market, 'id', '') );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $paramsValue));
     }
 
@@ -460,9 +458,9 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $topics[] = $topic . '.' . $marketId;
-            $messageHashes[] = 'ticker:' . $symbolsValue[$i];
+            $messageHashes[] = 'ticker:' . $this->safe_string($symbolsValue, $i, '');
         }
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
@@ -502,7 +500,7 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $symbol = $symbolsValue[$i];
             $topics[] = $topic . '.' . $marketId;
             $subMessageHashes[] = 'ticker:' . $symbol;
@@ -701,10 +699,10 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $topic = 'orderbook.1.' . $marketId;
             $topics[] = $topic;
-            $messageHashes[] = 'bidask:' . $symbolsValue[$i];
+            $messageHashes[] = 'bidask:' . $this->safe_string($symbolsValue, $i, '');
         }
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
@@ -786,7 +784,8 @@ class bybit extends \ccxt\async\bybit {
             $symbolString = $market['symbol'];
             $unfiedTimeframe = $data[1];
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $rawHashes[] = 'kline.' . $timeframeId . '.' . $marketId;
             $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
         }
         list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
@@ -829,7 +828,8 @@ class bybit extends \ccxt\async\bybit {
             $symbolString = $market['symbol'];
             $unfiedTimeframe = $data[1];
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $rawHashes[] = 'kline.' . $timeframeId . '.' . $marketId;
             $subMessageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
             $messageHashes[] = 'unsubscribe::ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
         }
@@ -998,7 +998,7 @@ class bybit extends \ccxt\async\bybit {
             );
             $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default', array());
             if (!$this->in_array($limit, $selectedLimits)) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets limit can be one of => ' . $this->json($selectedLimits));
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $this->safe_string($market, 'type', '') . ' markets limit can be one of => ' . $this->json($selectedLimits));
             }
         }
         $topics = array();
@@ -1006,7 +1006,7 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
-            $topic = 'orderbook.' . (string) $limitResolved . '.' . $marketId;
+            $topic = 'orderbook.' . $this->number_to_string($limitResolved) . '.' . $marketId;
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -1050,7 +1050,7 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $topic = $channel . '.' . $marketId;
             $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
             $subMessageHashes[] = 'orderbook:' . $symbol;
@@ -1207,7 +1207,8 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $topic = 'publicTrade.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $topic = 'publicTrade.' . $marketId;
             $topics[] = $topic;
             $messageHash = 'trade:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -1247,7 +1248,8 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $topic = 'publicTrade.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $topic = 'publicTrade.' . $marketId;
             $topics[] = $topic;
             $messageHash = 'unsubscribe:trade:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -1603,7 +1605,7 @@ class bybit extends \ccxt\async\bybit {
             $execTypes = $execTypeOption;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+            $rawTrade = $this->safe_dict($data, $i, array());
             $parsed = null;
             if ($spot && !$executionFast) {
                 $parsed = $this->parse_ws_trade($rawTrade);
@@ -1862,7 +1864,8 @@ class bybit extends \ccxt\async\bybit {
         $url = Async\await($this->get_url_by_market_type($symbolValue, false, 'watchLiquidations', $params));
         list($method, $paramsMethod) = $this->handle_option_string_and_params($this->clean_params($params), 'watchLiquidations', 'method', 'allLiquidation');
         $messageHash = 'liquidations::' . $symbolValue;
-        $topic = $method . '.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $method . '.' . $marketId;
         $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $paramsMethod));
         if ($this->newUpdates) {
             return $newLiquidation;
@@ -2414,13 +2417,13 @@ class bybit extends \ccxt\async\bybit {
             $info = $rawBalances;
         }
         if ($topic === 'wallet') {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $result = $this->safe_dict($data, 0, array());
                 $account = $this->safe_string_lower($result, 'accountType');
                 $rawBalances = $this->array_concat($rawBalances, $this->safe_list($result, 'coin', array()));
             }
-            $info = $data;
+            $info = $this->safe_list($message, 'data', array());
         }
         for ($i = 0; $i < count($rawBalances); $i++) {
             $this->parse_ws_balance($rawBalances[$i], $account);
@@ -2667,7 +2670,7 @@ class bybit extends \ccxt\async\bybit {
             }
             $success = $this->safe_bool($message, 'success');
             if (($success !== null) && (!$success)) {
-                $ret_msg = $this->safe_string($message, 'ret_msg');
+                $ret_msg = $this->safe_string($message, 'ret_msg', '');
                 $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
                 if ($op === 'auth') {

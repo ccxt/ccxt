@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class deribit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
@@ -534,43 +534,44 @@ class deribit(Exchange, ImplicitAPI):
     def create_expired_option_market(self, symbol: str) -> MarketInterface:
         # support expired option contracts
         quote = 'USD'
-        settle = None
+        settle = ''
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
+        hasSlash = symbol.find('/') > -1
+        hasUsdc = symbol.find('USDC') > -1
         base = None
         expiry = None
-        if symbol.find('/') > -1:
-            base = self.safe_string(symbolBase, 0)
+        if hasSlash:
+            base = self.safe_string(symbolBase, 0, '')
             expiry = self.safe_string(optionParts, 1)
-            if symbol.find('USDC') > -1:
-                base = base + '_USDC'
         else:
-            base = self.safe_string(optionParts, 0)
+            base = self.safe_string(optionParts, 0, '')
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
-        if symbol.find('USDC') > -1:
+        if base is None:
+            raise ExchangeError(self.id + ' createExpiredOptionMarket() missing base')
+        # the slash form of a usdc instrument carries its settlement currency in the base
+        baseSuffix = ''
+        if hasSlash and hasUsdc:
+            baseSuffix = '_USDC'
+        baseResolved = base + baseSuffix
+        if hasUsdc:
             quote = 'USDC'
             settle = 'USDC'
         else:
-            settle = base
-        splitBase = base
-        if base is None:
-            raise ExchangeError(self.id + ' createExpiredOptionMarket() missing base')
-        if base.find('_') > -1:
-            splitSymbol = base.split('_')
-            splitBase = self.safe_string(splitSymbol, 0)
-        strike = self.safe_string(optionParts, 2)
-        optionType = self.safe_string(optionParts, 3)
+            # no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved
+        # the part of the base before the first underscore, or the whole base when it has none
+        splitBase = self.safe_string(baseResolved.split('_'), 0, '')
+        strike = self.safe_string(optionParts, 2, '')
+        optionType = self.safe_string(optionParts, 3, '')
         datetime = self.convert_expire_date(expiry)
-        timestamp = self.parse8601(datetime)
-        id = base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType
-        symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType
         return {
-            'id': id,
-            'symbol': symbolExpired,
-            'base': base,
+            'id': baseResolved + '-' + self.convert_expire_date_to_market_id_date(expiry) + ('-' + strike + '-' + optionType),
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + ('-' + strike + '-' + optionType),
+            'base': baseResolved,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseResolved,
             'quoteId': quote,
             'settleId': settle,
             'active': False,
@@ -584,7 +585,7 @@ class deribit(Exchange, ImplicitAPI):
             'margin': False,
             'contract': True,
             'contractSize': None,
-            'expiry': timestamp,
+            'expiry': self.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': 'call' if (optionType == 'C') else 'put',
             'strike': self.parse_number(strike),
@@ -1385,15 +1386,12 @@ class deribit(Exchange, ImplicitAPI):
             'currency': currency['id'],
         }
         if type is not None:
-            requestType = None
             if type == 'spot':
-                requestType = 'spot'
+                request['kind'] = 'spot'
             elif type == 'future' or (type == 'contract'):
-                requestType = 'future'
+                request['kind'] = 'future'
             elif type == 'option':
-                requestType = 'option'
-            if requestType is not None:
-                request['kind'] = requestType
+                request['kind'] = 'option'
         response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2156,9 +2154,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        order = self.safe_value(result, 'order')
-        trades = self.safe_list(result, 'trades', [])
-        order['trades'] = trades
+        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -2201,9 +2197,7 @@ class deribit(Exchange, ImplicitAPI):
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
         response = await self.privateGetEdit(self.extend(request, paramsOmitted))
         result = self.safe_dict(response, 'result', {})
-        order = self.safe_value(result, 'order')
-        trades = self.safe_list(result, 'trades', [])
-        order['trades'] = trades
+        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -2662,8 +2656,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         contract = self.safe_string(position, 'instrument_name')
         marketResolved = self.safe_market(contract, market)
-        side = self.safe_string(position, 'direction')
-        side = 'long' if (side == 'buy') else 'short'
+        side = 'long' if (self.safe_string(position, 'direction') == 'buy') else 'short'
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
@@ -3170,16 +3163,20 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         defaultSince = now - month
         sinceResolved = defaultSince if (since is None) else since
-        time = now if (since is None) else since + month
+        time = now
+        if since is not None:
+            time = self.parse_to_int(since + month)
         request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         }
         until = self.safe_integer_2(paramsPaginate, 'until', 'end_timestamp')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
-        endTimestamp = until if (until is not None) else time
+        endTimestamp = time
+        if until is not None:
+            endTimestamp = self.parse_to_int(until)
         request['end_timestamp'] = endTimestamp
-        isPaginationCall = ('isDeribitPaginationCall' in paramsUntil)
+        isPaginationCall = self.safe_bool(paramsUntil, 'isDeribitPaginationCall', False)
         paramsOmitted = paramsUntil
         if isPaginationCall:
             paramsOmitted = self.omit(paramsUntil, 'isDeribitPaginationCall')
@@ -3275,7 +3272,7 @@ class deribit(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', None)
         market = self.market(symbol)
         if market['spot'] is True:
-            raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
+            raise NotSupported(self.id + ' fetchLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         request = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
@@ -3319,8 +3316,8 @@ class deribit(Exchange, ImplicitAPI):
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
-                first = data[0]
-                last = data[dataLength - 1]
+                first = self.safe_dict(data, 0, {})
+                last = self.safe_dict(data, dataLength - 1, {})
                 first['continuation'] = cursor
                 last['continuation'] = cursor
                 data[0] = first
@@ -3345,7 +3342,7 @@ class deribit(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot'] is True:
-            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         request = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
@@ -3794,7 +3791,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': interest,
         }, marketResolved)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -3827,7 +3824,7 @@ class deribit(Exchange, ImplicitAPI):
         url = apiUrl + request
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

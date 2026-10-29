@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitfinex extends \ccxt\async\bitfinex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -63,7 +63,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
         $messageHash = $channel . ':' . $marketId;
@@ -97,13 +97,13 @@ class bitfinex extends \ccxt\async\bitfinex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
         $subMessageHash = $channel . ':' . $marketId;
         $messageHash = 'unsubscribe:' . $channel . ':' . $marketId;
         $unSubTopic = 'unsubscribe' . ':' . $topic . ':' . $symbol;
-        $channelId = $this->safe_string($client->subscriptions, $unSubTopic);
+        $channelId = $this->safe_string($client->subscriptions, $unSubTopic, '');
         $request = array(
             'event' => 'unsubscribe',
             'chanId' => $channelId,
@@ -154,8 +154,9 @@ class bitfinex extends \ccxt\async\bitfinex {
         $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $channel = 'candles';
-        $key = 'trade:' . $interval . ':' . $market['id'];
-        $messageHash = $channel . ':' . $interval . ':' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $key = 'trade:' . $interval . ':' . $marketId;
+        $messageHash = $channel . ':' . $interval . ':' . $marketId;
         $request = array(
             'event' => 'subscribe',
             'channel' => $channel,
@@ -190,12 +191,13 @@ class bitfinex extends \ccxt\async\bitfinex {
         $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $channel = 'candles';
-        $subMessageHash = $channel . ':' . $interval . ':' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $subMessageHash = $channel . ':' . $interval . ':' . $marketId;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
-        $subId = 'unsubscribe:trade:' . $interval . ':' . $market['id']; // trade here because we use the key
-        $channelId = $this->safe_string($client->subscriptions, $subId);
+        $subId = 'unsubscribe:trade:' . $interval . ':' . $marketId; // trade here because we use the key
+        $channelId = $this->safe_string($client->subscriptions, $subId, '');
         $request = array(
             'event' => 'unsubscribe',
             'chanId' => $channelId,
@@ -268,13 +270,11 @@ class bitfinex extends \ccxt\async\bitfinex {
             // update
             $ohlcvs = array( $data );
         }
-        $channel = $this->safe_string($subscription, 'channel');
+        $channel = $this->safe_string($subscription, 'channel', '');
         $key = $this->safe_string($subscription, 'key', '');
         $keyParts = explode(':', $key);
-        $interval = $this->safe_string($keyParts, 1);
-        $marketId = $key;
-        $marketId = str_replace('trade:', '', $marketId);
-        $marketId = str_replace($interval . ':', '', $marketId);
+        $interval = $this->safe_string($keyParts, 1, '');
+        $marketId = $this->safe_string($keyParts, 2, '');
         $market = $this->safe_market($marketId);
         $timeframe = $this->find_timeframe($interval);
         $symbol = $market['symbol'];
@@ -288,8 +288,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }
         $ohlcvsLength = count($ohlcvs);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $ohlcv = $ohlcvs[$ohlcvsLength - $i - 1];
-            $parsed = $this->parse_ohlcv($ohlcv, $market);
+            $parsed = $this->parse_ohlcv($this->safe_list($ohlcvs, $ohlcvsLength - $i - 1), $market);
             $stored->append($parsed);
         }
         $client->resolve($stored, $messageHash);
@@ -345,7 +344,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         $messageHash = 'myTrade';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = 'myTrade:' . $marketId;
         }
         $trades = Async\await($this->subscribe_private($messageHash));
         $limitResolved = $limit;
@@ -402,7 +402,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         $trade = $this->parse_ws_trade(array( 'result' => $data ));
         $symbol = $trade['symbol'];
         $market = $this->market($symbol);
-        $messageHash = $name . ':' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = $name . ':' . $marketId;
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
@@ -448,7 +449,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         //
         $channel = $this->safe_string($subscription, 'channel');
-        $marketId = $this->safe_string($subscription, 'symbol');
+        $marketId = $this->safe_string($subscription, 'symbol', '');
         $market = $this->safe_market($marketId);
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $symbol = $market['symbol'];
@@ -465,7 +466,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $length = count($trades);
             for ($i = 0; $i < $length; $i++) {
                 $index = $length - $i - 1;
-                $parsed = $this->parse_ws_trade(array( 'result' => $trades[$index] ), $market);
+                $parsed = $this->parse_ws_trade(array( 'result' => $this->safe_list($trades, $index) ), $market);
                 $stored->append($parsed);
             }
         } else {
@@ -614,7 +615,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //  ]
         //
         $ticker = $this->safe_list($message, 1);
-        $marketId = $this->safe_string($subscription, 'symbol');
+        $marketId = $this->safe_string($subscription, 'symbol', '');
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId);
         $parsed = $this->parse_ws_ticker($ticker, $market);
@@ -725,7 +726,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         ]
         //     ]
         //
-        $marketId = $this->safe_string($subscription, 'symbol');
+        $marketId = $this->safe_string($subscription, 'symbol', '');
         $symbol = $this->safe_symbol($marketId);
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
@@ -774,7 +775,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $client->resolve($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $deltas = $message[1];
+            $deltas = $this->safe_value($message, 1);
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
@@ -803,7 +804,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         // [ 173904, "cs", -890884919 ]
         //
-        $marketId = $this->safe_string($subscription, 'symbol');
+        $marketId = $this->safe_string($subscription, 'symbol', '');
         $symbol = $this->safe_symbol($marketId);
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
@@ -823,11 +824,11 @@ class bitfinex extends \ccxt\async\bitfinex {
             $bid = $this->safe_list($bids, $i);
             $ask = $this->safe_list($asks, $i);
             if ($bid !== null) {
-                $stringArray[] = $this->number_to_string($bids[$i][$idToCheck]);
-                $stringArray[] = $this->number_to_string($bids[$i][1]);
+                $stringArray[] = $this->number_to_string($this->safe_number($bid, $idToCheck));
+                $stringArray[] = $this->number_to_string($this->safe_number($bid, 1));
             }
             if ($ask !== null) {
-                $stringArray[] = $this->number_to_string($asks[$i][$idToCheck]);
+                $stringArray[] = $this->number_to_string($this->safe_number($ask, $idToCheck));
                 $aski1 = $this->safe_number($ask, 1);
                 if ($aski1 !== null) {
                     $stringArray[] = $this->number_to_string(-$aski1);
@@ -1002,9 +1003,9 @@ class bitfinex extends \ccxt\async\bitfinex {
         //     "chanId": CHANNEL_ID
         // }
         //
-        $channelId = $this->safe_string($message, 'chanId');
+        $channelId = $this->safe_string($message, 'chanId', '');
         $unSubChannel = 'unsubscribe:' . $channelId;
-        $subMessageHash = $this->safe_string($client->subscriptions, $unSubChannel);
+        $subMessageHash = $this->safe_string($client->subscriptions, $unSubChannel, '');
         $subscription = $this->safe_dict($client->subscriptions, 'unsubscribe:' . $subMessageHash);
         unset($client->subscriptions[$unSubChannel]);
         $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
@@ -1038,7 +1039,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //       key: 'trade:1m:tBTCUST'
         //  }
         //
-        $channelId = $this->safe_string($message, 'chanId');
+        $channelId = $this->safe_string($message, 'chanId', '');
         $client->subscriptions[$channelId] = $message;
         // store the opposite direction too for unWatch
         $mappings = array(
@@ -1050,7 +1051,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
         if (is_array($message) && array_key_exists('key' ?? '', $message)) {
             // handle ohlcv differently because the message is different
-            $key = $this->safe_string($message, 'key');
+            $key = $this->safe_string($message, 'key', '');
             $subKeyId = 'unsubscribe:' . $key;
             $client->subscriptions[$subKeyId] = $channelId;
         } else {
@@ -1129,7 +1130,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         $messageHash = 'orders';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = 'orders:' . $marketId;
         }
         $orders = Async\await($this->subscribe_private($messageHash));
         $limitResolved = $limit;
@@ -1196,14 +1198,14 @@ class bitfinex extends \ccxt\async\bitfinex {
             for ($i = 0; $i < count($data); $i++) {
                 $value = $data[$i];
                 $parsed = $this->parse_ws_order($value);
-                $symbol = $parsed['symbol'];
+                $symbol = $this->safe_string($parsed, 'symbol', '');
                 $symbolIds[$symbol] = true;
                 $orders->append($parsed);
             }
         } else {
             $parsed = $this->parse_ws_order($data);
             $orders->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol', '');
             $symbolIds[$symbol] = true;
         }
         $name = 'orders';
@@ -1212,7 +1214,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $market = $this->market($symbol);
-            $messageHash = $name . ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = $name . ':' . $marketId;
             $client->resolve($this->orders, $messageHash);
         }
     }

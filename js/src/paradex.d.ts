@@ -7,7 +7,7 @@ import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, O
  * @augments Exchange
  */
 export default class paradex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name paradex#fetchTime
@@ -163,7 +163,7 @@ export default class paradex extends Exchange {
     parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
-    scaleNumber(num: string): Str;
+    scaleNumber(num: Str): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     signOrderRequest(request: Dict, modify?: boolean): Promise<Dict>;
     /**
@@ -492,5 +492,5 @@ export default class paradex extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

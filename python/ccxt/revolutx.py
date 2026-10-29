@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class revolutx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(revolutx, self).describe(), {
             'id': 'revolutx',
             'name': 'Revolut X',
@@ -220,11 +220,8 @@ class revolutx(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
-        requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        queryKeys = list(query.keys())
-        queryLength = len(queryKeys)
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -232,22 +229,21 @@ class revolutx(Exchange, ImplicitAPI):
         baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
+        bodyString = ''
         if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             elif method == 'DELETE':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             else:
-                requestBody = self.json(query)
+                bodyString = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyValue = requestBody
-            bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
             requestHeaders = {
@@ -256,17 +252,17 @@ class revolutx(Exchange, ImplicitAPI):
                 'X-Revx-Signature': signature,
             }
             if method == 'POST' or method == 'PUT':
-                requestHeaders['Content-Type'] = 'application/json'
+                requestHeaders = self.extend(requestHeaders, {'Content-Type': 'application/json'})
         else:
             if method == 'GET':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             else:
-                requestBody = self.json(query)
+                bodyString = self.json(query)
                 requestHeaders = {'Content-Type': 'application/json'}
         headersResult = requestHeaders
-        bodyResult = requestBody
+        bodyResult = bodyString if (bodyString != '') else None
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:
@@ -739,9 +735,7 @@ class revolutx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        market = self.market(symbol)
         request = {}
         if market is not None:
             request['symbol'] = market['id']
@@ -792,7 +786,10 @@ class revolutx(Exchange, ImplicitAPI):
         #         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         #     ]
         #
-        data = response if isinstance(response, list) else self.safe_list(response, 'data', [])
+        payload = response
+        if isinstance(payload, list):
+            payload = {'data': payload}
+        data = self.safe_list(payload, 'data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = self.safe_dict(data, i, {})
@@ -1328,7 +1325,7 @@ class revolutx(Exchange, ImplicitAPI):
         }), market)
         return order
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         statusCode = self.parse_to_int(code)
         if statusCode >= 400:
             if response is None:

@@ -5,8 +5,8 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHi
  * @augments Exchange
  */
 export default class weex extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name weex#fetchStatus
@@ -728,5 +728,5 @@ export default class weex extends Exchange {
     fromSandboxMarketId(marketId: Str): Str;
     setSandboxMode(enable: boolean): void;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

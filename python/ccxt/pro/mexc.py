@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class mexc(ccxt.async_support.mexc):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mexc, self).describe(), {
             'has': {
                 'ws': True,
@@ -102,7 +102,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         if market['spot'] is True:
-            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             return await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.ticker'
@@ -183,7 +183,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         ticker: Ticker
         if market['spot'] is True:
             self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
@@ -342,11 +342,11 @@ class mexc(ccxt.async_support.mexc):
                 ticker = self.parse_ws_ticker(entry, market)
             else:
                 ticker = self.parse_ticker(entry)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = ticker
             result.append(ticker)
-            messageHash = 'ticker:' + symbol
+            messageHash = 'ticker:' + self.safe_string(ticker, 'symbol', '')
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
@@ -434,7 +434,7 @@ class mexc(ccxt.async_support.mexc):
         for i in range(0, len(symbolsNormalized)):
             if isSpot:
                 market = self.market(symbolsNormalized[i])
-                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
+                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', ''))
             messageHashes.append('bidask:' + symbolsNormalized[i])
         url = self.urls['api']['ws']['spot']
         request = {
@@ -578,13 +578,13 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'candles:' + symbolValue + ':' + timeframe
         ohlcv = None
         if market['spot'] is True:
-            channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
+            channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
             ohlcv = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.kline'
@@ -769,12 +769,11 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'orderbook:' + symbolValue
+        messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
         orderbook = None
         if market['spot'] is True:
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
-            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
+            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
             orderbook = await self.watch_spot_public(channel, messageHash, paramsFrequency)
         else:
             channel = 'sub.depth'
@@ -900,8 +899,8 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         shouldReturn = False
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
+            cacheLength = self.parse_to_int(len(storedOrderBook.cache))
+            snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 25))
             if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
@@ -967,11 +966,11 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbolValue
         trades = None
         if market['spot'] is True:
-            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
+            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             trades = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.deal'
@@ -1038,7 +1037,7 @@ class mexc(ccxt.async_support.mexc):
         #
         marketId = self.safe_string_2(message, 's', 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -1079,7 +1078,7 @@ class mexc(ccxt.async_support.mexc):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = 'myTrades' + ':' + self.safe_string(market, 'symbol', '')
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         trades = None
         if type == 'spot':
@@ -1133,7 +1132,7 @@ class mexc(ccxt.async_support.mexc):
         futuresMarketId = self.safe_string(data, 'symbol')
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade: Trade
         if market['spot'] is True:
             trade = self.parse_ws_trade(data, market)
@@ -1256,7 +1255,7 @@ class mexc(ccxt.async_support.mexc):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = 'orders' + ':' + self.safe_string(market, 'symbol', '')
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)
         orders = None
         if type == 'spot':
@@ -1348,7 +1347,7 @@ class mexc(ccxt.async_support.mexc):
         futuresMarketId = self.safe_string(data, 'symbol')
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         parsed: Order
         if market['spot'] is True:
             parsed = self.parse_ws_order(data, market)
@@ -1651,10 +1650,10 @@ class mexc(ccxt.async_support.mexc):
         #
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_funding_rate(data)
-        symbol = fundingRate['symbol']
+        symbol = self.safe_string(fundingRate, 'symbol')
         if symbol is not None:
             self.fundingRates[symbol] = fundingRate
-        messageHash = 'fundingRate:' + symbol
+        messageHash = 'fundingRate:' + self.safe_string(fundingRate, 'symbol', '')
         client.resolve(fundingRate, messageHash)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
@@ -1671,7 +1670,7 @@ class mexc(ccxt.async_support.mexc):
         url = None
         channel = None
         if market['spot'] is True:
-            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             url = self.urls['api']['ws']['spot']
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
@@ -1764,7 +1763,7 @@ class mexc(ccxt.async_support.mexc):
         for i in range(0, len(symbolsNormalized)):
             if isSpot:
                 market = self.market(symbolsNormalized[i])
-                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
+                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', ''))
             messageHashes.append('unsubscribe:bidask:' + symbolsNormalized[i])
         url = self.urls['api']['ws']['spot']
         request = {
@@ -1788,14 +1787,13 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe)
-        messageHash = 'unsubscribe:candles:' + symbolValue + ':' + timeframe
+        messageHash = 'unsubscribe:candles:' + self.safe_string(market, 'symbol', '') + ':' + timeframe
         url = None
         if market['spot'] is True:
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
+            channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:
@@ -1821,13 +1819,12 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'unsubscribe:orderbook:' + symbolValue
+        messageHash = 'unsubscribe:orderbook:' + self.safe_string(market, 'symbol', '')
         url = None
         if market['spot'] is True:
             url = self.urls['api']['ws']['spot']
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
-            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
+            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
             paramsFrequency['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, paramsFrequency)
         else:
@@ -1852,12 +1849,11 @@ class mexc(ccxt.async_support.mexc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        messageHash = 'unsubscribe:trades:' + symbolValue
+        messageHash = 'unsubscribe:trades:' + self.safe_string(market, 'symbol', '')
         url = None
         if market['spot'] is True:
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
+            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:
@@ -1873,7 +1869,7 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_unsubscriptions(self, client: Client, messageHashes: list[str]):
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
+            messageHash = self.safe_string(messageHashes, i, '')
             subMessageHash = messageHash.replace('unsubscribe:', '')
             self.clean_unsubscription(client, subMessageHash, messageHash)
             if messageHash.find('ticker') >= 0:
@@ -1891,12 +1887,12 @@ class mexc(ccxt.async_support.mexc):
                     del self.bidsasks[symbol]
             elif messageHash.find('candles') >= 0:
                 splitHashes = messageHash.split(':')
-                symbol = self.safe_string(splitHashes, 2)
+                candlesSymbol = self.safe_string(splitHashes, 2, '')
                 splitHashesLength = len(splitHashes)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > 4:
-                    symbol += ':' + self.safe_string(splitHashes, 3)
-                if (symbol is not None) and (symbol in self.ohlcvs):
-                    del self.ohlcvs[symbol]
+                    candlesSymbol += ':' + self.safe_string(splitHashes, 3, '')
+                if candlesSymbol in self.ohlcvs:
+                    del self.ohlcvs[candlesSymbol]
             elif messageHash.find('orderbook') >= 0:
                 symbol = messageHash.replace('unsubscribe:orderbook:', '')
                 if symbol in self.orderbooks:
@@ -2097,8 +2093,8 @@ class mexc(ccxt.async_support.mexc):
             'pong': self.handle_pong,
             'push.funding.rate': self.handle_funding_rate,
         }
-        if (channel is not None) and (channel in methods):
-            method = methods[channel]
+        method = self.safe_value(methods, channel)
+        if method is not None:
             method(client, message)
 
     def ping(self, client: Client):

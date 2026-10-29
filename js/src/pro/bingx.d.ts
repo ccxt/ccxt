@@ -2,7 +2,7 @@ import bingxRest from '../bingx.js';
 import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
-    describe(): any;
+    describe(): Dict;
     unWatch(messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params?: Dict): Promise<any>;
     /**
      * @method

@@ -307,8 +307,8 @@ class opinion extends opinion$1["default"] {
         const outcomes = [];
         let resolvedOutcome = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
-            const label = outcomeLabels[i];
-            const tokenId = outcomeTokenIds[i];
+            const label = this.safeString(outcomeLabels, i);
+            const tokenId = this.safeString(outcomeTokenIds, i);
             const outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             let winner = undefined;
             let settleFraction = undefined;
@@ -368,8 +368,8 @@ class opinion extends opinion$1["default"] {
             'expiryDatetime': this.iso8601(expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber(this.fees['trading'], 'taker'),
+            'maker': this.safeNumber(this.fees['trading'], 'maker'),
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -648,7 +648,7 @@ class opinion extends opinion$1["default"] {
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const promises = [
             this.opinionPublicGetTokenLatestPrice(this.extend({ 'token_id': tokenId }, params)),
             this.opinionPublicGetTokenOrderbook(this.extend({ 'token_id': tokenId }, params)),
@@ -737,7 +737,7 @@ class opinion extends opinion$1["default"] {
         const promises = [];
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
-            const tokenId = outcomeObj['outcomeId'];
+            const tokenId = this.safeString(outcomeObj, 'outcomeId');
             promises.push(this.opinionPublicGetTokenLatestPrice(this.extend({ 'token_id': tokenId }, params)));
             promises.push(this.opinionPublicGetTokenOrderbook(this.extend({ 'token_id': tokenId }, params)));
         }
@@ -746,8 +746,8 @@ class opinion extends opinion$1["default"] {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = responses[priceIndex];
-            const bookResponse = responses[this.sum(priceIndex, 1)];
+            const priceResponse = this.safeValue(responses, priceIndex);
+            const bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
             const response = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker(response, outcomeObj);
             const symbolKey = this.safeString(ticker, 'outcome');
@@ -769,7 +769,7 @@ class opinion extends opinion$1["default"] {
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'token_id': tokenId,
         };
@@ -807,13 +807,13 @@ class opinion extends opinion$1["default"] {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(outcome, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
-        if (!(timeframe in this.timeframes)) {
+        const interval = this.safeString(this.timeframes, timeframe);
+        if (interval === undefined) {
             const supportedKeys = Object.keys(this.timeframes);
             throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
         }
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
-        const interval = this.safeString(this.timeframes, timeframe);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const response = await this.opinionPublicGetTokenPriceHistory(this.extend({
             'token_id': tokenId,
             'interval': interval,
@@ -941,7 +941,7 @@ class opinion extends opinion$1["default"] {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(this.safeInteger(sig, 'v'));
     }
     opinionOrderRawAmounts(isMarket, side, amount, price, decimals) {
         let decimalsStr = '1';
@@ -1002,7 +1002,7 @@ class opinion extends opinion$1["default"] {
         await this.loadApiKey();
         this.checkRequiredCredentials();
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const isMarket = (type === 'market');
         const sideStr = side.toUpperCase();
         if (price === undefined) {
@@ -1022,9 +1022,7 @@ class opinion extends opinion$1["default"] {
         const topicId = this.safeInteger(info, 'marketId');
         const quoteTokenAddress = this.safeString(info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken(quoteTokenAddress);
-        const exchangeAddress = this.safeString(quoteToken, 'ctfExchangeAddress', '');
-        const decimals = this.safeInteger(quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, this.safeInteger(quoteToken, 'decimal', 18));
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -1052,7 +1050,7 @@ class opinion extends opinion$1["default"] {
             'side': sideInt,
             'signatureType': signatureType,
         };
-        const signature = this.signOpinionOrder(order, exchangeAddress);
+        const signature = this.signOpinionOrder(order, this.safeString(quoteToken, 'ctfExchangeAddress', ''));
         const signatureNo0x = this.remove0xPrefix(signature);
         const orderBody = this.extend({
             'salt': salt,
@@ -1312,9 +1310,6 @@ class opinion extends opinion$1["default"] {
      * @returns {object} the parsed market
      */
     async loadTradeMarket(marketId) {
-        if (marketId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' loadTradeMarket() requires a marketId');
-        }
         const cacheKey = 'tradeMarketsById';
         const cached = this.safeDict(this.options, cacheKey, {});
         const idStr = marketId.toString();
@@ -1496,8 +1491,8 @@ class opinion extends opinion$1["default"] {
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -1530,7 +1525,7 @@ class opinion extends opinion$1["default"] {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(this.safeInteger(sig, 'v'));
     }
     /**
      * @method
@@ -1621,7 +1616,8 @@ class opinion extends opinion$1["default"] {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'];
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString(creds, 'apiKey', '');
         return creds;
     }
     /**
@@ -1657,12 +1653,12 @@ class opinion extends opinion$1["default"] {
     async subscribeOpinionChannel(messageHash, channel, marketId) {
         await this.loadApiKey();
         const url = this.opinionWsUrl();
-        const subscriptionKey = channel + ':' + this.numberToString(marketId);
         const subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString(subscribeMsg, 'marketId', '');
         return await this.watch(url, messageHash, subscribeMsg, subscriptionKey);
     }
     handleMessage(client, message) {
@@ -1734,16 +1730,16 @@ class opinion extends opinion$1["default"] {
         await this.loadApiKey();
         const url = this.opinionWsUrl();
         const client = this.client(url);
-        const subscriptionKey = channel + ':' + this.numberToString(marketId);
-        const isNewSubscription = this.safeValue(client.subscriptions, subscriptionKey) === undefined;
-        if (isNewSubscription) {
-            await this.seedOrderBook(outcome, sym, limit);
-        }
         const subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString(subscribeMsg, 'marketId', '');
+        const isNewSubscription = this.safeValue(client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook(outcome, sym, limit);
+        }
         const future = this.watch(url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -1777,7 +1773,7 @@ class opinion extends opinion$1["default"] {
         if (sym === undefined) {
             return;
         }
-        if (this.safeValue(this.orderbooks, sym) === undefined) {
+        if (!(sym in this.orderbooks)) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
@@ -2131,7 +2127,7 @@ class opinion extends opinion$1["default"] {
      */
     sign(path, api = ['opinion'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const access = this.safeString(api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['opinion']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -2148,10 +2144,9 @@ class opinion extends opinion$1["default"] {
                     throw new errors.ArgumentsRequired(this.id + ' ' + path + ' requires a walletAddress and privateKey');
                 }
                 const actionByMethod = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-                const action = this.safeString(actionByMethod, method, 'get');
                 const timestamp = this.numberToString(this.seconds());
                 headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, this.safeString(actionByMethod, method, 'get'), timestamp);
                 headersExtended['OPINION_TIMESTAMP'] = timestamp;
             }
             else {

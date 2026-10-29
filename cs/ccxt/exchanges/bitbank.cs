@@ -371,7 +371,7 @@ public partial class bitbank : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -635,7 +635,7 @@ public partial class bitbank : Exchange
             object pair = pairs[i];
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", pair },
                 { "symbol", symbol },
@@ -1113,7 +1113,7 @@ public partial class bitbank : Exchange
         string? tagWithdrawTag = ((string)(tagAndParams != null && 0 < tagAndParams.Count ? tagAndParams[0] : null));
         object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
         this.checkAddress(address, code, tagWithdrawTag);
-        if (!((paramsWithdrawTag is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("uuid"))))
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("uuid")))
         {
             throw new ExchangeError ((this.id + " uuid is required for withdrawal")) ;
         }
@@ -1197,14 +1197,14 @@ public partial class bitbank : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, this.extractParams(path)));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1212,10 +1212,10 @@ public partial class bitbank : Exchange
         string url = (this.implodeHostname(apiUrl) + "/");
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (((apiName is "public")) || ((apiName is "markets")))
+        if ((apiName == "public") || (apiName == "markets"))
         {
             url = url + this.implodeParams(path, parameters);
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
@@ -1245,7 +1245,7 @@ public partial class bitbank : Exchange
             } else
             {
                 auth = auth + ((("/" + this.version) + "/") + path);
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if ((new List<object>(query.Keys)).Count > 0)
                 {
                     string queryString = this.urlencode(query);
                     url = url + ("?" + queryString);
@@ -1259,11 +1259,15 @@ public partial class bitbank : Exchange
             };
             if (isTimeWindow)
             {
-                requestHeaders["ACCESS-REQUEST-TIME"] = requestTime;
-                requestHeaders["ACCESS-TIME-WINDOW"] = timeWindow;
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "ACCESS-REQUEST-TIME", requestTime },
+                    { "ACCESS-TIME-WINDOW", timeWindow },
+                });
             } else
             {
-                requestHeaders["ACCESS-NONCE"] = nonce;
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "ACCESS-NONCE", nonce },
+                });
             }
         }
         string? bodyResolved = requestBody;
@@ -1276,7 +1280,7 @@ public partial class bitbank : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1348,9 +1352,9 @@ public partial class bitbank : Exchange
                 { "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." },
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
-            string? code = this.safeString(data, "code");
-            string? message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
+            string? codeError = this.safeString(data, "code");
+            string? message = this.safeString(errorMessages, codeError, "Error");
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, message);
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;

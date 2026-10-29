@@ -1,12 +1,12 @@
 import Exchange from '../abstract/prediction/sxbet.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 /**
  * @class sxbet
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name sxbet#fetchMarkets
@@ -467,6 +467,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
     parseSxbetV3BookSides(snapshot: Dict, isOutcomeOne: boolean): Dict;
+    setWsOption(group: string, key: string, value: Str | Dict): void;
     requestId(url: Str): number;
     /**
      * @ignore
@@ -572,7 +573,7 @@ export default class sxbet extends Exchange {
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     handleOrder(client: Client, rows: any[]): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method

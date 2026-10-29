@@ -83,7 +83,7 @@ public partial class woofipro : ccxt.woofipro
         {
             id = this.accountId;
         }
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public") + "/") + (id));
+        string url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {}), "public", "") + "/") + (id));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -111,14 +111,15 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((marketId + "@") + name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, message));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -178,7 +179,8 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((marketId + "@") + name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -187,7 +189,7 @@ public partial class woofipro : ccxt.woofipro
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -386,7 +388,7 @@ public partial class woofipro : ccxt.woofipro
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -432,7 +434,8 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        string? topic = ((string)add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name), "_"), interval));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((((marketId + "@") + name) + "_") + interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -510,7 +513,8 @@ public partial class woofipro : ccxt.woofipro
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? topic = ((string)add((market.ContainsKey("id") ? market["id"] : null), "@trade"));
+        string marketId = this.safeString(market, "id", "");
+        string topic = (marketId + "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -652,7 +656,7 @@ public partial class woofipro : ccxt.woofipro
         if ((success == true))
         {
             // client.resolve (message, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+            Future future = client.getFuture("authenticated");
             (future as Future).resolve(true);
         } else
         {
@@ -670,7 +674,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "/") + this.accountId);
+        string url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {}), "private", "") + "/") + this.accountId);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -681,9 +685,9 @@ public partial class woofipro : ccxt.woofipro
             string ts = this.nonce().ToString();
             string auth = ts;
             object secret = this.secret;
-            if (getIndexOf(secret, "ed25519:") >= 0)
+            if (this.secret.IndexOf("ed25519:", StringComparison.Ordinal) >= 0)
             {
-                List<object> parts = ((string)secret).Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
             string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -705,7 +709,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "/") + this.accountId);
+        string url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {}), "private", "") + "/") + this.accountId);
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -718,7 +722,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "/") + this.accountId);
+        string url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {}), "private", "") + "/") + this.accountId);
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -763,7 +767,7 @@ public partial class woofipro : ccxt.woofipro
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = messageHash + (":" + this.safeString(this.market(symbol), "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -815,7 +819,7 @@ public partial class woofipro : ccxt.woofipro
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = messageHash + (":" + this.safeString(this.market(symbol), "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1085,13 +1089,12 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.Trade trade = this.parseWsTrade(message, market);
-        ccxt.pro.ArrayCache trades = this.myTrades;
-        if ((trades == null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            trades = new ArrayCacheBySymbolById(limit);
-            this.myTrades = trades;
+            this.myTrades = new ArrayCacheBySymbolById(limit);
         }
+        ccxt.pro.ArrayCache trades = this.myTrades;
         trades.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(trades, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
@@ -1137,14 +1140,14 @@ public partial class woofipro : ccxt.woofipro
         {
             messageHashes.Add("positions");
         }
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "/") + this.accountId);
+        string url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {}), "private", "") + "/") + this.accountId);
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
-            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
+            object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1159,7 +1162,7 @@ public partial class woofipro : ccxt.woofipro
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
@@ -1191,9 +1194,9 @@ public partial class woofipro : ccxt.woofipro
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        Future future = client.getFuture(messageHash?.ToString());
+        if ((future != null))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -1249,13 +1252,14 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
             cache.append(position);
-            string messageHash = ("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+            string? positionSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string messageHash = ("positions::" + positionSymbol);
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1400,16 +1404,21 @@ public partial class woofipro : ccxt.woofipro
             object account = this.account();
             if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
+                IDictionary<string, object> cachedAccount = this.safeDict(this.balance, code);
+                if ((cachedAccount != null))
+                {
+                    account = cachedAccount;
+                }
             }
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");
-            ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
             if ((code != null))
             {
-                this.balance[(string)code] = account;
+                this.balance[(string)code] = this.extend(account, new Dictionary<string, object>() {
+                    { "total", total },
+                    { "used", used },
+                    { "free", Precise.stringSub(total, used) },
+                });
             }
         }
         this.balance = this.safeBalance(this.balance);

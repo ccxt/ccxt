@@ -18,7 +18,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class luno extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'Luno',
@@ -491,7 +491,7 @@ class luno extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $id = $this->safe_string($rawCurrency[0], 'native_currency'); // first item is guaranteed
+        $id = $this->safe_string($this->safe_dict($rawCurrency, 0), 'native_currency'); // first item is guaranteed
         $code = $this->safe_currency_code($id);
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
@@ -721,8 +721,10 @@ class luno extends Exchange {
             $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
             $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
             if (($code !== null) && (is_array($result) && array_key_exists($code ?? '', $result))) {
-                $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
-                $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
+                $result[$code] = $this->extend($result[$code], array(
+                    'used' => Precise::string_add($this->safe_string($result[$code], 'used'), $reservedUnconfirmed),
+                    'total' => Precise::string_add($this->safe_string($result[$code], 'total'), $balanceUnconfirmed),
+                ));
             } elseif ($code !== null) {
                 $account = $this->account();
                 $account['used'] = $reservedUnconfirmed;
@@ -824,7 +826,6 @@ class luno extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $status = ($status === 'open') ? $status : $status;
         $side = null;
         $orderType = $this->safe_string($order, 'type');
         if (($orderType === 'ASK') || ($orderType === 'SELL')) {
@@ -1436,9 +1437,10 @@ class luno extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' createOrder() returned empty response');
         }
+        $orderId = $this->safe_string($response, 'order_id');
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $response['order_id'],
+            'id' => $orderId,
         ), $market);
     }
 
@@ -1533,7 +1535,10 @@ class luno extends Exchange {
         $minRowBase = $this->safe_integer($params, 'min_row', -1000); // Maximum number of records supported
         $limitApplies = ($limit !== null) && ($maxRowBase - $minRowBase > $limit);
         $min_row = ($limitApplies && ($limit !== null) && $maxRowBase <= 0) ? $maxRowBase - $limit : $minRowBase;
-        $max_row = ($limitApplies && $maxRowBase > 0 && $minRowBase > 0) ? $minRowBase . $limit : $maxRowBase;
+        $max_row = $maxRowBase;
+        if ($limitApplies && $maxRowBase > 0 && $minRowBase > 0) {
+            $max_row = $minRowBase . $limit;
+        }
         $limitAdjusts = $limitApplies && ($maxRowBase <= 0 || $minRowBase > 0); // max_row - min_row becomes limit
         if (($limitAdjusts && $limit > 1000) || (!$limitAdjusts && $maxRowBase - $minRowBase > 1000)) {
             throw new ExchangeError($this->id . " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
@@ -1548,7 +1553,7 @@ class luno extends Exchange {
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
-    public function parse_ledger_comment(mixed $comment) {
+    public function parse_ledger_comment(string $comment): array {
         $words = explode(' ', $comment);
         $types = array(
             'Withdrawal' => 'fee',
@@ -1591,12 +1596,12 @@ class luno extends Exchange {
         $available_delta = $this->safe_string($entry, 'available_delta');
         $balance_delta = $this->safe_string($entry, 'balance_delta');
         $after = $this->safe_string($entry, 'balance');
-        $comment = $this->safe_string($entry, 'description');
+        $comment = $this->safe_string($entry, 'description', '');
         $before = $after;
         $amount = '0.0';
         $result = $this->parse_ledger_comment($comment);
-        $type = $result['type'];
-        $referenceId = $result['referenceId'];
+        $resultType = $this->safe_string($result, 'type');
+        $resultReferenceId = $this->safe_string($result, 'referenceId');
         $direction = null;
         $status = null;
         if (!Precise::string_equals($balance_delta, '0.0')) {
@@ -1620,9 +1625,9 @@ class luno extends Exchange {
             'id' => $id,
             'direction' => $direction,
             'account' => $account_id,
-            'referenceId' => $referenceId,
+            'referenceId' => $resultReferenceId,
             'referenceAccount' => null,
-            'type' => $type,
+            'type' => $resultType,
             'currency' => $code,
             'amount' => $this->parse_to_numeric($amount),
             'timestamp' => $timestamp,
@@ -1793,8 +1798,10 @@ class luno extends Exchange {
         //     }
         //
         $result = $this->deposit_withdraw_fee($response);
-        $result['withdraw']['fee'] = $this->safe_number($response, 'fee');
-        $result['withdraw']['percentage'] = false;
+        $result['withdraw'] = array(
+            'fee' => $this->safe_number($response, 'fee'),
+            'percentage' => false,
+        );
         return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
@@ -1821,7 +1828,7 @@ class luno extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

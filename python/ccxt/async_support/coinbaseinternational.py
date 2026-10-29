@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseinternational(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
@@ -597,10 +597,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         elif isOption:
             type = 'option'
         symbol = instrumentName
-        if not isComboMarket:
+        if not isComboMarket and (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-            if not isSpot:
-                symbol = symbol + ':' + settle
+            if not isSpot and (settle is not None):
+                symbol = base + '/' + quote + ':' + settle
         linear = None if isSpot else (settle == quote)
         inverse = None if isSpot else (settle != quote)
         marketSettle = None if isSpot else settle
@@ -842,12 +842,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if self.is_native_deribit_credentials() and self.safe_bool_2(marketInfo, 'is_cbe_routed', 'is_csr', False):
             raise NotSupported(self.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments')
         limitResolved = limit
-        duration = self.parse_timeframe(timeframe)
+        duration = self.parse_to_int(self.parse_timeframe(timeframe))
         now = self.milliseconds()
         if since is None:
             if limitResolved is None:
                 limitResolved = 100
-            request['start_timestamp'] = self.sum(now, -limitResolved * duration * 1000)
+            request['start_timestamp'] = self.sum(now, self.parse_to_int(limitResolved) * duration * -1000)
             request['end_timestamp'] = now
         else:
             sinceResolved = max(since - 1, 0)
@@ -855,7 +855,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             if limitResolved is None:
                 request['end_timestamp'] = now
             else:
-                request['end_timestamp'] = self.sum(sinceResolved, limitResolved * duration * 1000)
+                request['end_timestamp'] = self.sum(sinceResolved, self.parse_to_int(limitResolved) * duration * 1000)
         until = self.safe_integer(paramsPaginate, 'until')
         if until is not None:
             request['end_timestamp'] = until
@@ -928,7 +928,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         duration = self.parse_timeframe('1h') * 1000
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'instrument_name': market['id'],
@@ -1175,8 +1175,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 if (limit < 1) or (limit > 10000):
                     raise BadRequest(self.id + ' fetchOrderBook() limit must be between 1 and 10000')
                 for i in range(0, len(depths)):
-                    if limit <= depths[i]:
-                        request['depth'] = depths[i]
+                    if limit <= self.parse_to_int(depths[i]):
+                        request['depth'] = self.safe_integer(depths, i, 0)
                         break
         response = await self.publicGetGetOrderBook(self.extend(request, paramsResolved))
         #
@@ -1552,7 +1552,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'currency': currency['id'],
@@ -1864,7 +1864,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'currency': currency['id'],
@@ -2973,7 +2973,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return response
 
-    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa: bool = False):
         """
  @ignore
         signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
@@ -2995,7 +2995,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns str: signed JWT
         """
         uri = None
-        if url is not None:
+        if (url is not None) and (method is not None):
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
             if quesPos > 0:
@@ -3012,7 +3012,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'sub': self.apiKey,
             'iss': iss,
             'nbf': seconds,
-            'exp': seconds + 120,
+            'exp': self.parse_to_int(seconds) + 120,
             'iat': seconds,
         }
         if uri is not None:
@@ -3083,15 +3083,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
         :returns str|None: the access token
         """
-        token = self.safe_string(self.options, 'v2AccessToken')
-        if (token is not None) and (token != ''):
-            return token
-        if (self.token is None) or (self.token == ''):
-            return None
-        return self.token
+        return self.safe_string(self.options, 'v2AccessToken', self.token)
 
-    def sign(self, path: str, api: list[str] | str = 'public', method: str = 'GET', params: dict = {}) -> dict:
-        access = api[0] if isinstance(api, list) else api
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        access = api[0]
         rpcMethod = access + '/' + path
         requestParams = self.handle_route_and_params('sign', params)
         isNativeDeribit = self.is_native_deribit_credentials()
@@ -3118,7 +3113,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         elif (access == 'private') and isNativeDeribit:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             signedRequest = '/' + 'api/' + self.version + '/' + access + '/' + path
             if len(requestParams) > 0:
                 signedRequest += '?' + self.urlencode(requestParams)
@@ -3131,7 +3126,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             }
         elif access == 'private':
             accessToken = self.get_v2_access_token()
-            if accessToken is None:
+            if (accessToken is None) or (accessToken == ''):
                 raise AuthenticationError(self.id + ' requires an access token from public/auth')
             requestHeaders = {
                 'Content-Type': 'application/json',
@@ -3173,11 +3168,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: cleaned parameters; options.route persists the selection for nested calls and Pro
         """
-        route, paramsResolved = self.handle_option_and_params(params, methodName, 'route', 'auto')
+        route, paramsResolved = self.handle_option_string_and_params(params, methodName, 'route', 'auto')
         deribit = self.resolve_route(route)
         previousBackend = self.safe_bool(self.options, 'routeBackend')
         configuredBackend = self.is_native_deribit_credentials()
-        hasToken = self.get_v2_access_token() is not None
+        currentToken = self.get_v2_access_token()
+        hasToken = (currentToken is not None) and (currentToken != '')
         hasWsState = self.safe_integer(self.options, 'wsAuthRefreshAt') is not None
         if (previousBackend is not None) and (previousBackend != deribit):
             raise BadRequest(self.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance')
@@ -3220,7 +3216,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return False
         return(len(self.apiKey) == 8) and (len(self.secret) == 43)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         #     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         #

@@ -10,7 +10,7 @@ import ccxt.async_support.bequant as bequantRest
 
 class bequant(hitbtc):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = bequantRest()
         restDescribe = restInstance.describe()

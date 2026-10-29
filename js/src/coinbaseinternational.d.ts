@@ -1,11 +1,11 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Leverage } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbaseinternational#fetchTime
@@ -443,7 +443,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string|undefined} the access token
      */
     getV2AccessToken(): Str;
-    sign(path: string, api?: string[] | string, method?: string, params?: Dict): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -479,5 +479,5 @@ export default class coinbaseinternational extends Exchange {
      * @returns {boolean} true for native Deribit, false for Coinbase
      */
     resolveRoute(route?: any): boolean;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

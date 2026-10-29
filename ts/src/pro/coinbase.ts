@@ -11,7 +11,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinbase extends coinbaseRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -68,23 +68,14 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol: Str | Strings = undefined, params: Dict = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            const marketIds = this.marketIds (symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            } else {
-                productIds = marketIds;
-            }
-            messageHash = messageHash + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
@@ -115,7 +106,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str | Strings = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -127,20 +118,10 @@ export default class coinbase extends coinbaseRest {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            const marketIds = this.marketIds (symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            } else {
-                productIds = marketIds;
-            }
-            watchMessageHash = watchMessageHash + '::' + symbols.join (',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol;
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
         }
         const url = this.urls['api']['ws'];
@@ -275,12 +256,12 @@ export default class coinbase extends coinbaseRest {
                 throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString (this.options, 'wsToken');
-            const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
+            const tokenTimestamp = this.parseToInt (this.safeInteger (this.options, 'wsTokenTimestamp', 0));
             const seconds = this.seconds ();
             const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken (seconds, undefined, undefined, this.isEddsaApiKey ());
+                const token = this.createAuthToken (seconds, '', undefined, this.isEddsaApiKey ());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
@@ -344,7 +325,7 @@ export default class coinbase extends coinbaseRest {
         const ticker = await this.subscribeMultiple (name, false, symbolsResolved, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol', '');
             tickers[symbol] = ticker;
             return tickers;
         }
@@ -477,7 +458,7 @@ export default class coinbase extends coinbaseRest {
                 const result = this.parseWsTicker (ticker);
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
-                const symbol = result['symbol'];
+                const symbol = this.safeString (result, 'symbol', '');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = result;
                 }
@@ -679,7 +660,7 @@ export default class coinbase extends coinbaseRest {
         }
         const name = 'level2';
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const orderbook: WsOrderBook = await this.subscribe (name, false, symbolValue, params);
         return orderbook.limit ();
     }
@@ -948,7 +929,7 @@ export default class coinbase extends coinbaseRest {
             const marketId = this.safeString (event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             const messageHash = 'level2::' + symbol;
             const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');

@@ -39,7 +39,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinbaseinternational" );
@@ -869,12 +869,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             type = "option";
         }
         String symbol = instrumentName;
-        if (!Boolean.TRUE.equals(isComboMarket))
+        if (!Boolean.TRUE.equals(isComboMarket) && (!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
-            if (!Boolean.TRUE.equals(isSpot))
+            if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
             {
-                symbol = ((symbol + ":") + settle);
+                symbol = ((((base + "/") + quote) + ":") + settle);
             }
         }
         Boolean linear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settle, quote));
@@ -1149,7 +1149,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 throw new NotSupported((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
             }
             Object limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Long duration = this.parseToInt(this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Long now = this.milliseconds();
             if (java.util.Objects.equals(since, null))
             {
@@ -1157,7 +1157,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     limitResolved = 100;
                 }
-                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
+                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), -1000)));
                 request.put("end_timestamp", now);
             } else
             {
@@ -1168,7 +1168,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     request.put("end_timestamp", now);
                 } else
                 {
-                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000)));
+                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), 1000)));
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1259,7 +1259,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Long duration = (((long) this.parseTimeframe("1h")) * 1000L);
             Long now = this.milliseconds();
             Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -1559,9 +1559,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     }
                     for (var i = 0; i < ((List<?>)depths).size(); i++)
                     {
-                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i))))
+                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, this.parseToInt((depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)))))
                         {
-                            request.put("depth", (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)));
+                            request.put("depth", this.safeInteger(depths, i, 0));
                             break;
                         }
                     }
@@ -1980,7 +1980,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
             Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -2348,7 +2348,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
             Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -3737,23 +3737,23 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
     {
         Object uri = null;
-        if (!java.util.Objects.equals(url, null))
+        if ((!java.util.Objects.equals(url, null)) && (!java.util.Objects.equals(method, null)))
         {
             uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
             Object quesPos = ((String)uri).indexOf("?");
             if ((((Integer) quesPos) > 0))
             {
-                uri = Helpers.slice(uri, 0, quesPos);
+                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? ((String)uri).length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), ((String)uri).length())));
             }
         }
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             iss = "cdp";
         }
@@ -3762,11 +3762,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("sub", this.apiKey);
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 120L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 120L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 120L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "120"); default -> (Object) null; })));
+        request.put("exp", ((Object) (switch ((Object) (this.parseToInt(seconds))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 120L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 120L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 120L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "120"); default -> (Object) null; })));
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
             {
                 request.put("uri", uri);
             } else
@@ -3774,7 +3774,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             Object byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
@@ -3816,7 +3816,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
             Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
             Long now = this.milliseconds();
-            Object token = this.getV2AccessToken();
+            String token = this.getV2AccessToken();
             Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
             if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
             {
@@ -3849,8 +3849,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
             Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
-            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
-            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
+            this.options.put("v2AccessToken", accessToken);
+            this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
         }).thenApply(res -> (String) res);
 
@@ -3862,23 +3862,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */
-    public Object getV2AccessToken()
+    public String getV2AccessToken()
     {
-        String token = this.safeString(this.options, "v2AccessToken");
-        if ((!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")))
-        {
-            return token;
-        }
-        if ((java.util.Objects.equals(this.token, null)) || (java.util.Objects.equals(this.token, "")))
-        {
-            return null;
-        }
-        return this.token;
+        return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object access = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
+        String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String rpcMethod = ((access + "/") + path);
         Map<String, Object> requestParams = (Map<String, Object>) this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         Boolean isNativeDeribit = this.isNativeDeribitCredentials();
@@ -3914,7 +3905,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             String signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
             if (requestParams.size() > 0)
             {
@@ -3931,8 +3922,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
         } else if (java.util.Objects.equals(access, "private"))
         {
-            Object accessToken = this.getV2AccessToken();
-            if (java.util.Objects.equals(accessToken, null))
+            String accessToken = this.getV2AccessToken();
+            if ((java.util.Objects.equals(accessToken, null)) || (java.util.Objects.equals(accessToken, "")))
             {
                 throw new AuthenticationError((this.id + " requires an access token from public/auth")) ;
             }
@@ -4007,13 +3998,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public Object handleRouteAndParams(String methodName, Map<String, Object> parameters)
     {
-        List<Object> routeparamsResolvedVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "route", "auto");
-        var route = ((List<Object>) routeparamsResolvedVariable).get(0);
-        Map<String, Object> paramsResolved = (Map<String, Object>) ((List<Object>) routeparamsResolvedVariable).get(1);
+        Pair<String, Map<String, Object>> routeparamsResolvedVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "route", "auto");
+        String route = routeparamsResolvedVariable.first();
+        Map<String, Object> paramsResolved = routeparamsResolvedVariable.second();
         Boolean deribit = this.resolveRoute(route);
         Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", (Object) null);
         Boolean configuredBackend = this.isNativeDeribitCredentials();
-        Boolean hasToken = !java.util.Objects.equals(this.getV2AccessToken(), null);
+        String currentToken = this.getV2AccessToken();
+        Boolean hasToken = (!java.util.Objects.equals(currentToken, null)) && (!java.util.Objects.equals(currentToken, ""));
         Boolean hasWsState = !java.util.Objects.equals(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
         if ((!java.util.Objects.equals(previousBackend, null)) && (!java.util.Objects.equals(previousBackend, deribit)))
         {
@@ -4026,14 +4018,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if (Boolean.TRUE.equals(deribit))
         {
-            Helpers.addElementToObject(this.options, "route", "deribit");
+            this.options.put("route", "deribit");
         } else
         {
-            Helpers.addElementToObject(this.options, "route", "coinbase");
+            this.options.put("route", "coinbase");
         }
-        Helpers.addElementToObject(this.options, "routeBackend", deribit);
-        Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
-        Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
+        this.options.put("routeBackend", deribit);
+        this.has.put("fetchLeverage", !Boolean.TRUE.equals(deribit));
+        this.has.put("setLeverage", !Boolean.TRUE.equals(deribit));
         return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));
     }
 
@@ -4082,7 +4074,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return ((this.apiKey.length() == 8)) && ((this.secret.length() == 43));
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }

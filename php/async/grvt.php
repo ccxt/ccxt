@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class grvt extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         $rlOthers = 40;
         $rlOrders = 20;
         return $this->deep_extend(parent::describe(), array(
@@ -581,8 +581,7 @@ class grvt extends Exchange {
             'address' => $walletAddress,
             'signature' => $this->default_signature(),
         );
-        $request = $this->create_signed_request($request, 'EIP712_WALLETLOGIN_TYPE');
-        $response = Async\await($this->privateEdgePostAuthWalletLogin($this->extend($request, $params)));
+        $response = Async\await($this->privateEdgePostAuthWalletLogin($this->extend($this->create_signed_request($request, 'EIP712_WALLETLOGIN_TYPE'), $params)));
         //
         //    {
         //        "location": "",
@@ -620,10 +619,11 @@ class grvt extends Exchange {
         $approvedBuilder = $this->safe_list($currentBuilders, 'results', array());
         $length = count($approvedBuilder);
         $found = false;
+        $builderId = $this->safe_string($this->options, 'builder');
         for ($i = 0; $i < $length; $i++) {
             $builderInfo = $this->safe_dict($approvedBuilder, $i, array());
             $builderAccountId = $this->safe_string($builderInfo, 'builder_account_id');
-            if ($builderAccountId === $this->safe_string($this->options, 'builder')) {
+            if ($builderAccountId === $builderId) {
                 $found = true;
                 break;
             }
@@ -640,8 +640,7 @@ class grvt extends Exchange {
                     'max_spot_fee_rate' => $this->safe_string($this->options, 'builderRate'),
                     'signature' => $this->default_signature(),
                 );
-                $request = $this->create_signed_request($request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                $authResponse = Async\await($this->privateTradingPostFullV1AuthorizeBuilder($this->extend($request, $params)));
+                $authResponse = Async\await($this->privateTradingPostFullV1AuthorizeBuilder($this->extend($this->create_signed_request($request, 'EIP712_BUILDER_APPROVAL_TYPE'), $params)));
                 //
                 // {
                 //     "result": {
@@ -748,7 +747,7 @@ class grvt extends Exchange {
             return null;
         }
         $settle = $this->safe_currency_code($settleId);
-        $symbol = $base . '/' . $quote . ':' . $settle;
+        $symbol = $base . '/' . $quote . ':' . $quote;
         $type = null;
         $typeRaw = $this->safe_string($market, 'kind');
         if ($typeRaw === 'PERPETUAL') {
@@ -1077,10 +1076,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $response = Async\await($this->publicMarketPostFullV1TradeHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -1234,10 +1233,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = Async\await($this->publicMarketPostFullV1Kline($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -1322,10 +1321,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = Async\await($this->publicMarketPostFullV1Funding($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -1373,7 +1372,7 @@ class grvt extends Exchange {
     }
 
     public function get_sub_account_id(array $params): string {
-        $subAccountId = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId')[0];
+        $subAccountId = $this->safe_string($this->handle_option_and_params($params, 'getSubAccountId', 'accountId'), 0);
         if ($subAccountId === null) {
             throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1506,15 +1505,14 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if ($useTransfersEndpoint) {
             $transfers = Async\await($this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit));
-            $filteredResults = $this->filter_transfers_by_type($transfers, 'deposit', true);
-            $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
+            $transactions = $this->get_list_from_object_values($this->safe_list($this->filter_transfers_by_type($transfers, 'deposit', true), 0, array()), 'info');
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         } else {
             $response = Async\await($this->privateTradingPostFullV1DepositHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
@@ -1567,15 +1565,14 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if ($useTransfersEndpoint) {
             $transfers = Async\await($this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit));
-            $filteredResults = $this->filter_transfers_by_type($transfers, 'withdrawal', true);
-            $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
+            $transactions = $this->get_list_from_object_values($this->safe_list($this->filter_transfers_by_type($transfers, 'withdrawal', true), 0, array()), 'info');
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         } else {
             $response = Async\await($this->privateTradingPostFullV1WithdrawalHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
@@ -1791,10 +1788,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = Async\await($this->privateTradingPostFullV1TransferHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -1827,17 +1824,16 @@ class grvt extends Exchange {
         //
         $rows = $this->safe_list($response, 'result', array());
         $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
-        $filteredResults = $this->filter_transfers_by_type($transfers, 'internal', false);
-        return $this->to_array($filteredResults[1]);
+        return $this->to_array($this->safe_list($this->filter_transfers_by_type($transfers, 'internal', false), 1, array()));
     }
 
-    public function filter_transfers_by_type(mixed $transfers, string $transferType, $onlyMainAccount = true): array {
+    public function filter_transfers_by_type(array $transfers, string $transferType, $onlyMainAccount = true): array {
         $matchedResults = array();
         $nonMatchedResults = array();
         for ($i = 0; $i < count($transfers); $i++) {
             $transfer = $transfers[$i];
             if (($onlyMainAccount && $this->safe_string($transfer, 'fromAccount') === '0' && $this->safe_string($transfer, 'toAccount') === '0') || (!$onlyMainAccount && ($this->safe_string($transfer, 'fromAccount') !== '0' || $this->safe_string($transfer, 'toAccount') !== '0'))) {
-                $metadata = $this->safe_string($transfer['info'], 'transfer_metadata');
+                $metadata = $this->safe_string($this->safe_dict($transfer, 'info', array()), 'transfer_metadata');
                 $parsedMetadata = $this->parse_json($metadata);
                 $direction = $this->safe_string($parsedMetadata, 'direction');
                 if ($direction === $transferType) {
@@ -1895,10 +1891,9 @@ class grvt extends Exchange {
             'transfer_type' => 'STANDARD',
             'transfer_metadata' => null,
         );
-        $request = $this->create_signed_request($request, 'EIP712_TRANSFER_TYPE', $currency);
         $response = null;
         try {
-            $response = Async\await($this->privateTradingPostFullV1Transfer($this->extend($request, $paramsFundingAccountId)));
+            $response = Async\await($this->privateTradingPostFullV1Transfer($this->extend($this->create_signed_request($request, 'EIP712_TRANSFER_TYPE', $currency), $paramsFundingAccountId)));
         } catch (Exception $error) {
             $msg = $this->exception_message($error);
             $isFromFundingAccount = $fromSubAccount === 'funding';
@@ -2052,21 +2047,21 @@ class grvt extends Exchange {
         Async\await($this->load_markets_and_sign_in());
         $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
         $currency = $this->currency($code);
-        $request = array(
-            'to_eth_address' => $address,
-            'from_account_id' => $defaultFromAccountId,
-            'currency' => $currency['id'],
-            'num_tokens' => $this->currency_to_precision($code, $amount),
-            'signature' => $this->default_signature(),
-        );
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
         $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
-        $request['signature']['chain_id'] = $networkId;
-        $request = $this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency);
-        $response = Async\await($this->privateTradingPostFullV1Withdrawal($this->extend($request, $query)));
+        $withdrawSignature = $this->default_signature();
+        $withdrawSignature['chain_id'] = $networkId;
+        $request = array(
+            'to_eth_address' => $address,
+            'from_account_id' => $defaultFromAccountId,
+            'currency' => $currency['id'],
+            'num_tokens' => $this->currency_to_precision($code, $amount),
+            'signature' => $withdrawSignature,
+        );
+        $response = Async\await($this->privateTradingPostFullV1Withdrawal($this->extend($this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency), $query)));
         //
         // {
         //     "result": {
@@ -2316,7 +2311,7 @@ class grvt extends Exchange {
             $denominator = pow(10, $sizeDecLength);
             $sizeInteger = $sizeDigits * $sizeMultiplier / $denominator;
             $legOrder = array(
-                'assetID' => $market['info']['instrument_hash'],
+                'assetID' => $this->safe_string($market['info'], 'instrument_hash'),
                 'contractSize' => $this->parse_to_int($sizeInteger),
                 'isBuyingContract' => $leg['is_buying_asset'],
             );
@@ -2335,6 +2330,7 @@ class grvt extends Exchange {
             }
             $legs[] = $legOrder;
         }
+        $orderSignature = $this->safe_dict($order, 'signature', array());
         $returnValue = array(
             'subAccountID' => $order['sub_account_id'],
             'isMarket' => $order['is_market'],
@@ -2342,8 +2338,8 @@ class grvt extends Exchange {
             'postOnly' => $order['post_only'],
             'reduceOnly' => $order['reduce_only'],
             'legs' => $legs,
-            'nonce' => $order['signature']['nonce'],
-            'expiration' => $order['signature']['expiration'],
+            'nonce' => $orderSignature['nonce'],
+            'expiration' => $orderSignature['expiration'],
         );
         if ($structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && $this->safe_bool($this->options, 'builderFee', true)) {
             $returnValue['builder'] = $order['builder'];
@@ -2381,18 +2377,16 @@ class grvt extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['base'] = array();
-            $request['base'][] = $market['baseId'];
-            $request['quote'] = array();
-            $request['quote'][] = $market['quoteId'];
+            $request['base'] = array( $market['baseId'] );
+            $request['quote'] = array( $market['quoteId'] );
         }
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = Async\await($this->privateTradingPostFullV1FillHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -2449,17 +2443,19 @@ class grvt extends Exchange {
         );
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $request['base'] = array();
-            $request['quote'] = array();
+            $baseIds = array();
+            $quoteIds = array();
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
                 if ($market['contract'] !== true) {
                     throw new BadRequest($this->id . ' fetchPositions() supports contract markets only');
                 }
-                $request['base'][] = $market['baseId'];
-                $request['quote'][] = $market['quoteId'];
+                $baseIds[] = $market['baseId'];
+                $quoteIds[] = $market['quoteId'];
             }
+            $request['base'] = $baseIds;
+            $request['quote'] = $quoteIds;
         }
         $response = Async\await($this->privateTradingPostFullV1Positions($this->extend($request, $params)));
         //
@@ -2740,18 +2736,16 @@ class grvt extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['base'] = array();
-            $request['base'][] = $market['baseId'];
-            $request['quote'] = array();
-            $request['quote'][] = $market['quoteId'];
+            $request['base'] = array( $market['baseId'] );
+            $request['quote'] = array( $market['quoteId'] );
         }
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = Async\await($this->privateTradingPostFullV1FundingPaymentHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -2823,18 +2817,16 @@ class grvt extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['base'] = array();
-            $request['base'][] = $market['baseId'];
-            $request['quote'] = array();
-            $request['quote'][] = $market['quoteId'];
+            $request['base'] = array( $market['baseId'] );
+            $request['quote'] = array( $market['quoteId'] );
         }
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $response = Async\await($this->privateTradingPostFullV1OrderHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString)));
         //
         //    {
@@ -3265,10 +3257,8 @@ class grvt extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['base'] = array();
-            $request['base'][] = $market['baseId'];
-            $request['quote'] = array();
-            $request['quote'][] = $market['quoteId'];
+            $request['base'] = array( $market['baseId'] );
+            $request['quote'] = array( $market['quoteId'] );
         }
         $response = Async\await($this->privateTradingPostFullV1CancelAllOrders($this->extend($request, $params)));
         //
@@ -3340,6 +3330,7 @@ class grvt extends Exchange {
 
     public function create_signed_request(array $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
         $messageData = null;
+        $requestSignature = $this->safe_dict($request, 'signature', array());
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
             $amountInt = $request['num_tokens'] * $amountMultiplier;
@@ -3353,8 +3344,8 @@ class grvt extends Exchange {
                 'toSubAccount' => $request['to_sub_account_id'],
                 'tokenCurrency' => $currencyObj['numericId'],
                 'numTokens' => $this->parse_to_int($amountInt),
-                'nonce' => $request['signature']['nonce'],
-                'expiration' => $request['signature']['expiration'],
+                'nonce' => $requestSignature['nonce'],
+                'expiration' => $requestSignature['expiration'],
             );
         } elseif ($structureType === 'EIP712_WITHDRAWAL_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
@@ -3366,8 +3357,8 @@ class grvt extends Exchange {
                 'toEthAddress' => $request['to_eth_address'],
                 'tokenCurrency' => $currencyObj['numericId'],
                 'numTokens' => $this->parse_to_int($request['num_tokens'] * $amountMultiplier),
-                'nonce' => $request['signature']['nonce'],
-                'expiration' => $request['signature']['expiration'],
+                'nonce' => $requestSignature['nonce'],
+                'expiration' => $requestSignature['expiration'],
             );
         } elseif ($structureType === 'EIP712_ORDER_TYPE' || $structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
             $messageData = $this->eip_message_for_order($request, $structureType);
@@ -3378,28 +3369,32 @@ class grvt extends Exchange {
                 'builderAccountID' => $request['builder_account_id'],
                 'maxFutureFeeRate' => $this->parse_to_int(floatval($request['max_futures_fee_rate']) * $amountMultiplier),
                 'maxSpotFeeRate' => $this->parse_to_int(floatval($request['max_spot_fee_rate']) * $amountMultiplier),
-                'nonce' => $request['signature']['nonce'],
-                'expiration' => $request['signature']['expiration'],
+                'nonce' => $requestSignature['nonce'],
+                'expiration' => $requestSignature['expiration'],
             );
         } elseif ($structureType === 'EIP712_WALLETLOGIN_TYPE') {
             $messageData = array(
                 'signer' => $request['address'],
-                'nonce' => $request['signature']['nonce'],
-                'expiration' => $request['signature']['expiration'],
+                'nonce' => $requestSignature['nonce'],
+                'expiration' => $requestSignature['expiration'],
             );
         }
         $domainData = $this->eip_domain_data();
         $definitions = $this->eip_definitions();
         $ethEncodedMessage = $this->eth_encode_structured_data($domainData, $definitions[$structureType], $messageData);
-        $ethEncodedMessageHashed = '0x' . $this->hash($ethEncodedMessage, 'keccak', 'hex');
         $usesPrivKey = $this->uses_private_key(); // py transpiler needs this line separated
         $secretOrPrivkey = $usesPrivKey ? $this->privateKey : $this->secret;
         $privateKeyWithoutZero = $this->remove0x_prefix($secretOrPrivkey);
-        $signature = $this->ecdsa($this->remove0x_prefix($ethEncodedMessageHashed), $privateKeyWithoutZero, 'secp256k1', null);
-        $request['signature']['r'] = $this->format_signature_rs($signature['r']);
-        $request['signature']['s'] = $this->format_signature_rs($signature['s']);
-        $request['signature']['v'] = $this->sum(27, $signature['v']);
-        $request['signature']['signer'] = ($signerAddress === null) ? $this->eth_get_address_from_private_key('0x' . $privateKeyWithoutZero) : $signerAddress;
+        $signature = $this->ecdsa($this->hash($ethEncodedMessage, 'keccak', 'hex'), $privateKeyWithoutZero, 'secp256k1', null);
+        $request['signature'] = array(
+            'signer' => ($signerAddress === null) ? $this->eth_get_address_from_private_key('0x' . $privateKeyWithoutZero) : $signerAddress,
+            'r' => $this->format_signature_rs($signature['r']),
+            's' => $this->format_signature_rs($signature['s']),
+            'v' => $this->sum(27, $signature['v']),
+            'expiration' => $requestSignature['expiration'],
+            'nonce' => $requestSignature['nonce'],
+            'chain_id' => $requestSignature['chain_id'],
+        );
         return $request;
     }
 
@@ -3466,9 +3461,7 @@ class grvt extends Exchange {
             );
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            $paramsKeys = is_array($params) ? array_keys($params) : array();
-            $paramsKeysLength = count($paramsKeys);
-            if ($paramsKeysLength === 0) {
+            if (count($params) === 0) {
                 $requestBody = '{}';
             } else {
                 $requestBody = $this->json($params);
@@ -3478,34 +3471,36 @@ class grvt extends Exchange {
         if ($isPrivate) {
             $this->check_required_credentials();
             if ($queryString !== '') {
-                $requestPath = $requestPath . '?' . $queryString;
+                $requestPath = $path . '?' . $queryString;
             }
-            $requestHeaders = array(
-                'Content-Type' => 'application/json',
-            );
             if ((str_ends_with($requestPath, 'auth/api_key/login') === true) || (str_ends_with($requestPath, 'auth/wallet/login') === true)) {
-                $requestHeaders['Cookie'] = 'rm=true;';
+                $requestHeaders = array(
+                    'Content-Type' => 'application/json',
+                    'Cookie' => 'rm=true;',
+                );
             } else {
                 $accountId = $this->safe_string($this->options, 'AuthAccountId');
                 $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
                 if ($cookieValue === null || $accountId === null) {
                     throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
-                $requestHeaders['Cookie'] = $cookieValue;
-                $requestHeaders['X-Grvt-Account-Id'] = $accountId;
+                $requestHeaders = array(
+                    'Content-Type' => 'application/json',
+                    'Cookie' => $cookieValue,
+                    'X-Grvt-Account-Id' => $accountId,
+                );
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (str_ends_with($url, 'auth/api_key/login') || str_ends_with($url, 'auth/wallet/login')) {
             $accountId = $this->safe_string_2($headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             $this->options['AuthAccountId'] = $accountId;
             $cookie = $this->safe_string_2($headers, 'Set-Cookie', 'set-cookie');
             if ($cookie !== null) {
-                $cookieValue = explode(';', $cookie)[0];
-                $this->options['AuthCookieValue'] = $cookieValue;
+                $this->options['AuthCookieValue'] = $this->safe_string(explode(';', $cookie), 0, '');
             }
             if ($this->safe_string($this->options, 'AuthCookieValue') === null || $this->safe_string($this->options, 'AuthAccountId') === null) {
                 throw new AuthenticationError($this->id . ' signIn() failed to receive auth-cookie or account-id');

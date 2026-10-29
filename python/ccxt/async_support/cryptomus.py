@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class cryptomus(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptomus, self).describe(), {
             'id': 'cryptomus',
             'name': 'Cryptomus',
@@ -333,8 +333,8 @@ class cryptomus(Exchange, ImplicitAPI):
         if marketId is None:
             raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
-        baseId = parts[0]
-        quoteId = parts[1]
+        baseId = self.safe_string(parts, 0)
+        quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -429,7 +429,7 @@ class cryptomus(Exchange, ImplicitAPI):
         groupedArray = list(groupedById.values())
         return self.parse_currencies(groupedArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list) -> CurrencyInterface:
         # currency here is array of networks
         id = None  # all entries have same id, as they were grouped by
         code = None
@@ -510,10 +510,9 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'currency_pair')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             'high': None,
@@ -731,7 +730,8 @@ class cryptomus(Exchange, ImplicitAPI):
         sideBuy = side == 'buy'
         amountToString = self.number_to_string(amount)
         priceToString = self.number_to_string(price)
-        costParam, paramsCost = self.handle_param_string(paramsOmitted, 'cost')
+        paramsCost = self.omit(paramsOmitted, 'cost')
+        costParam = self.safe_string(paramsOmitted, 'cost')
         cost = costParam
         response: dict
         if type == 'market':
@@ -742,12 +742,12 @@ class cryptomus(Exchange, ImplicitAPI):
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0]
                 if createMarketBuyOrderRequiresPrice:
-                    if (price is None) and (cost is None):
+                    if (price is None) and (costParam is None):
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to False and pass the cost to spend in the amount argument')
-                    elif cost is None:
+                    elif costParam is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
-                    cost = cost if (cost is not None and cost != '') else amountToString
+                    cost = costParam if (costParam is not None and costParam != '') else amountToString
                 request['value'] = cost
             else:
                 request['quantity'] = amountToString
@@ -859,8 +859,7 @@ class cryptomus(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         orders = []
         for i in range(0, len(result)):
-            order = result[i]
-            orders.append(self.parse_order(order, market))
+            orders.append(self.parse_order(result[i], market))
         return orders
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -1163,19 +1162,19 @@ class cryptomus(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
-        if 'code' in response:
-            code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if codeError is not None:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)
-        elif 'message' in response:
+        elif message is not None:
             #
             #      {"message":"Minimum amount 15 USDT","state":1}
             #
-            message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

@@ -14,7 +14,7 @@ import type { Balances, Bool, Currency, Dict, FundingHistory, FundingRate, Fundi
  * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
             'name': 'Kraken Futures',
@@ -468,8 +468,8 @@ export default class krakenfutures extends Exchange {
             const future = (type === 'future');
             let symbol = id;
             const split = (id as string).split ('_');
-            const splitMarket = this.safeString (split, 1);
-            const baseId = (splitMarket as string).slice (0, (splitMarket as string).length - 3);
+            const splitMarket = this.safeString (split, 1, '');
+            const baseId = splitMarket.slice (0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -498,7 +498,7 @@ export default class krakenfutures extends Exchange {
                 linear = !inverse;
                 symbol = base + '/' + quote + ':' + settle;
                 if (future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
                 }
             }
             result.push ({
@@ -555,10 +555,10 @@ export default class krakenfutures extends Exchange {
                 'info': market,
             });
         }
-        const settlementCurrencies = this.options['settlementCurrencies']['flex'];
+        const settlementCurrencies = this.safeList (this.safeDict (this.options, 'settlementCurrencies', {}), 'flex', []);
         const currencies: Dict[] = [];
         for (let i = 0; i < settlementCurrencies.length; i++) {
-            const code = settlementCurrencies[i];
+            const code = this.safeString (settlementCurrencies, i, '');
             currencies.push ({
                 'id': code.toLowerCase (),
                 'numericId': undefined,
@@ -747,7 +747,7 @@ export default class krakenfutures extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const open = this.safeString (ticker, 'open24h');
         const last = this.safeString (ticker, 'last');
@@ -1020,14 +1020,16 @@ export default class krakenfutures extends Exchange {
         let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
-            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
+            // handleUntilOption returns the request it was given, so the filters
+            // can be set on it directly instead of through the returned tuple
             if (since !== undefined) {
-                requestUntil['since'] = since;
-                requestUntil['sort'] = 'asc';
+                request['since'] = since;
+                request['sort'] = 'asc';
             }
             if (limit !== undefined) {
-                requestUntil['count'] = limit;
+                request['count'] = limit;
             }
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
             const response = await this.historyGetMarketSymbolExecutions (this.extend (requestUntil, paramsUntil));
             //
             //    {
@@ -1277,7 +1279,7 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         let typeValue: Str = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (typeValue === 'market', typeValue === 'post', params);
@@ -1466,7 +1468,7 @@ export default class krakenfutures extends Exchange {
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
-                extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
+                extendedParams['order_tag'] = this.numberToString (this.sum (i, 1)); // sequential counter
             }
             extendedParams['order'] = 'send';
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
@@ -1582,7 +1584,7 @@ export default class krakenfutures extends Exchange {
             }
         } else {
             for (let i = 0; i < ids.length; i++) {
-                orders.push ({ 'order': 'cancel', 'order_id': ids[i] });
+                orders.push ({ 'order': 'cancel', 'order_id': this.safeString (ids, i) });
             }
         }
         const request: Dict = {
@@ -3563,17 +3565,12 @@ export default class krakenfutures extends Exchange {
             const tier = marginLevels[i];
             const initialMargin = this.safeString (tier, 'initialMargin');
             const minNotional = this.safeNumber2 (tier, 'numNonContractUnits', 'contracts');
-            if (i !== 0) {
-                const tiersLength = tiers.length;
-                const previousTier = tiers[tiersLength - 1];
-                previousTier['maxNotional'] = minNotional;
-            }
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': undefined,
+                'maxNotional': this.safeNumber2 (this.safeValue (marginLevels, this.sum (i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
                 'info': tier,
@@ -3620,12 +3617,13 @@ export default class krakenfutures extends Exchange {
             return accountByType[account];
         } else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market (account);
-            const marketId = market['id'];
-            const splitId = (marketId as string).split ('_');
+            const marketId = this.safeString (market, 'id', '');
+            const splitId = marketId.split ('_');
+            const splitMarketId: string = this.safeString (splitId, 1, '');
             if (market['inverse'] === true) {
-                return 'fi_' + this.safeString (splitId, 1);
+                return 'fi_' + splitMarketId;
             } else {
-                return 'fv_' + this.safeString (splitId, 1);
+                return 'fv_' + splitMarketId;
             }
         } else {
             return account;
@@ -3713,7 +3711,7 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marketIdUpper = this.marketId (symbol);
+        const marketIdUpper = this.safeString (this.market (symbol), 'id');
         if (marketIdUpper === undefined) {
             throw new ArgumentsRequired (this.id + ' marketId is required');
         }
@@ -3774,7 +3772,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketIdUpper = this.marketId (symbol);
+        const marketIdUpper = this.safeString (market, 'id');
         if (marketIdUpper === undefined) {
             throw new ArgumentsRequired (this.id + ' marketId is required');
         }
@@ -3806,7 +3804,7 @@ export default class krakenfutures extends Exchange {
         } as Leverage;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -3839,9 +3837,9 @@ export default class krakenfutures extends Exchange {
         const apiAccess = this.safeDict (this.options['access'], apiName, {});
         const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
-        const endpoint = version + '/' + this.implodeParams (path, paramsOmitted);
+        const endpoint: string = version + '/' + this.implodeParams (path, paramsOmitted);
         const paramsOmitted2: Dict = this.omit (paramsOmitted, this.extractParams (path));
-        let query = endpoint;
+        let query: string = endpoint;
         let postData = '';
         if (path === 'batchorder') {
             postData = 'json=' + this.json (paramsOmitted2);
@@ -3862,7 +3860,7 @@ export default class krakenfutures extends Exchange {
         let privateHeaders: NullableDict = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
-            let auth = postData + '/api/';
+            let auth: string = postData + '/api/';
             if (apiName !== 'private') {
                 auth += apiName + '/';
             }

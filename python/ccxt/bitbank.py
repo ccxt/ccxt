@@ -19,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class bitbank(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitbank, self).describe(), {
             'id': 'bitbank',
             'name': 'bitbank',
@@ -556,7 +556,7 @@ class bitbank(Exchange, ImplicitAPI):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
@@ -975,7 +975,7 @@ class bitbank(Exchange, ImplicitAPI):
         tagWithdrawTag = tagAndParams[0]
         paramsWithdrawTag = tagAndParams[1]
         self.check_address(address, code, tagWithdrawTag)
-        if not ('uuid' in paramsWithdrawTag):
+        if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         if self.markets is None:
             self.load_markets()
@@ -1047,12 +1047,12 @@ class bitbank(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend({}, self.omit(params, self.extract_params(path)))
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -1094,15 +1094,14 @@ class bitbank(Exchange, ImplicitAPI):
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
             if isTimeWindow:
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow
+                requestHeaders = self.extend(requestHeaders, {'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow})
             else:
-                requestHeaders['ACCESS-NONCE'] = nonce
+                requestHeaders = self.extend(requestHeaders, {'ACCESS-NONCE': nonce})
         bodyResolved = requestBody
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')
@@ -1170,8 +1169,8 @@ class bitbank(Exchange, ImplicitAPI):
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             }
-            code = self.safe_string(data, 'code')
-            message = self.safe_string(errorMessages, code, 'Error')
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, message)
+            codeError = self.safe_string(data, 'code')
+            message = self.safe_string(errorMessages, codeError, 'Error')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, message)
             raise ExchangeError(self.id + ' ' + self.json(response))
         return None

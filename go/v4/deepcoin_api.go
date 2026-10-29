@@ -268,8 +268,8 @@ func (this *Deepcoin) PrivatePostDeepcoinTradeBatchCancelOrder(args ...any) <-ch
 }
 
 // PrivatePostDeepcoinTradeCancelTriggerOrder returns a channel that yields a JSON object.
-func (this *Deepcoin) PrivatePostDeepcoinTradeCancelTriggerOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostDeepcoinTradeCancelTriggerOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeCancelTriggerOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostDeepcoinTradeCancelTriggerOrder", args...))
 }
 
 // PrivatePostDeepcoinTradeSwapCancelAll returns a channel that yields a JSON object.

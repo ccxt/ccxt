@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Or
  * @augments Exchange
  */
 export default class bitbns extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitbns',
             'name': 'Bitbns',
@@ -530,11 +530,12 @@ export default class bitbns extends Exchange {
             const parts = key.split ('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
+                const usedCurrencyId = this.safeString (parts, 1, '');
                 let currencyId = this.safeString (parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 const account = this.account ();
                 account['free'] = this.safeString (data, key);
-                account['used'] = this.safeString (data, 'inorder' + currencyId);
+                account['used'] = this.safeString (data, 'inorder' + usedCurrencyId);
                 if (currencyId === 'Money') {
                     currencyId = 'INR';
                 }
@@ -1286,31 +1287,27 @@ export default class bitbns extends Exchange {
         } as DepositAddress;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
     override sign (path: string, api: string[] = [ 'www' ], method: string = 'GET', params: Dict = {}): Dict {
-        const urls = this.urls;
         const apiName = api[0];
-        if (!(apiName in urls['api'])) {
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
             this.checkRequiredCredentials ();
         }
-        const apiKeyHeaders: Dict = {
-            'X-BITBNS-APIKEY': this.apiKey,
-        };
-        let requestHeaders: NullableDict = (apiName !== 'www') ? apiKeyHeaders : undefined;
-        const baseApiUrl = this.safeString (this.urls['api'], apiName);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        const requestHeaders: Dict = {};
+        if (apiName !== 'www') {
+            requestHeaders['X-BITBNS-APIKEY'] = this.apiKey;
         }
         const baseUrl = this.implodeHostname (baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const nonce = this.nonce ().toString ();
+        const nonce = this.numberToString (this.nonce ());
         const queryLength = Object.keys (query).length;
         let postBody = '{}';
         if (queryLength > 0) {
@@ -1328,7 +1325,6 @@ export default class bitbns extends Exchange {
             };
             const payload = this.stringToBase64 (this.json (auth));
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
-            requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
             requestHeaders['X-BITBNS-PAYLOAD'] = payload;
             requestHeaders['X-BITBNS-SIGNATURE'] = signature;
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -1336,7 +1332,7 @@ export default class bitbns extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1344,12 +1340,12 @@ export default class bitbns extends Exchange {
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const error = (code !== undefined) && (code !== '200') && (code !== '204');
+        const error = (codeError !== undefined) && (codeError !== '200') && (codeError !== '204');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message

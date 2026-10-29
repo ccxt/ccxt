@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
-import json
 from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -33,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bitrue(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitrue, self).describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
@@ -682,7 +681,7 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     async def fetch_status(self, params: dict = {}) -> Status:
@@ -866,8 +865,8 @@ class bitrue(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesRaw)
         spotMarkets = self.safe_list(self.safe_dict(promises, 0), 'symbols', [])
-        futureMarkets = self.safe_value(promises, 1)
-        deliveryMarkets = self.safe_value(promises, 2)
+        futureMarkets = self.safe_list(promises, 1, [])
+        deliveryMarkets = self.safe_list(promises, 2, [])
         markets = spotMarkets
         markets = self.array_concat(markets, futureMarkets)
         markets = self.array_concat(markets, deliveryMarkets)
@@ -2059,7 +2058,7 @@ class bitrue(Exchange, ImplicitAPI):
         elif market['spot'] is True:
             request['symbol'] = market['id']
             request['quantity'] = self.amount_to_precision(symbol, amount)
-            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
             if not self.in_array(uppercaseType, validOrderTypes):
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
             clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
@@ -2839,6 +2838,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         chainDetails = self.safe_list(fee, 'chainDetail', [])
         chainDetailLength = len(chainDetails)
+        networks = {}
         result = {
             'info': fee,
             'withdraw': {
@@ -2849,7 +2849,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'fee': None,
                 'percentage': None,
             },
-            'networks': {},
         }
         if chainDetailLength != 0:
             for i in range(0, chainDetailLength):
@@ -2858,13 +2857,13 @@ class bitrue(Exchange, ImplicitAPI):
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
                 if networkCode is not None:
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': {'fee': None, 'percentage': None},
                         'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
                     }
                 if chainDetailLength == 1:
-                    result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
-                    result['withdraw']['percentage'] = False
+                    result['withdraw'] = {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False}
+        result['networks'] = networks
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -3100,16 +3099,16 @@ class bitrue(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
-        type = self.safe_string(api, 0)
-        version = self.safe_string(api, 1)
-        access = self.safe_string(api, 2)
+        type = api[0]
+        version = api[1]
+        access = api[2]
         apiUrl = self.safe_string(self.urls['api'], type)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
+        endpointPath = self.implode_params(path, params)
+        url = apiUrl + '/' + endpointPath
         if not ((type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0)):
-            url += '/' + version
-        url += '/' + self.implode_params(path, params)
+            url = apiUrl + '/' + version + '/' + endpointPath
         paramsOmitted = self.omit(params, self.extract_params(path))
         if access == 'private':
             self.check_required_credentials()
@@ -3121,27 +3120,27 @@ class bitrue(Exchange, ImplicitAPI):
                 }, paramsOmitted))
                 signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
                 query += '&' + 'signature=' + signature
-                requestHeaders = {
-                    'X-MBX-APIKEY': self.apiKey,
-                }
                 if (method == 'GET') or (method == 'DELETE'):
                     url += '?' + query
+                    requestHeaders = {
+                        'X-MBX-APIKEY': self.apiKey,
+                    }
                 else:
                     requestBody = query
-                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
+                    requestHeaders = {
+                        'X-MBX-APIKEY': self.apiKey,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
             else:
                 timestamp = str(self.nonce())
-                signPath = None
+                signPrefix = ''
                 if type == 'fapi':
-                    signPath = '/fapi'
+                    signPrefix = '/fapi'
                 elif type == 'dapi':
-                    signPath = '/dapi'
-                signPath = signPath + '/' + version + '/' + path
-                signMessage = timestamp + method + signPath
+                    signPrefix = '/dapi'
+                signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path)
                 if method == 'GET':
-                    keys = list(paramsOmitted.keys())
-                    keysLength = len(keys)
-                    if keysLength > 0:
+                    if len(paramsOmitted) > 0:
                         signMessage += '?' + self.urlencode(paramsOmitted)
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
                     requestHeaders = {
@@ -3170,9 +3169,9 @@ class bitrue(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):
-            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + (' ' + body))
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
@@ -3193,11 +3192,7 @@ class bitrue(Exchange, ImplicitAPI):
         if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
-                try:
-                    parsedMessage = json.loads(messageInner)
-                except Exception as e:
-                    # do nothing
-                    parsedMessage = None
+                parsedMessage = self.parse_json(messageInner)
         errorResponse = parsedMessage if (parsedMessage is not None) else response
         message = self.safe_string(errorResponse, 'msg')
         if message is not None:
@@ -3222,7 +3217,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):
@@ -3232,5 +3227,5 @@ class bitrue(Exchange, ImplicitAPI):
                 entry = byLimit[i]
                 threshold = self.safe_integer(entry, 0)
                 if limit is not None and threshold is not None and limit <= threshold:
-                    return entry[1]
+                    return self.safe_number(entry, 1)
         return self.safe_value(config, 'cost', 1)

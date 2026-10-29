@@ -334,8 +334,8 @@ export default class cryptomus extends Exchange {
             throw new ExchangeError(this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split('_');
-        const baseId = parts[0];
-        const quoteId = parts[1];
+        const baseId = this.safeString(parts, 0);
+        const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -516,10 +516,9 @@ export default class cryptomus extends Exchange {
         //
         const marketId = this.safeString(ticker, 'currency_pair');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
@@ -745,7 +744,8 @@ export default class cryptomus extends Exchange {
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString(amount);
         const priceToString = this.numberToString(price);
-        const [costParam, paramsCost] = this.handleParamString(paramsOmitted, 'cost');
+        const paramsCost = this.omit(paramsOmitted, 'cost');
+        const costParam = this.safeString(paramsOmitted, 'cost');
         let cost = costParam;
         let response;
         if (type === 'market') {
@@ -757,15 +757,15 @@ export default class cryptomus extends Exchange {
             if (sideBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
                     }
-                    else if (cost === undefined) {
+                    else if (costParam === undefined) {
                         cost = Precise.stringMul(amountToString, priceToString);
                     }
                 }
                 else {
-                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
+                    cost = (costParam !== undefined && costParam !== '') ? costParam : amountToString;
                 }
                 request['value'] = cost;
             }
@@ -888,8 +888,7 @@ export default class cryptomus extends Exchange {
         const result = this.safeList(response, 'result', []);
         const orders = [];
         for (let i = 0; i < result.length; i++) {
-            const order = result[i];
-            orders.push(this.parseOrder(order, market));
+            orders.push(this.parseOrder(result[i], market));
         }
         return orders;
     }
@@ -1207,21 +1206,21 @@ export default class cryptomus extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        if ('code' in response) {
-            const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (codeError !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError(feedback);
         }
-        else if ('message' in response) {
+        else if (message !== undefined) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

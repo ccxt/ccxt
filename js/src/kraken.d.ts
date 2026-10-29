@@ -1,12 +1,12 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, Status } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class kraken extends Exchange {
-    describe(): any;
+    describe(): Dict;
     feeToPrecision(symbol: Str, fee: any): string;
     /**
      * @method
@@ -194,7 +194,7 @@ export default class kraken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    findMarketByAltnameOrId(id: any): any;
+    findMarketByAltnameOrId(id: any): MarketInterface;
     resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
     getDelistedMarketById(id: Str): any;
     parseOrderStatus(status: Str): Str;
@@ -350,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): any[];
+    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): Transaction[];
     /**
      * @method
      * @name kraken#fetchDeposits
@@ -472,6 +472,6 @@ export default class kraken extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    nonce(): number;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    nonce(): int;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

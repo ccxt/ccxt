@@ -1,12 +1,12 @@
 import Exchange from './abstract/hibachi.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 import type { OpenInterest } from './base/types.js';
 /**
  * @class hibachi
  * @augments Exchange
  */
 export default class hibachi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     getAccountId(): number;
     parseMarket(market: Dict): Market;
     /**
@@ -175,7 +175,7 @@ export default class hibachi extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    nonce(): number;
+    nonce(): int;
     signMessage(message: any, privateKey: string): string;
     /**
      * @method
@@ -228,7 +228,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersByStatus(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#fetchClosedOrders
@@ -283,7 +283,7 @@ export default class hibachi extends Exchange {
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

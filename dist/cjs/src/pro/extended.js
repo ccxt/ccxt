@@ -59,10 +59,10 @@ class extended extends extended$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.safeString(this.urls['api'], 'ws') + '/orderbooks/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/orderbooks/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -138,7 +138,7 @@ class extended extends extended$1["default"] {
     }
     async watchPrivate(messageHash, subscription = undefined) {
         this.checkRequiredCredentials();
-        const url = this.safeString(this.urls['api'], 'ws') + '/account';
+        const url = this.safeString(this.urls['api'], 'ws', '') + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -181,8 +181,8 @@ class extended extends extended$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            symbolResolved = this.safeString(market, 'symbol', '');
+            messageHash = 'orders:' + this.safeString(market, 'symbol', '');
         }
         const orders = await this.watchPrivate(messageHash, {
             'symbol': symbolResolved,
@@ -292,8 +292,8 @@ class extended extends extended$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            symbolResolved = this.safeString(market, 'symbol', '');
+            messageHash = 'myTrades:' + this.safeString(market, 'symbol', '');
         }
         const trades = await this.watchPrivate(messageHash, {
             'symbol': symbolResolved,
@@ -345,14 +345,15 @@ class extended extends extended$1["default"] {
             return;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade(rawTrades[i]);
+            const trade = this.parseTrade(this.safeDict(rawTrades, i, {}));
             const symbol = this.safeString(trade, 'symbol');
             symbols[symbol] = true;
             stored.append(trade);
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'myTrades:' + key;
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, 'myTrades');
@@ -495,14 +496,15 @@ class extended extends extended$1["default"] {
             return;
         }
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder(rawOrders[i]);
+            const order = this.parseOrder(this.safeDict(rawOrders, i, {}));
             const symbol = this.safeString(order, 'symbol');
             symbols[symbol] = true;
             orders.append(order);
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'orders:' + key;
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, 'orders');
@@ -528,10 +530,10 @@ class extended extends extended$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.safeString(this.urls['api'], 'ws') + '/funding/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/funding/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -554,7 +556,7 @@ class extended extends extended$1["default"] {
         //
         const data = this.safeDict(message, 'data', {});
         const fundingRate = this.parseWsFundingRate(data, undefined, message);
-        const symbol = this.safeString(fundingRate, 'symbol');
+        const symbol = this.safeString(fundingRate, 'symbol', '');
         this.fundingRates[symbol] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve(fundingRate, messageHash);
@@ -599,10 +601,10 @@ class extended extends extended$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.safeString(this.urls['api'], 'ws') + '/prices/mark/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/prices/mark/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -628,7 +630,7 @@ class extended extends extended$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 'm');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let timestamp = this.safeInteger(data, 'ts');
         if ((timestamp === undefined) || (timestamp === 0)) {
             timestamp = this.safeInteger(message, 'ts');
@@ -660,10 +662,10 @@ class extended extends extended$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.safeString(this.urls['api'], 'ws') + '/publicTrades/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/publicTrades/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -702,7 +704,7 @@ class extended extends extended$1["default"] {
         }
         const marketId = this.safeString(first, 'm');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trades:' + symbol;
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         let stored = this.safeValue(this.trades, symbol);
@@ -743,7 +745,7 @@ class extended extends extended$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const price = this.safeString(params, 'price');
         let candleType = this.safeString(params, 'candleType');
         if (candleType === undefined) {
@@ -761,7 +763,7 @@ class extended extends extended$1["default"] {
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType;
         const query = this.urlencode(this.extend({ 'interval': interval }, paramsOmitted));
-        const url = this.safeString(this.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const url = this.safeString(this.urls['api'], 'ws', '') + '/candles/' + this.safeString(market, 'id', '') + '/' + candleType + '?' + query;
         const ohlcv = await this.watch(url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
             'symbol': symbolValue,
@@ -798,8 +800,8 @@ class extended extends extended$1["default"] {
             return;
         }
         const symbol = this.safeString(subscription, 'symbol');
-        const timeframe = this.safeString(subscription, 'timeframe');
-        const candleType = this.safeString(subscription, 'candleType');
+        const timeframe = this.safeString(subscription, 'timeframe', '');
+        const candleType = this.safeString(subscription, 'candleType', '');
         let cacheKey = undefined;
         if (candleType === 'trades') {
             cacheKey = timeframe;

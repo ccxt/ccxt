@@ -1046,6 +1046,20 @@ function hx4G26PointerNonNil (scope: GoArithScope, name: string): boolean {
         if (li < indent) {
             indent = li;
             if (/^(?:\} else|else)/.test (s) && !/^\} else if /.test (s)) {
+                // the else arm of a plain `if name == nil {` (no && / ||) sees name non-nil: the
+                // nearest line at the arm's indent is the `if` header (the then-body is deeper)
+                if (s === '} else {') {
+                    for (let h = k - 1; h >= 1; h--) {
+                        const hs = lines[h].trim ();
+                        if ((hs === '') || (indentOf (lines[h]) > li)) {
+                            continue;
+                        }
+                        if ((indentOf (lines[h]) === li) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (hs)) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
                 return false;
             }
             const head = /^(?:\} else )?if (.*) \{$/.exec (s);
@@ -1088,6 +1102,9 @@ export function hx4G26SelfTest (): string[] {
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) || (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'Multiply(p, a)', true ],
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif (p != nil) && (a != nil) {\n\t\tp = this.SafeNumber(o, "x")\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif p != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t} else {\n\t\treturn Subtract(p, a)\n\t}', '(*p - *a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\tp = this.SafeNumber(o, "x")\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t}\n\tif a != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', '(*p - *a)', true ],
         [ '\tif q == nil {\n\t\treturn nil\n\t}\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tvar v any = func() any {\n\t\tif r == nil {\n\t\t\treturn nil\n\t\t}\n\t\treturn ccxt.Multiply(r, 100)\n\t}()\n\treturn ccxt.Subtract(q, 1)', '(*r * 100)', true ],
         [ '\tif q == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.Subtract(q, 1)', '(*q - 1)', true ],
         [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\treturn Multiply(r, 100)', 'Multiply(r, 100)', true ],
@@ -2556,6 +2573,46 @@ export function hx4G40InlineIsEqual (content: string, aligner?: unknown): string
         return content;
     }
     return hx5X23CollapseDup (out + content.slice (cursor));
+}
+
+// hx11 w8: `if IsEqual(this.M(args), true) {` where M is a method of the same receiver in this file whose every
+// `return` yields a bool literal, nil or the try/catch carrier `ret__`/bare return: the value is never a pointer
+// box, so IsEqual(v, true) is exactly the native `v == true` (a nil result compares false in both forms).
+export function hx11IsEqualBoolMethod (content: string): string {
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/IsEqual\(this\.\w+\(/.test (content)) {
+        return content;
+    }
+    const boolish = new Set<string> ();
+    const funcs = content.split (/(?=\nfunc )/);
+    for (const f of funcs) {
+        const head = f.match (/^\nfunc \(this \*(\w+)\) (\w+)\([^\n]*\) (?:any|bool) \{\n/);
+        if (!head) { continue; }
+        const rets = [ ...goArithMask (f).matchAll (/\breturn\b([^\n]*)/g) ].map ((r) => r[1].trim ());
+        if (rets.length && rets.every ((r) => [ 'true', 'false', 'nil', 'ret__', '' ].includes (r)) && rets.some ((r) => (r === 'true') || (r === 'false'))) {
+            boolish.add (head[1] + '.' + head[2]);
+        }
+    }
+    if (!boolish.size) {
+        return content;
+    }
+    return funcs.map ((f) => {
+        const head = f.match (/^\nfunc \(this \*(\w+)\)/);
+        if (!head) { return f; }
+        return f.replace (/(\bif |&& |\|\| )(!?)(?:ccxt\.)?IsEqual\(this\.(\w+)\(([^()\n]*)\), (true|false)\)(?= \{\n| &&| \|\|)/g, (m: string, pre: string, neg: string, name: string, args: string, lit: string) => {
+            return boolish.has (head[1] + '.' + name) ? pre + 'this.' + name + '(' + args + ') ' + (neg ? '!=' : '==') + ' ' + lit : m;
+        });
+    }).join ('');
+}
+
+export function hx11IsEqualBoolMethodCheck (): string[] {
+    const problems: string[] = [];
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const m = 'func (this *K) H(c any) any {\n\tif c == nil {\n\t\treturn false\n\t}\n\treturn true\n}\n';
+    const out = hx11IsEqualBoolMethod (head + m + 'func (this *K) G(c any) any {\n\tif IsEqual(this.H(c), true) {\n\t\treturn 1\n\t}\n\tif !ccxt.IsEqual(this.H(c), true) {\n\t\treturn 2\n\t}\n\treturn IsEqual(this.H(c), true)\n}\n');
+    if (!out.includes ('if this.H(c) == true {') || !out.includes ('if this.H(c) != true {') || !out.includes ('return IsEqual(this.H(c), true)')) { problems.push ('hx11 bool method: ' + out); }
+    const other = head + 'func (this *K) H(c any) any {\n\treturn this.Safe(c)\n}\nfunc (this *K) G(c any) any {\n\tif IsEqual(this.H(c), true) {\n\t}\n\treturn nil\n}\n';
+    if (hx11IsEqualBoolMethod (other) !== other) { problems.push ('hx11 bool method: non-bool return rewritten'); }
+    return problems;
 }
 
 // `x != nil && x != nil` / `(x == nil) || (x == nil)` from adjacent `!== undefined` / `!== null`: go vet rejects them

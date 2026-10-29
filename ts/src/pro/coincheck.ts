@@ -11,7 +11,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class coincheck extends coincheckRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -66,7 +66,7 @@ export default class coincheck extends coincheckRest {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
-            'channel': market['id'] + '-orderbook',
+            'channel': this.safeString (market, 'id', '') + '-orderbook',
         };
         const message = this.extend (request, params);
         const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
@@ -94,18 +94,12 @@ export default class coincheck extends coincheckRest {
         //         }
         //     ]
         //
-        const symbol = this.symbol (this.safeString (message, 0));
+        const symbol = this.safeString (this.market (this.safeString (message, 0)), 'symbol', '');
         const data = this.safeDict (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
-        }
+        const orderbook = this.orderBook (snapshot);
+        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
@@ -126,18 +120,17 @@ export default class coincheck extends coincheckRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
-            'channel': market['id'] + '-trades',
+            'channel': this.safeString (market, 'id', '') + '-trades',
         };
         const message = this.extend (request, params);
         const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
@@ -158,7 +151,7 @@ export default class coincheck extends coincheckRest {
         //     ]
         //
         const first = this.safeList (message, 0, []);
-        const symbol = this.symbol (this.safeString (first, 2));
+        const symbol = this.safeString (this.market (this.safeString (first, 2)), 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

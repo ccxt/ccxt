@@ -37,7 +37,7 @@ public class Gemini extends GeminiApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "gemini" );
@@ -726,7 +726,7 @@ public class Gemini extends GeminiApi
             //        ]
             //    }
             //
-            Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
+            this.options.put("tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
             List<Object> currenciesArray = (List<Object>) this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
         });
@@ -889,35 +889,35 @@ public class Gemini extends GeminiApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", marketId);
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", null);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", marketId);
+                j39v2.put("symbol", ((base + "/") + quote));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", null);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", null);
+                j39v2.put("type", "spot");
+                j39v2.put("spot", true);
+                j39v2.put("margin", false);
+                j39v2.put("swap", false);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", null);
+                j39v2.put("contract", false);
+                j39v2.put("linear", null);
+                j39v2.put("inverse", null);
+                j39v2.put("contractSize", null);
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Gemini.this.safeNumber(amountPrecisionParts, 0, (Object) null) );
                         put( "price", Gemini.this.safeNumber(pricePrecisionParts, 0, (Object) null) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -935,9 +935,9 @@ public class Gemini extends GeminiApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", row);
-                    yield j39v2; } }));
+                j39v2.put("created", null);
+                j39v2.put("info", row);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });
@@ -1175,7 +1175,7 @@ public class Gemini extends GeminiApi
                     if ((marketIdWithoutPerp.endsWith(((String)quoteCurrency))))
                     {
                         Long quoteLength = this.parseToInt((((long) (-1)) * quoteCurrency.length()));
-                        baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);
+                        baseId = (marketIdWithoutPerp == null ? null : marketIdWithoutPerp.substring(0, (int) Math.min(quoteLength < 0 ? marketIdWithoutPerp.length() + quoteLength : quoteLength, marketIdWithoutPerp.length())));
                         quoteId = quoteCurrency;
                         if (Boolean.TRUE.equals(isPerp))
                         {
@@ -1194,9 +1194,9 @@ public class Gemini extends GeminiApi
         }
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((base + "/") + quote);
-        if (!java.util.Objects.equals(settleId, null))
+        if (!java.util.Objects.equals(settle, null))
         {
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1361,19 +1361,19 @@ public class Gemini extends GeminiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
-            Object tickerPromiseB = this.fetchTickerV2(symbol, parameters);
+            Object tickerPromiseA = this.fetchTickerV1((String) (symbol), parameters);
+            Object tickerPromiseB = this.fetchTickerV2((String) (symbol), parameters);
             var tickerAtickerBVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tickerPromiseA), ((CompletableFuture<?>) tickerPromiseB)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tickerPromiseA).join(), ((CompletableFuture<?>) tickerPromiseB).join())))).join();
             var tickerA = ((List<Object>) tickerAtickerBVariable).get(0);
             var tickerB = ((List<Object>) tickerAtickerBVariable).get(1);
             return this.deepExtend(tickerA, new HashMap<String, Object>() {{
-                put( "open", ((Map<String, Object>)tickerB).get("open") );
-                put( "high", ((Map<String, Object>)tickerB).get("high") );
-                put( "low", ((Map<String, Object>)tickerB).get("low") );
-                put( "change", ((Map<String, Object>)tickerB).get("change") );
-                put( "percentage", ((Map<String, Object>)tickerB).get("percentage") );
-                put( "average", ((Map<String, Object>)tickerB).get("average") );
-                put( "info", ((Map<String, Object>)tickerB).get("info") );
+                put( "open", Gemini.this.safeString(tickerB, "open") );
+                put( "high", Gemini.this.safeString(tickerB, "high") );
+                put( "low", Gemini.this.safeString(tickerB, "low") );
+                put( "change", Gemini.this.safeString(tickerB, "change") );
+                put( "percentage", Gemini.this.safeString(tickerB, "percentage") );
+                put( "average", Gemini.this.safeString(tickerB, "average") );
+                put( "info", Gemini.this.safeValue(tickerB, "info") );
             }});
         });
 
@@ -1398,13 +1398,13 @@ public class Gemini extends GeminiApi
             String method = this.safeString(this.options, "fetchTickerMethod", "fetchTickerV1");
             if (java.util.Objects.equals(method, "fetchTickerV1"))
             {
-                return (this.fetchTickerV1(symbol, parameters)).join();
+                return (this.fetchTickerV1((String) (symbol), parameters)).join();
             }
             if (java.util.Objects.equals(method, "fetchTickerV2"))
             {
-                return (this.fetchTickerV2(symbol, parameters)).join();
+                return (this.fetchTickerV2((String) (symbol), parameters)).join();
             }
-            return (this.fetchTickerV1AndV2(symbol, parameters)).join();
+            return (this.fetchTickerV1AndV2((String) (symbol), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -2546,20 +2546,20 @@ public class Gemini extends GeminiApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> headersSigned = null;
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            String apiKey = this.apiKey;
-            if (((String)apiKey).indexOf("account") < 0)
+            if (((String)this.apiKey).indexOf("account") < 0)
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            String nonce = String.valueOf(this.incrementingNonce());
+            Long nonceValue = this.incrementingNonce();
+            String nonce = this.numberToString(nonceValue);
             String finalUrl = url;
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "request", finalUrl );
@@ -2578,7 +2578,7 @@ public class Gemini extends GeminiApi
             }
         } else
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!(this.isEmpty(query)))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2605,7 +2605,7 @@ public class Gemini extends GeminiApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

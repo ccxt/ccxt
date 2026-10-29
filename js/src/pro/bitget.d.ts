@@ -7,7 +7,7 @@ import Client from '../base/ws/Client.js';
  * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 export default class bitget extends bitgetRest {
-    describe(): any;
+    describe(): Dict;
     getInstType(methodName: Str, market: Market, uta?: boolean, params?: Dict): [Str, Dict];
     /**
      * @method

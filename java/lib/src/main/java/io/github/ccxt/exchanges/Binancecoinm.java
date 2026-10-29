@@ -23,7 +23,7 @@ public class Binancecoinm extends BinancecoinmApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "binancecoinm" );
@@ -57,7 +57,7 @@ public class Binancecoinm extends BinancecoinmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to coinm futures wallet
-            return (this.futuresTransfer((String) (code), amount, 3, parameters)).join();
+            return (this.futuresTransfer(code, amount, 3, parameters)).join();
         });
 
     }
@@ -68,7 +68,7 @@ public class Binancecoinm extends BinancecoinmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from coinm futures wallet to spot wallet
-            return (this.futuresTransfer((String) (code), amount, 4, parameters)).join();
+            return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 
     }

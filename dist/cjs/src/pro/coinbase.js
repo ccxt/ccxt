@@ -73,18 +73,7 @@ class coinbase extends coinbase$1["default"] {
         let market = undefined;
         let messageHash = name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            const marketIds = this.marketIds(symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            }
-            else {
-                productIds = marketIds;
-            }
-            messageHash = messageHash + '::' + symbols.join(',');
-        }
-        else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             messageHash = name + '::' + symbol;
             productIds = [this.safeString(market, 'id')];
@@ -126,22 +115,10 @@ class coinbase extends coinbase$1["default"] {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            const marketIds = this.marketIds(symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            }
-            else {
-                productIds = marketIds;
-            }
-            watchMessageHash = watchMessageHash + '::' + symbols.join(',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join(',');
-        }
-        else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol;
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [this.safeString(market, 'id')];
         }
         const url = this.urls['api']['ws'];
@@ -274,12 +251,12 @@ class coinbase extends coinbase$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString(this.options, 'wsToken');
-            const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
+            const tokenTimestamp = this.parseToInt(this.safeInteger(this.options, 'wsTokenTimestamp', 0));
             const seconds = this.seconds();
             const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken(seconds, undefined, undefined, this.isEddsaApiKey());
+                const token = this.createAuthToken(seconds, '', undefined, this.isEddsaApiKey());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
@@ -340,7 +317,7 @@ class coinbase extends coinbase$1["default"] {
         const ticker = await this.subscribeMultiple(name, false, symbolsResolved, params);
         if (this.newUpdates) {
             const tickers = {};
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol', '');
             tickers[symbol] = ticker;
             return tickers;
         }
@@ -470,7 +447,7 @@ class coinbase extends coinbase$1["default"] {
                 const result = this.parseWsTicker(ticker);
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
-                const symbol = result['symbol'];
+                const symbol = this.safeString(result, 'symbol', '');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = result;
                 }
@@ -663,7 +640,7 @@ class coinbase extends coinbase$1["default"] {
         }
         const name = 'level2';
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const orderbook = await this.subscribe(name, false, symbolValue, params);
         return orderbook.limit();
     }
@@ -925,7 +902,7 @@ class coinbase extends coinbase$1["default"] {
             const marketId = this.safeString(event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = 'level2::' + symbol;
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');

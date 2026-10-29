@@ -40,15 +40,10 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object symbolsRequested = symbols;
-        if ((symbols == null))
-        {
-            symbolsRequested = this.symbols;
-        }
-        IList<object> symbolsMarket = this.marketSymbols(symbolsRequested);
-        IList<object> symbolsNormalized = ((symbolsMarket == null)) ? new List<object>() {} : symbolsMarket;
+        object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
+        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        string? url = this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -57,17 +52,17 @@ public partial class upbit : ccxt.upbit
         {
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }
-        object subscriptions = (client.subscriptions != null && subscriptionsKey != null && client.subscriptions.ContainsKey(subscriptionsKey) ? client.subscriptions[subscriptionsKey] : null);
+        IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, new Dictionary<string, object>() {});
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
-            string? symbol = ((string)symbolsNormalized[i]);
+            string? marketId = this.safeString(marketIds, i, "");
+            string? symbol = this.safeString(symbolsNormalized, i, "");
             object messageHash = add(add(channel, ":"), symbol);
             messageHashes.Add(messageHash);
-            if (!(inOp(subscriptions, messageHash)))
+            if (!((subscriptions != null && messageHash is string inOpKey0 && subscriptions.ContainsKey(inOpKey0))))
             {
-                ((IDictionary<string,object>)subscriptions)[(string)messageHash] = new Dictionary<string, object>() {
+                subscriptions[(string)messageHash] = new Dictionary<string, object>() {
                     { "type", channel },
                     { "codes", new List<object>() {marketId} },
                 };
@@ -76,11 +71,11 @@ public partial class upbit : ccxt.upbit
         List<object> finalMessage = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> channelKeys = new List<object>(subscriptions.Keys);
         for (int i = 0; i < channelKeys.Count; i++)
         {
             string? key = ((string)channelKeys[i]);
-            finalMessage.Add(getValue(subscriptions, key));
+            finalMessage.Add((key != null && subscriptions.ContainsKey(key) ? subscriptions[key] : null));
         }
         return await this.watchMultiple(url, messageHashes, finalMessage, messageHashes);
     }
@@ -140,7 +135,7 @@ public partial class upbit : ccxt.upbit
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -182,7 +177,7 @@ public partial class upbit : ccxt.upbit
     {
         parameters ??= new Dictionary<string, object>();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple(new List<object>() {symbol}, "orderbook"));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     /**
@@ -410,25 +405,20 @@ public partial class upbit : ccxt.upbit
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", channel },
         };
-        object symbolResolved = null;
+        object messageHashResolved = messageHash;
+        object channelKey = channel;
         if ((symbol != null))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            List<object> symbols = new List<object>() {symbolResolved};
-            IList<object> marketIds = this.marketIds(symbols);
-            request["codes"] = marketIds;
-        }
-        object messageHashResolved = messageHash;
-        if ((symbolResolved != null))
-        {
+            string? symbolResolved = this.safeString(market, "symbol", "");
+            request["codes"] = this.marketIds(new List<object>() {symbolResolved});
             messageHashResolved = add(add(messageHash, ":"), symbolResolved);
+            channelKey = add(add(channel, ":"), symbolResolved);
         }
-        object url = this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), new Dictionary<string, object>() {
-            { "hostname", this.hostname },
-        });
-        url = add(url, "/private");
+        string url = (this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
+    { "hostname", this.hostname },
+}) + "/private");
         var client = this.client(url);
         // Track private channel subscriptions to support multiple concurrent watches
         string subscriptionsKey = "upbitPrivateSubscriptions";
@@ -436,31 +426,21 @@ public partial class upbit : ccxt.upbit
         {
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }
-        object channelKey = channel;
-        if ((symbolResolved != null))
-        {
-            channelKey = add(add(channel, ":"), symbolResolved);
-        }
-        object subscriptions = (client.subscriptions != null && subscriptionsKey != null && client.subscriptions.ContainsKey(subscriptionsKey) ? client.subscriptions[subscriptionsKey] : null);
-        bool isNewChannel = !(inOp(subscriptions, channelKey));
+        IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, new Dictionary<string, object>() {});
+        bool isNewChannel = !((subscriptions != null && channelKey is string inOpKey1 && subscriptions.ContainsKey(inOpKey1)));
         if (isNewChannel)
         {
-            ((IDictionary<string,object>)subscriptions)[(string)channelKey] = request;
+            subscriptions[(string)channelKey] = request;
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        List<object> requests = new List<object>() {};
-        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (int i = 0; i < channelKeys.Count; i++)
-        {
-            requests.Add(getValue(subscriptions, channelKeys[i]));
-        }
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        for (int i = 0; i < (requests?.Count ?? 0); i++)
+        List<object> channelKeys = new List<object>(subscriptions.Keys);
+        for (int i = 0; i < channelKeys.Count; i++)
         {
-            message.Add(requests[i]);
+            message.Add((subscriptions != null && channelKeys[i] != null && subscriptions.ContainsKey((string)channelKeys[i]) ? subscriptions[(string)channelKeys[i]] : null));
         }
         return await this.watch(url, messageHashResolved, message, messageHashResolved);
     }
@@ -707,8 +687,7 @@ public partial class upbit : ccxt.upbit
         myTrades.append(ccxt.BaseExchange.FromTrade(trade));
         string messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + ((((object)trade.symbol))));
-        client.resolve(myTrades, messageHash);
+        client.resolve(myTrades, ("myTrades:" + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "")));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
@@ -772,8 +751,7 @@ public partial class upbit : ccxt.upbit
         cachedOrders.append(parsed);
         string messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
-        messageHash = ((messageHash + ":") + symbol);
-        client.resolve(this.orders, messageHash);
+        client.resolve(this.orders, ((messageHash + ":") + this.safeString(parsed, "symbol", "")));
     }
 
     /**

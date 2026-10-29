@@ -16,7 +16,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class gemini extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',
@@ -724,7 +724,7 @@ export default class gemini extends Exchange {
         const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds: List = [];
+        const marketIds: string[] = [];
         let allMarketIds: string[] = [];
         if (Array.isArray (marketIdsRaw)) {
             allMarketIds = marketIdsRaw;
@@ -892,8 +892,8 @@ export default class gemini extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        if (settleId !== undefined) {
-            symbol = symbol + ':' + settle;
+        if (settle !== undefined) {
+            symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1035,13 +1035,13 @@ export default class gemini extends Exchange {
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
         return this.deepExtend (tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
-            'info': tickerB['info'],
+            'open': this.safeString (tickerB, 'open'),
+            'high': this.safeString (tickerB, 'high'),
+            'low': this.safeString (tickerB, 'low'),
+            'change': this.safeString (tickerB, 'change'),
+            'percentage': this.safeString (tickerB, 'percentage'),
+            'average': this.safeString (tickerB, 'average'),
+            'info': this.safeValue (tickerB, 'info'),
         }) as Ticker;
     }
 
@@ -1883,7 +1883,7 @@ export default class gemini extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
         if (nonceMethod === 'milliseconds') {
             return this.milliseconds ();
@@ -2059,12 +2059,12 @@ export default class gemini extends Exchange {
         let headersSigned: NullableDict = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf ('account') < 0) {
+            if (this.apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            const nonce = this.incrementingNonce ().toString ();
+            const nonceValue = this.incrementingNonce ();
+            const nonce = this.numberToString (nonceValue);
             const finalUrl = url;
             const request = this.extend ({
                 'request': finalUrl,
@@ -2080,7 +2080,7 @@ export default class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length > 0) {
+            if (!(this.isEmpty (query))) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2097,7 +2097,7 @@ export default class gemini extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;

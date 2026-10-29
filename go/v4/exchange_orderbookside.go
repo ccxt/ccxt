@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 /**
@@ -60,12 +59,61 @@ type IOrderBookSide interface {
 }
 
 type OrderBookSide struct {
-	Data   [][]any      `json:"data"` // equivalent to extending Array
-	Index  []float64    `json:"-"`    // string-keyed dictionary of price levels / ids / indices
-	Depth  int          `json:"-"`    // depth limit
-	Length int          `json:"-"`    // current Length
-	Side   bool         `json:"-"`    // false is asks, true is bids
-	Mutex  sync.RWMutex `json:"-"`    // protects concurrent access
+	Data   [][]any   `json:"data"` // equivalent to extending Array
+	Index  []float64 `json:"-"`    // string-keyed dictionary of price levels / ids / indices
+	Depth  int       `json:"-"`    // depth limit
+	Length int       `json:"-"`    // current Length
+	Side   bool      `json:"-"`    // false is asks, true is bids
+	// view carries the published side. The goroutine that mutates the book is
+	// its only owner: it copy-on-writes Data/Index and re-publishes, readers
+	// only ever read the published copy, so no critical section is needed.
+	view chan sideView
+}
+
+// sideView is the immutable published state of one book side.
+type sideView struct {
+	data    [][]any
+	index   []float64
+	length  int
+	depth   int
+	hashmap map[any]float64 // id-keyed side only, nil elsewhere
+}
+
+func newSideView() chan sideView {
+	view := make(chan sideView, 1)
+	view <- sideView{}
+	return view
+}
+
+// publish hands the slices the owner just built to readers.
+func (obs *OrderBookSide) publish() {
+	if obs.view == nil {
+		return
+	}
+	<-obs.view
+	obs.view <- sideView{data: obs.Data, index: obs.Index, length: obs.Length, depth: obs.Depth}
+}
+
+// snapshot reads the published side without taking it away from other readers.
+func (obs *OrderBookSide) snapshot() sideView {
+	if obs.view == nil {
+		return sideView{data: obs.Data, index: obs.Index, length: obs.Length, depth: obs.Depth}
+	}
+	current := <-obs.view
+	obs.view <- current
+	return current
+}
+
+// ownData and ownIndex copy-on-write the live arrays, so the published view
+// keeps the contents readers may still be walking.
+func (obs *OrderBookSide) ownData() {
+	rows := make([][]any, len(obs.Data))
+	copy(rows, obs.Data)
+	obs.Data = rows
+}
+
+func (obs *OrderBookSide) ownIndex() {
+	obs.Index = append([]float64(nil), obs.Index...)
 }
 
 // MarshalJSON emits the side as a plain array of price levels instead of the
@@ -77,24 +125,24 @@ func (obs *OrderBookSide) MarshalJSON() ([]byte, error) {
 	if obs == nil {
 		return []byte("[]"), nil
 	}
-	obs.Mutex.RLock()
-	defer obs.Mutex.RUnlock()
-	if obs.Data == nil {
+	published := obs.snapshot()
+	if published.data == nil {
 		return []byte("[]"), nil
 	}
-	return json.Marshal(obs.Data)
+	return json.Marshal(published.data)
 }
 
 func (obs *OrderBookSide) GetValue(key string, defaultValue any) any {
+	published := obs.snapshot()
 	switch key {
 	case "Data":
-		return obs.Data
+		return published.data
 	case "Index":
-		return obs.Index
+		return published.index
 	case "Depth":
-		return obs.Depth
+		return published.depth
 	case "Length":
-		return obs.Length
+		return published.length
 	case "Side":
 		return obs.Side
 	default:
@@ -110,6 +158,7 @@ func NewOrderBookSide(side bool, deltas any, depth any) *OrderBookSide {
 		Length: 0,
 		Depth:  math.MaxInt32,
 		Side:   side,
+		view:   newSideView(),
 	}
 	result := Init(orderBookSide, deltas, depth)
 	return result.(*OrderBookSide)
@@ -177,8 +226,9 @@ func Init(obs IOrderBookSide, deltas any, depth any) IOrderBookSide {
 
 func (obs *OrderBookSide) StoreArray(delta any) {
 
-	obs.Mutex.Lock()
-	defer obs.Mutex.Unlock()
+	obs.ownData()
+	obs.ownIndex()
+	defer obs.publish()
 
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -211,7 +261,9 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 
 	if size != 0 {
 		if obs.Index[index] == indexPrice {
-			obs.Data[index][1] = size
+			row := append([]any(nil), obs.Data[index]...)
+			row[1] = size
+			obs.Data[index] = row
 		} else {
 			obs.Length++
 			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
@@ -220,7 +272,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 
 			// Insert into Data array - ensure it grows with Length
 			obs.Data = append(obs.Data, nil)
-			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+			copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
 			if isArray {
 				obs.Data[index] = []any{deltaArray[0], deltaArray[1]}
 			} else if isOB {
@@ -295,8 +347,9 @@ func (obs *OrderBookSide) Store(price any, size any) error {
 
 // Limit replaces stored orders with new values
 func (obs *OrderBookSide) Limit() {
-	obs.Mutex.Lock()
-	defer obs.Mutex.Unlock()
+	obs.ownData()
+	obs.ownIndex()
+	defer obs.publish()
 
 	if obs.Length > obs.Depth {
 		for i := obs.Depth; i < obs.Length; i++ {
@@ -327,6 +380,7 @@ func NewCountedOrderBookSide(side bool, deltas any, depth any) *CountedOrderBook
 		Length: 0,
 		Depth:  math.MaxInt32,
 		Side:   side,
+		view:   newSideView(),
 	}
 
 	countedOrderBookSide := &CountedOrderBookSide{
@@ -343,8 +397,9 @@ func (cobs *CountedOrderBookSide) Store(price any, size any) error {
 // StoreArray handles deltas with count (3 elements: price, size, count)
 func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
-	obs.OrderBookSide.Mutex.Lock()
-	defer obs.OrderBookSide.Mutex.Unlock()
+	obs.OrderBookSide.ownData()
+	obs.OrderBookSide.ownIndex()
+	defer obs.OrderBookSide.publish()
 
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -380,8 +435,10 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 	if size != 0 && count != 0 {
 		if obs.Index[index] == indexPrice {
-			obs.Data[index][1] = size
-			obs.Data[index][2] = count
+			row := append([]any(nil), obs.Data[index]...)
+			row[1] = size
+			row[2] = count
+			obs.Data[index] = row
 		} else {
 			obs.Length++
 			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
@@ -390,7 +447,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 			// Insert into Data array - ensure it grows with Length
 			obs.Data = append(obs.Data, nil)
-			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+			copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
 			if isArray {
 				obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
 			} else if isOB {
@@ -428,7 +485,44 @@ type IndexedOrderBookSide struct {
 	Depth   int             // depth limit
 	Length  int             // current Length
 	Side    bool            // false is asks, true is bids
-	Mutex   sync.RWMutex    // protects concurrent access
+	// view publishes the shadowing Data/Index/Depth/Length fields; the owner
+	// copy-on-writes them and re-publishes, readers read the published copy.
+	view chan sideView
+}
+
+func (iobs *IndexedOrderBookSide) publishIndexed() {
+	if iobs.view == nil {
+		return
+	}
+	<-iobs.view
+	iobs.view <- sideView{data: iobs.Data, index: iobs.Index, length: iobs.Length, depth: iobs.Depth, hashmap: iobs.Hashmap}
+}
+
+func (iobs *IndexedOrderBookSide) snapshotIndexed() sideView {
+	if iobs.view == nil {
+		return sideView{data: iobs.Data, index: iobs.Index, length: iobs.Length, depth: iobs.Depth, hashmap: iobs.Hashmap}
+	}
+	current := <-iobs.view
+	iobs.view <- current
+	return current
+}
+
+func (iobs *IndexedOrderBookSide) ownIndexedData() {
+	rows := make([][]any, len(iobs.Data))
+	copy(rows, iobs.Data)
+	iobs.Data = rows
+}
+
+func (iobs *IndexedOrderBookSide) ownIndexedIndex() {
+	iobs.Index = append([]float64(nil), iobs.Index...)
+}
+
+func (iobs *IndexedOrderBookSide) ownIndexedHashmap() {
+	ids := make(map[any]float64, len(iobs.Hashmap))
+	for id, price := range iobs.Hashmap {
+		ids[id] = price
+	}
+	iobs.Hashmap = ids
 }
 
 func NewIndexedOrderBookSide(side bool, deltas any, depth any) *IndexedOrderBookSide {
@@ -449,6 +543,7 @@ func NewIndexedOrderBookSide(side bool, deltas any, depth any) *IndexedOrderBook
 		Depth:   math.MaxInt32,
 		Hashmap: make(map[any]float64),
 		Side:    side,
+		view:    newSideView(),
 	}
 	result := Init(orderBookSide, deltas, depth)
 	return result.(*IndexedOrderBookSide)
@@ -495,8 +590,10 @@ func (obs *IndexedOrderBookSide) findRowById(start int, id string) int {
 // StoreArray handles deltas with id (3 elements: price, size, id)
 func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 
-	obs.Mutex.Lock()
-	defer obs.Mutex.Unlock()
+	obs.ownIndexedData()
+	obs.ownIndexedIndex()
+	obs.ownIndexedHashmap()
+	defer obs.publishIndexed()
 
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -662,8 +759,10 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 
 // Limit replaces stored orders with new values
 func (iobs *IndexedOrderBookSide) Limit() {
-	iobs.Mutex.Lock()
-	defer iobs.Mutex.Unlock()
+	iobs.ownIndexedData()
+	iobs.ownIndexedIndex()
+	iobs.ownIndexedHashmap()
+	defer iobs.publishIndexed()
 
 	if iobs.Length > iobs.Depth {
 		for i := iobs.Depth; i < iobs.Length && i < len(iobs.Data); i++ {
@@ -735,22 +834,23 @@ func NewIndexedBids(deltas any, depth any) *IndexedOrderBookSide {
 
 // String returns a formatted string representation of the OrderBookSide struct
 func (obs *OrderBookSide) String() string {
+	published := obs.snapshot()
 	var result strings.Builder
 	result.WriteString("OrderBookSide{")
 
 	// Show the actual order data (price/amount pairs)
-	if obs.Length > 0 {
+	if published.length > 0 {
 		result.WriteString(" Orders:[")
-		for i := 0; i < obs.Length && i < len(obs.Data); i++ {
+		for i := 0; i < published.length && i < len(published.data); i++ {
 			if i > 0 {
 				result.WriteString(" ")
 			}
-			if len(obs.Data[i]) >= 2 {
+			if len(published.data[i]) >= 2 {
 				// Show price and size
-				result.WriteString(fmt.Sprintf("[%.4f %.4f", obs.Data[i][0], obs.Data[i][1]))
+				result.WriteString(fmt.Sprintf("[%.4f %.4f", published.data[i][0], published.data[i][1]))
 				// Handle the third element properly - it's an array, not a float
-				if len(obs.Data[i]) > 2 {
-					result.WriteString(fmt.Sprintf(" %v", obs.Data[i][2]))
+				if len(published.data[i]) > 2 {
+					result.WriteString(fmt.Sprintf(" %v", published.data[i][2]))
 				}
 				result.WriteString("]")
 			}
@@ -760,8 +860,8 @@ func (obs *OrderBookSide) String() string {
 		result.WriteString(" Orders:[]")
 	}
 
-	result.WriteString(fmt.Sprintf(" Length:%d", obs.Length))
-	result.WriteString(fmt.Sprintf(" Depth:%d", obs.Depth))
+	result.WriteString(fmt.Sprintf(" Length:%d", published.length))
+	result.WriteString(fmt.Sprintf(" Depth:%d", published.depth))
 	result.WriteString(fmt.Sprintf(" Side:%v", obs.Side))
 	result.WriteString("}")
 
@@ -769,10 +869,10 @@ func (obs *OrderBookSide) String() string {
 }
 
 func (obs *OrderBookSide) Len() int {
-	return obs.Length
+	return obs.snapshot().length
 }
 func (obs *OrderBookSide) GetData() [][]any {
-	return obs.Data
+	return obs.snapshot().data
 }
 
 // assumes the first two elements are float64 and the third element is a primitive
@@ -781,16 +881,14 @@ func (obs *OrderBookSide) GetDataCopy() [][]any {
 		return [][]any{}
 	}
 
-	obs.Mutex.RLock() // read lock prevents writes while copying
-	defer obs.Mutex.RUnlock()
-
-	if obs.Data == nil {
+	published := obs.snapshot() // the published rows are immutable, so the copy cannot tear
+	if published.data == nil {
 		return [][]any{}
 	}
 
-	out := make([][]any, len(obs.Data))
+	out := make([][]any, len(published.data))
 
-	for i, slice := range obs.Data {
+	for i, slice := range published.data {
 		if slice == nil {
 			out[i] = []any{}
 			continue
@@ -817,72 +915,75 @@ func (obs *OrderBookSide) GetDataCopy() [][]any {
 	return out
 }
 
-func (ords *OrderBookSide) GetSide() bool {
-	return ords.Side
-}
-
 func (obs *OrderBookSide) CopySide() IOrderBookSide {
-	obs.Mutex.RLock()
-	defer obs.Mutex.RUnlock()
+	published := obs.snapshot()
 
-	out := NewOrderBookSide(obs.Side, [][]any{}, obs.Depth)
+	out := NewOrderBookSide(obs.Side, [][]any{}, published.depth)
 	base := out
-	base.Length = obs.Length
-	base.Index = make([]float64, len(obs.Index))
-	copy(base.Index, obs.Index)
-	base.Data = make([][]any, len(obs.Data))
-	for i, row := range obs.Data {
+	base.Length = published.length
+	base.Index = make([]float64, len(published.index))
+	copy(base.Index, published.index)
+	base.Data = make([][]any, len(published.data))
+	for i, row := range published.data {
 		base.Data[i] = append([]any(nil), row...)
 	}
+	base.publish()
 	return out
 }
 
 func (cobs *CountedOrderBookSide) CopySide() IOrderBookSide {
-	cobs.OrderBookSide.Mutex.RLock()
-	defer cobs.OrderBookSide.Mutex.RUnlock()
+	published := cobs.OrderBookSide.snapshot()
 
-	out := NewCountedOrderBookSide(cobs.OrderBookSide.Side, [][]any{}, cobs.OrderBookSide.Depth)
+	out := NewCountedOrderBookSide(cobs.OrderBookSide.Side, [][]any{}, published.depth)
 	base := out.OrderBookSide
-	base.Length = cobs.OrderBookSide.Length
-	base.Index = make([]float64, len(cobs.OrderBookSide.Index))
-	copy(base.Index, cobs.OrderBookSide.Index)
-	base.Data = make([][]any, len(cobs.OrderBookSide.Data))
-	for i, row := range cobs.OrderBookSide.Data {
+	base.Length = published.length
+	base.Index = make([]float64, len(published.index))
+	copy(base.Index, published.index)
+	base.Data = make([][]any, len(published.data))
+	for i, row := range published.data {
 		base.Data[i] = append([]any(nil), row...)
 	}
+	base.publish()
 	return out
 }
 
 func (iobs *IndexedOrderBookSide) CopySide() IOrderBookSide {
-	iobs.Mutex.RLock()
-	defer iobs.Mutex.RUnlock()
+	published := iobs.snapshotIndexed()
 
-	out := NewIndexedOrderBookSide(iobs.OrderBookSide.Side, [][]any{}, iobs.OrderBookSide.Depth)
-	out.Length = iobs.Length
-	out.Index = make([]float64, len(iobs.Index))
-	copy(out.Index, iobs.Index)
-	out.Data = make([][]any, len(iobs.Data))
-	for i, row := range iobs.Data {
+	out := NewIndexedOrderBookSide(iobs.OrderBookSide.Side, [][]any{}, published.depth)
+	out.Length = published.length
+	out.Index = make([]float64, len(published.index))
+	copy(out.Index, published.index)
+	out.Data = make([][]any, len(published.data))
+	for i, row := range published.data {
 		out.Data[i] = append([]any(nil), row...)
 	}
-	out.Hashmap = make(map[any]float64, len(iobs.Hashmap))
-	for k, v := range iobs.Hashmap {
+	out.Hashmap = make(map[any]float64, len(published.hashmap))
+	for k, v := range published.hashmap {
 		out.Hashmap[k] = v
 	}
+	out.publishIndexed()
 	return out
 }
 func (obs *OrderBookSide) SetLen(length int) {
 	obs.Length = length
+	obs.publish()
 }
 func (obs *OrderBookSide) SetData(data [][]any) {
 	obs.Data = data
+	obs.publish()
 }
+
+// GetIndex hands back the live index for the owner-side reset path (Reset
+// zeroes it before refilling); a mutation through it must be followed by
+// SetData/SetLen so readers get the new published copy.
 func (obs *OrderBookSide) GetIndex() *[]float64 {
 	return &obs.Index
 }
 
 func (obs *OrderBookSide) SetDepth(depth int) {
 	obs.Depth = depth
+	obs.publish()
 }
 func (obs *CountedOrderBookSide) SetLen(length int) {
 	obs.OrderBookSide.SetLen(length)
@@ -913,9 +1014,11 @@ func (obs *CountedOrderBookSide) GetValue(key string, defaultValue any) any {
 }
 func (obs *IndexedOrderBookSide) SetLen(length int) {
 	obs.Length = length
+	obs.publishIndexed()
 }
 func (obs *IndexedOrderBookSide) SetData(data [][]any) {
 	obs.Data = data
+	obs.publishIndexed()
 }
 func (obs *IndexedOrderBookSide) GetIndex() *[]float64 {
 	return &obs.Index
@@ -924,7 +1027,7 @@ func (obs *IndexedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
 func (obs *IndexedOrderBookSide) GetData() [][]any {
-	return obs.Data
+	return obs.snapshotIndexed().data
 }
 
 // MarshalJSON emits the side as a plain array of price levels, the promoted
@@ -935,31 +1038,29 @@ func (obs *IndexedOrderBookSide) MarshalJSON() ([]byte, error) {
 	if obs == nil {
 		return []byte("[]"), nil
 	}
-	obs.Mutex.RLock()
-	defer obs.Mutex.RUnlock()
-	if obs.Data == nil {
+	published := obs.snapshotIndexed()
+	if published.data == nil {
 		return []byte("[]"), nil
 	}
-	return json.Marshal(obs.Data)
+	return json.Marshal(published.data)
 }
 func (obs *IndexedOrderBookSide) GetDataCopy() [][]any {
-	// data lives in the shadowing Data field guarded by the shadowing Mutex,
-	// the embedded OrderBookSide pointer is nil for indexed sides, so delegating
+	// data lives in the shadowing Data field published by publishIndexed, the
+	// embedded OrderBookSide pointer is nil for indexed sides, so delegating
 	// upward always returned an empty copy, see https://github.com/ccxt/ccxt/issues/29586
 	if obs == nil {
 		return [][]any{}
 	}
 
-	obs.Mutex.RLock()
-	defer obs.Mutex.RUnlock()
+	published := obs.snapshotIndexed()
 
-	if obs.Data == nil {
+	if published.data == nil {
 		return [][]any{}
 	}
 
-	out := make([][]any, len(obs.Data))
+	out := make([][]any, len(published.data))
 
-	for i, slice := range obs.Data {
+	for i, slice := range published.data {
 		if slice == nil {
 			out[i] = []any{}
 			continue
@@ -986,25 +1087,27 @@ func (obs *IndexedOrderBookSide) GetDataCopy() [][]any {
 	return out
 }
 func (obs *IndexedOrderBookSide) Len() int {
-	return obs.Length
+	return obs.snapshotIndexed().length
 }
 func (obs *IndexedOrderBookSide) SetDepth(depth int) {
 	obs.Depth = depth
+	obs.publishIndexed()
 }
 func (iobs *IndexedOrderBookSide) GetValue(key string, defaultValue any) any {
+	published := iobs.snapshotIndexed()
 	switch key {
 	case "Data":
-		return iobs.Data
+		return published.data
 	case "Index":
-		return iobs.Index
+		return published.index
 	case "Depth":
-		return iobs.Depth
+		return published.depth
 	case "Length":
-		return iobs.Length
+		return published.length
 	case "Side":
 		return iobs.Side
 	case "Hashmap":
-		return iobs.Hashmap
+		return published.hashmap
 	default:
 		return defaultValue
 	}

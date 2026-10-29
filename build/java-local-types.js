@@ -193,6 +193,7 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { javaVenueCalleeType, installHx10w9JD01, invalidateHx10w9JD01 } from './hx10w9-JD01.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -1189,6 +1190,14 @@ function thisPropName (node) {
 // `this.safeValue(this.<map>, key)` (prints itself), or undefined
 function wsMapReadType (node) {
     node = unwrapParens (node);
+    // hx11 w7: `this.orderbooks[k] as WsOrderBook` — the assertion prints no cast of its own
+    // (the declaration/write hooks add the WsOrderBook checkcast), so it reads like the bare map read
+    if (node !== undefined && ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type)
+        && ts.isIdentifier (node.type.typeName) && node.type.typeName.text === 'WsOrderBook'
+        && ts.isElementAccessExpression (unwrapParens (node.expression))
+        && thisPropName (unwrapParens (node.expression).expression) === 'orderbooks') {
+        return ORDERBOOK_TYPE;
+    }
     if (node !== undefined && ts.isElementAccessExpression (node)) {
         if (isOhlcvsSymbolRead (node.expression)) {
             return ARRAYCACHE_TYPE;
@@ -1603,6 +1612,12 @@ function syncCoreCallType (printer, node) {
     if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
         return undefined;
     }
+    // hx10w9-JD01: a generated venue callee's own printed signature decides here, not the
+    // previous on-disk generation of the file this build rewrites
+    const emitted = javaVenueCalleeType (printer, node);
+    if (emitted !== undefined) {
+        return emitted.type;
+    }
     const entry = javaCoreDeclarationTable (node)?.get (methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
         return undefined;
@@ -1714,7 +1729,7 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'toLowerCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'trim':        { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'search':      { type: 'Integer', prefixes: [ '((String)' ], args: [ 1 ] },
-    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], match: /^\w+\.startsWith\(\(\(String\)/, args: [ 1 ] },
     'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
     'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
@@ -1999,8 +2014,13 @@ const VENUE_RETURN_KINDS = {
     'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
+    // hx11 w7: pro url builders annotated `: string` / `: Str` (no base declaration)
+    'getWsUrl': [ 'String' ], 'getUrlByMarket': [ 'String' ], 'getUrlByMarketType': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
     'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
+    // prints Map<String, Object>, so the venue declarations and their callers must say so too
+    'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2887,7 +2907,8 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     }
     const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
     if (venue !== undefined) {
-        return { type: venue };
+        // `x as string` on a String-declared local prints the identity checkcast `((String)x)`
+        return venue === 'String' ? { type: venue, stringAsCast: true } : { type: venue };
     }
     const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
     if (omitZero !== undefined) {
@@ -8167,6 +8188,7 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 // `(Long)` cast predates the upstream retype and is a harmless no-op checkcast now).
 export const JAVA_NUMERIC_LOCAL_TYPES = {
     'safeInteger': 'Long',
+    'incrementingNonce': 'Long',  // hx11 w8 m172
     'safeInteger2': 'Long',
     'safeIntegerN': 'Long',
     'safeIntegerProduct': 'Long',
@@ -8204,6 +8226,7 @@ const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
 // statically the named type (parseNumber -> Double, Helpers.parseInt -> Long).
 const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
     'parseToInt': 'Long',
+    'incrementingNonce': 'Long',  // hx11 w8 m172: nextCounterAbove (): Long, nonce (): Long
     'safeNumber': 'Double',
     'safeNumber2': 'Double',
     'safeNumberN': 'Double',
@@ -10534,6 +10557,14 @@ export function installJavaDeclaredLocalTypes (transpiler) {
     const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
         ?? declaredTypes.get (declaration);
+    // hx11 w6: the fallback must wrap THIS resolver. Installed from installJavaLocalTypes (before any
+    // resolver exists) it was a silent no-op, so a pro file's answer about a REST callee's local
+    // depended on whether that REST file had been printed earlier in the same worker thread.
+    installHx10w9JD01 (printer, (declaration) => {
+        // only the family this unit decides: a sync whole-call to a generated venue method
+        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
+    });
     // a typed destructuring element passed to a core parameter of its own type needs no conversion
     const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
     if (upstreamDeclaredAs !== undefined) {
@@ -10610,7 +10641,7 @@ const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\
 // ===== 11. awaited null accumulators: `Object x = null;` whose every non-null write is
 // `x = await this.<endpoint>(...)` with one Map/List CompletableFuture<T> in the generated api file.
 // Returns, ternary arms and nested-function reads keep Object (they move javac's inferred types).
-const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE ]);
+const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE, ORDERBOOK_TYPE ]);
 
 function isNullishInitializer (initializer) {
     const value = unwrapParens (initializer);
@@ -10824,6 +10855,10 @@ function accumulatorWriteInfo (printer, node) {
     const literal = collectionLiteralInfo (value);
     if (literal !== undefined) {
         return { type: literal.type, cast: '' };
+    }
+    // hx11 w7: `ob = this.orderbooks[k] as WsOrderBook` prints the bare map read (Object)
+    if (wsMapReadType (value) === ORDERBOOK_TYPE && ts.isAsExpression (value)) {
+        return { type: ORDERBOOK_TYPE, cast: '(' + ORDERBOOK_TYPE + ')' };
     }
     if (!isThisCall (value)) {
         return undefined;
@@ -11961,6 +11996,31 @@ function javaDtoElementUsesAreMapOnly (declaration) {
     return scope !== undefined;
 }
 
+// hx11: `const apiName = api[0]` in sign/fetch2/request, where `api: string[]` prints as an Object list. Every
+// element is a path string, so the guarded read takes the String cast and the local stays a String.
+function javaSignApiElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !ts.isNumericLiteral (read.argumentExpression)) {
+        return undefined;
+    }
+    const param = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    if (param?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || ![ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) || method.parameters.indexOf (param) !== 1
+        || String (param.type?.getText () ?? '').replace (/\s+/g, '') !== 'string[]') {
+        return undefined;
+    }
+    // `api: string[]` types the element as string, so a `+` on it is the String overload
+    const info = { type: 'String', nonNull: true };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, false, info)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const k = printer.printNode (read.argumentExpression, 0);
+    return { type: 'String', cast: '(String) ', rhs: `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))` };
+}
+
 function javaTypedListElementLocalType (printer, declaration) {
     const read = unwrapParens (declaration.initializer);
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
@@ -12004,7 +12064,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
         }
         let found;
         try {
-            found = javaTypedListElementLocalType (printer, declaration);
+            found = javaTypedListElementLocalType (printer, declaration) ?? javaSignApiElementLocalType (printer, declaration);
         } catch (e) {
             return printed;
         }
@@ -12019,7 +12079,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
             return printed;
         }
         retyped.set (declaration, found.type);
-        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ${found.cast ?? ''}` + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
@@ -18640,6 +18700,7 @@ export function installJ17StringReturns (transpiler) {
         for (const member of node.members) {
             printer.javaReturnTypeCache?.delete?.(member);
         }
+        invalidateHx10w9JD01 ();
         const printed = new Map ();
         for (const member of order) {
             printed.set (member, printer.printNode (member, identation + 1));
@@ -19761,4 +19822,15 @@ function x21BaseOnlyDispatch (call) {
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+// hx10 J04: a native print of a receiver method carries the same type the helper's entry names,
+// so `String x = <native>` keeps its local typing (see build/hx10w2-J04.js)
+export function registerJavaReceiverMethodMatch (name, match) {
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    if (entry === undefined || match === undefined) {
+        return;
+    }
+    const previous = entry.match;
+    entry.match = previous === undefined ? match : { test: (value) => previous.test (value) || match.test (value) };
 }

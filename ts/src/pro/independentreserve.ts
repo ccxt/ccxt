@@ -11,7 +11,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class independentreserve extends independentreserveRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -57,12 +57,14 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const wsUrl = this.safeString (this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
         }
-        const url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
+        const url = wsUrl + '?subscribe=ticker-' + baseId + '-' + quoteId;
         const messageHash = 'trades:' + symbolValue;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -100,7 +102,7 @@ export default class independentreserve extends independentreserveRest {
         const trade = this.parseWsTrade (data);
         stored.append (trade);
         this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], messageHash);
+        client.resolve (stored, messageHash);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -149,14 +151,16 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const limitString = this.numberToString (limitResolved);
         const wsUrl = this.safeString (this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
         }
-        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
+        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + baseId + '-' + quoteId;
         const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription: Dict = {
             'receivedSnapshot': false,
@@ -194,7 +198,7 @@ export default class independentreserve extends independentreserveRest {
             return;
         }
         const parts = channel.split ('/');
-        const depth = this.safeString (parts, 1);
+        const depth = this.safeString (parts, 1, '');
         const baseId = this.safeString (parts, 2);
         const quoteId = this.safeString (parts, 3);
         const base = this.safeCurrencyCode (baseId);
@@ -238,12 +242,12 @@ export default class independentreserve extends independentreserveRest {
             let payload = '';
             for (let i = 0; i < 10; i++) {
                 if (i < bidsLength) {
-                    payload = payload + this.valueToChecksum (storedBids[i][0]) + this.valueToChecksum (storedBids[i][1]);
+                    payload = payload + this.valueToChecksum (this.safeNumber (storedBids[i], 0)) + this.valueToChecksum (this.safeNumber (storedBids[i], 1));
                 }
             }
             for (let i = 0; i < 10; i++) {
                 if (i < asksLength) {
-                    payload = payload + this.valueToChecksum (storedAsks[i][0]) + this.valueToChecksum (storedAsks[i][1]);
+                    payload = payload + this.valueToChecksum (this.safeNumber (storedAsks[i], 0)) + this.valueToChecksum (this.safeNumber (storedAsks[i], 1));
                 }
             }
             const calculatedChecksum = this.crc32 (payload, false);

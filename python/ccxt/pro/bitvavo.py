@@ -15,7 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class bitvavo(ccxt.async_support.bitvavo):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'has': {
                 'ws': True,
@@ -80,8 +80,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = name + '@' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + '@' + self.safe_string(market, 'id', '')
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -105,7 +105,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             args.append(market['id'])
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -182,7 +182,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.tickers[symbol] = ticker
             result.append(ticker)
             if event is not None:
-                messageHash = event + '@' + marketId
+                messageHash = event + '@' + self.safe_string(data, 'market', '')
                 client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
@@ -210,7 +210,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(tickers)):
             data = tickers[i]
             ticker = self.parse_ws_bid_ask(data)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol', '')
             self.bidsasks[symbol] = ticker
             result.append(ticker)
             messageHash = event + ':' + symbol
@@ -267,7 +267,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
         name = 'trades'
-        messageHash = name + '@' + marketId
+        messageHash = name + '@' + self.safe_string(message, 'market', '')
         trade = self.parse_trade(message, market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -298,8 +298,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             marketIds.append(market['id'])
-            messageHashes.append(name + '@' + market['id'])
-        url = self.urls['api']['ws']
+            messageHashes.append(name + '@' + self.safe_string(market, 'id', ''))
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -349,7 +349,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             marketIds.append(market['id'])
-            subMessageHashes.append(name + '@' + market['id'])
+            subMessageHashes.append(name + '@' + self.safe_string(market, 'id', ''))
         channels = [
             {
                 'name': name,
@@ -378,8 +378,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         name = 'candles'
         marketId = market['id']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        messageHash = name + '@' + marketId + '_' + interval
-        url = self.urls['api']['ws']
+        messageHash = name + '@' + self.safe_string(market, 'id', '') + '_' + interval
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -434,10 +434,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
-        interval = self.safe_string(message, 'interval')
+        interval = self.safe_string(message, 'interval', '')
         # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
-        messageHash = name + '@' + marketId + '_' + interval
+        messageHash = name + '@' + self.safe_string(message, 'market', '') + '_' + interval
         candles = self.safe_list(message, 'candle', [])
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -472,14 +472,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         marketIdsByInterval = {}
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
-            market = self.market(symbolAndTimeframe[0])
-            timeframeString = symbolAndTimeframe[1]
+            market = self.market(self.safe_string(symbolAndTimeframe, 0, ''))
+            timeframeString = self.safe_string(symbolAndTimeframe, 1, '')
             interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
             if not (interval in marketIdsByInterval):
                 marketIdsByInterval[interval] = []
             intervalIds = marketIdsByInterval[interval]
             intervalIds.append(market['id'])
-            messageHashes.append('multi:' + name + '@' + market['id'] + '_' + interval)
+            messageHashes.append('multi:' + name + '@' + self.safe_string(market, 'id', '') + '_' + interval)
         channels = []
         intervals = list(marketIdsByInterval.keys())
         for i in range(0, len(intervals)):
@@ -489,7 +489,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'interval': [interval],
                 'markets': marketIdsByInterval[interval],
             })
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': channels,
@@ -532,16 +532,16 @@ class bitvavo(ccxt.async_support.bitvavo):
         marketIdsByInterval = {}
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
-            market = self.market(symbolAndTimeframe[0])
-            timeframeString = symbolAndTimeframe[1]
+            market = self.market(self.safe_string(symbolAndTimeframe, 0, ''))
+            timeframeString = self.safe_string(symbolAndTimeframe, 1, '')
             interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
             if not (interval in marketIdsByInterval):
                 marketIdsByInterval[interval] = []
             intervalIds = marketIdsByInterval[interval]
             intervalIds.append(market['id'])
             # both the single-symbol and the multi-symbol watch hashes must be released
-            subMessageHashes.append(name + '@' + market['id'] + '_' + interval)
-            subMessageHashes.append('multi:' + name + '@' + market['id'] + '_' + interval)
+            subMessageHashes.append(name + '@' + self.safe_string(market, 'id', '') + '_' + interval)
+            subMessageHashes.append('multi:' + name + '@' + self.safe_string(market, 'id', '') + '_' + interval)
         channels = []
         intervals = list(marketIdsByInterval.keys())
         for i in range(0, len(intervals)):
@@ -569,8 +569,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         market = self.market(symbol)
         symbolValue = market['symbol']
         name = 'book'
-        messageHash = name + '@' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + '@' + self.safe_string(market, 'id', '')
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -615,8 +615,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             marketIds.append(market['id'])
-            messageHashes.append(name + '@' + market['id'])
-        url = self.urls['api']['ws']
+            messageHashes.append(name + '@' + self.safe_string(market, 'id', ''))
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'subscribe',
             'channels': [
@@ -669,7 +669,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             marketIds.append(market['id'])
-            subMessageHashes.append(name + '@' + market['id'])
+            subMessageHashes.append(name + '@' + self.safe_string(market, 'id', ''))
         channels = [
             {
                 'name': name,
@@ -726,19 +726,19 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "asks": []
         #     }
         #
-        event = self.safe_string(message, 'event')
+        event = self.safe_string(message, 'event', '')
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
-        messageHash = event + '@' + market['id']
+        messageHash = event + '@' + self.safe_string(message, 'market', '')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             return
-        if orderbook['nonce'] is None:
+        if self.safe_integer(orderbook, 'nonce') is None:
             subscription = self.safe_value(client.subscriptions, messageHash, {})
             # multi-symbol watches share one subscription object, so the
             # snapshot-in-flight flag must be tracked per market
-            flagKey = 'watchingOrderBookSnapshot@' + marketId
+            flagKey = 'watchingOrderBookSnapshot@' + self.safe_string(message, 'market', '')
             watchingOrderBookSnapshot = self.safe_bool(subscription, flagKey)
             if watchingOrderBookSnapshot is None:
                 subscription[flagKey] = True
@@ -764,7 +764,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             return None
         name = 'getBook'
         messageHash = name + '@' + marketId
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': name,
             'market': marketId,
@@ -798,7 +798,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         marketId = self.safe_string(response, 'market')
         symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
-        messageHash = name + '@' + marketId
+        messageHash = name + '@' + self.safe_string(response, 'market', '')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             # the market was unsubscribed while this snapshot request was in flight
@@ -816,7 +816,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         # getBook is a one-shot request but this.watch tracks it as a persistent
         # subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         # instead of suppressing the request as an already-active subscription
-        snapshotHash = 'getBook@' + marketId
+        snapshotHash = 'getBook@' + self.safe_string(response, 'market', '')
         if snapshotHash in client.subscriptions:
             del client.subscriptions[snapshotHash]
 
@@ -838,7 +838,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
             symbol = self.safe_symbol(marketId, None, '-')
-            messageHash = name + '@' + marketId
+            messageHash = name + '@' + self.safe_string(marketIds, i, '')
             if not (symbol in self.orderbooks):
                 subscription = self.safe_value(client.subscriptions, messageHash)
                 method = self.safe_value(subscription, 'method')
@@ -851,14 +851,14 @@ class bitvavo(ccxt.async_support.bitvavo):
                     self.orderbooks[symbol] = self.order_book({}, limit)
 
     async def un_watch_channels(self, topic: str, channels: list[object], subMessageHashes: list[str], subscriptionArgs: dict, params: dict = {}) -> object:
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         request = {
             'action': 'unsubscribe',
             'channels': channels,
         }
         unsubHashes = []
         for i in range(0, len(subMessageHashes)):
-            unsubHashes.append('unsubscribe:' + subMessageHashes[i])
+            unsubHashes.append('unsubscribe:' + self.safe_string(subMessageHashes, i, ''))
         subscription = self.extend({
             'topic': topic,
             'subMessageHashes': subMessageHashes,
@@ -883,7 +883,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 continue
             if not key.startswith('unsubscribe:'):
                 continue
-            subscription = client.subscriptions[key]
+            subscription = self.safe_value(client.subscriptions, key)
             subHash = key.replace('unsubscribe:', '')
             self.clean_cache(subscription)
             self.clean_unsubscription(client, subHash, key)
@@ -912,7 +912,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         market = self.market(symbol)
         symbolValue = market['symbol']
         marketId = market['id']
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
         messageHash = 'order:' + symbolValue
         request = {
@@ -947,7 +947,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         market = self.market(symbol)
         symbolValue = market['symbol']
         marketId = market['id']
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
         messageHash = 'myTrades:' + symbolValue
         request = {
@@ -1127,14 +1127,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         ts = str(self.milliseconds())
         randomNumber = self.rand_number(4)
         randomPart = str(randomNumber)
-        return int(ts + randomPart)
+        return self.parse_to_int(ts + randomPart)
 
     async def watch_request(self, action: str, request: dict):
         messageHash = self.request_id()
         messageHashStr = str(messageHash)
         request['action'] = action
         request['requestId'] = messageHash
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         return await self.watch(url, messageHashStr, request, messageHashStr)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -1362,7 +1362,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.authenticate()
         return await self.watch_request('privateGetAccount', params)
 
-    def fetch_markets_ws(self, params={}) -> object:
+    def fetch_markets_ws(self, params: dict = {}) -> object:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -1630,7 +1630,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         return message
 
     async def authenticate(self, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         client = self.client(url)
         messageHash = 'authenticated'
         future = self.safe_value(client.subscriptions, messageHash)
@@ -1695,7 +1695,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId', buildMessage)
         rejected = False
         try:
-            self.handle_errors(code, error, client.url, '', {}, error, message, {}, {})
+            self.handle_errors(code, error, client.url, '', {}, error, message, {}, '')
         except Exception as e:
             rejected = True
             client.reject(e, messageHash)

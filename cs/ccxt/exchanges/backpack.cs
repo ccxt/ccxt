@@ -683,7 +683,7 @@ public partial class backpack : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object selection = this.handleStockParams("fetchCurrencies", parameters);
+        List<object> selection = this.handleStockParams("fetchCurrencies", parameters);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         List<object> response = await this.publicGetApiV1Assets(query);
@@ -713,7 +713,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> currencies = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            Dictionary<string, object> currency = this.parseCurrency(response[i]);
+            Dictionary<string, object> currency = this.parseCurrency(this.safeDict(response, i, new Dictionary<string, object>() {}));
             if (((stock != true)) || ((this.safeString(currency, "type") == "stock")))
             {
                 currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
@@ -812,12 +812,15 @@ public partial class backpack : Exchange
         {
             await this.loadTimeDifference();
         }
-        object selection = this.handleStockParams("fetchMarkets", parameters);
+        List<object> selection = this.handleStockParams("fetchMarkets", parameters);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? marketType = this.safeString(query, "marketType");
-        List<object> defaultTypes = ((marketType == null)) ? new List<object>() {"SPOT", "PERP", "RFQ"} : new List<object>() {marketType};
-        List<object> requestedTypes = this.safeList(query, "marketType", defaultTypes);
+        List<object> requestedTypes = this.safeList(query, "marketType", new List<object>() {"SPOT", "PERP", "RFQ"});
+        if ((marketType != null))
+        {
+            requestedTypes = new List<object>() {marketType};
+        }
         Dictionary<string, object> aliases = new Dictionary<string, object>() {
             { "spot", "SPOT" },
             { "swap", "PERP" },
@@ -825,13 +828,13 @@ public partial class backpack : Exchange
         };
         List<object> supportedTypes = new List<object>() {"SPOT", "PERP", "RFQ"};
         List<object> marketTypes = new List<object>() {};
-        for (int i = 0; i < requestedTypes.Count; i++)
+        for (int i = 0; i < (requestedTypes?.Count ?? 0); i++)
         {
-            object requestedType = requestedTypes[i];
+            string? requestedType = this.safeString(requestedTypes, i, "");
             string? normalizedType = this.safeString(aliases, requestedType, requestedType);
             if (!this.inArray(normalizedType, supportedTypes))
             {
-                throw new BadRequest ((string)((this.id + " fetchMarkets() unsupported marketType ") + (requestedType))) ;
+                throw new BadRequest (((this.id + " fetchMarkets() unsupported marketType ") + requestedType)) ;
             }
             if (!this.inArray(normalizedType, marketTypes))
             {
@@ -855,7 +858,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object rawMarket = response[i];
+            IDictionary<string, object> rawMarket = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? rawType = this.safeString(rawMarket, "marketType", "");
             if (!this.inArray(rawType, marketTypes))
             {
@@ -874,7 +877,7 @@ public partial class backpack : Exchange
                     continue;
                 }
                 marketIds[(string)marketId] = true;
-                if (((stock != true)) || ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)))
+                if (((stock != true)) || (this.safeBool(market, "stock", false) == true))
                 {
                     markets.Add(market);
                 }
@@ -1041,7 +1044,7 @@ public partial class backpack : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         IDictionary<string, object> filters = this.safeDict(market, "filters", new Dictionary<string, object>() {});
@@ -1112,11 +1115,11 @@ public partial class backpack : Exchange
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + (":" + settle);
+            symbol = ((((bs + "/") + quote) + ":") + quote); // settle is the quote currency
             contractSize = 1;
         } else
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string? orderBookState = this.safeString(market, "orderBookState");
         // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
@@ -1186,7 +1189,7 @@ public partial class backpack : Exchange
      * @param {object} [market] resolved market
      * @returns {Array} stock flag and remaining parameters
      */
-    public virtual object handleStockParams(object methodName, object parameters, object market = null)
+    public virtual List<object> handleStockParams(object methodName, object parameters, object market = null)
     {
         bool? defaultStock = this.safeBool(market, "stock", false);
         (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);
@@ -1196,7 +1199,7 @@ public partial class backpack : Exchange
         {
             throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a stock market")) ;
         }
-        return new List<object>() {stock, query};
+        return ((List<object>)((object)(new List<object>() {stock, query})));
     }
 
     /**
@@ -1234,7 +1237,7 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("fetchStockIndicativeQuote", parameters, market);
+        List<object> selection = this.handleStockParams("fetchStockIndicativeQuote", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
         {
@@ -1266,7 +1269,7 @@ public partial class backpack : Exchange
      * @param {string} toCode destination currency code
      * @returns {object} resolved stock RFQ market
      */
-    public virtual object rfqConversionMarket(object fromCode, object toCode)
+    public virtual IDictionary<string, object> rfqConversionMarket(object fromCode, object toCode)
     {
         bool fromIsStock = ((string)fromCode).EndsWith(".US") || ((string)fromCode).EndsWith(".HK");
         bool toIsStock = ((string)toCode).EndsWith(".US") || ((string)toCode).EndsWith(".HK");
@@ -1274,15 +1277,20 @@ public partial class backpack : Exchange
         {
             throw new NotSupported ((this.id + " conversion requires exactly one stock currency")) ;
         }
-        object stockCode = fromIsStock ? fromCode : toCode;
-        object quoteCode = fromIsStock ? toCode : fromCode;
+        object stockCode = fromCode;
+        object quoteCode = toCode;
+        if (!fromIsStock)
+        {
+            stockCode = toCode;
+            quoteCode = fromCode;
+        }
         object symbol = add(add(stockCode, ".RFQ/"), quoteCode);
         IDictionary<string, object> market = this.safeDict(this.markets, symbol);
         if (((market == null)) || ((this.safeString(market, "executionModel") != "rfq")) || !(this.safeBool(market, "stock", false) == true))
         {
             throw new BadSymbol ((string)((this.id + " conversion requires a listed stock RFQ market: ") + (symbol))) ;
         }
-        return market;
+        return ((IDictionary<string, object>)((object)(market)));
     }
 
     /**
@@ -1303,14 +1311,14 @@ public partial class backpack : Exchange
         {
             throw new ArgumentsRequired ((this.id + " parseConversion() requires source and destination currencies")) ;
         }
-        object market = this.rfqConversionMarket(fromCode, toCode);
+        IDictionary<string, object> market = this.rfqConversionMarket(fromCode, toCode);
         bool fromIsBase = (fromCode == this.safeString(market, "base"));
         double? filled = this.safeNumber(order, "filled");
         double? cost = this.safeNumber(order, "cost");
         IDictionary<string, object> fee = this.safeDict(order, "fee");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         return new Dictionary<string, object>() {
-            { "info", getValue(order, "info") },
+            { "info", this.safeDict(order, "info") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(order, "id") },
@@ -1344,12 +1352,12 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " fetchConvertQuote() requires a positive amount")) ;
         }
         await this.loadMarkets();
-        object market = this.rfqConversionMarket(fromCode, toCode);
-        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        IDictionary<string, object> market = this.rfqConversionMarket(fromCode, toCode);
+        bool fromIsBase = isEqual(fromCode, this.safeString(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         if (!fromIsBase)
         {
-            object initialQuote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, 1, new Dictionary<string, object>() {
+            object initialQuote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, 1, new Dictionary<string, object>() {
                 { "stock", true },
             });
             string? initialPrice = this.safeString(initialQuote, "price");
@@ -1367,7 +1375,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() price must be positive")) ;
             }
             string? rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
-            string? preciseQuantity = this.amountToPrecision(getValue(market, "symbol"), this.parseNumber(rawQuantity));
+            string? preciseQuantity = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), this.parseNumber(rawQuantity));
             if ((preciseQuantity == null))
             {
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
@@ -1378,7 +1386,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
             }
         }
-        object quote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+        object quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
             { "stock", true },
         });
         if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
@@ -1398,7 +1406,7 @@ public partial class backpack : Exchange
                     throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
                 }
                 amountString = reducedQuantity;
-                quote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+                quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
                     { "stock", true },
                 });
                 if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
@@ -1440,21 +1448,21 @@ public partial class backpack : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.rfqConversionMarket(fromCode, toCode);
-        object selection = this.handleStockParams("createConvertTrade", parameters, market);
+        IDictionary<string, object> market = this.rfqConversionMarket(fromCode, toCode);
+        List<object> selection = this.handleStockParams("createConvertTrade", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? quoteId = this.safeString(query, "quoteId");
         if ((quoteId != null))
         {
             Dictionary<string, object> acceptParams = this.omit(query, new List<object>() {"quoteId", "price", "baseAmount", "clientOrderId"});
-            object accepted = await this.acceptRfqQuote(id, quoteId, getValue(market, "symbol"), acceptParams);
+            object accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(null, market), acceptParams);
             return ccxt.BaseExchange.ToConversion(this.parseConversion(accepted, this.currency(((string)fromCode)), this.currency(((string)toCode))));
         }
         if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
         {
             throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a positive amount")) ;
         }
-        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        bool fromIsBase = isEqual(fromCode, this.safeString(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         string? quantity = this.numberToString(amount);
         double? price = this.safeNumber(query, "price");
@@ -1468,7 +1476,7 @@ public partial class backpack : Exchange
             {
                 if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
                 {
-                    object indicative = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, 1, new Dictionary<string, object>() {
+                    object indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, 1, new Dictionary<string, object>() {
                         { "stock", true },
                     });
                     if (!(this.safeBool(indicative, "available", false) == true))
@@ -1482,7 +1490,7 @@ public partial class backpack : Exchange
                     throw new InvalidOrder ((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
                 }
                 string? rawQuantity = Precise.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
-                string? preciseQuantity = this.amountToPrecision(getValue(market, "symbol"), this.parseNumber(rawQuantity));
+                string? preciseQuantity = this.amountToPrecision(this.safeSymbol(null, market), this.parseNumber(rawQuantity));
                 if ((preciseQuantity == null))
                 {
                     throw new InvalidOrder ((this.id + " createConvertTrade() could not determine a stock quantity")) ;
@@ -1491,7 +1499,7 @@ public partial class backpack : Exchange
             }
             if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
             {
-                object indicative = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(quantity), new Dictionary<string, object>() {
+                object indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, this.parseNumber(quantity), new Dictionary<string, object>() {
                     { "stock", true },
                 });
                 if (!(this.safeBool(indicative, "available", false) == true))
@@ -1538,7 +1546,7 @@ public partial class backpack : Exchange
         {
             orderParams["clientOrderId"] = clientOrderId;
         }
-        object order = await this.createRfqOrder(getValue(market, "symbol"), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
+        object order = await this.createRfqOrder(this.safeSymbol(null, market), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
             { "stock", true },
         }));
         return ccxt.BaseExchange.ToConversion(this.parseConversion(order, this.currency(((string)fromCode)), this.currency(((string)toCode))));
@@ -1556,12 +1564,13 @@ public partial class backpack : Exchange
      */
     public virtual object stockDataRequest(object methodName, object parameters, object market = null)
     {
-        object selection = this.handleStockParams(methodName, parameters, market);
+        List<object> selection = this.handleStockParams(methodName, parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {}, query);
         string? source = this.safeString(query, "source");
-        bool isRfq = ((market != null)) && ((this.safeString(getValue(market, "info"), "marketType") == "RFQ"));
+        IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        bool isRfq = ((market != null)) && ((this.safeString(marketInfo, "marketType") == "RFQ"));
         if ((source == null))
         {
             source = isRfq ? "External" : "Venue";
@@ -1576,7 +1585,7 @@ public partial class backpack : Exchange
             {
                 throw new BadRequest ((((this.id + " ") + (methodName)) + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")) ;
             }
-            if (((market != null)) && (!(getValue(market, "stock") is true)))
+            if (((market != null)) && !(this.safeBool(market, "stock", false) == true))
             {
                 throw new BadSymbol ((((this.id + " ") + (methodName)) + "() External data requires a stock market")) ;
             }
@@ -1602,12 +1611,13 @@ public partial class backpack : Exchange
         }
         if ((market != null))
         {
-            object marketId = getValue(market, "id");
-            if ((this.safeString(getValue(market, "info"), "marketType") == "RFQ"))
+            if (isRfq)
             {
-                marketId = add(add(getValue(market, "baseId"), "_"), getValue(market, "quoteId"));
+                request["symbol"] = ((this.safeString(market, "baseId", "") + "_") + this.safeString(market, "quoteId", ""));
+            } else
+            {
+                request["symbol"] = this.safeString(market, "id");
             }
-            request["symbol"] = marketId;
         }
         return request;
     }
@@ -1664,7 +1674,7 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        object selection = this.handleStockParams("fetchTickers", parameters);
+        List<object> selection = this.handleStockParams("fetchTickers", parameters);
         bool? stockOnly = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? source = this.safeString(query, "source", "Venue");
@@ -1673,15 +1683,18 @@ public partial class backpack : Exchange
         {
             symbolsLength = symbols?.Count ?? 0;
         }
-        IList<object> symbolsNormalized = ((symbolsLength == 0)) ? null : this.marketSymbols(symbols, null, false);
-        IList<object> symbolsResolved = ((symbolsNormalized == null)) ? new List<object>(((IDictionary<string,object>)this.markets).Keys) : symbolsNormalized;
+        IList<object> symbolsResolved = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        if ((symbolsLength != 0))
+        {
+            symbolsResolved = this.marketSymbols(symbols, null, false);
+        }
         bool hasRfqSymbol = false;
         bool hasStockSymbol = false;
         if ((symbols != null))
         {
             for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(symbolsResolved[i]);
+                Dictionary<string, object> market = this.market(this.safeString(symbolsResolved, i));
                 if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true))
                 {
                     hasStockSymbol = true;
@@ -1692,7 +1705,7 @@ public partial class backpack : Exchange
                 }
             }
         }
-        bool stockExplicitlyDisabled = (this.safeValue2(parameters, "stock", "defaultStock") is false);
+        bool stockExplicitlyDisabled = !(this.safeBool2(parameters, "stock", "defaultStock", true) == true);
         bool needsExternalRfqTickers = (source == "Venue") && ((this.safeString(query, "source") == null)) && hasRfqSymbol && !stockExplicitlyDisabled;
         IDictionary<string, object> requestParams = query;
         if ((source == "External") && ((stockOnly == true) || hasStockSymbol) && !stockExplicitlyDisabled)
@@ -1732,7 +1745,7 @@ public partial class backpack : Exchange
                 result[(string)marketSymbol] = ticker;
             } else if (marketIsRfq)
             {
-                string? underlyingId = ((string)add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)));
+                string underlyingId = ((this.safeString(market, "baseId", "") + "_") + this.safeString(market, "quoteId", ""));
                 bool useExternal = (source == "External") || needsExternalRfqTickers;
                 Dictionary<string, object> tickerSource = useExternal ? externalResponseById : responseById;
                 IDictionary<string, object> underlyingTicker = this.safeDict(tickerSource, underlyingId);
@@ -1790,7 +1803,6 @@ public partial class backpack : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         object marketResolved = ((market == null)) ? this.safeMarket(marketId) : market;
-        string? symbol = ((string)getValue(marketResolved, "symbol"));
         string? open = this.safeString(ticker, "firstPrice");
         string? last = this.safeString(ticker, "lastPrice");
         string? high = this.safeString(ticker, "high");
@@ -1806,7 +1818,7 @@ public partial class backpack : Exchange
         }
         string? change = this.safeString(ticker, "priceChange");
         ccxt.Ticker parsedTicker = this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", symbol },
+            { "symbol", this.safeString(marketResolved, "symbol") },
             { "timestamp", null },
             { "datetime", null },
             { "high", high },
@@ -1852,7 +1864,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("fetchOrderBook", parameters, market);
+        List<object> selection = this.handleStockParams("fetchOrderBook", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? source = this.safeString(query, "source", "Venue");
         if ((source != "Venue") || ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
@@ -1926,7 +1938,7 @@ public partial class backpack : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         object dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(dataRequest, "symbol") },
+            { "symbol", this.safeString(dataRequest, "symbol") },
             { "interval", interval },
         };
         (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until");
@@ -1947,7 +1959,7 @@ public partial class backpack : Exchange
         if ((since == null))
         {
             Int64? endTime = this.seconds();
-            if (!(until == null) && !(until == null) && !(until == 0))
+            if (!(until == null) && !(until == 0))
             {
                 endTime = this.parseToInt(((double?)until / 1000));
             }
@@ -2195,7 +2207,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("fetchTrades", parameters, market);
+        List<object> selection = this.handleStockParams("fetchTrades", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if (((this.safeString(query, "source", "Venue") != "Venue")) || ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
         {
@@ -2252,9 +2264,9 @@ public partial class backpack : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbol"] = this.safeString(market, "id");
         }
-        object selection = this.handleStockParams("fetchMyTrades", parameters, market);
+        List<object> selection = this.handleStockParams("fetchMyTrades", parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
@@ -2270,7 +2282,7 @@ public partial class backpack : Exchange
             Dictionary<string, object> rfqRequest = new Dictionary<string, object>() {};
             if ((market != null))
             {
-                rfqRequest["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+                rfqRequest["symbol"] = this.safeString(market, "id");
             }
             if ((limit != null))
             {
@@ -2285,7 +2297,7 @@ public partial class backpack : Exchange
                     { "assetClass", "STOCK" },
                     { "stock", false },
                 });
-                List<object> venueTrades = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(((string)null),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), venueParams));
+                List<object> venueTrades = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(((string)null), since, limit, venueParams));
                 rfqTrades = this.arrayConcat(rfqTrades, venueTrades);
             }
             if ((stock == true))
@@ -2460,7 +2472,7 @@ public partial class backpack : Exchange
         //
         //     1753131712992
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, 0, this.milliseconds()));
+        return this.safeInteger(response, 0, this.milliseconds()) ?? 0;
     }
 
     /**
@@ -2479,7 +2491,7 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        object selection = this.handleStockParams("fetchBalance", parameters);
+        List<object> selection = this.handleStockParams("fetchBalance", parameters);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         Dictionary<string, object> response = await this.privateGetApiV1Capital(query);
@@ -2900,7 +2912,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("createOrder", parameters, market);
+        List<object> selection = this.handleStockParams("createOrder", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         Dictionary<string, object> orderParams = this.extend(query, new Dictionary<string, object>() {
             { "stock", this.safeBool(selection, 0, false) },
@@ -2940,7 +2952,7 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("createRfqOrder", parameters, market);
+        List<object> selection = this.handleStockParams("createRfqOrder", parameters, market);
         IDictionary<string, object> paramsResolved = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ"))
         {
@@ -3064,7 +3076,7 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("acceptRfqQuote", parameters, market);
+        List<object> selection = this.handleStockParams("acceptRfqQuote", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ"))
         {
@@ -3091,14 +3103,13 @@ public partial class backpack : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object selection = this.handleStockParams("createOrders", parameters);
+        List<object> selection = this.handleStockParams("createOrders", parameters);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        object stockOption = this.safeValue2(parameters, "stock", "defaultStock");
         bool? stock = this.safeBool(selection, 0, false);
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -3110,7 +3121,7 @@ public partial class backpack : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> baseParams = new Dictionary<string, object>() {};
-            if ((stock == true) || ((stockOption is false)))
+            if ((stock == true) || !(this.safeBool2(parameters, "stock", "defaultStock", true) == true))
             {
                 baseParams["stock"] = stock;
             }
@@ -3148,7 +3159,7 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("createOrder", parameters, market);
+        List<object> selection = this.handleStockParams("createOrder", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
         {
@@ -3288,9 +3299,9 @@ public partial class backpack : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbol"] = this.safeString(market, "id");
         }
-        object selection = this.handleStockParams("fetchOpenOrders", parameters, market);
+        List<object> selection = this.handleStockParams("fetchOpenOrders", parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
@@ -3342,7 +3353,7 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("fetchOpenOrder", parameters, market);
+        List<object> selection = this.handleStockParams("fetchOpenOrder", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
         {
@@ -3352,7 +3363,7 @@ public partial class backpack : Exchange
             }));
             for (int i = 0; i < (rfqResponse?.Count ?? 0); i++)
             {
-                ccxt.Order order = this.parseOrder(rfqResponse[i], market);
+                ccxt.Order order = this.parseOrder(this.safeDict(rfqResponse, i, new Dictionary<string, object>() {}), market);
                 if (isEqual((((object)order.id)), id))
                 {
                     return order;
@@ -3390,7 +3401,7 @@ public partial class backpack : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("fetchOrder", parameters, market);
+        List<object> selection = this.handleStockParams("fetchOrder", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         bool rfq = (this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3413,7 +3424,7 @@ public partial class backpack : Exchange
         }
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            ccxt.Order order = this.parseOrder(response[i], market);
+            ccxt.Order order = this.parseOrder(this.safeDict(response, i, new Dictionary<string, object>() {}), market);
             if (isEqual((((object)order.id)), id))
             {
                 return order;
@@ -3450,7 +3461,7 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("cancelOrder", parameters, market);
+        List<object> selection = this.handleStockParams("cancelOrder", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
         {
@@ -3497,7 +3508,7 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object selection = this.handleStockParams("cancelAllOrders", parameters, market);
+        List<object> selection = this.handleStockParams("cancelAllOrders", parameters, market);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
         {
@@ -3539,13 +3550,13 @@ public partial class backpack : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbol"] = this.safeString(market, "id");
         }
         if ((limit != null))
         {
             request["limit"] = limit;
         }
-        object selection = this.handleStockParams("fetchOrders", parameters, market);
+        List<object> selection = this.handleStockParams("fetchOrders", parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
@@ -3891,7 +3902,7 @@ public partial class backpack : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbol"] = this.safeString(market, "id");
         }
         if ((limit != null))
         {
@@ -3941,26 +3952,26 @@ public partial class backpack : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string endpoint = ("/" + path);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         object requestParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.omit(parameters, new List<object>() {"stock", "defaultStock", "rfq", "callerMethodName"});
         object sortedParams = ((requestParams is IList<object>) || (requestParams.GetType().IsGenericType && requestParams.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? requestParams : this.keysort(requestParams);
-        Dictionary<string, object> headersSigned = null;
+        Dictionary<string, object> headersSigned = new Dictionary<string, object>() {};
         string? bodySigned = null;
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
-            string ts = this.nonce().ToString();
+            string? ts = this.numberToString(this.nonce());
             string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             IDictionary<string, object> optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             IDictionary<string, object> optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
@@ -4003,9 +4014,9 @@ public partial class backpack : Exchange
             }
         }
         string url = (apiUrl + endpoint);
-        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
+        Dictionary<string, object> headersResolved = (apiName == "private") ? headersSigned : null;
         string? bodyResolved = null;
-        if (((apiName is "private")) && ((method != "GET")))
+        if ((apiName == "private") && ((method != "GET")))
         {
             bodyResolved = bodySigned;
         }
@@ -4017,16 +4028,17 @@ public partial class backpack : Exchange
         };
     }
 
-    public virtual string generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
+    public virtual string? generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
     {
         string payload = "";
-        for (int i = 0; i < getArrayLength(parameters); i++)
+        int paramsLength = getArrayLength(parameters);
+        for (int i = 0; i < paramsLength; i++)
         {
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
             string orderQuery = this.urlencode(sortedOrder);
             payload = payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&");
-            if ((i == ((getArrayLength(parameters) - 1))))
+            if ((i == ((paramsLength - 1))))
             {
                 payload = payload + ((("timestamp=" + ts) + "&window=") + recvWindow);
             }
@@ -4034,7 +4046,7 @@ public partial class backpack : Exchange
         return payload;
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

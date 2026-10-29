@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\mercado as Exchange;
 
 class mercado extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
@@ -305,7 +305,7 @@ class mercado extends Exchange {
         $amountLimits = $this->safe_dict($this->options, 'limits', array());
         $coins = $this->to_array($response);
         for ($i = 0; $i < count($coins); $i++) {
-            $coin = $coins[$i];
+            $coin = $this->safe_string($coins, $i, '');
             $baseId = $coin;
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
@@ -602,7 +602,7 @@ class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $response['response_data']['order']['order_id'],
+            'id' => $this->safe_string($this->safe_value($this->safe_value($response, 'response_data'), 'order'), 'order_id'),
         ), $market);
     }
 
@@ -692,7 +692,7 @@ class mercado extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $order_type = $this->safe_string($order, 'order_type');
         $side = null;
-        if (is_array($order) && array_key_exists('order_type' ?? '', $order)) {
+        if ($order_type !== null) {
             $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -753,7 +753,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
-            'order_id' => intval($id),
+            'order_id' => $this->parse_to_int($id),
         );
         $response = $this->privatePostGetOrder($this->extend($request, $params));
         $responseData = $this->safe_dict($response, 'response_data', array());
@@ -893,7 +893,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom symbol syntax
+            'symbol' => $this->safe_string($market, 'base', '') . '-' . $this->safe_string($market, 'quote', ''), // exceptional endpoint, that needs custom symbol syntax
         );
         // set some default limit, as it's required if user doesn't provide it
         $limitResolved = ($limit === null) ? 100 : $limit;
@@ -993,7 +993,7 @@ class mercado extends Exchange {
     public function orders_to_trades(array $orders): array {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_list($orders[$i], 'trades', array());
+            $trades = $this->safe_list($this->safe_value($orders, $i), 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }
@@ -1001,7 +1001,7 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }
@@ -1015,7 +1015,7 @@ class mercado extends Exchange {
         $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
         $isPublic = ($apiName === 'public') || ($apiName === 'v4Public') || ($apiName === 'v4PublicNet');
-        $privateBody = null;
+        $privateBody = '';
         $privateHeaders = null;
         if ($isPublic) {
             $url .= $this->implode_params($path, $params);
@@ -1049,7 +1049,7 @@ class mercado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

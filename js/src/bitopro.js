@@ -941,10 +941,11 @@ export default class bitopro extends Exchange {
             return candles;
         }
         const result = [];
-        let copyFrom = candles[0];
+        const firstCandle = this.safeList(candles, 0, []);
+        let copyFrom = firstCandle;
         let timestamp = undefined;
         if (since === undefined) {
-            timestamp = copyFrom[0];
+            timestamp = this.safeValue(firstCandle, 0);
         }
         else {
             timestamp = since;
@@ -953,24 +954,19 @@ export default class bitopro extends Exchange {
         const candleLength = candles.length;
         let resultLength = 0;
         while ((resultLength < limit) && (i < candleLength)) {
-            const candle = candles[i];
+            const candle = this.safeList(candles, i, []);
             if (candle[0] === timestamp) {
                 result.push(candle);
                 i = this.sum(i, 1);
             }
             else {
-                const copy = this.arrayConcat([], copyFrom);
-                copy[0] = timestamp;
                 // set open, high, low to close
-                copy[1] = copy[4];
-                copy[2] = copy[4];
-                copy[3] = copy[4];
-                copy[5] = this.parseNumber('0');
-                result.push(copy);
+                const closeValue = this.safeValue(copyFrom, 4);
+                result.push([timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber('0')]);
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = result.length;
-            copyFrom = result[resultLength - 1];
+            copyFrom = this.safeValue(result, resultLength - 1);
         }
         return result;
     }
@@ -987,8 +983,9 @@ export default class bitopro extends Exchange {
         const result = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict(rows, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const amount = this.safeString(balance, 'amount');
@@ -1239,7 +1236,7 @@ export default class bitopro extends Exchange {
         const orders = [];
         for (let i = 0; i < dataKeys.length; i++) {
             const marketId = dataKeys[i];
-            const orderIds = data[marketId];
+            const orderIds = this.safeList(data, marketId, []);
             for (let j = 0; j < orderIds.length; j++) {
                 orders.push(this.safeOrder({
                     'info': orderIds[j],
@@ -1284,7 +1281,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseCancelOrders(data);
     }
     /**
@@ -1889,6 +1886,9 @@ export default class bitopro extends Exchange {
         const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        const queryLength = Object.keys(query).length;
         const requestHeaders = {};
         const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody = this.json(params);
@@ -1907,7 +1907,7 @@ export default class bitopro extends Exchange {
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length > 0) {
+                if (queryLength > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1923,7 +1923,7 @@ export default class bitopro extends Exchange {
             }
         }
         else if (apiName === 'public' && method === 'GET') {
-            if (Object.keys(query).length > 0) {
+            if (queryLength > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

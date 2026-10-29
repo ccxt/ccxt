@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class gate(ccxt.async_support.gate):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         superDescribe = super(gate, self).describe()
         return self.deep_extend(superDescribe, self.describe_data())
 
@@ -426,8 +426,8 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        marketId = market['id']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.get_url_by_market(market)
         isEuUrl = url.find('gateeu') >= 0
         isNonEuSpot = (market['spot'] is True) and not isEuUrl
@@ -456,7 +456,7 @@ class gate(ccxt.async_support.gate):
             finalInterval = interval
             if limitResolved == 400:
                 finalInterval = '400'
-            payload = ['ob.' + market['id'] + '.' + finalInterval]
+            payload = ['ob.' + marketId + '.' + finalInterval]
         else:
             channel = messageType + '.order_book_update'
             payload = [marketId, interval]
@@ -480,8 +480,8 @@ class gate(ccxt.async_support.gate):
             await self.load_markets()
         market = self.market(symbol)
         url = self.get_url_by_market(market)
-        symbolValue = market['symbol']
-        marketId = market['id']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         isEuUrl = url.find('gateeu') >= 0
         isNonEuSpot = (market['spot'] is True) and not isEuUrl
         intervalDefault = '100ms'
@@ -505,7 +505,7 @@ class gate(ccxt.async_support.gate):
             finalInterval = intervalOption
             if limit == 400:
                 finalInterval = '400'
-            payload = ['ob.' + market['id'] + '.' + finalInterval]
+            payload = ['ob.' + marketId + '.' + finalInterval]
         else:
             channel = messageType + '.order_book_update'
             payload = [marketId, intervalOption]
@@ -697,8 +697,8 @@ class gate(ccxt.async_support.gate):
             if isinstance(bidAsk, list):
                 bookSide.storeArray(self.parse_order_book_bid_ask(bidAsk))
             else:
-                price = self.safe_float(bidAsk, 'p')
-                amount = self.safe_float(bidAsk, 's')
+                price = self.safe_number(bidAsk, 'p')
+                amount = self.safe_number(bidAsk, 's')
                 bookSide.store(price, amount)
 
     def handle_book_delta(self, orderbook: object, delta: object):
@@ -728,7 +728,7 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         params['callerMethodName'] = 'watchTicker'
         result = await self.watch_tickers([symbolValue], params)
         return self.safe_dict(result, symbolValue)
@@ -810,7 +810,7 @@ class gate(ccxt.async_support.gate):
         market = self.market(symbolsNormalized[0])
         messageType = self.get_type_by_market(market)
         marketIds = self.market_ids(symbolsNormalized)
-        channelName, paramsMethod = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption, 'method')
+        channelName, paramsMethod = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption, 'method', '')
         url = self.get_url_by_market(market)
         channel = messageType + '.' + channelName
         if callerMethodNameOption is None:
@@ -1003,7 +1003,7 @@ class gate(ccxt.async_support.gate):
             await self.load_markets()
         # todo add options support
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         marketId = market['id']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
@@ -1966,7 +1966,7 @@ class gate(ccxt.async_support.gate):
                     self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # subscribe
         #    {
@@ -2111,9 +2111,9 @@ class gate(ccxt.async_support.gate):
     def get_type_by_market(self, market: Market) -> Str:
         if market is None:
             return None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return 'spot'
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             return 'options'
         else:
             return 'futures'

@@ -19,7 +19,10 @@ func testLoadMarketsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
+	var markets any = nil
+	if r.Value != nil {
+		markets = r.Value
+	}
 	Assert(exchange.IsDictionary(exchange.GetMarkets()), ".markets is not a dict")
 	Assert(IsArray(exchange.GetSymbols()), ".symbols is not an array")
 	var symbolsLength int = GetArrayLength(exchange.GetSymbols())
@@ -31,44 +34,29 @@ func testLoadMarketsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	Assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets")
 	var marketValues []any = ObjectValues(markets)
 	for i := 0; i < len(marketValues); i++ {
-		TestMarket(exchange, skippedProperties, method, func() any {
-			if i >= 0 && i < len(marketValues) {
-				return DerefScalar(marketValues[i])
-			}
-			return nil
-		}())
+		TestMarket(exchange, skippedProperties, method, DerefScalar(marketValues[i]))
 	}
 	// market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-	var marketTypes []any = []any{"spot", "swap", "future", "option", "index"}
+	var marketTypes []string = []string{"spot", "swap", "future", "option", "index"}
 	var collectedTypes []any = []any{}
 	var allMarkets []any = ObjectValues(exchange.GetMarkets())
 	for i := 0; i < len(allMarkets); i++ {
-		var market map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(allMarkets) {
-				return DerefScalar(allMarkets[i])
-			}
-			return nil
-		}())
+		var market map[string]any = MapTyped(DerefScalar(allMarkets[i]))
 		if !EvalTruthy(exchange.InArray(market["type"], collectedTypes)) {
 			collectedTypes = append(collectedTypes, market["type"])
 		}
 	}
 	for i := 0; i < len(marketTypes); i++ {
-		var mType *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(marketTypes) {
-				return DerefScalar(marketTypes[i])
-			}
-			return nil
-		}())
+		var mType string = marketTypes[i]
 		if !IsEqual(GetValue(exchange.GetHas(), mType), nil) && !IsEqual(GetValue(exchange.GetHas(), mType), false) {
-			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType != nil && *mType == "option")
-			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, "exchange.has["+*mType+"] is true, but no markets of type "+*mType+" were found in exchange.markets")
+			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option")
+			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, "exchange.has["+mType+"] is true, but no markets of type "+mType+" were found in exchange.markets")
 		} else if GetValue(exchange.GetHas(), mType) == false {
 			// some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
 			// marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
 			// in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
 			var isKnownException bool = (InOp(skippedProperties, mType))
-			Assert(!EvalTruthy(exchange.InArray(mType, collectedTypes)) || isKnownException, "exchange.has["+*mType+"] is false, but markets of type "+*mType+" were found in exchange.markets")
+			Assert(!EvalTruthy(exchange.InArray(mType, collectedTypes)) || isKnownException, "exchange.has["+mType+"] is false, but markets of type "+mType+" were found in exchange.markets")
 		}
 	}
 

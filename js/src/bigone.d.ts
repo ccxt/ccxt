@@ -1,11 +1,11 @@
 import Exchange from './abstract/bigone.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class bigone
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bigone#fetchCurrencies
@@ -65,7 +65,7 @@ export default class bigone extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseContractBidsAsks(bidsAsks: any): Dict[];
+    parseContractBidsAsks(bidsAsks: Dict): Dict[];
     parseContractOrderBook(orderbook: Dict, symbol: string, limit?: Int): OrderBook;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -222,7 +222,7 @@ export default class bigone extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
@@ -288,5 +288,5 @@ export default class bigone extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

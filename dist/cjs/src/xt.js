@@ -1197,7 +1197,7 @@ class xt extends xt$1["default"] {
     parseMarkets(markets) {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const parsed = this.parseMarket(markets[i]);
+            const parsed = this.parseMarket(this.safeValue(markets, i));
             if (parsed !== undefined) {
                 result.push(parsed);
             }
@@ -1781,10 +1781,11 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'result');
         if (market['spot'] === true) {
-            return this.parseTicker(ticker[0], market);
+            const tickers = this.safeList(response, 'result', []);
+            return this.parseTicker(tickers[0], market);
         }
+        const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -4728,7 +4729,7 @@ class xt extends xt$1["default"] {
                 }
             }
             else {
-                result[symbol] = this.parseMarketLeverageTiers(response[i], market);
+                result[symbol] = this.parseMarketLeverageTiers(entry, market);
             }
         }
         return result;
@@ -5260,8 +5261,7 @@ class xt extends xt$1["default"] {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            const key = this.safeString(breakEntry, 'symbol') + '_' + this.safeString(breakEntry, 'positionSide');
-            breakBySymbolSide[key] = breakEntry;
+            breakBySymbolSide[this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '')] = breakEntry;
         }
         return breakBySymbolSide;
     }
@@ -5272,9 +5272,7 @@ class xt extends xt$1["default"] {
      * @param {object} breakBySymbolSide the result of indexPositionBreakList()
      */
     mergePositionBreakInfo(entry, breakBySymbolSide) {
-        const marketId = this.safeString(entry, 'symbol');
-        const key = marketId + '_' + this.safeString(entry, 'positionSide');
-        const breakEntry = this.safeDict(breakBySymbolSide, key);
+        const breakEntry = this.safeDict(breakBySymbolSide, this.safeString(entry, 'symbol', '') + '_' + this.safeString(entry, 'positionSide', ''));
         if (breakEntry === undefined) {
             return entry;
         }
@@ -5926,7 +5924,7 @@ class xt extends xt$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + payload;
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend(this.omit(params, this.extractParams(path)));
         const urlencoded = this.urlencode(this.keysort(query));
         const headersValue = {
             'Content-Type': 'application/json',
@@ -5934,8 +5932,7 @@ class xt extends xt$1["default"] {
         let signedBody = undefined;
         if (signed) {
             this.checkRequiredCredentials();
-            const defaultRecvWindow = this.safeString(this.options, 'recvWindow');
-            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', this.safeString(this.options, 'recvWindow', '5000'));
             const timestamp = this.numberToString(this.nonce());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
@@ -5950,55 +5947,51 @@ class xt extends xt$1["default"] {
             if ((method === 'PUT') && (endpoint === 'spot')) {
                 isUndefinedBody = false;
             }
-            signedBody = isUndefinedBody ? undefined : this.json(query);
-            let payloadString = undefined;
+            const jsonBody = this.json(query);
+            signedBody = isUndefinedBody ? undefined : jsonBody;
+            let payloadString = '';
             if ((endpoint === 'spot') || (endpoint === 'user')) {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
+                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
+                        url = apiUrl + payload + '?' + urlencoded;
+                        payloadString = spotPrefix + '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     }
                     else {
-                        payloadString += '#' + method + '#' + payload;
+                        payloadString = spotPrefix + '#' + method + '#' + payload;
                     }
                 }
                 else {
-                    payloadString += '#' + method + '#' + payload + '#' + signedBody;
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + jsonBody;
                 }
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
             }
             else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
+                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
-                        payloadString += '#' + payload + '#' + urlencoded;
+                        url = apiUrl + payload + '?' + urlencoded;
+                        payloadString = futurePrefix + '#' + payload + '#' + urlencoded;
                     }
                     else {
-                        payloadString += '#' + payload;
+                        payloadString = futurePrefix + '#' + payload;
                     }
                 }
                 else {
-                    payloadString += '#' + payload + '#' + signedBody;
+                    payloadString = futurePrefix + '#' + payload + '#' + jsonBody;
                 }
             }
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha2_js.sha256);
             headersValue['xt-validate-appkey'] = this.apiKey;
             headersValue['xt-validate-timestamp'] = timestamp;
-            headersValue['xt-validate-signature'] = signature;
+            headersValue['xt-validate-signature'] = this.hmac(this.encode(payloadString), this.encode(this.secret), sha2_js.sha256);
         }
         else {
             if (urlencoded !== '') {
-                url += '?' + urlencoded;
+                url = apiUrl + payload + '?' + urlencoded;
             }
         }
-        let bodyValue = undefined;
-        if (signed) {
-            bodyValue = signedBody;
-        }
-        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': signedBody, 'headers': headersValue };
     }
 }
 

@@ -305,7 +305,7 @@ impl Value {
     /// `get_value`.
     pub fn hashmap(&self) -> Value {
         if let Value::Dict(d) = self {
-            // Cache marker: the live hashmap lives in the shared CACHE_STORE
+            // Cache marker: the live hashmap lives in the shared WS state store
             // (keyed by __cache_id), not on the marker Dict. Return a copy with
             // each symbol bucket tagged with a `__cache_backref` so that a
             // transpiled write-back like `cache.hashmap[symbol][id] = order`
@@ -581,6 +581,15 @@ impl From<crate::ExchangeError> for Value {
 impl From<HashMap<String, Value>> for Value {
     fn from(m: HashMap<String, Value>) -> Self { Value::Map(m) }
 }
+impl From<HashMap<String, HashMap<String, Value>>> for Value {
+    fn from(m: HashMap<String, HashMap<String, Value>>) -> Self {
+        let mut out = HashMap::with_capacity(m.len());
+        for (k, v) in m {
+            out.insert(k, Value::Map(v));
+        }
+        Value::Map(out)
+    }
+}
 impl From<Vec<Value>> for Value {
     fn from(a: Vec<Value>) -> Self { Value::Array(a) }
 }
@@ -598,25 +607,17 @@ impl From<serde_json::Value> for Value {
 /// directly from the cached real `<Id>Core`. Production / non-test code
 /// leaves the callback unset and falls through to the normal map lookup.
 type LiveLookupFn = fn(id: &str, key: &str) -> Option<Value>;
-// Plain atomic-load-style global — `tokio::main` spawns worker threads
-// that wouldn't see a `thread_local!` value set in main, so the lookup
-// has to be shared across all threads. Stored as a usize because
-// `AtomicPtr<fn>` is awkward to express. `fn` pointers are always
-// non-null when set; 0 means "not installed".
-static LIVE_LOOKUP_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+// Write-once registry: the test harness installs it from `main` before any
+// worker thread runs and nothing replaces it. One-shot cell, so every read is a
+// plain fn-pointer load with no lock and no atomic at the use site.
+static LIVE_LOOKUP: once_cell::sync::OnceCell<LiveLookupFn> = once_cell::sync::OnceCell::new();
 
 pub fn set_live_lookup(f: LiveLookupFn) {
-    LIVE_LOOKUP_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_LOOKUP.set(f);
 }
 
 fn live_lookup_get() -> Option<LiveLookupFn> {
-    let n = LIVE_LOOKUP_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, &str) -> Option<Value>`
-        // via `set_live_lookup`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveLookupFn>(n) })
-    }
+    LIVE_LOOKUP.get().copied()
 }
 
 // Companion to `LiveLookupFn` but for writing: routes `exchange.setMarkets(...)`
@@ -625,20 +626,14 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
 // runs against the real instance the method dispatch will use. Returns the
 // resulting markets. See `Value::set_markets`.
 type LiveSetMarketsFn = fn(id: &str, markets: Value) -> Value;
-static LIVE_SET_MARKETS_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+static LIVE_SET_MARKETS: once_cell::sync::OnceCell<LiveSetMarketsFn> = once_cell::sync::OnceCell::new();
 
 pub fn set_live_set_markets(f: LiveSetMarketsFn) {
-    LIVE_SET_MARKETS_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_SET_MARKETS.set(f);
 }
 
 fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
-    let n = LIVE_SET_MARKETS_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, Value) -> Value` via
-        // `set_live_set_markets`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveSetMarketsFn>(n) })
-    }
+    LIVE_SET_MARKETS.get().copied()
 }
 
 /// Hot-path `get_value` variant that takes the key as a `&str` directly,
@@ -710,7 +705,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
                 if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
             }
             // A cache marker's `hashmap` (bucket index) lives in the shared
-            // CACHE_STORE cell, not the marker Dict — route the read there so a
+            // store cell, not the marker Dict — route the read there so a
             // transpiled `cache.hashmap` sees live bucket state (the base-ws
             // eviction test counts `Object.keys(cache.hashmap)`).
             if k == "hashmap" && m.contains_key("__cacheKind") {
@@ -884,7 +879,7 @@ fn cache_str_field(item: &Value, key: &str) -> Option<String> {
 
 /// Tag every symbol bucket of a cache hashmap copy with a `__cache_backref`
 /// = [cache_id, symbol] so a later `bucket[id] = order` write can be routed
-/// back into the shared CACHE_STORE (see `try_cache_hashmap_write`). Mirrors
+/// back into the shared WS state store (see `try_cache_hashmap_write`). Mirrors
 /// the JS reference semantics where `cache.hashmap[symbol]` is the live row.
 fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
     if let Value::Dict(d) = &hm {
@@ -908,33 +903,35 @@ fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
 
 /// When a transpiled `bucket[key] = item` write lands on a cache-hashmap bucket
 /// tagged by `tag_cache_hashmap_buckets`, persist `item` into the shared
-/// CACHE_STORE: update `hashmap[symbol][key]` and the matching `_data` row.
+/// store: update `hashmap[symbol][key]` and the matching `_data` row.
 /// This is how cross-handler mutations of a cached order (fee/trades
 /// accumulation in handleMyTrade, later read by handleOrder) survive Rust's
 /// copy-on-write `Value` semantics. Returns true if a write-through happened.
 pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str, item: &Value) -> bool {
     let (id, sym) = match bucket.get("__cache_backref") {
         Some(Value::Arr(a)) => match (a.first(), a.get(1)) {
-            (Some(Value::Int(id)), Some(Value::Str(s))) => (*id, s.clone()),
+            (Some(Value::Int(id)), Some(Value::Str(s))) => (*id, s.to_string()),
             _ => return false,
         },
         _ => return false,
     };
-    with_cache_cell(id, |m| {
+    let key = key.to_string();
+    let item = item.clone();
+    with_cache_cell(id, move |m| {
         // hashmap[sym][key] = item
         {
             let hm = cache_dict_field_mut(m, "hashmap");
-            let b = hm.entry(sym.to_string()).or_insert_with(|| Value::Map(HashMap::new()));
+            let b = hm.entry(sym.clone()).or_insert_with(|| Value::Map(HashMap::new()));
             if let Value::Dict(bd) = b {
-                Arc::make_mut(bd).insert(key.to_string(), item.clone());
+                Arc::make_mut(bd).insert(key.clone(), item.clone());
             }
         }
         // update the matching _data row (matched by symbol + id/side == key)
         let data = cache_data_mut(m);
         for x in data.iter_mut() {
-            if cache_str_field(x, "symbol").as_deref() == Some(&sym)
-                && (cache_str_field(x, "id").as_deref() == Some(key)
-                    || cache_str_field(x, "side").as_deref() == Some(key))
+            if cache_str_field(x, "symbol").as_deref() == Some(sym.as_str())
+                && (cache_str_field(x, "id").as_deref() == Some(key.as_str())
+                    || cache_str_field(x, "side").as_deref() == Some(key.as_str()))
             {
                 *x = item.clone();
                 break;
@@ -1105,15 +1102,157 @@ fn cache_seen_remove(m: &mut HashMap<String, Value>, field: &str, key1: &str, ke
 // the local diverge on the first append (Arc::make_mut) and the re-read is
 // empty. So hold the whole mutable cache state (`_data`, `hashmap`, counters)
 // in a registry keyed by a stable `__cache_id`; every COW clone shares it.
-static CACHE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_CACHE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
+// ── Ws state store: one owner, channel hand-off ─────────────────────────────
+// Every shared WS cell (cache, book, side) lives in one `WsStateStore`. The
+// cells must outlive COW clones and task migration, so they cannot be thread
+// local; and no lock may be held at a use site across an await. So a single
+// owner thread holds the whole store and every other task hands it a job over a
+// channel, then waits for the reply (`store_op`). Nothing is shared, so there is
+// no lock to nest, poison or forget, and no cell can be read half-applied.
+struct BookCell {
+    meta: HashMap<String, Value>,
+    cache: Vec<Value>,
+}
+
+impl Default for BookCell {
+    fn default() -> Self {
+        BookCell { meta: HashMap::new(), cache: Vec::new() }
+    }
+}
+
+#[derive(Default)]
+struct WsStateStore {
+    caches: HashMap<i64, HashMap<String, Value>>,
+    books: HashMap<i64, BookCell>,
+    sides: HashMap<i64, SideCell>,
+    last_cache_id: i64,
+    last_book_id: i64,
+    last_side_id: i64,
+}
+
+type StoreJob = Box<dyn FnOnce(&mut WsStateStore) + Send + 'static>;
+
+// Marks the owner thread while a job runs: a job that calls back into the
+// store would wait on its own reply forever, so `store_op` turns that into a
+// panic instead of a hang.
+thread_local! {
+    static IN_STORE_JOB: std::cell::Cell<bool> = std::cell::Cell::new(false);
+}
+
+struct InStoreJob;
+
+impl InStoreJob {
+    fn enter() -> Self {
+        IN_STORE_JOB.with(|f| f.set(true));
+        InStoreJob
+    }
+}
+
+impl Drop for InStoreJob {
+    fn drop(&mut self) { IN_STORE_JOB.with(|f| f.set(false)); }
+}
+
+static STORE_TX: once_cell::sync::Lazy<tokio::sync::mpsc::UnboundedSender<StoreJob>> =
+    once_cell::sync::Lazy::new(|| {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<StoreJob>();
+        std::thread::Builder::new()
+            .name("ccxt-ws-store".to_string())
+            .spawn(move || {
+                let mut store = WsStateStore::default();
+                while let Some(job) = rx.blocking_recv() {
+                    let _in_job = InStoreJob::enter();
+                    job(&mut store);
+                }
+            })
+            .expect("ccxt: cannot start the WS state store owner");
+        tx
+    });
+
+/// Hand `f` to the store's owner thread and return its result. The owner runs
+/// only store jobs; a job that calls back into the store would wait on itself,
+/// so that case panics rather than deadlocking.
+fn store_op<R, F>(f: F) -> R
+where
+    R: Send + 'static,
+    F: FnOnce(&mut WsStateStore) -> R + Send + 'static,
+{
+    if IN_STORE_JOB.with(|flag| flag.get()) {
+        panic!("ccxt: WS state store job called back into the store (would deadlock)");
+    }
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Result<R, Box<dyn std::any::Any + Send>>>(1);
+    let job: StoreJob = Box::new(move |store: &mut WsStateStore| {
+        let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(store))));
+    });
+    if STORE_TX.send(job).is_err() {
+        panic!("ccxt: WS state store owner is gone");
+    }
+    match rx.recv() {
+        Ok(Ok(v)) => v,
+        Ok(Err(payload)) => std::panic::resume_unwind(payload),
+        Err(_) => panic!("ccxt: WS state store owner dropped the reply"),
+    }
+}
+
+// ── Owner thread: one writer, channel hand-off ──────────────────────────────
+// State several tasks must reach but that no lock may guard at a use site: one
+// plain thread owns it, callers hand it a job and wait for the reply. Nothing is
+// shared, so there is no lock to nest, poison or forget, and no reader can see
+// the state half-applied.
+pub(crate) type OwnerJob<S> = Box<dyn FnOnce(&mut S) + Send + 'static>;
+
+pub(crate) struct OwnerThread<S> {
+    tx: tokio::sync::mpsc::UnboundedSender<OwnerJob<S>>,
+    owner: std::sync::OnceLock<std::thread::ThreadId>,
+}
+
+impl<S: Send + 'static> OwnerThread<S> {
+    pub(crate) fn spawn(name: &str, init: S) -> Self {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<OwnerJob<S>>();
+        let handle = std::thread::Builder::new()
+            .name(name.to_string())
+            .spawn(move || {
+                let mut state = init;
+                while let Some(job) = rx.blocking_recv() { job(&mut state); }
+            })
+            .expect("ccxt: cannot start an owner thread");
+        let owner = std::sync::OnceLock::new();
+        let _ = owner.set(handle.thread().id());
+        OwnerThread { tx, owner }
+    }
+
+    /// Runs `f` on the owner and returns its result. A job that calls back into
+    /// its own owner would wait on itself, so that panics instead of hanging.
+    pub(crate) fn run<R, F>(&self, f: F) -> R
+    where R: Send + 'static, F: FnOnce(&mut S) -> R + Send + 'static {
+        if self.owner.get() == Some(&std::thread::current().id()) {
+            panic!("ccxt: owner-thread job called back into its own state (would deadlock)");
+        }
+        let (tx, rx) = std::sync::mpsc::sync_channel::<std::thread::Result<R>>(1);
+        self.tx.send(Box::new(move |state: &mut S| {
+            let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(state))));
+        })).unwrap_or_else(|_| panic!("ccxt: owner thread is gone"));
+        match rx.recv() {
+            Ok(Ok(v)) => v,
+            Ok(Err(payload)) => std::panic::resume_unwind(payload),
+            Err(_) => panic!("ccxt: owner thread dropped the reply"),
+        }
+    }
+
+    /// Hands `f` over without waiting; a no-op once the owner is gone.
+    pub(crate) fn post<F>(&self, f: F)
+    where F: FnOnce(&mut S) + Send + 'static {
+        let _ = self.tx.send(Box::new(f));
+    }
+}
 
 /// Register a cache's initial mutable state, returning its shared id.
 pub(crate) fn alloc_cache_id(initial: HashMap<String, Value>) -> i64 {
-    let id = NEXT_CACHE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    CACHE_STORE.lock().unwrap().insert(id, initial);
-    id
+    store_op(move |s| {
+        s.last_cache_id += 1;
+        let id = s.last_cache_id;
+        s.caches.insert(id, initial);
+        id
+    })
 }
 
 fn cache_id_of(v: &Value) -> Option<i64> {
@@ -1126,10 +1265,11 @@ fn cache_id_of_m(m: &HashMap<String, Value>) -> Option<i64> {
     match m.get("__cache_id") { Some(Value::Int(n)) => Some(*n), _ => None }
 }
 
-fn with_cache_cell<R>(id: i64, f: impl FnOnce(&mut HashMap<String, Value>) -> R) -> R {
-    let mut g = CACHE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(HashMap::new);
-    f(cell)
+fn with_cache_cell<R>(id: i64, f: impl FnOnce(&mut HashMap<String, Value>) -> R + Send + 'static) -> R
+where
+    R: Send + 'static,
+{
+    store_op(move |s| f(s.caches.entry(id).or_default()))
 }
 
 /// Snapshot a cache marker's rolling buffer (from the shared cell if it carries
@@ -1153,7 +1293,7 @@ fn cache_len_of(m: &HashMap<String, Value>) -> usize {
 
 fn cache_at(m: &HashMap<String, Value>, i: usize) -> Value {
     if let Some(id) = cache_id_of_m(m) {
-        return with_cache_cell(id, |c| match c.get("_data") {
+        return with_cache_cell(id, move |c| match c.get("_data") {
             Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null),
             _ => Value::Null,
         });
@@ -1170,7 +1310,7 @@ pub(crate) fn cache_append(target: &mut Value, item: Value) {
     let kind = cache_kind(target).unwrap_or_default();
     let cap = cache_max_size(target);
     if let Some(id) = cache_id_of(target) {
-        with_cache_cell(id, |m| cache_append_inner(m, &kind, cap, item));
+        with_cache_cell(id, move |m| cache_append_inner(m, &kind, cap, item));
     } else if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
         cache_append_inner(m, &kind, cap, item);
@@ -1392,7 +1532,7 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
 pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
     let kind = cache_kind(target).unwrap_or_default();
     if let Some(id) = cache_id_of(target) {
-        return with_cache_cell(id, |m| cache_get_limit_inner(m, &kind, symbol, limit));
+        return with_cache_cell(id, move |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
     if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
@@ -1475,9 +1615,6 @@ fn book_kind(v: &Value) -> Option<String> {
 // check reads the book's `nonce`, written inside `handle_order_book_message` on
 // a clone. These fields live in a store keyed by a stable `__book_id`; bids/asks
 // stay in the Dict (their entries are already shared via `__side_id`).
-static BOOK_META: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_BOOK_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
 
 /// Scalar book fields that live in the shared meta store (not the Dict).
 fn is_book_meta_key(k: &str) -> bool {
@@ -1485,9 +1622,12 @@ fn is_book_meta_key(k: &str) -> bool {
 }
 
 pub(crate) fn alloc_book_id() -> i64 {
-    let id = NEXT_BOOK_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    BOOK_META.lock().unwrap().insert(id, HashMap::new());
-    id
+    store_op(|s| {
+        s.last_book_id += 1;
+        let id = s.last_book_id;
+        s.books.entry(id).or_default();
+        id
+    })
 }
 
 fn book_id_of(m: &HashMap<String, Value>) -> Option<i64> {
@@ -1495,18 +1635,23 @@ fn book_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 }
 
 fn book_meta_get(id: i64, k: &str) -> Value {
-    BOOK_META.lock().unwrap().get(&id).and_then(|m| m.get(k).cloned()).unwrap_or(Value::Null)
+    let k = k.to_string();
+    store_op(move |s| {
+        s.books.get(&id).and_then(|b| b.meta.get(&k).cloned()).unwrap_or(Value::Null)
+    })
 }
 
 pub(crate) fn book_meta_set(id: i64, k: &str, v: Value) {
-    let mut g = BOOK_META.lock().unwrap();
-    g.entry(id).or_default().insert(k.to_string(), v);
+    let k = k.to_string();
+    store_op(move |s| { s.books.entry(id).or_default().meta.insert(k, v); });
 }
 
 fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
-    BOOK_META.lock().unwrap().get(&id)
-        .map(|m| m.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
-        .unwrap_or_default()
+    store_op(move |s| {
+        s.books.get(&id)
+            .map(|b| b.meta.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .unwrap_or_default()
+    })
 }
 
 // A JS `OrderBook` also carries a mutable `cache` array — venues that fetch a
@@ -1516,8 +1661,6 @@ fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
 // `append_to_array(get_value(&book, "cache"), msg)`, and get_value returns a COW
 // clone. So `get_value(book, "cache")` returns a lightweight handle carrying
 // `__book_cache_id`, and length/index/append/clear route through this store.
-static BOOK_CACHE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, Vec<Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
 
 /// Build a cache handle for a book id (returned by `get_value(book, "cache")`).
 fn book_cache_handle(id: i64) -> Value {
@@ -1531,11 +1674,11 @@ fn book_cache_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 }
 
 pub(crate) fn book_cache_push(id: i64, v: Value) {
-    BOOK_CACHE.lock().unwrap().entry(id).or_default().push(v);
+    store_op(move |s| { s.books.entry(id).or_default().cache.push(v); });
 }
 
 fn book_cache_len(id: i64) -> usize {
-    BOOK_CACHE.lock().unwrap().get(&id).map(|c| c.len()).unwrap_or(0)
+    store_op(move |s| s.books.get(&id).map(|b| b.cache.len()).unwrap_or(0))
 }
 
 /// Length of a cache handle Dict's backing store, or None if `m` isn't a handle.
@@ -1584,12 +1727,12 @@ pub(crate) fn try_book_cache_push(obj: &Value, v: &Value) -> bool {
 }
 
 fn book_cache_at(id: i64, i: usize) -> Value {
-    BOOK_CACHE.lock().unwrap().get(&id).and_then(|c| c.get(i).cloned()).unwrap_or(Value::Null)
+    store_op(move |s| s.books.get(&id).and_then(|b| b.cache.get(i).cloned()).unwrap_or(Value::Null))
 }
 
 /// Replace a book's cache contents (from `book.cache = [...]`, usually to clear).
 pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
-    BOOK_CACHE.lock().unwrap().insert(id, items);
+    store_op(move |s| { s.books.entry(id).or_default().cache = items; });
 }
 
 /// Snapshot a WS cache's rolling buffer as a plain array. Handles both the
@@ -1601,7 +1744,7 @@ pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
 pub fn cache_entries_as_value(v: &Value) -> Option<Value> {
     if let Value::Dict(m) = v {
         if let Some(id) = book_cache_id_of(m) {
-            let items = BOOK_CACHE.lock().unwrap().get(&id).cloned().unwrap_or_default();
+            let items = store_op(move |s| s.books.get(&id).map(|b| b.cache.clone()).unwrap_or_default());
             return Some(Value::Array(items));
         }
         if m.contains_key("__cacheKind") {
@@ -1636,9 +1779,7 @@ pub fn book_fields_as_value(v: &Value) -> Option<Value> {
             let mut out: HashMap<String, Value> = (**d).clone();
             out.shift_remove("__book_id");
             if let Some(Value::Int(id)) = d.get("__book_id") {
-                if let Some(meta) = BOOK_META.lock().unwrap().get(id) {
-                    for (k, val) in meta.iter() { out.insert(k.clone(), val.clone()); }
-                }
+                for (k, val) in book_meta_snapshot(*id) { out.insert(k, val); }
             }
             Some(Value::Dict(Arc::new(out)))
         }
@@ -1667,29 +1808,31 @@ struct Level {
     price: f64,   // raw price; the sort key (bids sort on -price)
     entry: Value, // the full [price, amount, …] level as delivered
 }
+#[derive(Default)]
 struct SideCell {
     entries: Vec<Level>,
     hashmap: HashMap<String, Value>,
 }
 
-static SIDE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, SideCell>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_SIDE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
 
 /// Allocate a fresh, empty side cell and return its id.
 fn alloc_side_id() -> i64 {
-    let id = NEXT_SIDE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    SIDE_STORE.lock().unwrap().insert(id, SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    id
+    store_op(|s| {
+        s.last_side_id += 1;
+        let id = s.last_side_id;
+        s.sides.insert(id, SideCell::default());
+        id
+    })
 }
 
 /// Clear (but keep) an existing side cell — used on reset so the id stays
 /// stable across reseeds instead of leaking a new cell each time.
 fn clear_side_cell(id: i64) {
-    let mut g = SIDE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    cell.entries.clear();
-    cell.hashmap.clear();
+    store_op(move |s| {
+        let cell = s.sides.entry(id).or_default();
+        cell.entries.clear();
+        cell.hashmap.clear();
+    });
 }
 
 fn side_id_of(m: &HashMap<String, Value>) -> Option<i64> {
@@ -1699,8 +1842,8 @@ fn side_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 /// Snapshot a side's entries (clone) — for read paths (indexing, length, JSON).
 fn side_entries_view(m: &HashMap<String, Value>) -> Vec<Value> {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id)
-            .map(|c| c.entries.iter().map(|l| l.entry.clone()).collect()).unwrap_or_default(),
+        Some(id) => store_op(move |s| s.sides.get(&id)
+            .map(|c| c.entries.iter().map(|l| l.entry.clone()).collect()).unwrap_or_default()),
         // Legacy fallback: a side Dict that still carries an inline `_entries`.
         None => match m.get("_entries") { Some(Value::Arr(a)) => a.as_ref().clone(), _ => Vec::new() },
     }
@@ -1708,8 +1851,8 @@ fn side_entries_view(m: &HashMap<String, Value>) -> Vec<Value> {
 
 fn side_entry_at(m: &HashMap<String, Value>, i: usize) -> Value {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id)
-            .and_then(|c| c.entries.get(i).map(|l| l.entry.clone())).unwrap_or(Value::Null),
+        Some(id) => store_op(move |s| s.sides.get(&id)
+            .and_then(|c| c.entries.get(i).map(|l| l.entry.clone())).unwrap_or(Value::Null)),
         None => match m.get("_entries") {
             Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null), _ => Value::Null },
     }
@@ -1717,18 +1860,19 @@ fn side_entry_at(m: &HashMap<String, Value>, i: usize) -> Value {
 
 pub(crate) fn side_entries_len(m: &HashMap<String, Value>) -> usize {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id).map(|c| c.entries.len()).unwrap_or(0),
+        Some(id) => store_op(move |s| s.sides.get(&id).map(|c| c.entries.len()).unwrap_or(0)),
         None => match m.get("_entries") { Some(Value::Arr(a)) => a.len(), _ => 0 },
     }
 }
 
-/// Mutate a side's cell (entries + hashmap) under the store lock. No-op if the
-/// side carries no `__side_id`.
-fn with_side_cell<R>(m: &HashMap<String, Value>, f: impl FnOnce(&mut SideCell) -> R) -> Option<R> {
+/// Hand `f` the side's cell on the store's owner thread. No-op if the side
+/// carries no `__side_id`.
+fn with_side_cell<R>(m: &HashMap<String, Value>, f: impl FnOnce(&mut SideCell) -> R + Send + 'static) -> Option<R>
+where
+    R: Send + 'static,
+{
     let id = side_id_of(m)?;
-    let mut g = SIDE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    Some(f(cell))
+    Some(store_op(move |s| f(s.sides.entry(id).or_default())))
 }
 
 /// Public: snapshot a side marker's entries as a `Value` array, or `None` when
@@ -1770,10 +1914,10 @@ pub fn side_price_amounts(v: &Value) -> Option<Vec<[f64; 2]>> {
         _ => return None,
     };
     let out = match side_id_of(d) {
-        Some(id) => match SIDE_STORE.lock().unwrap().get(&id) {
+        Some(id) => store_op(move |s| match s.sides.get(&id) {
             Some(cell) => cell.entries.iter().filter_map(|l| row_price_amount(&l.entry)).collect(),
             None => Vec::new(),
-        },
+        }),
         None => match d.get("_entries") {
             Some(Value::Arr(a)) => a.iter().filter_map(row_price_amount).collect(),
             _ => Vec::new(),
@@ -1850,7 +1994,7 @@ fn side_store_array(side: &Value, delta: Value) {
     let kind = side_kind(side).unwrap_or_default();
     let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let is_bid = side_is_bid(m);
-    with_side_cell(m, |cell| {
+    with_side_cell(m, move |cell| {
     match kind.as_str() {
         "OrderBookSide" => {
             let price = delta_field(&delta, 0, as_f64, 0.0);
@@ -1974,7 +2118,7 @@ fn side_store_array(side: &Value, delta: Value) {
 fn side_limit(side: &Value) {
     let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let depth = side_depth(m);
-    with_side_cell(m, |cell| {
+    with_side_cell(m, move |cell| {
         if cell.entries.len() > depth { cell.entries.truncate(depth); }
     });
 }
@@ -2082,6 +2226,15 @@ pub(crate) fn book_store_array_side(book: &mut Value, side_key: &str, delta: Val
 // ─── Value method API exposed to the transpiled tests ─────────────────────
 
 impl Value {
+    /// `book.timestamp|datetime|nonce|symbol = v` — the shared-store write for a
+    /// tagged book, else the generic element write (same result as the helper).
+    pub fn set_book_meta(&mut self, k: &str, v: Value) {
+        if let Value::Dict(m) = &*self {
+            if try_book_meta_write(m, k, &v) { return; }
+        }
+        crate::runtime::add_element_to_object(self, &Value::Str(k.to_string().into()), v);
+    }
+
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
     /// of `self` so transpiled `return book.limit();` lines still
     /// match the `-> Value` signature.
@@ -2194,5 +2347,47 @@ mod value_len_tests {
         m.insert("a".to_string(), Value::Int(1));
         m.insert("b".to_string(), Value::Int(2));
         assert_eq!(Value::Dict(Arc::new(m)).len(), 2);
+    }
+
+    #[test]
+    fn store_serves_concurrent_writers_over_the_channel() {
+        // Every mutation is a job on the store's owner thread; concurrent
+        // callers must neither lose a write nor deadlock on each other.
+        let id = alloc_book_id();
+        let mut hs = Vec::new();
+        for _ in 0..4 {
+            hs.push(std::thread::spawn(move || {
+                for i in 0..64i64 { book_cache_push(id, Value::Int(i)); }
+            }));
+        }
+        for h in hs { h.join().unwrap(); }
+        assert_eq!(book_cache_len(id), 256);
+    }
+
+    #[test]
+    fn store_panic_reaches_the_caller_and_leaves_the_owner_alive() {
+        let hit = std::panic::catch_unwind(|| {
+            let _: () = store_op(|_s: &mut WsStateStore| panic!("boom"));
+        })
+        .is_err();
+        assert!(hit);
+        // The owner catches job panics, so a dead store must not follow.
+        let id = alloc_book_id();
+        book_cache_push(id, Value::Int(1));
+        assert_eq!(book_cache_len(id), 1);
+    }
+
+    #[test]
+    fn nested_store_op_panics_instead_of_deadlocking() {
+        // A job must not re-enter the store: the owner would wait on itself.
+        let hit = std::panic::catch_unwind(|| {
+            store_op(|_s: &mut WsStateStore| { let _ = alloc_book_id(); });
+        })
+        .is_err();
+        assert!(hit);
+        // The owner survives the rejected nesting and keeps serving.
+        let id = alloc_book_id();
+        book_cache_push(id, Value::Int(7));
+        assert_eq!(book_cache_len(id), 1);
     }
 }

@@ -1,11 +1,11 @@
 import Exchange from './abstract/coinspot.js';
-import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Order } from './base/types.js';
+import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Order } from './base/types.js';
 /**
  * @class coinspot
  * @augments Exchange
  */
 export default class coinspot extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -99,7 +99,7 @@ export default class coinspot extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    nonce(): number;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

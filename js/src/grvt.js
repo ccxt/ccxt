@@ -557,12 +557,11 @@ export default class grvt extends Exchange {
             return {};
         }
         const walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-        let request = {
+        const request = {
             'address': walletAddress,
             'signature': this.defaultSignature(),
         };
-        request = this.createSignedRequest(request, 'EIP712_WALLETLOGIN_TYPE');
-        const response = await this.privateEdgePostAuthWalletLogin(this.extend(request, params));
+        const response = await this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, 'EIP712_WALLETLOGIN_TYPE'), params));
         //
         //    {
         //        "location": "",
@@ -595,10 +594,11 @@ export default class grvt extends Exchange {
         const approvedBuilder = this.safeList(currentBuilders, 'results', []);
         const length = approvedBuilder.length;
         let found = false;
+        const builderId = this.safeString(this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict(approvedBuilder, i, {});
             const builderAccountId = this.safeString(builderInfo, 'builder_account_id');
-            if (builderAccountId === this.safeString(this.options, 'builder')) {
+            if (builderAccountId === builderId) {
                 found = true;
                 break;
             }
@@ -609,15 +609,14 @@ export default class grvt extends Exchange {
         else {
             try {
                 const defaultFromAccountId = this.safeString(this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-                let request = {
+                const request = {
                     'main_account_id': defaultFromAccountId,
                     'builder_account_id': this.safeString(this.options, 'builder'),
                     'max_futures_fee_rate': this.safeString(this.options, 'builderRate'),
                     'max_spot_fee_rate': this.safeString(this.options, 'builderRate'),
                     'signature': this.defaultSignature(),
                 };
-                request = this.createSignedRequest(request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder(this.extend(request, params));
+                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, 'EIP712_BUILDER_APPROVAL_TYPE'), params));
                 //
                 // {
                 //     "result": {
@@ -719,7 +718,7 @@ export default class grvt extends Exchange {
             return undefined;
         }
         const settle = this.safeCurrencyCode(settleId);
-        const symbol = base + '/' + quote + ':' + settle;
+        const symbol = base + '/' + quote + ':' + quote;
         let type = undefined;
         const typeRaw = this.safeString(market, 'kind');
         if (typeRaw === 'PERPETUAL') {
@@ -1026,10 +1025,10 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const response = await this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1178,10 +1177,10 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1260,10 +1259,10 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1309,7 +1308,7 @@ export default class grvt extends Exchange {
         };
     }
     getSubAccountId(params) {
-        const subAccountId = this.handleOptionAndParams(params, 'getSubAccountId', 'accountId')[0];
+        const subAccountId = this.safeString(this.handleOptionAndParams(params, 'getSubAccountId', 'accountId'), 0);
         if (subAccountId === undefined) {
             throw new ArgumentsRequired(this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1431,15 +1430,14 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
-            const filteredResults = this.filterTransfersByType(transfers, 'deposit', true);
-            const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
+            const transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, 'deposit', true), 0, []), 'info');
             return this.parseTransactions(transactions, currency, since, limit);
         }
         else {
@@ -1489,15 +1487,14 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
-            const filteredResults = this.filterTransfersByType(transfers, 'withdrawal', true);
-            const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
+            const transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, 'withdrawal', true), 0, []), 'info');
             return this.parseTransactions(transactions, currency, since, limit);
         }
         else {
@@ -1704,10 +1701,10 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1740,8 +1737,7 @@ export default class grvt extends Exchange {
         //
         const rows = this.safeList(response, 'result', []);
         const transfers = this.parseTransfers(rows, currency, since, limit);
-        const filteredResults = this.filterTransfersByType(transfers, 'internal', false);
-        return this.toArray(filteredResults[1]);
+        return this.toArray(this.safeList(this.filterTransfersByType(transfers, 'internal', false), 1, []));
     }
     filterTransfersByType(transfers, transferType, onlyMainAccount = true) {
         const matchedResults = [];
@@ -1749,7 +1745,7 @@ export default class grvt extends Exchange {
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
             if ((onlyMainAccount && this.safeString(transfer, 'fromAccount') === '0' && this.safeString(transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString(transfer, 'fromAccount') !== '0' || this.safeString(transfer, 'toAccount') !== '0'))) {
-                const metadata = this.safeString(transfer['info'], 'transfer_metadata');
+                const metadata = this.safeString(this.safeDict(transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson(metadata);
                 const direction = this.safeString(parsedMetadata, 'direction');
                 if (direction === transferType) {
@@ -1792,7 +1788,7 @@ export default class grvt extends Exchange {
             toSubAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
             paramsFundingAccountId = paramsFunding;
         }
-        let request = {
+        const request = {
             'from_account_id': this.safeString(paramsFundingAccountId, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': this.safeString(paramsFundingAccountId, 'from_sub_account_id', fromSubAccount),
             'to_account_id': this.safeString(paramsFundingAccountId, 'to_account_id', defaultFromAccountId),
@@ -1803,10 +1799,9 @@ export default class grvt extends Exchange {
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        request = this.createSignedRequest(request, 'EIP712_TRANSFER_TYPE', currency);
         let response = undefined;
         try {
-            response = await this.privateTradingPostFullV1Transfer(this.extend(request, paramsFundingAccountId));
+            response = await this.privateTradingPostFullV1Transfer(this.extend(this.createSignedRequest(request, 'EIP712_TRANSFER_TYPE', currency), paramsFundingAccountId));
         }
         catch (error) {
             const msg = this.exceptionMessage(error);
@@ -1950,21 +1945,21 @@ export default class grvt extends Exchange {
         await this.loadMarketsAndSignIn();
         const defaultFromAccountId = this.safeString(this.options, 'userMainAccountId');
         const currency = this.currency(code);
-        let request = {
-            'to_eth_address': address,
-            'from_account_id': defaultFromAccountId,
-            'currency': currency['id'],
-            'num_tokens': this.currencyToPrecision(code, amount),
-            'signature': this.defaultSignature(),
-        };
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
         const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() requires a network parameter');
         }
-        request['signature']['chain_id'] = networkId;
-        request = this.createSignedRequest(request, 'EIP712_WITHDRAWAL_TYPE', currency);
-        const response = await this.privateTradingPostFullV1Withdrawal(this.extend(request, query));
+        const withdrawSignature = this.defaultSignature();
+        withdrawSignature['chain_id'] = networkId;
+        const request = {
+            'to_eth_address': address,
+            'from_account_id': defaultFromAccountId,
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision(code, amount),
+            'signature': withdrawSignature,
+        };
+        const response = await this.privateTradingPostFullV1Withdrawal(this.extend(this.createSignedRequest(request, 'EIP712_WITHDRAWAL_TYPE', currency), query));
         //
         // {
         //     "result": {
@@ -2217,7 +2212,7 @@ export default class grvt extends Exchange {
             let denominator = Math.pow(10, sizeDecLength);
             const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder = {
-                'assetID': market['info']['instrument_hash'],
+                'assetID': this.safeString(market['info'], 'instrument_hash'),
                 'contractSize': this.parseToInt(sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
@@ -2237,6 +2232,7 @@ export default class grvt extends Exchange {
             }
             legs.push(legOrder);
         }
+        const orderSignature = this.safeDict(order, 'signature', {});
         const returnValue = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
@@ -2244,8 +2240,8 @@ export default class grvt extends Exchange {
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'nonce': order['signature']['nonce'],
-            'expiration': order['signature']['expiration'],
+            'nonce': orderSignature['nonce'],
+            'expiration': orderSignature['expiration'],
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
@@ -2278,18 +2274,16 @@ export default class grvt extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['base'] = [];
-            request['base'].push(market['baseId']);
-            request['quote'] = [];
-            request['quote'].push(market['quoteId']);
+            request['base'] = [market['baseId']];
+            request['quote'] = [market['quoteId']];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2341,17 +2335,19 @@ export default class grvt extends Exchange {
         };
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            request['base'] = [];
-            request['quote'] = [];
+            const baseIds = [];
+            const quoteIds = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 if (market['contract'] !== true) {
                     throw new BadRequest(this.id + ' fetchPositions() supports contract markets only');
                 }
-                request['base'].push(market['baseId']);
-                request['quote'].push(market['quoteId']);
+                baseIds.push(market['baseId']);
+                quoteIds.push(market['quoteId']);
             }
+            request['base'] = baseIds;
+            request['quote'] = quoteIds;
         }
         const response = await this.privateTradingPostFullV1Positions(this.extend(request, params));
         //
@@ -2609,18 +2605,16 @@ export default class grvt extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['base'] = [];
-            request['base'].push(market['baseId']);
-            request['quote'] = [];
-            request['quote'].push(market['quoteId']);
+            request['base'] = [market['baseId']];
+            request['quote'] = [market['quoteId']];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2686,18 +2680,16 @@ export default class grvt extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['base'] = [];
-            request['base'].push(market['baseId']);
-            request['quote'] = [];
-            request['quote'].push(market['quoteId']);
+            request['base'] = [market['baseId']];
+            request['quote'] = [market['quoteId']];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const response = await this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -3110,10 +3102,8 @@ export default class grvt extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            request['base'] = [];
-            request['base'].push(market['baseId']);
-            request['quote'] = [];
-            request['quote'].push(market['quoteId']);
+            request['base'] = [market['baseId']];
+            request['quote'] = [market['quoteId']];
         }
         const response = await this.privateTradingPostFullV1CancelAllOrders(this.extend(request, params));
         //
@@ -3178,6 +3168,7 @@ export default class grvt extends Exchange {
     }
     createSignedRequest(request, structureType, currencyObj = undefined, signerAddress = undefined) {
         let messageData = undefined;
+        const requestSignature = this.safeDict(request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
@@ -3191,8 +3182,8 @@ export default class grvt extends Exchange {
                 'toSubAccount': request['to_sub_account_id'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt(amountInt),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
@@ -3205,8 +3196,8 @@ export default class grvt extends Exchange {
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt(request['num_tokens'] * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
@@ -3219,29 +3210,33 @@ export default class grvt extends Exchange {
                 'builderAccountID': request['builder_account_id'],
                 'maxFutureFeeRate': this.parseToInt(parseFloat(request['max_futures_fee_rate']) * amountMultiplier),
                 'maxSpotFeeRate': this.parseToInt(parseFloat(request['max_spot_fee_rate']) * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         else if (structureType === 'EIP712_WALLETLOGIN_TYPE') {
             messageData = {
                 'signer': request['address'],
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         const domainData = this.eipDomainData();
         const definitions = this.eipDefinitions();
         const ethEncodedMessage = this.ethEncodeStructuredData(domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        const signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
-        request['signature']['r'] = this.formatSignatureRS(signature['r']);
-        request['signature']['s'] = this.formatSignatureRS(signature['s']);
-        request['signature']['v'] = this.sum(27, signature['v']);
-        request['signature']['signer'] = (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero) : signerAddress;
+        const signature = ecdsa(this.hash(ethEncodedMessage, keccak, 'hex'), privateKeyWithoutZero, secp256k1, undefined);
+        request['signature'] = {
+            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero) : signerAddress,
+            'r': this.formatSignatureRS(signature['r']),
+            's': this.formatSignatureRS(signature['s']),
+            'v': this.sum(27, signature['v']),
+            'expiration': requestSignature['expiration'],
+            'nonce': requestSignature['nonce'],
+            'chain_id': requestSignature['chain_id'],
+        };
         return request;
     }
     formatSignatureRS(value) {
@@ -3305,9 +3300,7 @@ export default class grvt extends Exchange {
             };
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            const paramsKeys = Object.keys(params);
-            const paramsKeysLength = paramsKeys.length;
-            if (paramsKeysLength === 0) {
+            if (Object.keys(params).length === 0) {
                 requestBody = '{}';
             }
             else {
@@ -3318,13 +3311,13 @@ export default class grvt extends Exchange {
         if (isPrivate) {
             this.checkRequiredCredentials();
             if (queryString !== '') {
-                requestPath = requestPath + '?' + queryString;
+                requestPath = path + '?' + queryString;
             }
-            requestHeaders = {
-                'Content-Type': 'application/json',
-            };
             if ((requestPath.endsWith('auth/api_key/login') === true) || (requestPath.endsWith('auth/wallet/login') === true)) {
-                requestHeaders['Cookie'] = 'rm=true;';
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'rm=true;',
+                };
             }
             else {
                 const accountId = this.safeString(this.options, 'AuthAccountId');
@@ -3332,8 +3325,11 @@ export default class grvt extends Exchange {
                 if (cookieValue === undefined || accountId === undefined) {
                     throw new AuthenticationError(this.id + ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
-                requestHeaders['Cookie'] = cookieValue;
-                requestHeaders['X-Grvt-Account-Id'] = accountId;
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': cookieValue,
+                    'X-Grvt-Account-Id': accountId,
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
@@ -3344,8 +3340,7 @@ export default class grvt extends Exchange {
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2(headers, 'Set-Cookie', 'set-cookie');
             if (cookie !== undefined) {
-                const cookieValue = cookie.split(';')[0];
-                this.options['AuthCookieValue'] = cookieValue;
+                this.options['AuthCookieValue'] = this.safeString(cookie.split(';'), 0, '');
             }
             if (this.safeString(this.options, 'AuthCookieValue') === undefined || this.safeString(this.options, 'AuthAccountId') === undefined) {
                 throw new AuthenticationError(this.id + ' signIn() failed to receive auth-cookie or account-id');

@@ -51,7 +51,7 @@ public class Bingx extends BingxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bingx" );
@@ -1546,8 +1546,8 @@ public class Bingx extends BingxApi
     {
         String id = this.safeString(market, "symbol");
         List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
-        String baseId = (String) (symbolParts == null || 0 >= symbolParts.size() ? null : symbolParts.get(0));
-        String quoteId = (String) (symbolParts == null || 1 >= symbolParts.size() ? null : symbolParts.get(1));
+        String baseId = this.safeString(symbolParts, 0);
+        String quoteId = this.safeString(symbolParts, 1);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -2862,7 +2862,7 @@ public class Bingx extends BingxApi
             {
                 if ((!java.util.Objects.equals(market, null)) && ((symbolsLength != null && symbolsLength == 1)))
                 {
-                    request.put("symbol", market.get("id"));
+                    request.put("symbol", this.safeString(market, "id"));
                 }
                 Map<String, Object> response = (this.spotV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType))).join();
                 rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2872,7 +2872,7 @@ public class Bingx extends BingxApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchBidsAsks() requires exactly one linear swap symbol for contract markets")) ;
                 }
-                request.put("symbol", market.get("id"));
+                request.put("symbol", this.safeString(market, "id"));
                 Map<String, Object> response = (this.swapV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 rows = new ArrayList<Object>(Arrays.asList(this.safeDict(data, "book_ticker", new HashMap<String, Object>() {{}})));
@@ -3157,7 +3157,7 @@ public class Bingx extends BingxApi
             type = market.get("type");
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, java.util.Objects.toString(type, null));
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String open = this.safeString(ticker, "openPrice");
         String high = this.safeString(ticker, "highPrice");
         String low = this.safeString(ticker, "lowPrice");
@@ -5141,7 +5141,7 @@ public class Bingx extends BingxApi
             Object parsedIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
             {
-                Object id = (idsToParse == null || i < 0 || i >= ((List<?>)idsToParse).size() ? null : ((List<?>)idsToParse).get(i));
+                String id = this.safeString(idsToParse, i, "");
                 String stringId = String.valueOf(id);
                 ((List<Object>)parsedIds).add(stringId);
             }
@@ -5816,31 +5816,12 @@ public class Bingx extends BingxApi
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            String toId = this.safeString(accountsByType, toAccount, toAccount);
-            if (java.util.Objects.equals(fromAccount, "swap"))
-            {
-                if (java.util.Objects.equals(subType, "inverse"))
-                {
-                    fromId = "coinMPerp";
-                } else
-                {
-                    fromId = "USDTMPerp";
-                }
-            }
-            if (java.util.Objects.equals(toAccount, "swap"))
-            {
-                if (java.util.Objects.equals(subType, "inverse"))
-                {
-                    toId = "coinMPerp";
-                } else
-                {
-                    toId = "USDTMPerp";
-                }
-            }
+            String fromIdMapped = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toIdMapped = this.safeString(accountsByType, toAccount, toAccount);
+            String swapId = (((java.util.Objects.equals(subType, "inverse")))) ? "coinMPerp" : "USDTMPerp";
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("fromAccount", fromId);
-            request.put("toAccount", toId);
+            request.put("fromAccount", (((java.util.Objects.equals(fromAccount, "swap")))) ? swapId : fromIdMapped);
+            request.put("toAccount", (((java.util.Objects.equals(toAccount, "swap")))) ? swapId : toIdMapped);
             request.put("asset", currency.get("id"));
             request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, paramsSubType))).join();
@@ -6104,7 +6085,7 @@ public class Bingx extends BingxApi
         String tag = this.safeString(depositAddress, "tag");
         String currencyId = this.safeString(depositAddress, "coin");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        String code = (String) currencyResolved.get("code");
+        String code = this.safeString(currencyResolved, "code");
         String rawAddress = this.safeString2(depositAddress, "addressWithPrefix", "address");
         String networkId = this.safeString(depositAddress, "network");
         String networkCode = this.networkIdToCode(networkId, code);
@@ -6810,7 +6791,7 @@ public class Bingx extends BingxApi
         {
             for (var i = 0; (networksLength != null && i < networksLength); i++)
             {
-                String networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
+                String networkCode = this.safeString(networkCodes, i, "");
                 Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, networkCode, (Object) null);
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
@@ -6824,8 +6805,10 @@ public class Bingx extends BingxApi
 }});
                 if (java.util.Objects.equals(networksLength, 1))
                 {
-                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(network, "withdrawFee", (Object) null));
-                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+                    result.put("withdraw", new HashMap<String, Object>() {{
+    put( "fee", Bingx.this.safeNumber(network, "withdrawFee", (Object) null) );
+    put( "percentage", false );
+}});
                 }
             }
         }
@@ -6938,14 +6921,14 @@ public class Bingx extends BingxApi
 
     public Object parseParams(Map<String, Object> parameters)
     {
-        // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
-        List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        List<String> keys = this.sort(rawKeys);
-        for (var i = 0; i < keys.size(); i++)
+        Map<String,Object> sortedParams = this.keysort(parameters);
+        List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
+        Integer rawKeysLength = ((List<?>)rawKeys).size();
+        for (var i = 0; (rawKeysLength != null && i < rawKeysLength); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
+            String key = (rawKeys == null || i < 0 || i >= rawKeys.size() ? null : rawKeys.get(i));
+            Object value = (sortedParams == null || key == null ? null : sortedParams.get(key));
             if ((value instanceof List))
             {
                 String arrStr = "[";
@@ -6956,10 +6939,10 @@ public class Bingx extends BingxApi
                     {
                         arrStr = (arrStr + ",");
                     }
-                    arrStr = (arrStr + (String.valueOf(arrayElement)));
+                    arrStr = (arrStr + String.valueOf(arrayElement));
                 }
                 arrStr = (arrStr + "]");
-                Helpers.addElementToObject(copied, key, arrStr);
+                ((Map<String, Object>)copied).put(key, arrStr);
             }
         }
         return copied;
@@ -7568,17 +7551,17 @@ public class Bingx extends BingxApi
         }};
     }
 
-    public Object customEncode(Map<String, Object> parameters)
+    public String customEncode(Map<String, Object> parameters)
     {
-        // const sortedParams = this.keysort (params);
-        List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        List<String> keys = this.sort(rawKeys);
+        Map<String,Object> sortedParams = this.keysort(parameters);
+        List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
+        Integer rawKeysLength = ((List<?>)rawKeys).size();
         String adjustedValue = null;
-        Object result = null;
-        for (var i = 0; i < keys.size(); i++)
+        String result = null;
+        for (var i = 0; (rawKeysLength != null && i < rawKeysLength); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
+            String key = (rawKeys == null || i < 0 || i >= rawKeys.size() ? null : rawKeys.get(i));
+            Object value = (sortedParams == null || key == null ? null : sortedParams.get(key));
             if ((value instanceof List))
             {
                 String arrStr = null;
@@ -7599,7 +7582,7 @@ public class Bingx extends BingxApi
                     {
                         if (j > 0)
                         {
-                            arrStr = (arrStr + ("," + (String.valueOf(arrayElement))));
+                            arrStr = (arrStr + ("," + String.valueOf(arrayElement)));
                         } else
                         {
                             arrStr = String.valueOf(arrayElement);
@@ -7611,10 +7594,10 @@ public class Bingx extends BingxApi
             }
             if ((i == 0))
             {
-                result = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(((Object) (switch ((Object) (key)) { case null -> (Object) ("null" + ("=")); case Double hx4J40v1 -> (Object) (hx4J40v1 + 0.0); case Object hx4J40v1 -> (Object) (String.valueOf(hx4J40v1) + ("=")); })), value);
+                result = ((key + "=") + value);
             } else
             {
-                result = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(result, ((("&" + key) + "=") + value));
+                result = (result + ((("&" + key) + "=") + value));
             }
         }
         return result;
@@ -7712,11 +7695,11 @@ public class Bingx extends BingxApi
 
     public Object sign(Object path, Object section, Object method, Object parameters)
     {
-        Object type = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        String type = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         Object version = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         Object access = (section == null || 2 >= ((List<?>)section).size() ? null : ((List<?>)section).get(2));
         Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-        String url = (String) this.implodeHostname(Helpers.GetValue(this.urls.get("api"), type));
+        String url = (String) this.implodeHostname((type == null ? null : ((Map<String, Object>)this.urls.get("api")).get(type)));
         if (Boolean.TRUE.equals(isSandbox) && java.util.Objects.equals(url, null))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + type) + " endpoints")) ;
@@ -7750,9 +7733,9 @@ public class Bingx extends BingxApi
         url = (url + ((("/" + version) + "/") + pathValue));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
-        Object paramsOmitted = this.omit(parameters, this.extractParams(pathValue));
-        ((Map<String, Object>)paramsOmitted).put("timestamp", this.nonce());
-        Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
+        Map<String,Object> paramsSorted = this.keysort(this.extend(this.omit(parameters, this.extractParams(pathValue)), new HashMap<String, Object>() {{
+            put( "timestamp", Bingx.this.nonce() );
+        }}));
         if (java.util.Objects.equals(access, "public"))
         {
             if (paramsSorted.size() > 0)
@@ -7781,7 +7764,9 @@ public class Bingx extends BingxApi
             }};
             if (Boolean.TRUE.equals(isJsonContentType))
             {
-                requestHeaders.put("Content-Type", "application/json");
+                requestHeaders = this.extend(requestHeaders, new HashMap<String, Object>() {{
+                    put( "Content-Type", "application/json" );
+                }});
                 paramsSorted.put("signature", signature);
                 requestBody = this.json(paramsSorted);
             } else
@@ -7810,10 +7795,10 @@ public class Bingx extends BingxApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -7827,10 +7812,10 @@ public class Bingx extends BingxApi
         //        }
         //    }
         //
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
         String transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
-        if ((!java.util.Objects.equals(transferErrorMsg, null)) || (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0")))
+        if ((!java.util.Objects.equals(transferErrorMsg, null)) || (!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0")))
         {
             if (!java.util.Objects.equals(transferErrorMsg, null))
             {
@@ -7838,7 +7823,7 @@ public class Bingx extends BingxApi
             }
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }

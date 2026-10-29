@@ -3,7 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class gate extends gateRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): any;
     /**
      * @method
@@ -390,7 +390,7 @@ export default class gate extends gateRest {
     handleBalanceSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscribe(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     getUrlByMarket(market: any): string;
     getTypeByMarket(market: Market): Str;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;

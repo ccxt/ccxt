@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class blofin extends \ccxt\async\blofin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -187,9 +187,9 @@ class blofin extends \ccxt\async\blofin {
             return;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+            $rawTrade = $this->safe_value($data, $i);
             $trade = $this->parse_ws_trade($rawTrade);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol', '');
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -320,9 +320,9 @@ class blofin extends \ccxt\async\blofin {
          */
         $params['callerMethodName'] = 'watchTicker';
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $result = Async\await($this->watch_tickers(array( $symbolValue ), $params));
-        return $result[$symbolValue];
+        return $this->safe_value($result, $symbolValue);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -373,8 +373,8 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($data[$i]);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ws_ticker($this->safe_value($data, $i));
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
                 $messageHash = $channelName . ':' . $symbol;
@@ -409,7 +409,8 @@ class blofin extends \ccxt\async\blofin {
         $firstMarket = $this->market($symbolsList[0]);
         $channel = 'tickers';
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'public');
         $messageHashes = array();
         $args = array();
         for ($i = 0; $i < count($symbolsList); $i++) {
@@ -436,8 +437,8 @@ class blofin extends \ccxt\async\blofin {
     public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_bid_ask($data[$i]);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ws_bid_ask($this->safe_value($data, $i));
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'bidask:' . $symbol;
             $this->bidsasks[$symbol] = $ticker;
             $client->resolve($ticker, $messageHash);
@@ -477,7 +478,8 @@ class blofin extends \ccxt\async\blofin {
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbol][$timeframe];
+        $symbolResult = $this->safe_dict($result, $symbol, array());
+        return $this->safe_list($symbolResult, $timeframe, array());
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -497,13 +499,16 @@ class blofin extends \ccxt\async\blofin {
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
-        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+        if ($symbolsLength === 0 || $this->safe_list($symbolsAndTimeframes, 0) === null) {
             throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper(true, 'candle', 'watchOHLCVForSymbols', $symbolsAndTimeframes, $params));
+        $result = Async\await($this->watch_multiple_wrapper(true, 'candle', 'watchOHLCVForSymbols', $symbolsAndTimeframes, $params));
+        $symbol = $this->safe_string($result, 0, '');
+        $timeframe = $this->safe_string($result, 1, '');
+        $candles = $this->safe_value($result, 2);
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $candles->getLimit($symbol, $limit);
@@ -582,7 +587,7 @@ class blofin extends \ccxt\async\blofin {
             $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $candle = $data[$i];
+            $candle = $this->safe_value($data, $i);
             $parsed = $this->parse_ohlcv($candle, $market);
             $stored->append($parsed);
         }
@@ -617,7 +622,8 @@ class blofin extends \ccxt\async\blofin {
             'channel' => 'account',
         );
         $request = $this->get_subscription_request(array( $sub ));
-        $url = ($this->urls['api'])['ws'][$marketType]['private'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'private');
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $paramsMarketType), $messageHash));
     }
 
@@ -638,9 +644,6 @@ class blofin extends \ccxt\async\blofin {
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        if ($this->balance === null) {
-            $this->balance = array();
-        }
         $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
         $parsed = $this->parse_ws_balance($message);
         $reserved = array( 'free', 'used', 'total' );
@@ -741,12 +744,10 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->parse_ws_order($data[$i]);
-            $symbol = $order['symbol'];
+            $order = $this->parse_ws_order($this->safe_value($data, $i));
             $orders->append($order);
             if ($channelName !== null) {
-                $messageHash = $channelName . ':' . $symbol;
-                $client->resolve($orders, $messageHash);
+                $client->resolve($orders, $channelName . ':' . $this->safe_string($order, 'symbol', ''));
             }
             $client->resolve($orders, $channelName);
         }
@@ -801,12 +802,11 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($data[$i]);
+            $position = $this->parse_ws_position($this->safe_value($data, $i));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
-                $messageHash = $channelName . ':' . $position['symbol'];
-                $client->resolve($position, $messageHash);
+                $client->resolve($position, $channelName . ':' . $this->safe_string($position, 'symbol', ''));
             }
         }
     }
@@ -840,7 +840,8 @@ class blofin extends \ccxt\async\blofin {
             'instId' => $market['id'],
         );
         $request = $this->get_subscription_request(array( $requestParams ));
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'public');
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $paramsMarketType), $messageHash));
     }
 
@@ -863,7 +864,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         $fundingRate = $this->parse_funding_rate($first);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol', '');
         $this->fundingRates[$symbol] = $fundingRate;
         $messageHash = 'fundingRate:' . $symbol;
         $client->resolve($fundingRate, $messageHash);
@@ -881,8 +882,8 @@ class blofin extends \ccxt\async\blofin {
         list($callerMethodNameOption, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         $isOHLCV = ($channelName === 'candle');
-        $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
-        $symbols = $this->market_symbols($symbols, null, true, true);
+        $symbolsRaw = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
+        $symbols = $this->market_symbols($symbolsRaw, null, true, true);
         $firstMarket = null;
         $firstSymbol = $this->safe_string($symbols, 0);
         if ($firstSymbol !== null) {
@@ -894,21 +895,16 @@ class blofin extends \ccxt\async\blofin {
         }
         $rawSubscriptions = array();
         $messageHashes = array();
-        if ($symbols === null) {
-            $symbols = array();
-        }
-        $symbolsLength = count($symbols);
-        if ($symbolsLength > 0) {
+        if (($symbols !== null) && (strlen($symbols) > 0)) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
                 $channel = $channelName;
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tfArray = $symbolsArray[$i];
-                    $tf = $tfArray[1];
+                    $tf = $this->safe_string($this->safe_value($symbolsArray, $i), 1);
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                    $channel .= $interval;
+                    $channel = $channel . $interval;
                 } else {
                     $market = $this->market($current);
                 }
@@ -917,7 +913,7 @@ class blofin extends \ccxt\async\blofin {
                     'instId' => $market['id'],
                 );
                 $rawSubscriptions[] = $topic;
-                $messageHashes[] = $channel . ':' . $market['symbol'];
+                $messageHashes[] = $channel . ':' . $this->safe_string($market, 'symbol', '');
             }
         } else {
             $rawSubscriptions[] = array( 'channel' => $channelName );
@@ -929,10 +925,11 @@ class blofin extends \ccxt\async\blofin {
         }
         $request = $this->get_subscription_request($rawSubscriptions);
         $privateOrPublic = 'private';
-        if ($isPublic) {
+        if ($isPublic === true) {
             $privateOrPublic = 'public';
         }
-        $url = ($this->urls['api'])['ws'][$marketType][$privateOrPublic];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, $privateOrPublic);
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
@@ -1097,7 +1094,8 @@ class blofin extends \ccxt\async\blofin {
             ),
         );
         $marketType = 'swap'; // for now
-        $url = ($this->urls['api'])['ws'][$marketType]['private'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'private');
         Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 }

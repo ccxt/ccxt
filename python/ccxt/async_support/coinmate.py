@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinmate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
@@ -1225,7 +1225,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -1237,8 +1237,9 @@ class coinmate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         if apiName == 'public':
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            publicQuery = self.extend({}, params)
+            if len(publicQuery) > 0:
+                url += '?' + self.urlencode(publicQuery)
         else:
             self.check_required_credentials()
             # coinmate requires each nonce to be greater than the previous one for the key
@@ -1258,7 +1259,7 @@ class coinmate(Exchange, ImplicitAPI):
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

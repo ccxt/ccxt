@@ -239,22 +239,23 @@ class hyperliquid extends hyperliquid$1["default"] {
      */
     buildOutcomeSymbol(desc, side, outcomeId) {
         const underlying = this.safeString(desc, 'underlying', 'OUTCOME' + outcomeId.toString());
-        const targetPrice = this.safeString(desc, 'targetPrice');
+        const targetPrice = this.safeString(desc, 'targetPrice', '');
         const expiry = this.safeString(desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
         let expiryDate = '';
         if (expiry !== '') {
-            expiryDate = expiry.split('-')[0];
+            const expiryParts = expiry.split('-');
+            expiryDate = expiryParts[0];
         }
         let label = 'NO';
         if (side === 0) {
             label = 'YES';
         }
         let base = underlying.toUpperCase();
-        if ((targetPrice !== undefined) && (targetPrice !== '')) {
+        if (targetPrice !== '') {
             base = base + '_ABOVE_' + targetPrice;
         }
-        if ((expiryDate !== undefined) && (expiryDate !== '')) {
+        if (expiryDate !== '') {
             base = base + '_' + expiryDate;
         }
         return base + ':' + label;
@@ -271,22 +272,24 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {string} the parent market outcome
      */
     buildOutcomeParentSymbol(desc, outcomeId, name = '', question = {}) {
-        const underlying = this.safeString(desc, 'underlying');
-        if ((underlying !== undefined) && (underlying !== '')) {
-            const targetPrice = this.safeString(desc, 'targetPrice');
+        const underlying = this.safeString(desc, 'underlying', '');
+        if (underlying !== '') {
+            const targetPrice = this.safeString(desc, 'targetPrice', '');
             const expiry = this.safeString(desc, 'expiry', '');
             let expiryDate = '';
             if (expiry !== '') {
-                expiryDate = expiry.split('-')[0];
+                const expiryParts = expiry.split('-');
+                expiryDate = expiryParts[0];
             }
-            let base = underlying.toUpperCase();
-            if ((targetPrice !== undefined) && (targetPrice !== '')) {
-                base = base + '_ABOVE_' + targetPrice;
+            let targetPart = '';
+            if (targetPrice !== '') {
+                targetPart = '_ABOVE_' + targetPrice;
             }
-            if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                base = base + '_' + expiryDate;
+            let expiryPart = '';
+            if (expiryDate !== '') {
+                expiryPart = '_' + expiryDate;
             }
-            return base;
+            return underlying.toUpperCase() + targetPart + expiryPart;
         }
         const questionDescription = this.safeString(question, 'description');
         if ((questionDescription !== undefined) && (questionDescription !== '')) {
@@ -295,9 +298,14 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString(questionDesc, 'underlying');
                 const questionExpiry = this.safeString(questionDesc, 'expiry', '');
-                let expiryDate = '';
+                let questionExpiryDate = '';
                 if (questionExpiry !== '') {
-                    expiryDate = questionExpiry.split('-')[0];
+                    const questionExpiryParts = questionExpiry.split('-');
+                    questionExpiryDate = questionExpiryParts[0];
+                }
+                let questionExpiryPart = '';
+                if (questionExpiryDate !== '') {
+                    questionExpiryPart = '_' + questionExpiryDate;
                 }
                 const thresholdsRaw = this.safeString(questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString(desc, 'index');
@@ -326,20 +334,12 @@ class hyperliquid extends hyperliquid$1["default"] {
                         else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        let base = questionUnderlying.toUpperCase() + '_' + bucketLabel;
-                        if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                            base = base + '_' + expiryDate;
-                        }
-                        return base;
+                        return questionUnderlying.toUpperCase() + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf('fallback') >= 0) || (nameLower.indexOf('other') >= 0);
                 if ((questionUnderlying !== undefined && questionUnderlying !== '') && isFallbackLike) {
-                    let base = questionUnderlying.toUpperCase() + '_OTHER';
-                    if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                        base = base + '_' + expiryDate;
-                    }
-                    return base;
+                    return questionUnderlying.toUpperCase() + '_OTHER' + questionExpiryPart;
                 }
             }
         }

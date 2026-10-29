@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class grvt(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         rlOthers = 40
         rlOrders = 20
         return self.deep_extend(super(grvt, self).describe(), {
@@ -565,8 +565,7 @@ class grvt(Exchange, ImplicitAPI):
             'address': walletAddress,
             'signature': self.default_signature(),
         }
-        request = self.create_signed_request(request, 'EIP712_WALLETLOGIN_TYPE')
-        response = await self.privateEdgePostAuthWalletLogin(self.extend(request, params))
+        response = await self.privateEdgePostAuthWalletLogin(self.extend(self.create_signed_request(request, 'EIP712_WALLETLOGIN_TYPE'), params))
         #
         #    {
         #        "location": "",
@@ -597,10 +596,11 @@ class grvt(Exchange, ImplicitAPI):
         approvedBuilder = self.safe_list(currentBuilders, 'results', [])
         length = len(approvedBuilder)
         found = False
+        builderId = self.safe_string(self.options, 'builder')
         for i in range(0, length):
             builderInfo = self.safe_dict(approvedBuilder, i, {})
             builderAccountId = self.safe_string(builderInfo, 'builder_account_id')
-            if builderAccountId == self.safe_string(self.options, 'builder'):
+            if builderAccountId == builderId:
                 found = True
                 break
         if found:
@@ -615,8 +615,7 @@ class grvt(Exchange, ImplicitAPI):
                     'max_spot_fee_rate': self.safe_string(self.options, 'builderRate'),
                     'signature': self.default_signature(),
                 }
-                request = self.create_signed_request(request, 'EIP712_BUILDER_APPROVAL_TYPE')
-                authResponse = await self.privateTradingPostFullV1AuthorizeBuilder(self.extend(request, params))
+                authResponse = await self.privateTradingPostFullV1AuthorizeBuilder(self.extend(self.create_signed_request(request, 'EIP712_BUILDER_APPROVAL_TYPE'), params))
                 #
                 # {
                 #     "result": {
@@ -712,7 +711,7 @@ class grvt(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote + ':' + settle
+        symbol = base + '/' + quote + ':' + quote
         type = None
         typeRaw = self.safe_string(market, 'kind')
         if typeRaw == 'PERPETUAL':
@@ -1012,9 +1011,9 @@ class grvt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         response = await self.publicMarketPostFullV1TradeHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1157,9 +1156,9 @@ class grvt(Exchange, ImplicitAPI):
         request['type'] = self.safe_string(priceTypeMap, selectedPriceType)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = await self.publicMarketPostFullV1Kline(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1234,9 +1233,9 @@ class grvt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = await self.publicMarketPostFullV1Funding(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1282,7 +1281,7 @@ class grvt(Exchange, ImplicitAPI):
         }
 
     def get_sub_account_id(self, params: dict) -> str:
-        subAccountId = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')[0]
+        subAccountId = self.safe_string(self.handle_option_and_params(params, 'getSubAccountId', 'accountId'), 0)
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
         return str(subAccountId)
@@ -1399,14 +1398,13 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint:
             transfers = await self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
-            filteredResults = self.filter_transfers_by_type(transfers, 'deposit', True)
-            transactions = self.get_list_from_object_values(filteredResults[0], 'info')
+            transactions = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, 'deposit', True), 0, []), 'info')
             return self.parse_transactions(transactions, currency, since, limit)
         else:
             response = await self.privateTradingPostFullV1DepositHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
@@ -1451,14 +1449,13 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint:
             transfers = await self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
-            filteredResults = self.filter_transfers_by_type(transfers, 'withdrawal', True)
-            transactions = self.get_list_from_object_values(filteredResults[0], 'info')
+            transactions = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, 'withdrawal', True), 0, []), 'info')
             return self.parse_transactions(transactions, currency, since, limit)
         else:
             response = await self.privateTradingPostFullV1WithdrawalHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
@@ -1657,9 +1654,9 @@ class grvt(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, paramsPaginate, maxLimit)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = await self.privateTradingPostFullV1TransferHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1692,16 +1689,15 @@ class grvt(Exchange, ImplicitAPI):
         #
         rows = self.safe_list(response, 'result', [])
         transfers = self.parse_transfers(rows, currency, since, limit)
-        filteredResults = self.filter_transfers_by_type(transfers, 'internal', False)
-        return self.to_array(filteredResults[1])
+        return self.to_array(self.safe_list(self.filter_transfers_by_type(transfers, 'internal', False), 1, []))
 
-    def filter_transfers_by_type(self, transfers: object, transferType: str, onlyMainAccount=True) -> list[list]:
+    def filter_transfers_by_type(self, transfers: list[dict], transferType: str, onlyMainAccount=True) -> list[list]:
         matchedResults = []
         nonMatchedResults = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
             if (onlyMainAccount and self.safe_string(transfer, 'fromAccount') == '0' and self.safe_string(transfer, 'toAccount') == '0') or (not onlyMainAccount and (self.safe_string(transfer, 'fromAccount') != '0' or self.safe_string(transfer, 'toAccount') != '0')):
-                metadata = self.safe_string(transfer['info'], 'transfer_metadata')
+                metadata = self.safe_string(self.safe_dict(transfer, 'info', {}), 'transfer_metadata')
                 parsedMetadata = self.parse_json(metadata)
                 direction = self.safe_string(parsedMetadata, 'direction')
                 if direction == transferType:
@@ -1749,10 +1745,9 @@ class grvt(Exchange, ImplicitAPI):
             'transfer_type': 'STANDARD',
             'transfer_metadata': None,
         }
-        request = self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency)
         response = None
         try:
-            response = await self.privateTradingPostFullV1Transfer(self.extend(request, paramsFundingAccountId))
+            response = await self.privateTradingPostFullV1Transfer(self.extend(self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency), paramsFundingAccountId))
         except Exception as error:
             msg = self.exception_message(error)
             isFromFundingAccount = fromSubAccount == 'funding'
@@ -1888,20 +1883,20 @@ class grvt(Exchange, ImplicitAPI):
         await self.load_markets_and_sign_in()
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         currency = self.currency(code)
+        networkCode, query = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' withdraw() requires a network parameter')
+        withdrawSignature = self.default_signature()
+        withdrawSignature['chain_id'] = networkId
         request = {
             'to_eth_address': address,
             'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
             'num_tokens': self.currency_to_precision(code, amount),
-            'signature': self.default_signature(),
+            'signature': withdrawSignature,
         }
-        networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode, code)
-        if networkId is None:
-            raise BadRequest(self.id + ' withdraw() requires a network parameter')
-        request['signature']['chain_id'] = networkId
-        request = self.create_signed_request(request, 'EIP712_WITHDRAWAL_TYPE', currency)
-        response = await self.privateTradingPostFullV1Withdrawal(self.extend(request, query))
+        response = await self.privateTradingPostFullV1Withdrawal(self.extend(self.create_signed_request(request, 'EIP712_WITHDRAWAL_TYPE', currency), query))
         #
         # {
         #     "result": {
@@ -2128,7 +2123,7 @@ class grvt(Exchange, ImplicitAPI):
             denominator = math.pow(10, sizeDecLength)
             sizeInteger = sizeDigits * sizeMultiplier / denominator
             legOrder = {
-                'assetID': market['info']['instrument_hash'],
+                'assetID': self.safe_string(market['info'], 'instrument_hash'),
                 'contractSize': self.parse_to_int(sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             }
@@ -2145,6 +2140,7 @@ class grvt(Exchange, ImplicitAPI):
             else:
                 legOrder['limitPrice'] = 0  # should be zero to validate type-check
             legs.append(legOrder)
+        orderSignature = self.safe_dict(order, 'signature', {})
         returnValue = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
@@ -2152,8 +2148,8 @@ class grvt(Exchange, ImplicitAPI):
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'nonce': order['signature']['nonce'],
-            'expiration': order['signature']['expiration'],
+            'nonce': orderSignature['nonce'],
+            'expiration': orderSignature['expiration'],
         }
         if structureType == 'EIP712_ORDER_WITH_BUILDER_TYPE' and self.safe_bool(self.options, 'builderFee', True):
             returnValue['builder'] = order['builder']
@@ -2184,15 +2180,13 @@ class grvt(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['base'] = []
-            request['base'].append(market['baseId'])
-            request['quote'] = []
-            request['quote'].append(market['quoteId'])
+            request['base'] = [market['baseId']]
+            request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = await self.privateTradingPostFullV1FillHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2244,15 +2238,17 @@ class grvt(Exchange, ImplicitAPI):
         }
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            request['base'] = []
-            request['quote'] = []
+            baseIds = []
+            quoteIds = []
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 if market['contract'] is not True:
                     raise BadRequest(self.id + ' fetchPositions() supports contract markets only')
-                request['base'].append(market['baseId'])
-                request['quote'].append(market['quoteId'])
+                baseIds.append(market['baseId'])
+                quoteIds.append(market['quoteId'])
+            request['base'] = baseIds
+            request['quote'] = quoteIds
         response = await self.privateTradingPostFullV1Positions(self.extend(request, params))
         #
         #    {
@@ -2505,15 +2501,13 @@ class grvt(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['base'] = []
-            request['base'].append(market['baseId'])
-            request['quote'] = []
-            request['quote'].append(market['quoteId'])
+            request['base'] = [market['baseId']]
+            request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = await self.privateTradingPostFullV1FundingPaymentHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2579,15 +2573,13 @@ class grvt(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['base'] = []
-            request['base'].append(market['baseId'])
-            request['quote'] = []
-            request['quote'].append(market['quoteId'])
+            request['base'] = [market['baseId']]
+            request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         response = await self.privateTradingPostFullV1OrderHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2995,10 +2987,8 @@ class grvt(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             market = self.market(symbol)
-            request['base'] = []
-            request['base'].append(market['baseId'])
-            request['quote'] = []
-            request['quote'].append(market['quoteId'])
+            request['base'] = [market['baseId']]
+            request['quote'] = [market['quoteId']]
         response = await self.privateTradingPostFullV1CancelAllOrders(self.extend(request, params))
         #
         #    {
@@ -3060,6 +3050,7 @@ class grvt(Exchange, ImplicitAPI):
 
     def create_signed_request(self, request: dict, structureType: str, currencyObj: dict | None = None, signerAddress: Str = None) -> dict:
         messageData = None
+        requestSignature = self.safe_dict(request, 'signature', {})
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
             amountInt = request['num_tokens'] * amountMultiplier
@@ -3072,8 +3063,8 @@ class grvt(Exchange, ImplicitAPI):
                 'toSubAccount': request['to_sub_account_id'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': self.parse_to_int(amountInt),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             }
         elif structureType == 'EIP712_WITHDRAWAL_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
@@ -3084,8 +3075,8 @@ class grvt(Exchange, ImplicitAPI):
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': self.parse_to_int(request['num_tokens'] * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             }
         elif structureType == 'EIP712_ORDER_TYPE' or structureType == 'EIP712_ORDER_WITH_BUILDER_TYPE':
             messageData = self.eip_message_for_order(request, structureType)
@@ -3096,27 +3087,31 @@ class grvt(Exchange, ImplicitAPI):
                 'builderAccountID': request['builder_account_id'],
                 'maxFutureFeeRate': self.parse_to_int(float(request['max_futures_fee_rate']) * amountMultiplier),
                 'maxSpotFeeRate': self.parse_to_int(float(request['max_spot_fee_rate']) * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             }
         elif structureType == 'EIP712_WALLETLOGIN_TYPE':
             messageData = {
                 'signer': request['address'],
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             }
         domainData = self.eip_domain_data()
         definitions = self.eip_definitions()
         ethEncodedMessage = self.eth_encode_structured_data(domainData, definitions[structureType], messageData)
-        ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
         usesPrivKey = self.uses_private_key()  # py transpiler needs this line separated
         secretOrPrivkey = self.privateKey if usesPrivKey else self.secret
         privateKeyWithoutZero = self.remove0x_prefix(secretOrPrivkey)
-        signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKeyWithoutZero, 'secp256k1', None)
-        request['signature']['r'] = self.format_signature_rs(signature['r'])
-        request['signature']['s'] = self.format_signature_rs(signature['s'])
-        request['signature']['v'] = self.sum(27, signature['v'])
-        request['signature']['signer'] = self.eth_get_address_from_private_key('0x' + privateKeyWithoutZero) if (signerAddress is None) else signerAddress
+        signature = self.ecdsa(self.hash(ethEncodedMessage, 'keccak', 'hex'), privateKeyWithoutZero, 'secp256k1', None)
+        request['signature'] = {
+            'signer': self.eth_get_address_from_private_key('0x' + privateKeyWithoutZero) if (signerAddress is None) else signerAddress,
+            'r': self.format_signature_rs(signature['r']),
+            's': self.format_signature_rs(signature['s']),
+            'v': self.sum(27, signature['v']),
+            'expiration': requestSignature['expiration'],
+            'nonce': requestSignature['nonce'],
+            'chain_id': requestSignature['chain_id'],
+        }
         return request
 
     def format_signature_rs(self, value: str) -> str:
@@ -3174,9 +3169,7 @@ class grvt(Exchange, ImplicitAPI):
             }
             # an empty params dict must serialize as an empty json object, not an empty json array,
             # php json_encode would produce [] here which the venue rejects with the same 1003 error
-            paramsKeys = list(params.keys())
-            paramsKeysLength = len(paramsKeys)
-            if paramsKeysLength == 0:
+            if len(params) == 0:
                 requestBody = '{}'
             else:
                 requestBody = self.json(params)
@@ -3184,29 +3177,31 @@ class grvt(Exchange, ImplicitAPI):
         if isPrivate:
             self.check_required_credentials()
             if queryString != '':
-                requestPath = requestPath + '?' + queryString
-            requestHeaders = {
-                'Content-Type': 'application/json',
-            }
+                requestPath = path + '?' + queryString
             if (requestPath.endswith('auth/api_key/login') is True) or (requestPath.endswith('auth/wallet/login') is True):
-                requestHeaders['Cookie'] = 'rm=true;'
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'rm=true;',
+                }
             else:
                 accountId = self.safe_string(self.options, 'AuthAccountId')
                 cookieValue = self.safe_string(self.options, 'AuthCookieValue')
                 if cookieValue is None or accountId is None:
                     raise AuthenticationError(self.id + ' : at first, you need to authenticate with exchange using signIn() method.')
-                requestHeaders['Cookie'] = cookieValue
-                requestHeaders['X-Grvt-Account-Id'] = accountId
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': cookieValue,
+                    'X-Grvt-Account-Id': accountId,
+                }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if url.endswith('auth/api_key/login') or url.endswith('auth/wallet/login'):
             accountId = self.safe_string_2(headers, 'X-Grvt-Account-Id', 'x-grvt-account-id')
             self.options['AuthAccountId'] = accountId
             cookie = self.safe_string_2(headers, 'Set-Cookie', 'set-cookie')
             if cookie is not None:
-                cookieValue = cookie.split(';')[0]
-                self.options['AuthCookieValue'] = cookieValue
+                self.options['AuthCookieValue'] = self.safe_string(cookie.split(';'), 0, '')
             if self.safe_string(self.options, 'AuthCookieValue') is None or self.safe_string(self.options, 'AuthAccountId') is None:
                 raise AuthenticationError(self.id + ' signIn() failed to receive auth-cookie or account-id')
         else:

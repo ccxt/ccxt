@@ -15,7 +15,7 @@ func newCoinspot() *Coinspot {
 	return p
 }
 
-func (this *Coinspot) Describe() any {
+func (this *Coinspot) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinspot",
 		"name":      "CoinSpot",
@@ -595,11 +595,19 @@ func (this *Coinspot) ParseBalance(response any) map[string]any {
 	}
 	var balances any = this.SafeValue2(response, "balance", "balances")
 	if IsArray(balances) {
-		for i := 0; i < GetArrayLength(balances); i++ {
-			var currencies any = GetValue(balances, i)
-			var currencyIds []string = ObjectKeys(currencies)
-			for j := 0; j < len(currencyIds); j++ {
-				var currencyId string = GetValue(currencyIds, j).(string)
+		var rows []any = this.ToArray(balances)
+		var numRows int = len(rows)
+		for i := 0; i < numRows; i++ {
+			var currencies map[string]any = SafeMapTyped(rows, i)
+			var currencyIdsList []string = nil
+			if currencies != nil {
+				currencyIdsList = make([]string, 0, len(currencies))
+				for objectKey := range currencies {
+					currencyIdsList = append(currencyIdsList, objectKey)
+				}
+			}
+			for j := 0; j < len(currencyIdsList); j++ {
+				var currencyId string = currencyIdsList[j]
 				var balance map[string]any = SafeMapTyped(currencies, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
@@ -610,9 +618,9 @@ func (this *Coinspot) ParseBalance(response any) map[string]any {
 			}
 		}
 	} else {
-		var currencyIds []string = ObjectKeys(balances)
-		for i := 0; i < len(currencyIds); i++ {
-			var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyIdsMap []string = ObjectKeys(balances)
+		for i := 0; i < len(currencyIdsMap); i++ {
+			var currencyId string = currencyIdsMap[i]
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(balances, currencyId)
@@ -642,7 +650,7 @@ func (this *Coinspot) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -709,7 +717,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -787,7 +795,7 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -843,7 +851,7 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -888,7 +896,9 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if market["spot"] == true {
 			var symbol *string = SafeStringPtr(market["symbol"])
 			var ticker any = prices[id]
-			AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(ticker, market)))
+			if symbol != nil {
+				result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
+			}
 		}
 	}
 
@@ -921,7 +931,7 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -979,7 +989,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1028,11 +1038,11 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	// }
 	var buyTrades []any = SafeListTypedDefault(response, "buyorders", []any{})
 	for i := 0; i < len(buyTrades); i++ {
-		AddElementToObject(GetValue(buyTrades, i), "side", "buy")
+		AddElementToObject(buyTrades[i], "side", "buy")
 	}
 	var sellTrades []any = SafeListTypedDefault(response, "sellorders", []any{})
 	for i := 0; i < len(sellTrades); i++ {
-		AddElementToObject(GetValue(sellTrades, i), "side", "sell")
+		AddElementToObject(sellTrades[i], "side", "sell")
 	}
 	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
 
@@ -1136,7 +1146,7 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1238,7 +1248,7 @@ func (this *Coinspot) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 	})}
 	return nil
 }
-func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinspot) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1249,12 +1259,12 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	return nil
 }
-func (this *Coinspot) Nonce() any {
+func (this *Coinspot) Nonce() int64 {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Coinspot) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1262,31 +1272,23 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
-	var apiLength int = GetArrayLength(api)
+	var apiLength int = len(api)
 	var isVersionedApi bool = (apiLength > 1)
-	var version any = func() any {
-		if isVersionedApi {
-			return GetValue(api, 0)
-		}
-		return nil
-	}()
-	var accessType any = func() any {
-		if isVersionedApi {
-			return GetValue(api, 1)
-		}
-		return GetValue(api, 0)
-	}()
+	var accessType string = api[0]
+	if isVersionedApi {
+		accessType = api[1]
+	}
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var fullPath any = endpoint
-	if version != nil {
-		fullPath = Add(Add("/", version), endpoint)
+	var fullPath string = endpoint
+	if isVersionedApi {
+		fullPath = "/" + api[0] + endpoint
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], accessType)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, fullPath))
-	if IsEqual(accessType, "private") {
+	var url string = *apiUrl + fullPath
+	if accessType == "private" {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce
 		var nonce any = this.IncrementingNonce()
@@ -1316,7 +1318,7 @@ func NewCoinspot(userConfig map[string]any) *Coinspot {
 func (this *Coinspot) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

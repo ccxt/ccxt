@@ -268,8 +268,8 @@ class myriad extends myriad$1["default"] {
             const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
-                const networkId = this.safeString(raw, 'networkId');
-                const marketId = this.safeString(raw, 'id');
+                const networkId = this.safeString(raw, 'networkId', '');
+                const marketId = this.safeString(raw, 'id', '');
                 const key = networkId + ':' + marketId;
                 if (!(key in seen)) {
                     seen[key] = true;
@@ -590,10 +590,8 @@ class myriad extends myriad$1["default"] {
         const outcomeTitle = this.safeString(position, 'outcomeTitle', '');
         const outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
         const marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
-        const networkId = this.safeString(position, 'networkId');
-        const marketId = this.safeString(position, 'marketId');
         const outcomeId = this.safeString(position, 'outcomeId');
-        const id = networkId + ':' + marketId + '/' + outcomeId;
+        const id = this.safeString(position, 'networkId', '') + ':' + this.safeString(position, 'marketId', '') + '/' + this.safeString(position, 'outcomeId', '');
         const shares = this.safeNumber(position, 'shares');
         const value = this.safeNumber(position, 'value');
         const profit = this.safeNumber(position, 'profit');
@@ -1030,7 +1028,7 @@ class myriad extends myriad$1["default"] {
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        const sideLower = (side !== undefined) ? side.toLowerCase() : undefined;
+        const sideLower = side.toLowerCase();
         const isCostDenominated = this.safeBool(params, 'costDenominated', false);
         if ((sideLower === 'buy') && (!isCostDenominated)) {
             throw new errors.NotSupported(this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -2646,8 +2644,8 @@ class myriad extends myriad$1["default"] {
     async fetchOHLCV(outcome, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(outcomeObj['info'], 'networkId');
-        const marketId = this.safeString(outcomeObj['info'], 'marketId');
+        const networkId = this.safeString(outcomeInfo, 'networkId');
+        const marketId = this.safeString(outcomeInfo, 'marketId');
         const outcomeId = this.safeString(outcomeInfo, 'outcomeId', this.safeString(outcomeInfo, 'id'));
         const outcomeTitle = this.safeString(outcomeInfo, 'outcomeLabel', this.safeString(outcomeInfo, 'label', this.safeString(outcomeInfo, 'title')));
         const bucketKey = this.safeString(this.timeframes, timeframe, '30d');
@@ -2720,7 +2718,7 @@ class myriad extends myriad$1["default"] {
         }
         else {
             const chartsDict = this.safeDict(selectedOutcome, 'price_charts', {});
-            chart = this.safeValue(chartsDict, bucketKey);
+            chart = this.safeDict(chartsDict, bucketKey);
         }
         const pointsList = this.safeList(chart, 'prices', this.safeList(chart, 'data', chart));
         let points = (pointsList !== undefined) ? pointsList : [];
@@ -2798,8 +2796,8 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const info = this.safeDict(outcomeObj, 'info', {});
-            const networkId = this.safeString(info, 'networkId');
-            const marketId = this.safeString(info, 'marketId');
+            const networkId = this.safeString(info, 'networkId', '');
+            const marketId = this.safeString(info, 'marketId', '');
             const key = networkId + ':' + marketId;
             if (!(key in outcomesByMarket)) {
                 outcomesByMarket[key] = [];
@@ -3146,8 +3144,7 @@ class myriad extends myriad$1["default"] {
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         const client = this.client(url);
-        const connectSent = this.safeValue(client.subscriptions, 'connect');
-        if (connectSent === undefined) {
+        if (!('connect' in client.subscriptions)) {
             this.options['wsConnected'] = false;
             const requestId = this.requestId(url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -3246,8 +3243,8 @@ class myriad extends myriad$1["default"] {
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
@@ -3255,7 +3252,7 @@ class myriad extends myriad$1["default"] {
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo(url);
         const client = this.client(url);
-        const isNewSubscription = this.safeValue(client.subscriptions, channel) === undefined;
+        const isNewSubscription = !(channel in client.subscriptions);
         if (isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -3326,8 +3323,8 @@ class myriad extends myriad$1["default"] {
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'trades::' + sym;
@@ -3352,8 +3349,8 @@ class myriad extends myriad$1["default"] {
         }
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
@@ -3362,7 +3359,7 @@ class myriad extends myriad$1["default"] {
     }
     walletAddressOrUndefined() {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if ((this.walletAddress !== undefined) && (this.walletAddress.length > 0)) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return this.walletAddress.toLowerCase();
         }
         if (this.privateKey !== undefined) {
@@ -3485,8 +3482,8 @@ class myriad extends myriad$1["default"] {
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'prices:' + networkId + ':' + marketId;
         const messageHash = 'ticker::' + sym;
@@ -3515,8 +3512,8 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < symbolsLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const info = this.safeDict(outcomeObj, 'info', {});
-            const networkId = this.safeString(info, 'networkId');
-            const marketId = this.safeString(info, 'marketId');
+            const networkId = this.safeString(info, 'networkId', '');
+            const marketId = this.safeString(info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push(this.safeOutcomeSymbol(outcomes[i], outcomeObj));
             if (!(channel in seenChannels)) {
@@ -3697,7 +3694,7 @@ class myriad extends myriad$1["default"] {
         const url = this.safeString(this.urls['api'], 'ws');
         await this.connectCentrifugo(url);
         const client = this.client(url);
-        const isNewSubscription = this.safeValue(client.subscriptions, channel) === undefined;
+        const isNewSubscription = !(channel in client.subscriptions);
         if (isNewSubscription) {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -3781,15 +3778,13 @@ class myriad extends myriad$1["default"] {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        let address = this.walletAddress;
-        const hasWallet = (address !== undefined) && (this.walletAddress.length > 0);
-        if (!hasWallet) {
-            if (this.privateKey === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' requires a walletAddress or privateKey to watch private channels');
-            }
-            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
+            return this.walletAddress.toLowerCase();
         }
-        return address.toLowerCase();
+        if (this.privateKey === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a walletAddress or privateKey to watch private channels');
+        }
+        return this.ethGetAddressFromPrivateKey(this.privateKey).toLowerCase();
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
@@ -3837,9 +3832,7 @@ class myriad extends myriad$1["default"] {
         // included — the previous logic only sent a body for authenticated requests)
         let bodyValue = undefined;
         if (method !== 'GET') {
-            const queryKeys = Object.keys(query);
-            const queryKeysLength = queryKeys.length;
-            if (queryKeysLength > 0) {
+            if (Object.keys(query).length > 0) {
                 bodyValue = this.json(query);
             }
         }

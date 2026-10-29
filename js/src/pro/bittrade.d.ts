@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/t
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bittrade extends bittradeRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method
@@ -53,7 +53,6 @@ export default class bittrade extends bittradeRest {
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
     watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;

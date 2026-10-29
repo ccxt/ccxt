@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class hollaex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -368,13 +368,13 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            baseCode = self.common_currency_code(baseId.upper())
+            quoteCode = self.common_currency_code(quoteId.upper())
             result.append({
                 'id': self.safe_string(market, 'name'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': baseCode + '/' + quoteCode,
+                'base': baseCode,
+                'quote': quoteCode,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -689,7 +689,7 @@ class hollaex(Exchange, ImplicitAPI):
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = tickers[key]
+            ticker = self.safe_value(tickers, key)
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
@@ -887,8 +887,9 @@ class hollaex(Exchange, ImplicitAPI):
         makerFees = self.safe_dict(fees, 'maker', {})
         takerFees = self.safe_dict(fees, 'taker', {})
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             makerString = self.safe_string(makerFees, market['id'])
             takerString = self.safe_string(takerFees, market['id'])
@@ -982,12 +983,12 @@ class hollaex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        currenciesById = self.currencies_by_id
-        if currenciesById is None:
+        if self.currencies_by_id is None:
             raise ExchangeError(self.id + ' currencies not loaded')
+        currenciesById = self.currencies_by_id
         currencyIds = list(currenciesById.keys())
         for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+            currencyId = self.safe_string(currencyIds, i, '')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(response, currencyId + '_available')
@@ -1022,7 +1023,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -1138,10 +1139,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                     "exchange_id": 176
         #                 }
         #             }
-        order = response
-        if order is None:
+        if response is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
-        return self.parse_order(order)
+        return self.parse_order(response)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1622,7 +1622,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1848,14 +1848,13 @@ class hollaex(Exchange, ImplicitAPI):
         network = self.safe_string(paramsWithdrawTag, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
-        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request = {
             'currency': currency['id'],
             'amount': amount,
             'address': addressWithTag,
             'network': self.network_code_to_id(network, code),
         }
-        response = await self.privatePostUserWithdrawal(self.extend(request, paramsOmitted))
+        response = await self.privatePostUserWithdrawal(self.extend(request, self.omit(paramsWithdrawTag, 'network')))
         #
         #     {
         #         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1909,8 +1908,8 @@ class hollaex(Exchange, ImplicitAPI):
                 'fee': None,
                 'percentage': None,
             },
-            'networks': {},
         }
+        networks = {}
         allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
         if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
@@ -1928,10 +1927,11 @@ class hollaex(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' requires a networkCode argument')
                 networkCodeUpper = networkCode.upper()  # default to the upper case network code
                 withdrawalFee = self.safe_number(value, 'value')
-                result['networks'][networkCodeUpper] = {
+                networks[networkCodeUpper] = {
                     'deposit': None,
                     'withdraw': withdrawalFee,
                 }
+        result['networks'] = networks
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -2000,7 +2000,7 @@ class hollaex(Exchange, ImplicitAPI):
             timeoutMs = self.parse_to_int(self.timeout)
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(timeoutMs / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
-            expiresString = str(expires)
+            expiresString = self.number_to_string(expires)
             auth = method + requestPath + expiresString
             requestHeaders = {
                 'api-key': self.apiKey,
@@ -2017,7 +2017,7 @@ class hollaex(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # { "message": "Invalid token" }
         if response is None:
             return None

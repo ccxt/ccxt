@@ -425,7 +425,7 @@ public partial class polymarket : Exchange
         //
         //     { "time": 1788524530209 }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "time"));
+        return this.safeInteger(response, "time") ?? 0;
     }
 
     /**
@@ -465,14 +465,14 @@ public partial class polymarket : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promises = new List<object> {this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)};
-        List<object> responses = await promiseAll(promises);
-        object instruments = (responses != null && 0 < responses.Count ? responses[0] : null);
-        object assets = (responses != null && 1 < responses.Count ? responses[1] : null);
+        List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)};
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
+        List<object> instruments = this.safeList(responses, 0, new List<object>() {});
+        List<object> assets = this.safeList(responses, 1, new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(instruments); i++)
+        for (int i = 0; i < instruments.Count; i++)
         {
-            object instrument = getValue(instruments, i);
+            object instrument = instruments[i];
             string? baseId = this.safeString(instrument, "base_asset");
             if ((baseId == null))
             {
@@ -515,9 +515,9 @@ public partial class polymarket : Exchange
             { "type", "fiat" },
             { "networks", new Dictionary<string, object>() {} },
         });
-        for (int i = 0; i < getArrayLength(assets); i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            object asset = getValue(assets, i);
+            object asset = assets[i];
             string? currencyId = this.safeString(asset, "asset");
             if ((currencyId == null))
             {
@@ -692,8 +692,8 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        List<object> promises = new List<object> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
-        List<object> responses = await promiseAll(promises);
+        List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         //
         // tickers
         //
@@ -738,28 +738,28 @@ public partial class polymarket : Exchange
         //     ]
         //
         Dictionary<string, object> merged = new Dictionary<string, object>() {};
-        object statistics = (responses != null && 1 < responses.Count ? responses[1] : null);
-        for (int i = 0; i < getArrayLength(statistics); i++)
+        List<object> statistics = this.safeList(responses, 1, new List<object>() {});
+        for (int i = 0; i < statistics.Count; i++)
         {
-            object entry = getValue(statistics, i);
+            object entry = statistics[i];
             string? instrumentId = this.safeString(entry, "instrument_id");
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[(string)instrumentId] = this.omit(entry, "klines");
         }
-        object bbos = (responses != null && 2 < responses.Count ? responses[2] : null);
-        for (int i = 0; i < getArrayLength(bbos); i++)
+        List<object> bbos = this.safeList(responses, 2, new List<object>() {});
+        for (int i = 0; i < bbos.Count; i++)
         {
-            object entry = getValue(bbos, i);
+            object entry = bbos[i];
             string? instrumentId = this.safeString(entry, "instrument_id");
             IDictionary<string, object> previous = this.safeDict(merged, instrumentId, new Dictionary<string, object>() {});
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged[(string)instrumentId] = this.extend(previous, entry);
         }
-        object tickers = (responses != null && 0 < responses.Count ? responses[0] : null);
+        List<object> tickers = this.safeList(responses, 0, new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tickers); i++)
+        for (int i = 0; i < tickers.Count; i++)
         {
-            object entry = getValue(tickers, i);
+            object entry = tickers[i];
             string? instrumentId = this.safeString(entry, "instrument_id");
             IDictionary<string, object> previous = this.safeDict(merged, instrumentId, new Dictionary<string, object>() {});
             result.Add(this.extend(previous, entry));
@@ -1346,7 +1346,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < this.symbols.Count; i++)
         {
-            object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
+            string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
             string? category = this.safeString((market.ContainsKey("info") ? market["info"] : null), "category");
             IDictionary<string, object> entry = this.safeDict(byCategory, category, fallback);
@@ -1489,11 +1489,13 @@ public partial class polymarket : Exchange
             { "params", parameters },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, parameters));
-        object first = (orders != null && 0 < orders.Count ? orders[0] : null);
-        if ((getValue(first, "status") is "rejected"))
+        IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+        string? firstStatus = this.safeString(first, "status");
+        if (firstStatus == "rejected")
         {
-            string? errorId = this.safeString(getValue(first, "info"), "error");
-            string feedback = ((this.id + " createOrder() rejected: ") + this.json(getValue(first, "info")));
+            IDictionary<string, object> firstInfo = this.safeDict(first, "info", new Dictionary<string, object>() {});
+            string? errorId = this.safeString(firstInfo, "error");
+            string feedback = ((this.id + " createOrder() rejected: ") + this.json(firstInfo));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorId, feedback);
             throw new InvalidOrder (feedback) ;
@@ -1551,9 +1553,9 @@ public partial class polymarket : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object ack = response[i];
+            IDictionary<string, object> ack = this.safeDict(response, i, new Dictionary<string, object>() {});
             Dictionary<string, object> marketInner = ((Dictionary<string, object>)(ordersMarkets != null && i < ordersMarkets.Count ? ordersMarkets[i] : null));
-            object echo = (ordersEntries != null && i < ordersEntries.Count ? ordersEntries[i] : null);
+            IDictionary<string, object> echo = this.safeDict(ordersEntries, i, new Dictionary<string, object>() {});
             string? status = this.safeString(ack, "status");
             Dictionary<string, object> merged = this.extend(echo, new Dictionary<string, object>() {
                 { "oid", this.safeInteger(ack, "oid") },
@@ -1634,7 +1636,7 @@ public partial class polymarket : Exchange
             List<object> numericIds = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                numericIds.Add(this.parseToInt((ids != null && i < ids.Count ? ids[i] : null)));
+                numericIds.Add(this.parseToInt(this.safeString(ids, i)));
             }
             signable = new List<object>() {"cancelOrders", numericIds};
             bodyOp = new Dictionary<string, object>() {
@@ -1652,7 +1654,7 @@ public partial class polymarket : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object ack = response[i];
+            IDictionary<string, object> ack = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? status = this.safeString(ack, "status");
             string unified = (status == "err") ? "rejected" : "canceled";
             Dictionary<string, object> merged = new Dictionary<string, object>() {
@@ -1733,7 +1735,7 @@ public partial class polymarket : Exchange
         //
         //     { "status": "ok", "deadline": 1788546570789 }
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -2198,7 +2200,7 @@ public partial class polymarket : Exchange
         // order_id filter is ever ignored the way the tickers one is
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object row = response[i];
+            IDictionary<string, object> row = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? rowId = this.safeString(row, "order_id");
             if ((rowId == id))
             {
@@ -2295,8 +2297,9 @@ public partial class polymarket : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["instrument_id"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["instrument_id"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         if ((since != null))
         {
@@ -2631,7 +2634,7 @@ public partial class polymarket : Exchange
         // instrument_id filter is ever ignored the way the tickers one is
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object row = response[i];
+            IDictionary<string, object> row = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? rowId = this.safeString(row, "instrument_id");
             if (isEqual(rowId, (market.ContainsKey("id") ? market["id"] : null)))
             {
@@ -2674,7 +2677,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> leverage = ccxt.BaseExchange.FromLeverage(await this.FetchLeverage(symbol, parameters));
-        return ccxt.BaseExchange.ToMarginMode(new Dictionary<string, object>() {             { "info", (leverage != null && leverage.ContainsKey("info") ? leverage["info"] : null) },             { "symbol", (leverage != null && leverage.ContainsKey("symbol") ? leverage["symbol"] : null) },             { "marginMode", (leverage != null && leverage.ContainsKey("marginMode") ? leverage["marginMode"] : null) },         });
+        return ccxt.BaseExchange.ToMarginMode(new Dictionary<string, object>() {             { "info", this.safeDict(leverage, "info") },             { "symbol", this.safeString(leverage, "symbol") },             { "marginMode", this.safeString(leverage, "marginMode") },         });
     }
 
     /**
@@ -2719,7 +2722,7 @@ public partial class polymarket : Exchange
         //
         //     { "status": "ok", "instrument_id": 1, "leverage": 10, "cross": true }
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -2974,7 +2977,7 @@ public partial class polymarket : Exchange
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public async virtual Task<object> signPerpsOp(object signable, object bodyOp, object parameters = null)
+    public async virtual Task<object> signPerpsOp(object signable, IDictionary<string, object> bodyOp, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object credentials = await this.loadProxyCredentials();
@@ -3032,14 +3035,14 @@ public partial class polymarket : Exchange
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    public virtual object compactSignable(object row)
+    public virtual object compactSignable(IList<object> row)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(row); i++)
+        for (int i = 0; i < (row?.Count ?? 0); i++)
         {
-            if (!(getValue(row, i) == null))
+            if (!((row != null && i < row.Count ? row[i] : null) == null))
             {
-                result.Add(getValue(row, i));
+                result.Add((row != null && i < row.Count ? row[i] : null));
             }
         }
         return result;
@@ -3055,11 +3058,12 @@ public partial class polymarket : Exchange
         // per-instrument decimals, deliberately for any magnitude - a six
         // digit integer price coarsens to an effective step of ten
         Dictionary<string, object> market = this.market(symbol);
+        IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
         string significant = this.decimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS);
-        string result = this.decimalToPrecision(significant, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), TICK_SIZE);
+        string result = this.decimalToPrecision(significant, ROUND, (precision != null && precision.ContainsKey("price") ? precision["price"] : null), TICK_SIZE);
         if (result == "0")
         {
-            throw new InvalidOrder (((((this.id + " price of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum price precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price")))) ;
+            throw new InvalidOrder (((((this.id + " price of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum price precision of ") + this.numberToString((precision != null && precision.ContainsKey("price") ? precision["price"] : null)))) ;
         }
         return result;
     }
@@ -3072,11 +3076,12 @@ public partial class polymarket : Exchange
         }
         // quantities carry the same five significant figures cap
         Dictionary<string, object> market = this.market(symbol);
+        IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
         string significant = this.decimalToPrecision(amount, TRUNCATE, 5, SIGNIFICANT_DIGITS);
-        string result = this.decimalToPrecision(significant, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), TICK_SIZE);
+        string result = this.decimalToPrecision(significant, TRUNCATE, (precision != null && precision.ContainsKey("amount") ? precision["amount"] : null), TICK_SIZE);
         if (result == "0")
         {
-            throw new InvalidOrder (((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount")))) ;
+            throw new InvalidOrder (((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + this.numberToString((precision != null && precision.ContainsKey("amount") ? precision["amount"] : null)))) ;
         }
         return result;
     }
@@ -3096,8 +3101,7 @@ public partial class polymarket : Exchange
         {
             IDictionary<string, object> op = this.safeDict(parameters, "op", new Dictionary<string, object>() {});
             List<object> args = this.safeList(op, "args", new List<object>() {});
-            int argsLength = args.Count;
-            return this.sum(1, this.parseToInt(((double)argsLength / 20)));
+            return this.sum(1, this.parseToInt(((double)args.Count / 20)));
         }
         if (isEqual(path, "info/book"))
         {
@@ -3117,19 +3121,21 @@ public partial class polymarket : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiType = getValue(api, 0);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiType), "/"), this.implodeParams(path, parameters));
+        string? apiType = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string baseUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiType, "");
+        string? implodedPath = this.implodeParams(path, parameters);
+        string url = ((baseUrl + "/") + implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersResolved = new Dictionary<string, object>() {
             { "Accept", "application/json" },
         };
         string? bodyResolved = null;
-        if ((apiType is "trade"))
+        if (apiType == "trade")
         {
             // the params hold the signed operation envelope assembled by the
             // calling method, the signature authenticates so no headers apply
@@ -3143,10 +3149,10 @@ public partial class polymarket : Exchange
                 int keysLength = keys.Count;
                 if (keysLength > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = ((((baseUrl + "/") + implodedPath) + "?") + this.urlencode(query));
                 }
             }
-            if ((apiType is "private"))
+            if (apiType == "private")
             {
                 IDictionary<string, object> credentials = this.safeDict(this.options, "proxyCredentials", new Dictionary<string, object>() {});
                 headersResolved["POLYMARKET-PROXY"] = this.safeString(credentials, "proxy");
@@ -3161,7 +3167,7 @@ public partial class polymarket : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3177,7 +3183,7 @@ public partial class polymarket : Exchange
         //     }
         //
         object source = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((Convert.ToInt64(code) >= 400)))
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((code >= 400)))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape
@@ -3190,15 +3196,15 @@ public partial class polymarket : Exchange
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
-            if (isEqual(code, 400))
+            if ((code == 400))
             {
                 throw new BadRequest (feedback) ;
             }
             // an unmapped error on a 4xx or 5xx response falls through so the
             // http status fallback can apply a retryable classification, while
             // covering statuses the base table does not know
-            string codeAsString = code.ToString();
-            if (((Convert.ToInt64(code) < 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            string codeAsString = ((object)code).ToString();
+            if ((((code == null || code < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -35,7 +36,7 @@ public class TestLoadMarkets extends BaseTest {
         Object marketValues = Helpers.objectValues(markets);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
+            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i))));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option", "index"));

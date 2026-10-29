@@ -1,11 +1,11 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
  */
 export default class grvt extends Exchange {
-    describe(): any;
+    describe(): Dict;
     eipDefinitions(): Dict;
     usesPrivateKey(): boolean;
     /**
@@ -160,7 +160,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
-    filterTransfersByType(transfers: any, transferType: string, onlyMainAccount?: boolean): List[];
+    filterTransfersByType(transfers: Dict[], transferType: string, onlyMainAccount?: boolean): List[];
     /**
      * @method
      * @name grvt#transfer
@@ -365,5 +365,5 @@ export default class grvt extends Exchange {
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: int): [Dict, Dict];
     requestId(): number;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

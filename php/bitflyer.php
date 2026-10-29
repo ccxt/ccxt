@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitflyer as Exchange;
 
 class bitflyer extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
@@ -223,7 +223,7 @@ class bitflyer extends Exchange {
     public function parse_expiry_date(string $expiry): ?int {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
-        $year = mb_substr($expiry, 5, 9 - 5);
+        $expiryYear = mb_substr($expiry, 5, 9 - 5);
         $months = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -242,7 +242,7 @@ class bitflyer extends Exchange {
         if ($month === null) {
             return null;
         }
-        return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
+        return $this->parse8601($expiryYear . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -349,8 +349,8 @@ class bitflyer extends Exchange {
                 continue;
             }
             $symbol = $base . '/' . $quote;
-            $taker = $this->fees['trading']['taker'];
-            $maker = $this->fees['trading']['maker'];
+            $taker = $this->safe_number($this->fees['trading'], 'taker');
+            $maker = $this->safe_number($this->fees['trading'], 'maker');
             $contract = $swap || $future;
             if ($contract) {
                 $maker = 0.0;
@@ -573,10 +573,7 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $idInner = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $this->safe_string($trade, $idInner);
-            }
+            $order = $this->safe_string($trade, $side . '_child_order_acceptance_id');
         }
         if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
@@ -878,8 +875,8 @@ class bitflyer extends Exchange {
         }
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
-            $found = $this->safe_dict($ordersById, $id);
+        $found = $this->safe_dict($ordersById, $id);
+        if ($found !== null) {
             return $found;
         }
         throw new OrderNotFound($this->id . ' No order found with id ' . $id);
@@ -1253,21 +1250,20 @@ class bitflyer extends Exchange {
         }
         $request .= $path;
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $request .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if ($query !== '') {
+                $request .= '?' . $query;
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $baseUrl = $this->implode_hostname($apiUrl);
-        $url = $baseUrl . $request;
+        $url = $this->implode_hostname($apiUrl) . $request;
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $content = array( $nonce, $method, $request );
-            $auth = implode('', $content);
+            $auth = $nonce . $method . $request;
             if (count($params) > 0) {
                 if ($method !== 'GET') {
                     $body = $this->json($params);
@@ -1287,7 +1283,7 @@ class bitflyer extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

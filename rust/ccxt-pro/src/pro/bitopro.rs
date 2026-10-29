@@ -287,11 +287,11 @@ impl BitoproCore {
 }
 
     pub async fn watch_public(&mut self, mut path: Value, mut messageHash: Value, mut marketId: Value) -> Value {
-        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]);
-        if (wsUrl == Value::Null) {
+        let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]);
+        if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/".into())).into()), path).into()), Value::Str("/".into())).into()), marketId).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("/".into())).into()), marketId).into());
         return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
 
     Value::Null
@@ -324,11 +324,12 @@ impl BitoproCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ORDER_BOOK".into()), Value::Str(":".into())).into()), symbolValue).into());
+        let mut marketIdValue: Value = self.safe_string_k(market, "id", &[Value::Str("".into())]);
         let mut endPart: Value = Value::Null;
         if (limit == Value::Null) {
-            endPart = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            endPart = marketIdValue.clone();
         }  else {
-            endPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), self.number_to_string(limit.clone())).into());
+            endPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), self.number_to_string(limit.clone())).into());
         }
         let mut orderbook: Value = self.watch_public(Value::Str("order-books".into()), messageHash, endPart).await;
         return orderbook.limit();
@@ -449,9 +450,10 @@ impl BitoproCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_134 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            tradesCache.append(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut __for_first_132: bool = true;
+            while { if !__for_first_132 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_132 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            tradesCache.append(trade);
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesCache.clone()); }
@@ -487,13 +489,14 @@ impl BitoproCore {
         let mut messageHash: Value = Value::Str("USER_TRADE".into());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
+            let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolValue).into());
         }
-        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]);
-        if (wsUrl == Value::Null) {
+        let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]);
+        if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() has no private websocket url".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/".into())).into()), Value::Str("user-trades".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("user-trades".into())).into());
         self.authenticate(url.clone());
         let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
@@ -535,10 +538,10 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut baseId: Value = self.safe_string_k(data.clone(), "base", &[]);
-        let mut quoteId: Value = self.safe_string_k(data.clone(), "quote", &[]);
-        let mut base: Value = self.safe_currency_code(baseId, &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(data.clone(), "base", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(data.clone(), "quote", &[]);
+        let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return;
         }
@@ -577,20 +580,20 @@ impl BitoproCore {
         //         "isMaker": false
         //     }
         //
-        let mut id: Value = self.safe_string_k(trade.clone(), "matchID", &[]);
-        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderID", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "matchID", &[]);
+        let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderID", &[]);
         let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "transactionTimestamp", &[]);
-        let mut baseId: Value = self.safe_string_k(trade.clone(), "base", &[]);
-        let mut quoteId: Value = self.safe_string_k(trade.clone(), "quote", &[]);
-        let mut base: Value = self.safe_currency_code(baseId, &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(trade.clone(), "base", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "quote", &[]);
+        let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
         if (base != Value::Null) && (quote != Value::Null) {
             symbol = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
         }
         let mut marketResolved: Value = self.safe_market(&[symbol.clone(), market]);
-        let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "orderType", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side != Value::Null) {
             if (side.as_str() == Some("ask")) {
@@ -599,14 +602,14 @@ impl BitoproCore {
                 side = Value::Str("buy".into());
             }
         }
-        let mut amount: Value = self.safe_string_k(trade.clone(), "volume", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "volume", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeAmount: Value = self.safe_string_k(trade.clone(), "fee", &[]);
+        let mut feeAmount: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut feeSymbol: Value = self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]);
-        if (feeAmount != Value::Null) {
+        if (feeAmount.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeAmount);
+                    m.insert("cost".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), feeSymbol);
                     m.insert("rate".to_string(), Value::Null);
                 m
@@ -623,17 +626,17 @@ impl BitoproCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
@@ -688,19 +691,19 @@ impl BitoproCore {
         //         "low24hr": "1179321"
         //     }
         //
-        let mut marketId: Value = self.safe_string_lower_k(message.clone(), "pair", &[]);
-        if (marketId == Value::Null) {
+        let mut marketId: Option<String> = self.safe_string_lower_k_opt(message.clone(), "pair", &[]);
+        if (marketId.is_none()) {
             return;
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("_".into())]);
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut result: Value = self.parse_ticker(message.clone(), &[market.clone()]);
-        add_element_to_object(&mut result, &Value::Str("symbol".into()), self.safe_string_k(market, "symbol", &[])); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[])); } // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); } // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
         if (event != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".into())).into()), symbol).into());
@@ -722,7 +725,7 @@ impl BitoproCore {
         }));
         let mut payload: Value = self.string_to_base64(rawData, &[]);
         let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-        let mut defaultOptions: Value = Value::Map({
+        let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -739,9 +742,17 @@ impl BitoproCore {
             m
         });
         // this.options = this.extend (defaultOptions, this.options);
-        self.extend_exchange_options(&[defaultOptions]);
-        let mut originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), "headers");
-        let mut headers: Value = Value::Map({
+        self.extend_exchange_options(&[Value::Map(defaultOptions)]);
+        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut wsInnerOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(wsOptions, "options", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        let mut originalHeaders: Value = wsInnerOptions.get("headers").cloned().unwrap_or(Value::Null);
+        let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-BITOPRO-API".to_string(), Value::Str("ccxt".into()));
                 m.insert("X-BITOPRO-APIKEY".to_string(), self.apiKey.clone());
@@ -749,10 +760,10 @@ impl BitoproCore {
                 m.insert("X-BITOPRO-SIGNATURE".to_string(), signature);
             m
         });
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), headers);
+        wsInnerOptions.insert("headers".into(), Value::Map(headers));
         // instantiate client
         self.client(&[url]);
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), originalHeaders);
+        wsInnerOptions.insert("headers".into(), originalHeaders);
 }
 
 /*
@@ -773,11 +784,11 @@ impl BitoproCore {
             self.load_markets(&[]).await;
         }
         let mut messageHash: Value = Value::Str("ACCOUNT_BALANCE".into());
-        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]);
-        if (wsUrl == Value::Null) {
+        let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]);
+        if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() has no private websocket url".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, Value::Str("/".into())).into()), Value::Str("account-balance".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("account-balance".into())).into());
         self.authenticate(url.clone());
         return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
 
@@ -809,7 +820,7 @@ impl BitoproCore {
     m
 }) });
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        let mut datetime: Value = self.safe_string_k(message, "datetime", &[]);
+        let mut datetime: Option<String> = self.safe_string_k_opt(message, "datetime", &[]);
         let mut currencies: Value = object_keys(&data);
         // merge updates into the existing balance object instead of building a
         // fresh one: a consumer awakened by an earlier message holds a
@@ -825,23 +836,23 @@ impl BitoproCore {
         }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null)); }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let mut currency: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
-            let mut balance: Value = self.safe_dict(data.clone(), currency, &[Value::Map({
+            let mut __for_first_133: bool = true;
+            while { if !__for_first_133 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_133 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
+            let mut currency: Option<String> = self.safe_string_opt(currencies.clone(), i.clone(), &[]);
+            let mut balance: Value = self.safe_dict(data.clone(), currency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[])); }
+            let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
+            account.insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[]));
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }
         }
         }
@@ -852,7 +863,7 @@ impl BitoproCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TRADE".to_string(), Value::Str("handle_trade".into()).clone());
                 m.insert("TICKER".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -862,7 +873,7 @@ impl BitoproCore {
             m
         });
         let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut method: Value = self.safe_value(methods, event, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), event, &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

@@ -11,7 +11,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class binancecoinm extends binance {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
             'name' => 'Binance COIN-M',

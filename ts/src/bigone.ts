@@ -16,7 +16,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -619,7 +619,7 @@ export default class bigone extends Exchange {
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
         const response = this.safeDict (promisesResult, 0);
-        const contractResponse = promisesResult[1];
+        const contractResponse = this.safeValue (promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -850,7 +850,7 @@ export default class bigone extends Exchange {
         //    }
         //
         let marketType: Str = 'swap';
-        if ('asset_pair_name' in ticker) {
+        if (this.safeString (ticker, 'asset_pair_name') !== undefined) {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
@@ -1120,7 +1120,7 @@ export default class bigone extends Exchange {
         }
     }
 
-    parseContractBidsAsks (bidsAsks: any) {
+    parseContractBidsAsks (bidsAsks: Dict) {
         const bidsAsksKeys = Object.keys (bidsAsks);
         const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
@@ -1132,8 +1132,8 @@ export default class bigone extends Exchange {
     }
 
     parseContractOrderBook (orderbook: Dict, symbol: string, limit: Int = undefined): OrderBook {
-        const responseBids = this.safeDict (orderbook, 'bids');
-        const responseAsks = this.safeDict (orderbook, 'asks');
+        const responseBids = this.safeDict (orderbook, 'bids', {});
+        const responseAsks = this.safeDict (orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks (responseBids);
         const asks = this.parseContractBidsAsks (responseAsks);
         return {
@@ -1976,7 +1976,7 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const exchangeMillisecondsCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0);
         const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
@@ -1999,7 +1999,7 @@ export default class bigone extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const request: Dict = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
@@ -2153,7 +2153,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         let type: Str = 'deposit';
-        if ('customer_id' in transaction) {
+        if (this.safeString (transaction, 'customer_id') !== undefined) {
             type = 'withdrawal';
         }
         const internal = this.safeBool (transaction, 'is_internal');
@@ -2426,7 +2426,7 @@ export default class bigone extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2434,12 +2434,12 @@ export default class bigone extends Exchange {
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') && (code !== undefined)) {
+        if ((codeError !== '0') && (codeError !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

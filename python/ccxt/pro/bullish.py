@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeError
 
 class bullish(ccxt.async_support.bullish):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bullish, self).describe(), {
             'has': {
                 'ws': True,
@@ -95,8 +95,7 @@ class bullish(ccxt.async_support.bullish):
         wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
-        fullUrl = wsUrl + url
-        return await self.watch(fullUrl, messageHash, self.deep_extend(message, params), messageHash)
+        return await self.watch(wsUrl + url, messageHash, self.deep_extend(message, params), messageHash)
 
     async def watch_private(self, messageHash: str, subscribeHash: str, request={}, params={}) -> object:
         url = self.urls['api']['ws']['private']
@@ -131,7 +130,7 @@ class bullish(ccxt.async_support.bullish):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'trades::' + market['symbol']
+        messageHash = 'trades::' + self.safe_string(market, 'symbol', '')
         url = '/trading-api/v1/market-data/trades'
         request = {
             'topic': 'anonymousTrades',
@@ -171,6 +170,8 @@ class bullish(ccxt.async_support.bullish):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
+        if symbol is None:
+            return
         market = self.market(symbol)
         rawTrades = self.safe_list(data, 'trades', [])
         trades = self.parse_trades(rawTrades, market)
@@ -179,10 +180,11 @@ class bullish(ccxt.async_support.bullish):
             tradesArrayCache = ArrayCache(limit)
             self.trades[symbol] = tradesArrayCache
         tradesArray = self.trades[symbol]
-        for i in range(0, len(trades)):
-            tradesArray.append(trades[i])
+        tradesList = self.to_array(trades)
+        for i in range(0, len(tradesList)):
+            tradesArray.append(tradesList[i])
         self.trades[symbol] = tradesArray
-        messageHash = 'trades::' + market['symbol']
+        messageHash = 'trades::' + self.safe_string(market, 'symbol', '')
         client.resolve(tradesArray, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -198,13 +200,12 @@ class bullish(ccxt.async_support.bullish):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchTicker() has no public websocket url')
-        url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id']
         messageHash = 'ticker::' + symbolValue
-        return await self.watch(url, messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
+        return await self.watch(wsUrl + '/trading-api/v1/market-data/tick/' + self.safe_string(market, 'id', ''), messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -259,9 +260,7 @@ class bullish(ccxt.async_support.bullish):
         parsed = self.parse_ticker(data, market)
         if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})
-            rawTicker = self.safe_dict(ticker, 'info', {})
-            merged = self.extend(rawTicker, data)
-            parsed = self.parse_ticker(merged, market)
+            parsed = self.parse_ticker(self.extend(self.safe_dict(ticker, 'info', {}), data), market)
         self.tickers[symbol] = parsed
         messageHash = 'ticker::' + symbol
         client.resolve(self.tickers[symbol], messageHash)
@@ -281,7 +280,7 @@ class bullish(ccxt.async_support.bullish):
             await self.load_markets()
         market = self.market(symbol)
         url = '/trading-api/v1/market-data/orderbook'
-        messageHash = 'orderbook::' + market['symbol']
+        messageHash = 'orderbook::' + self.safe_string(market, 'symbol', '')
         request = {
             'topic': 'l2Orderbook',  # 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
@@ -340,12 +339,12 @@ class bullish(ccxt.async_support.bullish):
         # 300 = '54885.0000000'
         # 301 = '0.06141566'
         # 302 ='53714.0000000'
-        for i in range(0, len(entry)):
+        entries = self.to_array(entry)
+        for i in range(0, len(entries)):
             if i % 2 != 0:
                 continue
-            price = self.safe_string(entry, i)
-            amount = self.safe_string(entry, i + 1)
-            result.append([price, amount])
+            price = self.safe_string(entries, i)
+            result.append([price, self.safe_string(entries, i + 1)])
         return result
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -368,7 +367,7 @@ class bullish(ccxt.async_support.bullish):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash = messageHash + '::' + symbolResolved
+            messageHash = subscribeHash + '::' + symbolResolved
         request = {
             'topic': 'orders',
         }
@@ -442,8 +441,7 @@ class bullish(ccxt.async_support.bullish):
             orders = self.orders
             symbols = {}
             for i in range(0, len(rawOrders)):
-                rawOrder = rawOrders[i]
-                parsedOrder = self.parse_order(rawOrder)
+                parsedOrder = self.parse_order(rawOrders[i])
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
                 if symbol is not None:
@@ -476,7 +474,7 @@ class bullish(ccxt.async_support.bullish):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash += '::' + symbolResolved
+            messageHash = subscribeHash + '::' + symbolResolved
         request = {
             'topic': 'trades',
         }
@@ -543,8 +541,7 @@ class bullish(ccxt.async_support.bullish):
             trades = self.myTrades
             symbols = {}
             for i in range(0, len(rawTrades)):
-                rawTrade = rawTrades[i]
-                parsedTrade = self.parse_trade(rawTrade)
+                parsedTrade = self.parse_trade(rawTrades[i])
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
                 if symbol is not None:
@@ -698,8 +695,7 @@ class bullish(ccxt.async_support.bullish):
         positions = self.positions
         newPositions = []
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(rawPositions[i])
             positions.append(position)
             newPositions.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')

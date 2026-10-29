@@ -2,7 +2,7 @@ import bydfiRest from '../bydfi.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bydfi extends bydfiRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): {
         id: number;
         method: string;

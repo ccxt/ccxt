@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestTransfer extends BaseTest {
-    public static void testTransfer(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
+    public static void testTransfer(BaseExchange exchange, Object skippedProperties, String method, Object entry, String requestedCode)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -30,12 +30,12 @@ public class TestTransfer extends BaseTest {
             put( "status", "ok" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("fromAccount", "toAccount"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.milliseconds());
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, exchange.milliseconds());
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
         //
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed")));
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed")));
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", "0");
     }
 
 }

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\btcbox as Exchange;
 
 class btcbox extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcbox',
             'name' => 'BtcBox',
@@ -376,7 +376,7 @@ class btcbox extends Exchange {
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency($code);
-            $currencyId = $currency['id'];
+            $currencyId = $this->safe_string($currency, 'id', '');
             $free = $currencyId . '_balance';
             if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
@@ -800,7 +800,7 @@ class btcbox extends Exchange {
         return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -813,13 +813,13 @@ class btcbox extends Exchange {
         $url = $apiUrl . '/' . $this->version . '/' . $path;
         if ($apiName === 'public') {
             if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+                $url = $apiUrl . '/' . $this->version . '/' . $path . '?' . $this->urlencode($params);
             }
         } elseif ($apiName === 'webApi') {
-            $url = $this->urls['www'] . '/' . $path;
+            $url = $this->safe_string($this->urls, 'www', '') . '/' . $path;
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $query = $this->extend(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
@@ -836,21 +836,21 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ($httpCode >= 400) {
+        if ($code >= 400) {
             return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_bool($response, 'result');
         if ($result === null || $result) {
             return null; // either public API (no error codes expected) or success
         }
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $feedback = $this->id . ' ' . $body;
-        $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions, $codeError, $feedback);
         throw new ExchangeError($feedback); // unknown message
     }
 
@@ -858,11 +858,11 @@ class btcbox extends Exchange {
         $response = $this->fetch2($path, $api, $method, $params, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json
-            $response = $this->strip($response);
-            if (!$this->is_json_encoded_object($response)) {
-                throw new ExchangeError($this->id . ' ' . $response);
+            $strippedResponse = $this->strip($response);
+            if (!$this->is_json_encoded_object($strippedResponse)) {
+                throw new ExchangeError($this->id . ' ' . $strippedResponse);
             }
-            $response = json_decode($response, $as_associative_array = true);
+            $response = json_decode($strippedResponse, $as_associative_array = true);
         }
         return $response;
     }

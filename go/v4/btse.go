@@ -16,7 +16,7 @@ func newBtse() *Btse {
 	return p
 }
 
-func (this *Btse) Describe() any {
+func (this *Btse) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "btse",
 		"name":      "BTSE",
@@ -763,7 +763,7 @@ func (this *Btse) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Btse) ParseMarket(market any) any {
+func (this *Btse) ParseMarket(market any) map[string]any {
 	//
 	// spot
 	//     {
@@ -915,8 +915,8 @@ func (this *Btse) ParseMarket(market any) any {
 			}
 			return false
 		}(),
-		"taker":          GetValue(fees, "taker"),
-		"maker":          GetValue(fees, "maker"),
+		"taker":          this.SafeNumber(fees, "taker"),
+		"maker":          this.SafeNumber(fees, "maker"),
 		"contractSize":   this.ParseNumber(contractSize),
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
@@ -1234,12 +1234,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var rates []any = ArrayTyped(this.ParseFundingRateHistories(data, market, since, limit))
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
-		var rate any = func() any {
-			if i >= 0 && i < len(rates) {
-				return DerefScalar(rates[i])
-			}
-			return nil
-		}()
+		var rate any = rates[i]
 		var timestamp *int64 = this.SafeInteger(rate, "timestamp")
 		if (timestamp == nil) || (until.(*int64) != nil && *timestamp <= *until.(*int64)) {
 			result = append(result, rate)
@@ -1473,12 +1468,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 			// each tier's floor is the previous tier's cap (0 for the first)
 			var minNotional any = nil
 			for j := 0; j < len(levels); j++ {
-				var level any = func() any {
-					if j >= 0 && j < len(levels) {
-						return DerefScalar(levels[j])
-					}
-					return nil
-				}()
+				var level any = levels[j]
 				var maxNotional *float64 = this.SafeNumber(level, "value")
 				// the endpoint only reports the notional ladder, the
 				// per-tier leverage and margin rates are not available
@@ -1499,7 +1489,9 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 				})
 				minNotional = maxNotional
 			}
-			AddElementToObject(result, symbol, tiers) // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+			if symbol != nil {
+				result[*symbol] = tiers
+			} // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
 		}
 	}
 
@@ -1787,12 +1779,7 @@ func (this *Btse) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInte
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var row any = data[i]
 		// spot rows do not carry an open interest
 		if this.SafeString(row, "openInterest") != nil {
 			rows = append(rows, row)
@@ -1901,12 +1888,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var row any = data[i]
 		// spot rows do not carry a funding rate
 		if this.SafeString(row, "fundingRate") != nil {
 			rows = append(rows, row)
@@ -2053,9 +2035,9 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 		return nil
 	}
-	var trades any = this.ParseTrades(data, market, since, limit)
+	var trades []any = this.ParseTrades(data, market, since, limit)
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(trades); i++ {
+	for i := 0; i < len(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 		if (timestamp == nil) || (until.(*int64) != nil && *timestamp <= *until.(*int64)) {
@@ -2117,11 +2099,16 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		}
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = func() any {
+			if v := this.SafeString(market, "id"); v != nil {
+				return *v
+			}
+			return nil
+		}()
 	}
 	if since != nil {
 		request["startTime"] = *since
@@ -2129,7 +2116,7 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if limit != nil {
 		request["count"] = *limit
 	}
-	var paramsUntil any = nil
+	var paramsUntil map[string]any = nil
 	request, paramsUntil = this.HandleUntilOption("endTime", request, params)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot")
 	var response any = nil
@@ -2175,8 +2162,13 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	} else {
 		// the futures endpoint does not support a count parameter, the limit is applied client-side
 		request = this.OmitDict(request, "count")
-		if !IsEqual(market, nil) {
-			AddElementToObject(request, "symbol", this.FuturesRequestId(market))
+		if symbol != nil {
+			request["symbol"] = func() any {
+				if v := this.FuturesRequestId(this.Market(symbol)); v != nil {
+					return *v
+				}
+				return nil
+			}()
 		}
 		//
 		//     {
@@ -2449,12 +2441,7 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188819 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes188819 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes188819)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else {
 
@@ -2462,12 +2449,7 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes189019 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes189019 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes189019)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 }
@@ -2534,7 +2516,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -2617,28 +2599,33 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 		//     ]
 		//
 
-		listEp2472 := <-this.PrivatePostSpotApiV4TradeOrders(this.Extend(request, query))
-		if listEp2472.Err != nil {
-			panic(listEp2472.Err)
+		listEp2484 := <-this.PrivatePostSpotApiV4TradeOrders(this.Extend(request, query))
+		if listEp2484.Err != nil {
+			panic(listEp2484.Err)
 		}
-		response = listEp2472.Value
+		response = listEp2484.Value
 	} else {
 		if isConditionalOrder {
 			request["orderType"] = "CONDITIONAL"
-			var triggerOrderType any = nil
-			var triggerPriceToSend any = nil
+			var triggerOrderType string
+			var triggerPriceToSend *string = nil
 			if isStopLossOrder {
 				triggerOrderType = "STOP_LOSS"
+				if isLimitOrder {
+					triggerOrderType = "STOP_LOSS_LIMIT"
+				}
 				triggerPriceToSend = stopLossPrice
 			} else {
 				triggerOrderType = "TAKE_PROFIT"
+				if isLimitOrder {
+					triggerOrderType = "TAKE_PROFIT_LIMIT"
+				}
 				triggerPriceToSend = triggerPrice
-				if IsEqual(triggerPriceToSend, nil) {
+				if triggerPriceToSend == nil {
 					triggerPriceToSend = takeProfitPrice
 				}
 			}
 			if isLimitOrder {
-				triggerOrderType = Add(triggerOrderType, "_LIMIT")
 				request["orderPrice"] = this.PriceToPrecision(symbol, price)
 			}
 			request["triggerOrderType"] = triggerOrderType
@@ -2682,11 +2669,11 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 			}
 		}
 
-		listEp2533 := <-this.PrivatePostSpotApiV4TradeOrdersAlgo(this.Extend(request, query))
-		if listEp2533.Err != nil {
-			panic(listEp2533.Err)
+		listEp2550 := <-this.PrivatePostSpotApiV4TradeOrdersAlgo(this.Extend(request, query))
+		if listEp2550.Err != nil {
+			panic(listEp2550.Err)
 		}
-		response = listEp2533.Value
+		response = listEp2550.Value
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
@@ -2773,9 +2760,12 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		}()
 		query = hedgedqueryVariable[1]
 		var marginMode any = "cross"
-		marginModequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode))
-		marginMode = GetValue(marginModequeryVariable, 0)
-		query = GetValue(marginModequeryVariable, 1)
+		var marginModePtr *string = nil
+		marginModePtr, query = this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode)
+		marginMode = nil
+		if marginModePtr != nil {
+			marginMode = *marginModePtr
+		}
 		if marginMode == "isolated" {
 			if hedged == true {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
@@ -2791,7 +2781,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -2812,7 +2802,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		}
 	}
 	// here we handling with attached take profit and stop loss orders
-	var takeProfit any = this.SafeDict(query, "takeProfit")
+	var takeProfit map[string]any = SafeMapTyped(query, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
 	if (takeProfit != nil) || (stopLoss != nil) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
@@ -3112,11 +3102,11 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		listEp2931 := <-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))
-		if listEp2931.Err != nil {
-			panic(listEp2931.Err)
+		listEp2948 := <-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))
+		if listEp2948.Err != nil {
+			panic(listEp2948.Err)
 		}
-		response = listEp2931.Value
+		response = listEp2948.Value
 	} else {
 		// the futures amend requires an explicit amendType discriminator
 		// which can change the price and size together or a single field
@@ -3134,11 +3124,11 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 			request["amendType"] = "PRICE"
 		}
 
-		listEp2949 := <-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, query))
-		if listEp2949.Err != nil {
-			panic(listEp2949.Err)
+		listEp2966 := <-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, query))
+		if listEp2966.Err != nil {
+			panic(listEp2966.Err)
 		}
-		response = listEp2949.Value
+		response = listEp2966.Value
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
@@ -3198,11 +3188,11 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		listEp3006 := <-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))
-		if listEp3006.Err != nil {
-			panic(listEp3006.Err)
+		listEp3023 := <-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))
+		if listEp3023.Err != nil {
+			panic(listEp3023.Err)
 		}
-		response = listEp3006.Value
+		response = listEp3023.Value
 	} else {
 		//
 		//     [
@@ -3222,11 +3212,11 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		//
 		request["symbol"] = this.FuturesRequestId(market)
 
-		listEp3026 := <-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, paramsOmitted))
-		if listEp3026.Err != nil {
-			panic(listEp3026.Err)
+		listEp3043 := <-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, paramsOmitted))
+		if listEp3043.Err != nil {
+			panic(listEp3043.Err)
 		}
-		response = listEp3026.Value
+		response = listEp3043.Value
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
@@ -3262,7 +3252,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3272,12 +3262,10 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var response any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		// the literal ALL value cancels every open order across all pairs
-		request["symbol"] = func() any {
-			if !IsEqual(market, nil) {
-				return GetValue(market, "id")
-			}
-			return "ALL"
-		}()
+		request["symbol"] = "ALL"
+		if symbol != nil {
+			request["symbol"] = this.SafeString(market, "id")
+		}
 
 		r1 := <-this.PrivateDeleteSpotApiV4TradeOrdersAll(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
@@ -3285,13 +3273,13 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 		response = r1.Raw
 	} else {
-		if IsEqual(market, nil) {
+		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument for contract markets"))
 		}
 		// the unified futures api has no cancel all endpoint, the legacy
 		// endpoint cancels every order for the symbol when no order id is
 		// sent, and it identifies contracts by the short symbol form
-		request["symbol"] = this.FuturesRequestId(market)
+		request["symbol"] = this.FuturesRequestId(this.Market(symbol))
 
 		r2 := <-this.PrivateDeleteFuturesApiV23Order(this.Extend(request, paramsMarketType))
 		if r2.Err != nil {
@@ -3392,7 +3380,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r.Err)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3400,25 +3388,25 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
 	var response []any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
-		if !IsEqual(market, nil) {
-			request["symbol"] = GetValue(market, "id")
+		if symbol != nil {
+			request["symbol"] = this.SafeString(market, "id")
 		}
 
-		listEp3181 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3181.Err != nil {
-			panic(listEp3181.Err)
+		listEp3196 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3196.Err != nil {
+			panic(listEp3196.Err)
 		}
-		response = listEp3181.Value
+		response = listEp3196.Value
 	} else {
-		if !IsEqual(market, nil) {
-			request["symbol"] = this.FuturesRequestId(market)
+		if symbol != nil {
+			request["symbol"] = this.FuturesRequestId(this.Market(symbol))
 		}
 
-		listEp3187 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3187.Err != nil {
-			panic(listEp3187.Err)
+		listEp3202 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3202.Err != nil {
+			panic(listEp3202.Err)
 		}
-		response = listEp3187.Value
+		response = listEp3202.Value
 	}
 	// the endpoints have no server side time filters, accept a bare array
 	// and a data envelope and filter client-side
@@ -3615,20 +3603,20 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
-		listEp3381 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
-		if listEp3381.Err != nil {
-			panic(listEp3381.Err)
+		listEp3396 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
+		if listEp3396.Err != nil {
+			panic(listEp3396.Err)
 		}
-		response = listEp3381.Value
+		response = listEp3396.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3386 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
-		if listEp3386.Err != nil {
-			panic(listEp3386.Err)
+		listEp3401 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
+		if listEp3401.Err != nil {
+			panic(listEp3401.Err)
 		}
-		response = listEp3386.Value
+		response = listEp3401.Value
 	}
 	//
 	//     [
@@ -3643,25 +3631,22 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	var responseList []any = this.ArrayConcat([]any{}, rows)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(responseList); i++ {
-		var feeInfo any = func() any {
-			if i >= 0 && i < len(responseList) {
-				return DerefScalar(responseList[i])
-			}
-			return nil
-		}()
+		var feeInfo map[string]any = this.SafeDictMap(responseList, i, map[string]any{})
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       feeInfo,
-			"symbol":     symbol,
-			"maker":      makerFee,
-			"taker":      takerFee,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       feeInfo,
+				"symbol":     symbol,
+				"maker":      makerFee,
+				"taker":      takerFee,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -3702,10 +3687,10 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	// json encoded array in the query string, verified live
 	request["historyTypes"] = this.Json(typesList)
 	var paramsOmitted map[string]any = this.OmitDict(params, "walletType")
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["asset"] = GetValue(currency, "id")
+		request["asset"] = this.SafeString(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a code argument for the spot wallet history"))
 	}
@@ -3716,15 +3701,13 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PrivateGetPublicApiWalletV1UserWalletHistory(this.Extend(request, paramsUntil))
@@ -3764,18 +3747,15 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	// filter and returned the whole mixed ledger
 	var allowed map[string]any = map[string]any{}
 	for i := 0; i < len(typesList); i++ {
-		var historyType any = func() any {
-			if i >= 0 && i < len(typesList) {
-				return DerefScalar(typesList[i])
-			}
-			return nil
-		}()
-		AddElementToObject(allowed, historyType, true)
-		AddElementToObject(allowed, this.Capitalize(ToLower(historyType)), true)
+		var historyType *string = this.SafeString(typesList, i, "")
+		if historyType != nil {
+			allowed[*historyType] = true
+		}
+		AddElementToObject(allowed, this.Capitalize(strings.ToLower(*historyType)), true)
 	}
 	var rows []any = []any{}
 	for i := 0; i < GetArrayLength(rawRows); i++ {
-		var entry any = GetValue(rawRows, i)
+		var entry map[string]any = this.SafeDictMap(rawRows, i, map[string]any{})
 		var typeVar *string = this.SafeString(entry, "type", "")
 		if func() bool {
 			if typeVar == nil {
@@ -3788,7 +3768,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		}
 	}
 
-	ch <- AsyncResult[[]any]{Value: []any{rows, currency}}
+	ch <- AsyncResult[[]any]{Value: this.ParseTransactions(rows, currency, since, limit)}
 	return nil
 }
 
@@ -3821,16 +3801,17 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
+
 	r := <-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3588, _ := r.Value, r.Value != nil
-	var rowscurrencyVariable []any = listRecv3588
-	rows := GetValue(rowscurrencyVariable, 0)
-	currency := GetValue(rowscurrencyVariable, 1)
-
-	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit))}
+	var retRes291415 []any = r.Value
+	if retRes291415 == nil {
+		ch <- AsyncResult[[]Transaction]{Value: nil}
+	} else {
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291415)}
+	}
 	return nil
 }
 
@@ -3863,16 +3844,17 @@ func (this *Btse) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
+
 	r := <-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3625, _ := r.Value, r.Value != nil
-	var rowscurrencyVariable []any = listRecv3625
-	rows := GetValue(rowscurrencyVariable, 0)
-	currency := GetValue(rowscurrencyVariable, 1)
-
-	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit))}
+	var retRes293115 []any = r.Value
+	if retRes293115 == nil {
+		ch <- AsyncResult[[]Transaction]{Value: nil}
+	} else {
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes293115)}
+	}
 	return nil
 }
 
@@ -3905,16 +3887,17 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
+
 	r := <-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3662, _ := r.Value, r.Value != nil
-	var rowscurrencyVariable []any = listRecv3662
-	rows := GetValue(rowscurrencyVariable, 0)
-	currency := GetValue(rowscurrencyVariable, 1)
-
-	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit))}
+	var retRes294815 []any = r.Value
+	if retRes294815 == nil {
+		ch <- AsyncResult[[]Transaction]{Value: nil}
+	} else {
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294815)}
+	}
 	return nil
 }
 func (this *Btse) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
@@ -4035,7 +4018,7 @@ func (this *Btse) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["asset"] = currency["id"]
+		request["asset"] = this.SafeString(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument for the spot wallet history"))
 	}
@@ -4046,15 +4029,13 @@ func (this *Btse) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		request["pageSize"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	r1 := <-this.PrivateGetPublicApiWalletV1UserWalletHistory(this.Extend(request, paramsUntil))
@@ -4211,20 +4192,20 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp3929 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
-		if listEp3929.Err != nil {
-			panic(listEp3929.Err)
+		listEp3942 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
+		if listEp3942.Err != nil {
+			panic(listEp3942.Err)
 		}
-		response = listEp3929.Value
+		response = listEp3942.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3934 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
-		if listEp3934.Err != nil {
-			panic(listEp3934.Err)
+		listEp3947 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		if listEp3947.Err != nil {
+			panic(listEp3947.Err)
 		}
-		response = listEp3934.Value
+		response = listEp3947.Value
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
@@ -4318,11 +4299,11 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes325215 []any = PositionsToList(r1.Value)
-	if retRes325215 == nil {
+	var retRes325715 []any = PositionsToList(r1.Value)
+	if retRes325715 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325215)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325715)}
 	}
 	return nil
 }
@@ -4468,11 +4449,11 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4162 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
-	if listEp4162.Err != nil {
-		panic(listEp4162.Err)
+	listEp4175 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
+	if listEp4175.Err != nil {
+		panic(listEp4175.Err)
 	}
-	var response []any = listEp4162.Value
+	var response []any = listEp4175.Value
 	//
 	//     [
 	//         {
@@ -4502,12 +4483,12 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Btse) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Btse) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// NB!!! This method also sets margin mode to cross on btse
@@ -4529,7 +4510,7 @@ func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	}
 	var market map[string]any = this.Market(symbol)
 	var positionMode string = "ONE_WAY"
-	if EvalTruthy(hedged) {
+	if hedged {
 		positionMode = "HEDGE"
 	}
 	var request map[string]any = map[string]any{
@@ -4574,11 +4555,11 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4254 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
-	if listEp4254.Err != nil {
-		panic(listEp4254.Err)
+	listEp4267 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
+	if listEp4267.Err != nil {
+		panic(listEp4267.Err)
 	}
-	var response []any = listEp4254.Value
+	var response []any = listEp4267.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
@@ -4803,8 +4784,8 @@ func (this *Btse) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, o
 		"info":   response,
 		"symbol": symbol,
 	}
-	var longLeverage any = nil
-	var shortLeverage any = nil
+	var longLeverage *int64 = nil
+	var shortLeverage *int64 = nil
 	var marginMode *string = nil
 	for i := 0; i < len(safeResponse); i++ {
 		var entrty map[string]any = SafeMapTyped(safeResponse, i)
@@ -4883,7 +4864,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4958,22 +4939,21 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	}
 	return nil
 }
-func (this *Btse) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Btse) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var baseUrl *string = apiUrl
-	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	// the futures v3 trading api reads DELETE params from a signed json
 	// body like its POST and PUT counterparts, while the spot v4 and the
@@ -4982,12 +4962,12 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	var isBodyDelete bool = (method == "DELETE") && (strings.HasPrefix(path, "futures/api/v3/"))
 	var queryString string = ""
 	if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			queryString = this.Urlencode(query)
 			url += "?" + queryString
 		}
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var bodyString string = this.Json(query)
@@ -5006,30 +4986,29 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 		} else {
 			signPath = this.CleanPath(path)
 		}
-		var payload any = signPath + ToString(nonce) + bodyString
+		var payload string = signPath + ToString(nonce) + bodyString
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"request-api":   this.ApiKey,
-			"request-nonce": ToString(nonce),
+			"request-nonce": this.NumberToString(nonce),
 			"request-sign":  signature,
 			"Content-Type":  "application/json",
 			"BROKER-ID":     "ccxt",
 		}
 	}
-	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResolved,
-		"headers": headersResolved,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
-func (this *Btse) FuturesRequestId(market any) any {
+func (this *Btse) FuturesRequestId(market map[string]any) *string {
 	// the futures v3 trading api identifies contracts by the short trade-currency
 	// form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
 	// from the raw market info so that cached markets resolve it as well
-	return this.SafeString(GetValue(market, "info"), "tradeCurrency", GetValue(market, "id"))
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	return this.SafeString(marketInfo, "tradeCurrency", this.SafeString(market, "id"))
 }
 func (this *Btse) CleanPath(path string) string {
 	var result string = strings.Replace(path, "spot", "", 1)
@@ -5037,7 +5016,7 @@ func (this *Btse) CleanPath(path string) string {
 	result = strings.Replace(result, "otc", "", 1)
 	return result
 }
-func (this *Btse) Nonce() any {
+func (this *Btse) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
@@ -5050,7 +5029,7 @@ func NewBtse(userConfig map[string]any) *Btse {
 func (this *Btse) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -5068,7 +5047,10 @@ func (this *Btse) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

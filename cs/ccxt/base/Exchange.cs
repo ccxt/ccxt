@@ -23,6 +23,8 @@ public partial class BaseExchange
 
     public BaseExchange(object userConfig2 = null)
     {
+        // the registry and every ws cache go through the same per-exchange owner thread
+        this.clients = new ccxt.pro.OwnedTable<WebSocketClient>(this.wsOwnerState);
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
         var empty = new List<string>();
@@ -123,7 +125,7 @@ public partial class BaseExchange
                     var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-                    var apiObj = new List<string>(paths);
+                    var apiObj = new List<object>(paths);
                     this.transformedApi[path] = new dict {
                             { "method", key.ToUpper() },
                             { "path",   endpoint },
@@ -485,7 +487,7 @@ public partial class BaseExchange
             var endpointInfo = info as dict;
             var method = endpointInfo["method"] as String;
             var path = endpointInfo["path"] as String;
-            var api = endpointInfo["api"];
+            var api = endpointInfo["api"] as IList<object>;
             var cost = endpointInfo["cost"] != null ? endpointInfo["cost"] : 1;
 
             var res = await this.fetch2(path, api, method, parameters, new dict { { "cost", cost } });
@@ -784,12 +786,16 @@ public partial class BaseExchange
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();
-        if (this.clients.Keys.Count > 0)
+        var keys = new List<string>(this.clients.Keys);
+        if (keys.Count > 0)
         {
-            foreach (var key in this.clients.Keys)
+            foreach (var key in keys)
             {
-
-                var client = this.clients[key];
+                WebSocketClient client;
+                if (!this.clients.TryGetValue(key, out client))
+                {
+                    continue;
+                }
                 tasks.Add(closeClient(key, client));
 
             }
@@ -1033,7 +1039,7 @@ public partial class BaseExchange
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
-    public object extendedStarknetSign(object msgHash, object privateKey)
+    public string extendedStarknetSign(object msgHash, object privateKey)
     {
         var privateKeyString = privateKey.ToString();
         var msgHashStr = msgHash.ToString();
@@ -1353,12 +1359,12 @@ public partial class BaseExchange
     {
         var options = (dict)options2;
         var extended = this.extend(this.options, options);
-        this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
+        this.options = new ccxt.pro.OwnedTable<object>(extended);
     }
 
-    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
+    public ccxt.pro.OwnedTable<object> convertToSafeDictionary(object obj)
     {
-        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
+        return new ccxt.pro.OwnedTable<object>((IDictionary<string, object>)obj);
     }
 
     // a present option value of another type is a user error: throw instead of coercing
@@ -1414,7 +1420,8 @@ public partial class BaseExchange
 
     public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
-        return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
+        // ws caches are owner-routed; REST-side maps stay plain dictionaries like markets/has/fees
+        return isWs ? (IDictionary<string, object>)new ccxt.pro.OwnedMap() : new dict();
     }
 
     public IDictionary<string, object> mapToSafeMap(object obj)

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bydfi as Exchange;
 
 class bydfi extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bydfi',
             'name' => 'BYDFi',
@@ -493,10 +493,10 @@ class bydfi extends Exchange {
         $settleId = $this->safe_string($market, 'marginAsset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
+        $settle = $this->safe_currency_code($settleId);
+        if (($base === null) || ($quote === null) || ($settle === null)) {
             return null;
         }
-        $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $inverse = $this->safe_bool($market, 'reverse');
         $limitMaxQty = $this->safe_string($market, 'limitMaxQty');
@@ -868,7 +868,7 @@ class bydfi extends Exchange {
         list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $timeDelta = $duration * $numberOfCandles;
+        $timeDelta = $this->parse_to_int($duration * $numberOfCandles);
         $startTime = $since;
         $until = $untilParam;
         if ($since === null && $untilParam === null) {
@@ -1393,7 +1393,7 @@ class bydfi extends Exchange {
             throw new BadRequest($this->id . ' createOrders() accepts a maximum of 5 orders');
         }
         $ordersRequests = array();
-        for ($i = 0; $i < count($orders); $i++) {
+        for ($i = 0; $i < $length; $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
@@ -1463,7 +1463,7 @@ class bydfi extends Exchange {
             throw new BadRequest($this->id . ' editOrders() accepts a maximum of 5 orders');
         }
         $ordersRequests = array();
-        for ($i = 0; $i < count($orders); $i++) {
+        for ($i = 0; $i < $length; $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
@@ -1596,8 +1596,7 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'wallet' => $walletOption,
         );
-        $trigger = false;
-        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrders', 'trigger', $trigger);
+        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrders', 'trigger', false);
         if (!$triggerOption) {
             //
             //     {
@@ -1673,8 +1672,7 @@ class bydfi extends Exchange {
         $wallet = 'W001';
         list($walletOption, $paramsWallet) = $this->handle_option_string_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
         $request['wallet'] = $walletOption;
-        $trigger = false;
-        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrder', 'trigger', $trigger);
+        list($triggerOption, $paramsTrigger) = $this->handle_option_bool_and_params($paramsWallet, 'fetchOpenOrder', 'trigger', false);
         if (!$triggerOption) {
             $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $paramsTrigger));
         } else {
@@ -1777,13 +1775,14 @@ class bydfi extends Exchange {
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
-        $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        $sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         $startTime = $since;
         $until = $untilParam;
         if ($since === null) {
             if ($untilParam !== null) {
                 // since is undefined but until is defined
-                $startTime = $untilParam - $sevenDays;
+                $untilInt = $this->parse_to_int($untilParam);
+                $startTime = $untilInt - $sevenDays;
             } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
@@ -2455,7 +2454,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $positionType = 'ONEWAY';
-        if ($hedged) {
+        if ($hedged === true) {
             $positionType = 'HEDGE';
         }
         $wallet = 'W001';
@@ -2619,7 +2618,8 @@ class bydfi extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        for ($i = 0; $i < count($response); $i++) {
+        $responseLength = count($response);
+        for ($i = 0; $i < $responseLength; $i++) {
             $balance = $this->safe_dict($response, $i);
             $symbol = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($symbol);
@@ -2848,13 +2848,14 @@ class bydfi extends Exchange {
         );
         list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
-        $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        $sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         $startTime = $since;
         $until = $untilParam;
         if ($since === null) {
             if ($untilParam !== null) {
                 // since is undefined but until is defined
-                $startTime = $untilParam - $sevenDays;
+                $untilInt = $this->parse_to_int($untilParam);
+                $startTime = $untilInt - $sevenDays;
             } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
@@ -2979,7 +2980,6 @@ class bydfi extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl;
         $endpoint = '/' . $path;
         $query = '';
         $sortedParams = $this->keysort($params);
@@ -3014,13 +3014,12 @@ class bydfi extends Exchange {
                 );
             }
         }
-        $url .= $endpoint;
         $bodyResolved = $requestBody;
         $headersResolved = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $apiUrl . $endpoint, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3030,13 +3029,13 @@ class bydfi extends Exchange {
         //         "message": "Requires transaction permissions"
         //     }
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if ($code !== '200') {
+        if ($codeError !== '200') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;

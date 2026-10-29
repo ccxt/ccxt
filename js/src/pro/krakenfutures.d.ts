@@ -2,7 +2,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -120,7 +120,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
+    parseWsPosition(position: Dict, market?: Market, timestamp?: Int): Position;
     /**
      * @method
      * @name krakenfutures#watchOrders
@@ -180,7 +180,7 @@ export default class krakenfutures extends krakenfuturesRest {
     pruneStaleBalanceKeys(balanceObject: Dict, seenKeys: Dict): Dict;
     handleMyTrades(client: Client, message: Dict): void;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: Dict): Promise<any>;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: Dict | undefined, params?: Dict): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: Dict): Bool;

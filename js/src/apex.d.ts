@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class apex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name apex#fetchTime
@@ -318,5 +318,5 @@ export default class apex extends Exchange {
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

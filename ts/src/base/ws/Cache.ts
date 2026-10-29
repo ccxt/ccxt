@@ -1,12 +1,14 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
-import { Int, Str } from '../types.js';
+import { Int, Str, Dict, Dictionary, Num } from '../types.js';
 
 interface CustomArray extends Array<any> {
-    hashmap: object;
+    hashmap: Dictionary<any>;
 }
 
 class BaseCache extends Array {
+
+    declare maxSize: Int
 
     constructor (maxSize: Int = undefined) {
         super ()
@@ -17,7 +19,7 @@ class BaseCache extends Array {
         })
     }
 
-    clear () {
+    clear (): void {
         this.length = 0
     }
 
@@ -27,7 +29,7 @@ class BaseCache extends Array {
     // instance (running every defineProperty in the constructor) just to hold
     // the one removed element. Sliding the tail down by hand stays on the fast
     // path and allocates nothing.
-    removeAt (index) {
+    removeAt (index: Int): any {
         const last = this.length - 1
         const removed = this[index]
         for (let i = index; i < last; i++) {
@@ -40,7 +42,21 @@ class BaseCache extends Array {
 
 class ArrayCache extends BaseCache implements CustomArray {
 
-    hashmap: object = {};
+    hashmap: Dictionary<any> = {};
+
+    declare nestedNewUpdatesBySymbol: boolean
+
+    declare newUpdatesBySymbol: Dictionary<number>
+
+    declare seenUpdatesBySymbol: Dictionary<Set<any>>
+
+    declare seenUpdatesAll: Dictionary<Set<any>>
+
+    declare clearUpdatesBySymbol: Dictionary<boolean>
+
+    declare allNewUpdates: number
+
+    declare clearAllUpdates: boolean
 
     constructor (maxSize: Int = undefined) {
         super (maxSize);
@@ -111,7 +127,7 @@ class ArrayCache extends BaseCache implements CustomArray {
         }
     }
 
-    clear () {
+    clear (): void {
         super.clear ()
         // the keyed subclasses find existing rows through the hashmap, so a clear ()
         // that only truncates the array leaves the hashmap claiming rows that are
@@ -128,7 +144,7 @@ class ArrayCache extends BaseCache implements CustomArray {
         this.clearAllUpdates = false
     }
 
-    append (item) {
+    append (item: Dict): void {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
             this.removeAt (0)
@@ -152,6 +168,14 @@ class ArrayCache extends BaseCache implements CustomArray {
 }
 
 class ArrayCacheByTimestamp extends BaseCache {
+
+    declare hashmap: Dictionary<any>
+
+    declare sizeTracker: Set<any>
+
+    declare newUpdates: number
+
+    declare clearUpdates: boolean
 
     constructor (maxSize: Int = undefined) {
         super (maxSize)
@@ -185,7 +209,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         return Math.min (this.newUpdates, limit)
     }
 
-    clear () {
+    clear (): void {
         super.clear ()
         // without this the hashmap still claims every timestamp it has ever seen,
         // so re-appending a known timestamp merges into a reference that is no
@@ -196,7 +220,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         this.clearUpdates = false
     }
 
-    append (item) {
+    append (item: Num[]): void {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
@@ -229,6 +253,8 @@ class ArrayCacheByTimestamp extends BaseCache {
 
 class ArrayCacheBySymbolById extends ArrayCache {
 
+    declare keyField: Str
+
     constructor (maxSize: Int = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
@@ -241,7 +267,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         })
     }
 
-    append (item) {
+    append (item: Dict): void {
         const key = item[this.keyField]
         const byId = this.hashmap[key] = this.hashmap[key] || {}
         if (item.id in byId) {
@@ -357,7 +383,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         })
     }
 
-    append (item) {
+    append (item: Dict): void {
         const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.side in bySide) {
             const reference = bySide[item.side]

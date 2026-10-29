@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(ccxt.async_support.woofipro):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(woofipro, self).describe(), {
             'has': {
                 'ws': True,
@@ -84,7 +84,7 @@ class woofipro(ccxt.async_support.woofipro):
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
         if self.accountId is not None and self.accountId != '':
             id = self.accountId
-        url = self.safe_string(self.urls['api']['ws'], 'public') + '/' + id
+        url = self.safe_string(self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {}), 'public', '') + '/' + id
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -107,7 +107,8 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
-        topic = market['id'] + '@' + name
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@' + name
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -165,7 +166,8 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
-        topic = market['id'] + '@' + name
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@' + name
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -380,7 +382,8 @@ class woofipro(ccxt.async_support.woofipro):
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
-        topic = market['id'] + '@' + name + '_' + interval
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@' + name + '_' + interval
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -452,7 +455,8 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        topic = market['id'] + '@trade'
+        marketId = self.safe_string(market, 'id', '')
+        topic = marketId + '@trade'
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -588,7 +592,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
+        url = self.safe_string(self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + self.accountId
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
@@ -598,8 +602,8 @@ class woofipro(ccxt.async_support.woofipro):
             ts = str(self.nonce())
             auth = ts
             secret = self.secret
-            if secret.find('ed25519:') >= 0:
-                parts = secret.split('ed25519:')
+            if self.secret.find('ed25519:') >= 0:
+                parts = self.secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             request = {
@@ -616,7 +620,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_private(self, messageHash: str, message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
+        url = self.safe_string(self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -626,7 +630,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_private_multiple(self, messageHashes: list[str], message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
+        url = self.safe_string(self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -661,7 +665,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash += ':' + self.safe_string(self.market(symbol), 'symbol', '')
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -700,7 +704,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash += ':' + self.safe_string(self.market(symbol), 'symbol', '')
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -936,11 +940,10 @@ class woofipro(ccxt.async_support.woofipro):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         trade = self.parse_ws_trade(message, market)
-        trades = self.myTrades
-        if trades is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            trades = ArrayCacheBySymbolById(limit)
-            self.myTrades = trades
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        trades = self.myTrades
         trades.append(trade)
         client.resolve(trades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + symbol
@@ -972,7 +975,7 @@ class woofipro(ccxt.async_support.woofipro):
                 messageHashes.append('positions::' + symbol)
         else:
             messageHashes.append('positions')
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
+        url = self.safe_string(self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + self.accountId
         client = self.client(url)
         self.set_positions_cache(client, symbolsNormalized)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -1009,8 +1012,8 @@ class woofipro(ccxt.async_support.woofipro):
             if Precise.string_gt(contracts, '0'):
                 cache.append(position)
         # don't remove the future from the .futures cache
-        if messageHash in client.futures:
-            future = client.futures[messageHash]
+        future = self.safe_value(client.futures, messageHash)
+        if future is not None:
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
@@ -1060,7 +1063,8 @@ class woofipro(ccxt.async_support.woofipro):
             position = self.parse_ws_position(rawPosition, market)
             newPositions.append(position)
             cache.append(position)
-            messageHash = 'positions::' + market['symbol']
+            positionSymbol = market['symbol']
+            messageHash = 'positions::' + positionSymbol
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
@@ -1196,14 +1200,17 @@ class woofipro(ccxt.async_support.woofipro):
             code = self.safe_currency_code(key)
             account = self.account()
             if (code is not None) and (code in self.balance):
-                account = self.balance[code]
+                cachedAccount = self.safe_dict(self.balance, code)
+                if cachedAccount is not None:
+                    account = cachedAccount
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
-            account['total'] = total
-            account['used'] = used
-            account['free'] = Precise.string_sub(total, used)
             if code is not None:
-                self.balance[code] = account
+                self.balance[code] = self.extend(account, {
+                    'total': total,
+                    'used': used,
+                    'free': Precise.string_sub(total, used),
+                })
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 

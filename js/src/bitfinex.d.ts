@@ -1,11 +1,11 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, int, Status } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
  */
 export default class bitfinex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     isFiat(code: any): boolean;
     getCurrencyName(code: string): string;
     amountToPrecision(symbol: Str, amount: any): string;
@@ -38,7 +38,7 @@ export default class bitfinex extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrenciesCustom(ids: any[], indexed: Dict, indexedNetworks: Dict): Dict;
-    parseCurrencyCustom(id: any, indexed: Dict, indexedNetworks: Dict): Currency;
+    parseCurrencyCustom(id: string, indexed: Dict, indexedNetworks: Dict): Currency;
     /**
      * @method
      * @name bitfinex#fetchBalance
@@ -128,7 +128,7 @@ export default class bitfinex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrderStatus(status: Str): Str;
-    parseOrderFlags(flags: Str): Strings;
+    parseOrderFlags(flags: Str): string[];
     parseTimeInForce(orderType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
@@ -343,9 +343,9 @@ export default class bitfinex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): any;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**

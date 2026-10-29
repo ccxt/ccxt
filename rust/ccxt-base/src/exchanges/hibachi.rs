@@ -135,7 +135,8 @@ impl crate::exchange_generated::ExchangeBase for HibachiCore {
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "get_account_id" => self.get_account_id(),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "hardcoded_currencies" => self.hardcoded_currencies(),
                 "nonce" => self.nonce(),
                 "order_message" => self.order_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..]),
@@ -624,31 +625,31 @@ impl HibachiCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut numericId: Value = self.safe_number_k(market.clone(), "id", &[]);
         let mut marketType: Value = Value::Str("swap".into());
-        let mut baseId: Value = self.safe_string_k(market.clone(), "underlyingSymbol", &[]);
-        let mut quoteId: Value = self.safe_string_k(market.clone(), "settlementSymbol", &[]);
-        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-        let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        if (base == Value::Null) || (quote == Value::Null) {
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "underlyingSymbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "settlementSymbol", &[]);
+        let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settlementSymbol", &[]);
+        let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        if (base == Value::Null) || (quote == Value::Null) || (settle == Value::Null) {
             return Value::Null;
         }
-        let mut settleId: Value = self.safe_string_k(market.clone(), "settlementSymbol", &[]);
-        let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
         let mut created: Value = self.safe_integer_product_k(market.clone(), "marketCreationTimestamp", Value::Int(1000), &[]);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId);
+        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), numericId);
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), settle);
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
-        m.insert("settleId".to_string(), settleId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), marketType);
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -754,16 +755,16 @@ impl HibachiCore {
     pub fn hardcoded_currencies(&self) -> Value {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networks: Value = Value::Map({
+        let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut networkId: Value = Value::Str("ARBITRUM".into());
-        if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkId), Value::Map({
+        networks.insert(crate::runtime::stringify_param(&networkId), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkId.clone());
@@ -791,10 +792,10 @@ impl HibachiCore {
     m
 }));
     m
-})); }
+}));
         let mut code: Value = self.safe_currency_code(Value::Str("USDT".into()), &[]);
         if (code != Value::Null) {
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USDT".into()));
         m.insert("name".to_string(), Value::Str("USDT".into()));
@@ -803,7 +804,7 @@ impl HibachiCore {
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.000001".into()), &[]));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("networks".to_string(), networks);
+        m.insert("networks".to_string(), Value::Map(networks));
         m.insert("deposit".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
         m.insert("limits".to_string(), Value::Map({
@@ -827,28 +828,28 @@ impl HibachiCore {
     m
 }));
     m
-}))); }
+})));
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
         // Hibachi only supports USDT on Arbitrum at this time
         let mut code: Value = self.safe_currency_code(Value::Str("USDT".into()), &[]);
-        let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(response.clone(), "balance", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(response, "maximalWithdraw", &[])); }
+        let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+        account.insert("total".into(), self.safe_string_k(response.clone(), "balance", &[]));
+        account.insert("free".into(), self.safe_string_k(response, "maximalWithdraw", &[]));
         if (code != Value::Null) {
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -866,12 +867,12 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_account_info(&[__ws_arg_0]).await;
         return self.parse_balance(response);
 
@@ -942,20 +943,20 @@ impl HibachiCore {
         //          "symbol": "BTC/USDT-P",
         //          "timestamp": 1752543391
         //      }
-        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
-        let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "quantity", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "id", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "quantity", &[]);
         let mut timestamp: Value = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Int(1000), &[]);
-        let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
+        let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         let mut side: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut orderType: Value = Value::Null;
         let mut orderId: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
-        if (id == Value::Null) {
+        if (id.is_none()) {
             // public trades
             side = self.safe_string_lower_k(trade.clone(), "takerSide", &[]);
             takerOrMaker = Value::Str("taker".into());
@@ -977,13 +978,13 @@ impl HibachiCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost);
         m.insert("order".to_string(), orderId);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
@@ -1018,12 +1019,12 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request, &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_data_trades(&[__ws_arg_1]).await;
         //
         // {
@@ -1066,15 +1067,16 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(request, &[params])]).await]);
-        let mut promises: Value = promise_all(&rawPromises).await;
-        let mut pricesResponse: Value = promises.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
+        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
+        let mut pricesResponse: Value = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut statsResponse: Value = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -1087,27 +1089,26 @@ impl HibachiCore {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        let mut statsResponse: Value = promises.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
         //     "symbol": "ETH/USDT-P",
         //     "volume24h": "23554.858590416"
         // }
-        let mut ticker: Value = Value::Map({
+        let mut ticker: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("prices".to_string(), pricesResponse);
                 m.insert("stats".to_string(), statsResponse);
             m
         });
-        return self.parse_ticker(ticker, &[market]);
+        return self.parse_ticker(Value::Map(ticker), &[market]);
 
     Value::Null
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut uppercaseStatus: Value = (if (status == Value::Null) { Value::Null } else { status.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) });
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
                 m.insert("CHILD_PENDING".to_string(), Value::Str("open".into()));
@@ -1120,15 +1121,15 @@ impl HibachiCore {
                 m.insert("REJECTED".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, uppercaseStatus, &[status]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), uppercaseStatus, &[status]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut type_var: Value = self.safe_string_lower_k(order.clone(), "orderType", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut status: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
+        let mut type_var: Option<String> = self.safe_string_lower_k_opt(order.clone(), "orderType", &[]);
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("avgFillPrice".into()), &[]);
         let mut rawSide: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
@@ -1137,17 +1138,17 @@ impl HibachiCore {
         }  else if (rawSide.as_deref() == Some("ASK")) {
             side = Value::Str("sell".into());
         }
-        let mut amount: Value = self.safe_string_k(order.clone(), "totalQuantity", &[]);
-        let mut remaining: Value = self.safe_string_k(order.clone(), "availableQuantity", &[]);
-        let mut totalQuantity: Value = self.safe_string_k(order.clone(), "totalQuantity", &[]);
-        let mut availableQuantity: Value = self.safe_string_k(order.clone(), "availableQuantity", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "totalQuantity", &[]);
+        let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "availableQuantity", &[]);
+        let mut totalQuantity: Option<String> = self.safe_string_k_opt(order.clone(), "totalQuantity", &[]);
+        let mut availableQuantity: Option<String> = self.safe_string_k_opt(order.clone(), "availableQuantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filledQuantity", &[]);
-        if (totalQuantity != Value::Null) && (availableQuantity != Value::Null) {
-            filled = crate::precise::Precise::stringSub(&totalQuantity, &availableQuantity);
+        if (totalQuantity.is_some()) && (availableQuantity.is_some()) {
+            filled = crate::precise::Precise::stringSub(&totalQuantity.clone().map(Value::from).unwrap_or(Value::Null), &availableQuantity.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut remainingString: Value = remaining;
-        if (remainingString == Value::Null) && (totalQuantity != Value::Null) && (filled != Value::Null) {
-            remainingString = crate::precise::Precise::stringSub(&totalQuantity, &filled);
+        let mut remainingString: Value = remaining.map(Value::from).unwrap_or(Value::Null);
+        if (remainingString == Value::Null) && (totalQuantity.is_some()) && (filled != Value::Null) {
+            remainingString = crate::precise::Precise::stringSub(&totalQuantity.clone().map(Value::from).unwrap_or(Value::Null), &filled);
         }
         let mut timeInForce: Value = Value::Str("GTC".into());
         let mut orderFlags: Option<String> = self.safe_string_k(order.clone(), "orderFlags", &[]).as_str().map(str::to_owned);
@@ -1175,14 +1176,14 @@ impl HibachiCore {
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avgFillPrice", &[]));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remainingString);
         m.insert("cost".to_string(), Value::Null);
@@ -1220,13 +1221,13 @@ impl HibachiCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_3 = self.extend(request, &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_order(&[__ws_arg_3]).await;
         return self.parse_order(response, &[market]);
 
@@ -1249,12 +1250,12 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_account_info(&[__ws_arg_4]).await;
         //    {
         //        "tradeMakerFeeRate": "0.00000000",
@@ -1269,8 +1270,8 @@ impl HibachiCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_731 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_734 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1290,12 +1291,6 @@ impl HibachiCore {
 
     pub fn order_message(&self, mut market: Value, mut nonce: Value, mut feeRate: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
-        if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
-        }
-        if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
-        }
         let mut sideInternal: Value = Value::Int(0);
         if (side.as_str() == Some("sell")) {
             sideInternal = Value::Int(0);
@@ -1309,8 +1304,7 @@ impl HibachiCore {
         let mut amountStr: Value = self.amount_to_precision(self.safe_string_k(market.clone(), "symbol", &[]), amount);
         let mut feeRateStr: Value = self.number_to_string(feeRate);
         let mut info: Value = self.safe_dict_k(market.clone(), "info", &[]);
-        let mut underlying: Value = Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(info.clone(), "underlyingDecimals", &[])).into());
-        let mut settlement: Value = Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(info, "settlementDecimals", &[])).into());
+        let mut underlying: Value = Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(info.clone(), "underlyingDecimals", &[Value::Str("".into())])).into());
         let mut one: Value = Value::Str("1".into());
         let mut feeRateFactor: Value = Value::Str("100000000".into()); // 10^8
         let mut priceFactor: Value = Value::Str("4294967296".into()); // 2^32
@@ -1335,7 +1329,7 @@ impl HibachiCore {
         let mut encodedPrice: Value = self.binary_concat(Value::Null, &[]);
         if (type_var.as_str() == Some("limit")) {
             let mut priceStr: Value = self.price_to_precision(self.safe_string_k(market, "symbol", &[]), price);
-            let mut priceInternal: Value = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceStr, &priceFactor), &settlement), &underlying), &one, &Value::Int(0));
+            let mut priceInternal: Value = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceStr, &priceFactor), &Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(info, "settlementDecimals", &[Value::Str("".into())])).into())), &underlying), &one, &Value::Int(0));
             let mut price16: Value = self.int_to_base16(self.parse_to_int(priceInternal), &[]);
             let mut pricePadded: Value = price16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
             // @ts-expect-error
@@ -1377,7 +1371,7 @@ impl HibachiCore {
         }
         let mut message: Value = self.order_message(market.clone(), nonce.clone(), feeRate.clone(), type_var.clone(), side, amount.clone(), &[price]);
         let mut signature: Value = self.sign_message(message, self.privateKey.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(market, "id", &[]));
                 m.insert("nonce".to_string(), nonce);
@@ -1394,17 +1388,17 @@ impl HibachiCore {
         let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         if postOnly.as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFlags".into(), Value::Str("POST_ONLY".into())); }
+            request.insert("orderFlags".into(), Value::Str("POST_ONLY".into()));
         }  else if (timeInForce.as_deref() == Some("ioc")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFlags".into(), Value::Str("IOC".into())); }
+            request.insert("orderFlags".into(), Value::Str("IOC".into()));
         }  else if (reduceOnly.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFlags".into(), Value::Str("REDUCE_ONLY".into())); }
+            request.insert("orderFlags".into(), Value::Str("REDUCE_ONLY".into()));
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), triggerPrice); }
+            request.insert("triggerPrice".into(), triggerPrice);
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]);
-        return self.extend(request, &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[paramsOmitted]);
 
     Value::Null
 }
@@ -1432,9 +1426,9 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = self.create_order_request(nonce, symbol, type_var, side, amount, &[price, params]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("accountId".into(), self.get_account_id()); }
-        let mut response: Value = self.private_post_trade_order(&[request]).await;
+        let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(nonce, symbol, type_var, side, amount, &[price, params]).as_map().cloned().unwrap_or_default();
+        request.insert("accountId".into(), self.get_account_id());
+        let mut response: Value = self.private_post_trade_order(&[Value::Map(request)]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(response, "orderId", &[]));
@@ -1462,45 +1456,47 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonceValue: Value = self.incrementing_nonce();
+        let mut nonce: Value = self.parse_to_int(nonceValue);
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_732 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
-            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
+            let mut side: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut orderRequest: Value = self.create_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), symbol, type_var, side, amount, &[price, orderParams]);
+            let mut orderRequest: Value = self.create_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }),
+                symbol.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("place".into())); }
             requestOrders.push(orderRequest);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("orders".to_string(), Value::from(requestOrders));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_trade_orders(&[__ws_arg_5]).await;
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_733 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_736 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
+            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1536,7 +1532,7 @@ impl HibachiCore {
         let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringMax(&self.number_to_string(takerFeeValue), &self.number_to_string(makerFeeValue)), &[]);
         let mut message: Value = self.order_message(market, nonce.clone(), feeRate.clone(), type_var, side, amount.clone(), &[price.clone()]);
         let mut signature: Value = self.sign_message(message, self.privateKey.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
                 m.insert("nonce".to_string(), nonce);
@@ -1546,7 +1542,7 @@ impl HibachiCore {
                 m.insert("signature".to_string(), signature);
             m
         });
-        return self.extend(request, &[params]);
+        return self.extend(Value::Map(request), &[params]);
 
     Value::Null
 }
@@ -1576,9 +1572,9 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut nonce: Value = self.incrementing_nonce();
-        let mut request: Value = self.edit_order_request(nonce, id.clone(), symbol, type_var, side, &[amount, price, params]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("accountId".into(), self.get_account_id()); }
-        self.private_put_trade_order(&[request]).await;
+        let mut request: indexmap::IndexMap<String, Value> = self.edit_order_request(nonce, id.clone(), symbol, type_var, side, &[amount, price, params]).as_map().cloned().unwrap_or_default();
+        request.insert("accountId".into(), self.get_account_id());
+        self.private_put_trade_order(&[Value::Map(request)]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -1606,46 +1602,48 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonceValue: Value = self.incrementing_nonce();
+        let mut nonce: Value = self.parse_to_int(nonceValue);
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_734 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
-            let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
-            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut id: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "id", &[]);
+            let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
+            let mut side: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut orderRequest: Value = self.edit_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), id, symbol, type_var, side, &[amount, price, orderParams]);
+            let mut orderRequest: Value = self.edit_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }),
+                id.map(Value::from).unwrap_or(Value::Null), symbol.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), &[amount, price, orderParams]);
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("modify".into())); }
             requestOrders.push(orderRequest);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("orders".to_string(), Value::from(requestOrders));
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_trade_orders(&[__ws_arg_6]).await;
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_738 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
+            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1692,9 +1690,9 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = self.cancel_order_request(id.clone());
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("accountId".into(), self.get_account_id()); }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let mut request: indexmap::IndexMap<String, Value> = self.cancel_order_request(id.clone()).as_map().cloned().unwrap_or_default();
+        request.insert("accountId".into(), self.get_account_id());
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_trade_order(&[__ws_arg_7]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1726,31 +1724,31 @@ impl HibachiCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_736 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut orderRequest: Value = self.cancel_order_request(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut orderRequest: Value = self.cancel_order_request(self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())]));
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
             orders.push(orderRequest);
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("orders".to_string(), Value::from(orders));
             m
         });
-        let __ws_arg_8 = self.extend(request, &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_trade_orders(&[__ws_arg_8]).await;
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::from(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_740 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
+            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut ret { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1788,7 +1786,7 @@ impl HibachiCore {
         let mut noncePadded: Value = nonce16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
         let mut message: Value = self.base16_to_binary(noncePadded, &[]);
         let mut signature: Value = self.sign_message(message, self.privateKey.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("nonce".to_string(), nonce);
@@ -1797,9 +1795,9 @@ impl HibachiCore {
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contractId".into(), self.safe_integer_k(market, "numericId", &[])); }
+            request.insert("contractId".into(), self.safe_integer_k(market, "numericId", &[]));
         }
-        let __ws_arg_9 = self.extend(request, &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_trade_orders(&[__ws_arg_9]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1856,7 +1854,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut withdrawAddress: Value = address.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 40).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut withdrawAddress: Value = address.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 40).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         // Get the withdraw fees
         let mut exchangeInfo: Value = self.public_get_market_exchange_info(&[params.clone()]).await;
         // {
@@ -1873,7 +1871,7 @@ impl HibachiCore {
         // Generate the signature
         let mut message: Value = self.encode_withdraw_message(amount.clone(), maxFees.clone(), withdrawAddress.clone());
         let mut signature: Value = self.sign_message(message, self.privateKey.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("coin".to_string(), Value::Str("USDT".into()));
@@ -1885,7 +1883,7 @@ impl HibachiCore {
                 m.insert("signature".to_string(), signature);
             m
         });
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         self.private_post_capital_withdraw(&[__ws_arg_10]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1932,9 +1930,10 @@ impl HibachiCore {
         }  else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             let mut hash: Value = self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-            let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
-            let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
+            let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
+                privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
+            let mut r: Value = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]);
+            let mut s: Value = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]);
             let mut v: Value = self.int_to_base16(signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null), &[]);
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v.as_str().map(|__s| Value::Str(format!("{:0>2}", __s).into())).unwrap_or(Value::Null)).into());
         }
@@ -1961,21 +1960,21 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_data_orderbook(&[__ws_arg_11]).await;
-        let mut formattedResponse: Value = Value::Map({
+        let mut formattedResponse: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut formattedResponse { std::sync::Arc::make_mut(__d).insert("ask".into(), self.safe_list(self.safe_dict_k(response.clone(), "ask", &[]), Value::Str("levels".into()), &[])); }
-        if let Value::Dict(__d) = &mut formattedResponse { std::sync::Arc::make_mut(__d).insert("bid".into(), self.safe_list(self.safe_dict_k(response, "bid", &[]), Value::Str("levels".into()), &[])); }
-        return self.parse_order_book(formattedResponse, symbol, &[self.milliseconds(), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        formattedResponse.insert("ask".into(), self.safe_list(self.safe_dict_k(response.clone(), "ask", &[]), Value::Str("levels".into()), &[]));
+        formattedResponse.insert("bid".into(), self.safe_list(self.safe_dict_k(response, "bid", &[]), Value::Str("levels".into()), &[]));
+        return self.parse_order_book(Value::Map(formattedResponse), symbol, &[self.milliseconds(), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
 
     Value::Null
 }
@@ -2006,12 +2005,12 @@ impl HibachiCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_12 = self.extend(request, &[params.clone()]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_trade_account_trades(&[__ws_arg_12]).await;
         //
         // {
@@ -2077,12 +2076,12 @@ impl HibachiCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_13 = self.extend(request, &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_orders(&[__ws_arg_13]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -2116,7 +2115,7 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
@@ -2125,18 +2124,18 @@ impl HibachiCore {
             market = self.market(symbol.clone());
         }
         if (status != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("status".into(), status); }
+            request.insert("status".into(), status);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
+            request.insert("endTime".into(), until);
         }
-        let __ws_arg_14 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_trade_orders_history(&[__ws_arg_14]).await;
         //
         //     {
@@ -2253,22 +2252,22 @@ impl HibachiCore {
         }
         let mut market: Value = self.market(symbol);
         let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("interval".to_string(), timeframeValue.clone());
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromMs".into(), since.clone()); }
+            request.insert("fromMs".into(), since.clone());
         }
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toMs".into(), until); }
+            request.insert("toMs".into(), until);
         }
-        let __ws_arg_15 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.public_get_market_data_klines(&[__ws_arg_15]).await;
         //
         // [
@@ -2308,12 +2307,12 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_16 = self.extend(request, &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_account_info(&[__ws_arg_16]).await;
         //
         // {
@@ -2376,11 +2375,11 @@ impl HibachiCore {
         //     "unrealizedTradingPnl": "0.077204"
         // }
         //
-        let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut side: Value = self.safe_string_lower_k(position.clone(), "direction", &[]);
-        let mut quantity: Value = self.safe_string_k(position.clone(), "quantity", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k_opt(position.clone(), "direction", &[]);
+        let mut quantity: Option<String> = self.safe_string_k_opt(position.clone(), "quantity", &[]);
         let mut unrealizedFunding: Value = self.safe_string_k(position.clone(), "unrealizedFundingPnl", &[Value::Str("0".into())]);
         let mut unrealizedTrading: Value = self.safe_string_k(position.clone(), "unrealizedTradingPnl", &[Value::Str("0".into())]);
         let mut unrealizedPnl: Value = crate::precise::Precise::stringAdd(&unrealizedFunding, &unrealizedTrading);
@@ -2394,8 +2393,8 @@ impl HibachiCore {
         m.insert("notional".to_string(), self.safe_string_k(position, "notionalValue", &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), unrealizedPnl);
-        m.insert("side".to_string(), side);
-        m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("contracts".to_string(), self.parse_number(quantity.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -2426,12 +2425,12 @@ impl HibachiCore {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
-        if (apiUrl == Value::Null) {
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
+        if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl, endpoint).into());
-        let mut headersValue: Value = Value::Map({
+        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint).into());
+        let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Hibachi-Client".to_string(), Value::Str("HibachiCCXT/unversioned".into()));
             m
@@ -2445,7 +2444,7 @@ impl HibachiCore {
         }
         let mut hasJsonBody: bool = (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"));
         if hasJsonBody {
-            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+            headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
         }
         let mut bodyResult: Value = Value::Null;
         if hasJsonBody {
@@ -2453,36 +2452,36 @@ impl HibachiCore {
         }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            if let Value::Dict(__d) = &mut headersValue { std::sync::Arc::make_mut(__d).insert("Authorization".into(), self.apiKey.clone()); }
+            headersValue.insert("Authorization".into(), self.apiKey.clone());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
-        m.insert("headers".to_string(), headersValue);
+        m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });
 
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if (in_op(&response, &Value::Str("status".into()))) {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if (status.is_some()) {
             if (status.as_deref() == Some("failed")) {
-                let mut code: Value = self.safe_string_k(response.clone(), "errorCode", &[]);
+                let mut codeError: Option<String> = self.safe_string_k_opt(response.clone(), "errorCode", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code, feedback.clone());
-                let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message, feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -2492,7 +2491,7 @@ impl HibachiCore {
 }
 
     pub fn parse_transaction_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Str("transaction".into()));
                 m.insert("withdrawal".to_string(), Value::Str("transaction".into()));
@@ -2500,11 +2499,11 @@ impl HibachiCore {
                 m.insert("transfer-out".to_string(), Value::Str("transfer".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending".to_string(), Value::Str("pending".into()));
                 m.insert("claimable".to_string(), Value::Str("pending".into()));
@@ -2512,12 +2511,12 @@ impl HibachiCore {
                 m.insert("failed".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut transactionType: Value = self.safe_string_k(item.clone(), "transactionType", &[]);
+        let mut transactionType: Option<String> = self.safe_string_k_opt(item.clone(), "transactionType", &[]);
         let mut timestamp: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut direction: Value = Value::Null;
@@ -2526,7 +2525,7 @@ impl HibachiCore {
         let mut referenceId: Value = Value::Null;
         let mut referenceAccount: Value = Value::Null;
         let mut status: Value = Value::Null;
-        if (transactionType == Value::Null) {
+        if (transactionType.is_none()) {
             // response from TradeAccountTradingHistory
             timestamp = self.safe_integer_product_k(item.clone(), "timestamp", Value::Int(1000), &[]);
             type_var = Value::Str("trade".into());
@@ -2549,12 +2548,12 @@ impl HibachiCore {
             // response from CapitalHistory
             timestamp = self.safe_integer_product_k(item.clone(), "timestampSec", Value::Int(1000), &[]);
             amount = self.safe_number_k(item.clone(), "quantity", &[]);
-            direction = (if ((transactionType.as_str() == Some("deposit")) || (transactionType.as_str() == Some("transfer-in"))) { Value::Str("in".into()) } else { Value::Str("out".into()) });
-            type_var = self.parse_transaction_type(transactionType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            status = self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if (transactionType.as_str() == Some("transfer-in")) {
+            direction = (if ((transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("transfer-in"))) { Value::Str("in".into()) } else { Value::Str("out".into()) });
+            type_var = self.parse_transaction_type(transactionType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
+            if (transactionType.as_deref() == Some("transfer-in")) {
                 referenceAccount = self.safe_string_k(item.clone(), "srcAccountId", &[]);
-            }  else if (transactionType.as_str() == Some("transfer-out")) {
+            }  else if (transactionType.as_deref() == Some("transfer-out")) {
                 referenceAccount = self.safe_string_k(item.clone(), "receivingAccountId", &[]);
             }
             referenceId = self.safe_string_k(item.clone(), "transactionHash", &[]);
@@ -2605,13 +2604,13 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(Value::Str("USDT".into()));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(request, &[params.clone()])]).await]);
+        let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
         let mut promises: Value = promise_all(&rawPromises).await;
         let mut responseCapitalHistory: Value = self.safe_dict(promises.clone(), Value::Int(0), &[]);
         //
@@ -2717,13 +2716,13 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("publicKey".to_string(), self.safe_string_k(params.clone(), "publicKey", &[]));
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_18 = self.extend(request, &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_capital_deposit_info(&[__ws_arg_18]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2741,10 +2740,10 @@ impl HibachiCore {
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_product_k(transaction.clone(), "timestampSec", Value::Int(1000), &[]);
-        let mut address: Value = self.safe_string_k(transaction.clone(), "withdrawalAddress", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "withdrawalAddress", &[]);
         let mut transactionType: Value = self.safe_string_k(transaction.clone(), "transactionType", &[]);
         if (transactionType.as_str() != Some("deposit")) && (transactionType.as_str() != Some("withdrawal")) {
-            transactionType = self.parse_transaction_type(transactionType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            transactionType = self.parse_transaction_type(transactionType.clone()).map(Value::from).unwrap_or(Value::Null);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2754,8 +2753,8 @@ impl HibachiCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("address".to_string(), address.clone());
-        m.insert("addressTo".to_string(), address);
+        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
@@ -2763,7 +2762,7 @@ impl HibachiCore {
         m.insert("type".to_string(), transactionType);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "quantity", &[]));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
@@ -2794,12 +2793,12 @@ impl HibachiCore {
     m
 }));
         let mut currency: Value = self.safe_currency(code, &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params.clone()]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_capital_history(&[__ws_arg_19]).await;
         // {
         //     "transactions": [
@@ -2904,11 +2903,11 @@ impl HibachiCore {
         //     }
         //
         let mut timestamp: Value = self.safe_timestamp_k(settlement.clone(), "timestamp", &[]);
-        let mut marketId: Value = self.safe_string_k(settlement.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(settlement.clone(), "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "indexPrice", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2920,12 +2919,14 @@ impl HibachiCore {
 
     pub fn parse_settlements(&self, mut settlements: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __settlements_empty = Vec::new();
+        let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_738 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
-            result.push(self.parse_settlement(settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_741 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
+            result.push(self.parse_settlement(settlements.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(result);
@@ -2955,7 +2956,7 @@ impl HibachiCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
             m
@@ -2963,22 +2964,22 @@ impl HibachiCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contractId".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); }
+            request.insert("contractId".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("startTime".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            request.insert("limit".into(), limit.clone());
         }
-        let mut untilparamsUntilVariable = self.handle_option_integer_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("until".into()), &[]);
-        let mut until: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            request.insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        let __ws_arg_20 = self.extend(request, &[paramsUntil]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_trade_account_settlements_history(&[__ws_arg_20]).await;
         //
         //     {
@@ -3040,12 +3041,12 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_21 = self.extend(request, &[params]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_data_open_interest(&[__ws_arg_21]).await;
         //
         //   { "totalQuantity" : "2.3299770166" }
@@ -3083,12 +3084,12 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_22 = self.extend(request, &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_data_prices(&[__ws_arg_22]).await;
         //
         // {
@@ -3158,13 +3159,13 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Map({
+        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_data_funding_rates(&[__ws_arg_23]).await;
         //
         // {
@@ -3178,13 +3179,13 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_742: bool = true;
+            while { if !__for_first_742 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_742 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_product_k(entry.clone(), "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

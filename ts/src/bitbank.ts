@@ -14,7 +14,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, FeeStrin
  * @augments Exchange
  */
 export default class bitbank extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
             'name': 'bitbank',
@@ -565,7 +565,7 @@ export default class bitbank extends Exchange {
             const pair = pairs[i];
             const marketId = this.safeString (pair, 'name');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
@@ -1015,7 +1015,7 @@ export default class bitbank extends Exchange {
         const tagWithdrawTag: Str = tagAndParams[0];
         const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address, code, tagWithdrawTag);
-        if (!('uuid' in paramsWithdrawTag)) {
+        if (!('uuid' in params)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1091,13 +1091,13 @@ export default class bitbank extends Exchange {
         } as Transaction;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        const query = this.omit (params, this.extractParams (path));
+        const query = this.extend ({}, this.omit (params, this.extractParams (path)));
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -1144,10 +1144,9 @@ export default class bitbank extends Exchange {
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
             if (isTimeWindow) {
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime;
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow;
+                requestHeaders = this.extend (requestHeaders, { 'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow });
             } else {
-                requestHeaders['ACCESS-NONCE'] = nonce;
+                requestHeaders = this.extend (requestHeaders, { 'ACCESS-NONCE': nonce });
             }
         }
         const bodyResolved = requestBody;
@@ -1155,7 +1154,7 @@ export default class bitbank extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -1224,9 +1223,9 @@ export default class bitbank extends Exchange {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, code, 'Error');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
+            const codeError = this.safeString (data, 'code');
+            const message = this.safeString (errorMessages, codeError, 'Error');
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, message);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return undefined;

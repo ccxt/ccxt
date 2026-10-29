@@ -1,5 +1,5 @@
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
-import { Future } from './Future.js';
+import { Future, FutureInterface } from './Future.js';
 
 import {
     isNode,
@@ -9,7 +9,7 @@ import {
     milliseconds,
 } from '../../base/functions.js';
 import { utf8 } from '@scure/base';
-import { Dictionary, Str } from '../types.js';
+import { Dictionary, Str, Int, Dict } from '../types.js';
 
 // websocket decompression backends are resolved once at startup so the message
 // hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
@@ -83,6 +83,7 @@ export default class Client {
 
     ping: any
 
+    // values are booleans, message hashes, channel ids, subscription dicts and Futures
     // @ts-ignore: 2564
     subscriptions: Dictionary<any>
 
@@ -92,7 +93,7 @@ export default class Client {
 
     decompressBinary = true
 
-    constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
+    constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config: Dict = {}) {
         const defaults = {
             url,
             onMessageCallback,
@@ -128,12 +129,12 @@ export default class Client {
         this.connected = Future ()
     }
 
-    reusableFuture (messageHash: string) {
+    reusableFuture (messageHash: string): FutureInterface {
         // only used in go
         return this.future (messageHash)
     }
 
-    future (messageHash: string) {
+    future (messageHash: string): FutureInterface {
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future ()
         }
@@ -145,7 +146,7 @@ export default class Client {
         return future
     }
 
-    resolve (result: any, messageHash: Str) {
+    resolve (result: any, messageHash: Str): any {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
@@ -157,7 +158,7 @@ export default class Client {
         return result
     }
 
-    reject (result: any, messageHash: Str = undefined) {
+    reject (result: any, messageHash: Str = undefined): any {
         if (messageHash) {
             if (messageHash in this.futures) {
                 const promise = this.futures[messageHash]
@@ -185,7 +186,7 @@ export default class Client {
         // console.dir (args, { depth: null })
     }
 
-    connect (backoffDelay = 0) {
+    connect (backoffDelay: Int = 0): void {
         throw new NotSupported ('connect() not implemented yet');
     }
 
@@ -193,13 +194,13 @@ export default class Client {
         throw new NotSupported ('isOpen() not implemented yet');
     }
 
-    reset (error: any) {
+    reset (error: any): void {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
         this.reject (error)
     }
 
-    onConnectionTimeout () {
+    onConnectionTimeout (): void {
         if (!this.isOpen ()) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
             this.onError (error)
@@ -207,33 +208,33 @@ export default class Client {
         }
     }
 
-    setConnectionTimeout () {
+    setConnectionTimeout (): void {
         if (this.connectionTimeout) {
             const onConnectionTimeout = this.onConnectionTimeout.bind (this)
             this.connectionTimer = setTimeout (onConnectionTimeout, this.connectionTimeout)
         }
     }
 
-    clearConnectionTimeout () {
+    clearConnectionTimeout (): void {
         if (this.connectionTimer) {
             this.connectionTimer = clearTimeout (this.connectionTimer)
         }
     }
 
-    setPingInterval () {
+    setPingInterval (): void {
         if (this.keepAlive) {
             const onPingInterval = this.onPingInterval.bind (this)
             this.pingInterval = setInterval (onPingInterval, this.keepAlive)
         }
     }
 
-    clearPingInterval () {
+    clearPingInterval (): void {
         if (this.pingInterval) {
             this.pingInterval = clearInterval (this.pingInterval)
         }
     }
 
-    onPingInterval () {
+    onPingInterval (): void {
         if (this.keepAlive && (this as any).isOpen ()) {
             const now = milliseconds ()
             this.lastPong = this.lastPong || now
@@ -277,7 +278,7 @@ export default class Client {
         }
     }
 
-    onOpen () {
+    onOpen (): void {
         if (this.verbose) {
             this.log (new Date (), 'onOpen', '|', this.url)
         }
@@ -293,20 +294,20 @@ export default class Client {
     // this method is not used at this time, because in JS the ws client will
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
-    onPing () {
+    onPing (): void {
         if (this.verbose) {
             this.log (new Date (), 'onPing', '|', this.url)
         }
     }
 
-    onPong () {
+    onPong (): void {
         this.lastPong = milliseconds ()
         if (this.verbose) {
             this.log (new Date (), 'onPong', '|', this.url)
         }
     }
 
-    onError (error: any) {
+    onError (error: any): void {
         if (this.verbose) {
             this.log (new Date (), 'onError', error.message, '|', this.url)
         }
@@ -320,7 +321,7 @@ export default class Client {
     }
 
     /* eslint-disable no-shadow */
-    onClose (event: any) {
+    onClose (event: any): void {
         if (this.verbose) {
             this.log (new Date (), 'onClose', event, '|', this.url)
         }
@@ -339,13 +340,13 @@ export default class Client {
 
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
-    onUpgrade (message: any) {
+    onUpgrade (message: any): void {
         if (this.verbose) {
             this.log (new Date (), 'onUpgrade', '|', this.url)
         }
     }
 
-    async send (message: any) {
+    async send (message: any): Promise<FutureInterface> {
         if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
@@ -370,11 +371,11 @@ export default class Client {
         return future
     }
 
-    close () {
+    close (): void {
         throw new NotSupported ('close() not implemented yet');
     }
 
-    onMessage (messageEvent : any) {
+    onMessage (messageEvent : any): void {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
 

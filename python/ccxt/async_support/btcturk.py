@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class btcturk(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btcturk, self).describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',
@@ -720,14 +720,15 @@ class btcturk(Exchange, ImplicitAPI):
                 limitResolved = 11000  # max 11000 candles diapason can be covered
         elif since is None:
             limitResolved = 100  # default value
-        if limitResolved is not None:
+        if (limit is not None) or (since is None):
             if timeframe == '1y':  # difficult with leap years
                 raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
             limitCount = 100 if (limit is None) else min(limit, 11000)
-            limitSeconds = seconds * (limitCount - 1)
+            limitSeconds = self.parse_to_int(seconds * (limitCount - 1))
             if since is not None:
-                to = self.parse_to_int(since / 1000) + limitSeconds
+                sinceSeconds = self.parse_to_int(since / 1000)
+                to = sinceSeconds + limitSeconds
                 if to < untilSeconds:
                     request['to'] = to
             else:
@@ -1042,7 +1043,7 @@ class btcturk(Exchange, ImplicitAPI):
             dataList = data
         return self.parse_trades(dataList, market, since, limit)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -1055,8 +1056,9 @@ class btcturk(Exchange, ImplicitAPI):
         url = apiUrl + '/' + path
         isQueryMethod = (method == 'GET') or (method == 'DELETE')
         if isQueryMethod:
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            query = self.urlencode(params)
+            if len(query) > 0:
+                url += '?' + query
         requestBody = None
         if isQueryMethod:
             requestBody = None
@@ -1074,16 +1076,15 @@ class btcturk(Exchange, ImplicitAPI):
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/json',
             }
-        requestHeaders = privateHeaders
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
-        output = message
-        if message is None:
-            output = body
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
+        feedback = self.id + ' ' + body
+        if message is not None:
+            feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         if (errorCode != '0') and (errorCode != 'SUCCESS'):
-            raise ExchangeError(self.id + ' ' + output)
+            raise ExchangeError(feedback)
         return None

@@ -2,7 +2,7 @@ import hashkeyRest from '../hashkey.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hashkey extends hashkeyRest {
-    describe(): any;
+    describe(): Dict;
     wathPublic(market: Market, topic: string, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(messageHash: string): Promise<any>;
     getPrivateUrl(listenKey: Str): string;

@@ -414,7 +414,7 @@ class deepcoin extends deepcoin$1["default"] {
         const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push(this.fetchMarketsByType(types[i], params));
+            promises.push(this.fetchMarketsByType(this.safeString(types, i), params));
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
@@ -524,7 +524,10 @@ class deepcoin extends deepcoin$1["default"] {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + ':' + settle;
+            if (settle === undefined) {
+                return undefined;
+            }
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
@@ -590,8 +593,9 @@ class deepcoin extends deepcoin$1["default"] {
         const symbols = Object.keys(result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = result[symbol];
-            if ((market !== undefined) && (market['swap'] === true)) {
+            const market = this.safeDict(result, symbol, {});
+            const isSwap = this.safeBool(market, 'swap', false);
+            if (isSwap) {
                 const additionalId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [market]; // some endpoints return swap market id as base+quote
@@ -693,7 +697,7 @@ class deepcoin extends deepcoin$1["default"] {
                 // we calculate until (after) for correct pagination
                 const duration = this.parseTimeframe(timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
-                let endTime = since + (duration * numberOfCandles) * 1000;
+                let endTime = this.parseToInt(since + (duration * numberOfCandles) * 1000);
                 if (until !== undefined) {
                     endTime = Math.min(endTime, until);
                 }
@@ -1775,7 +1779,7 @@ class deepcoin extends deepcoin$1["default"] {
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
         let typeValue = typePostOnly;
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+        if (timeInForce === 'IOC') {
             typeValue = 'ioc';
         }
         return [typeValue, paramsOmitted];
@@ -1950,7 +1954,8 @@ class deepcoin extends deepcoin$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate);
         }
         const trigger = this.safeBool(paramsPaginate, 'trigger', false);
-        const [methodName, paramsMethodName] = this.handleParamString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const methodName = this.safeString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const paramsMethodName = this.omit(paramsPaginate, 'methodName');
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -3064,7 +3069,7 @@ class deepcoin extends deepcoin$1["default"] {
         if (method === 'GET') {
             const query = this.urlencode(params);
             if (query.length > 0) {
-                requestPath += '?' + query;
+                requestPath = path + '?' + query;
             }
         }
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -3083,8 +3088,9 @@ class deepcoin extends deepcoin$1["default"] {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
+            let requestBody = undefined;
             if (method !== 'GET') {
+                requestBody = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
             }

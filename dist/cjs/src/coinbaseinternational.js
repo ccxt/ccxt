@@ -598,10 +598,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             type = 'option';
         }
         let symbol = instrumentName;
-        if (!isComboMarket) {
+        if (!isComboMarket && (base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (!isSpot) {
-                symbol = symbol + ':' + settle;
+            if (!isSpot && (settle !== undefined)) {
+                symbol = base + '/' + quote + ':' + settle;
             }
         }
         const linear = isSpot ? undefined : (settle === quote);
@@ -853,13 +853,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
         }
         let limitResolved = limit;
-        const duration = this.parseTimeframe(timeframe);
+        const duration = this.parseToInt(this.parseTimeframe(timeframe));
         const now = this.milliseconds();
         if (since === undefined) {
             if (limitResolved === undefined) {
                 limitResolved = 100;
             }
-            request['start_timestamp'] = this.sum(now, -limitResolved * duration * 1000);
+            request['start_timestamp'] = this.sum(now, this.parseToInt(limitResolved) * duration * -1000);
             request['end_timestamp'] = now;
         }
         else {
@@ -869,7 +869,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 request['end_timestamp'] = now;
             }
             else {
-                request['end_timestamp'] = this.sum(sinceResolved, limitResolved * duration * 1000);
+                request['end_timestamp'] = this.sum(sinceResolved, this.parseToInt(limitResolved) * duration * 1000);
             }
         }
         const until = this.safeInteger(paramsPaginate, 'until');
@@ -950,7 +950,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const duration = this.parseTimeframe('1h') * 1000;
         const now = this.milliseconds();
         let sinceResolved = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request = {
@@ -1209,8 +1209,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                     throw new errors.BadRequest(this.id + ' fetchOrderBook() limit must be between 1 and 10000');
                 }
                 for (let i = 0; i < depths.length; i++) {
-                    if (limit <= depths[i]) {
-                        request['depth'] = depths[i];
+                    if (limit <= this.parseToInt(depths[i])) {
+                        request['depth'] = this.safeInteger(depths, i, 0);
                         break;
                     }
                 }
@@ -1602,7 +1602,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const currency = this.currency(code);
         const now = this.milliseconds();
         let sinceResolved = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request = {
@@ -1930,7 +1930,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const currency = this.currency(code);
         const now = this.milliseconds();
         let sinceResolved = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request = {
@@ -3138,7 +3138,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      */
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         let uri = undefined;
-        if (url !== undefined) {
+        if ((url !== undefined) && (method !== undefined)) {
             uri = method + ' ' + url.replace('https://', '');
             const quesPos = uri.indexOf('?');
             if (quesPos > 0) {
@@ -3159,7 +3159,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'sub': this.apiKey,
             'iss': iss,
             'nbf': seconds,
-            'exp': seconds + 120,
+            'exp': this.parseToInt(seconds) + 120,
             'iat': seconds,
         };
         if (uri !== undefined) {
@@ -3238,17 +3238,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {string|undefined} the access token
      */
     getV2AccessToken() {
-        const token = this.safeString(this.options, 'v2AccessToken');
-        if ((token !== undefined) && (token !== '')) {
-            return token;
-        }
-        if ((this.token === undefined) || (this.token === '')) {
-            return undefined;
-        }
-        return this.token;
+        return this.safeString(this.options, 'v2AccessToken', this.token);
     }
-    sign(path, api = 'public', method = 'GET', params = {}) {
-        const access = Array.isArray(api) ? api[0] : api;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const access = api[0];
         const rpcMethod = access + '/' + path;
         let requestParams = this.handleRouteAndParams('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials();
@@ -3280,7 +3273,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         else if ((access === 'private') && isNativeDeribit) {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             let signedRequest = '/' + 'api/' + this.version + '/' + access + '/' + path;
             if (Object.keys(requestParams).length > 0) {
                 signedRequest += '?' + this.urlencode(requestParams);
@@ -3295,7 +3288,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         else if (access === 'private') {
             const accessToken = this.getV2AccessToken();
-            if (accessToken === undefined) {
+            if ((accessToken === undefined) || (accessToken === '')) {
                 throw new errors.AuthenticationError(this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
@@ -3345,11 +3338,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
     handleRouteAndParams(methodName, params = {}) {
-        const [route, paramsResolved] = this.handleOptionAndParams(params, methodName, 'route', 'auto');
+        const [route, paramsResolved] = this.handleOptionStringAndParams(params, methodName, 'route', 'auto');
         const deribit = this.resolveRoute(route);
         const previousBackend = this.safeBool(this.options, 'routeBackend');
         const configuredBackend = this.isNativeDeribitCredentials();
-        const hasToken = this.getV2AccessToken() !== undefined;
+        const currentToken = this.getV2AccessToken();
+        const hasToken = (currentToken !== undefined) && (currentToken !== '');
         const hasWsState = this.safeInteger(this.options, 'wsAuthRefreshAt') !== undefined;
         if ((previousBackend !== undefined) && (previousBackend !== deribit)) {
             throw new errors.BadRequest(this.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance');

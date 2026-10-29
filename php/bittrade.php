@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bittrade as Exchange;
 
 class bittrade extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bittrade',
             'name' => 'BitTrade',
@@ -449,7 +449,7 @@ class bittrade extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id(?string $id, $params = array()) {
+    public function fetch_trading_limits_by_id(?string $id, $params = array()): array {
         $request = array(
             'symbol' => $id,
         );
@@ -473,7 +473,7 @@ class bittrade extends Exchange {
         return $this->parse_trading_limits($this->safe_dict($response, 'data', array()));
     }
 
-    public function parse_trading_limits(array $limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(array $limits, ?string $symbol = null, $params = array()): array {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -501,7 +501,8 @@ class bittrade extends Exchange {
     }
 
     public function cost_to_precision(?string $symbol, mixed $cost): ?string {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
+        $precision = $this->safe_dict($this->market($symbol), 'precision', array());
+        return $this->decimal_to_precision($cost, TRUNCATE, $precision['cost'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): array {
@@ -510,7 +511,7 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $method = $this->handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        $method = $this->safe_string($this->options['fetchMarkets'], 'method', 'publicGetCommonSymbols');
         $response = null;
         if ($method === 'publicGetCommonSymbols') {
             $response = $this->publicGetCommonSymbols($params);
@@ -879,11 +880,12 @@ class bittrade extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
         $order = $this->safe_string($trade, 'order-id');
         $side = $this->safe_string($trade, 'direction');
-        $type = $this->safe_string($trade, 'type');
-        if ($type !== null) {
-            $typeParts = explode('-', $type);
-            $side = $typeParts[0];
-            $type = $typeParts[1];
+        $type = null;
+        $typeRaw = $this->safe_string($trade, 'type');
+        if ($typeRaw !== null) {
+            $typeParts = explode('-', $typeRaw);
+            $side = $this->safe_string($typeParts, 0);
+            $type = $this->safe_string($typeParts, 1);
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $price = $this->safe_string($trade, 'price');
@@ -1204,13 +1206,14 @@ class bittrade extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_list($response['data'], 'list', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $balances = $this->safe_list($data, 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = (($code !== null) && (is_array($result) && array_key_exists($code ?? '', $result))) ? $result[$code] : $this->account();
+            $account = $this->safe_dict($result, $code, $this->account());
             if ($this->safe_string($balance, 'type') === 'trade') {
                 $account['free'] = $this->safe_string($balance, 'balance');
             }
@@ -1234,9 +1237,10 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $this->load_accounts();
-        $method = $this->handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
+        $method = $this->safe_string($this->options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance');
+        $account = $this->safe_dict($this->accounts, 0, array());
         $request = array(
-            'id' => $this->accounts[0]['id'],
+            'id' => $account['id'],
         );
         $response = null;
         if ($method === 'privateGetAccountAccountsIdBalance') {
@@ -1259,7 +1263,7 @@ class bittrade extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->handle_option('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
+        $method = $this->safe_string($this->options['fetchOrdersByStates'], 'method', 'privateGetOrderOrders');
         $response = null;
         if (($method === 'private_get_order_history') || ($method === 'privateGetOrderHistory')) {
             $response = $this->privateGetOrderHistory($this->extend($request, $params));
@@ -1283,7 +1287,7 @@ class bittrade extends Exchange {
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        return $this->parse_orders($this->safe_list($response, 'data', array()), $market, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1326,7 +1330,7 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $method = $this->handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
+        $method = $this->safe_string($this->options['fetchOpenOrders'], 'method', 'fetch_open_orders_v1');
         if (($method === 'fetch_open_orders_v2') || ($method === 'fetchOpenOrdersV2')) {
             return $this->fetch_open_orders_v2($symbol, $since, $limit, $params);
         }
@@ -1457,8 +1461,8 @@ class bittrade extends Exchange {
         $orderTypeRaw = $this->safe_string($order, 'type');
         if ($orderTypeRaw !== null) {
             $orderType = explode('-', $orderTypeRaw);
-            $side = $orderType[0];
-            $type = $orderType[1];
+            $side = $this->safe_string($orderType, 0);
+            $type = $this->safe_string($orderType, 1);
             $status = $this->parse_order_status($this->safe_string($order, 'state'));
         }
         $marketId = $this->safe_string($order, 'symbol');
@@ -1543,15 +1547,15 @@ class bittrade extends Exchange {
         }
         $this->load_accounts();
         $market = $this->market($symbol);
+        $account = $this->safe_dict($this->accounts, 0, array());
         $request = array(
-            'account-id' => $this->accounts[0]['id'],
+            'account-id' => $account['id'],
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
-            $broker = $this->safe_dict($this->options, 'broker', array());
-            $brokerId = $this->safe_string($broker, 'id');
+            $brokerId = $this->safe_string($this->options['broker'], 'id', '');
             $request['client-order-id'] = $brokerId . $this->uuid();
         } else {
             $request['client-order-id'] = $clientOrderId;
@@ -1589,7 +1593,7 @@ class bittrade extends Exchange {
         if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $method = $this->handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        $method = $this->safe_string($this->options['createOrder'], 'method', 'privatePostOrderOrdersPlace');
         $response = null;
         if ($method === 'privatePostOrderOrdersPlace') {
             $response = $this->privatePostOrderOrdersPlace($this->extend($request, $paramsOrder));
@@ -1734,7 +1738,7 @@ class bittrade extends Exchange {
         $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
-            $order = $success[$i];
+            $order = $this->safe_string($success, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -2014,12 +2018,11 @@ class bittrade extends Exchange {
         if ($tagWithdrawTag !== null) {
             $request['addr-tag'] = $tagWithdrawTag; // only for XRP?
         }
-        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
         if ($network !== null) {
             $network = $this->safe_string($this->networkAliases, $network, $network); // accepts aliases like ETH for ERC20
         }
-        $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
+        $network = $this->safe_string_lower($this->options['networks'], $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if ($network === 'erc20') {
@@ -2100,7 +2103,7 @@ class bittrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2110,10 +2113,10 @@ class bittrade extends Exchange {
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
-                $code = $this->safe_string($response, 'err-code');
+                $codeError = $this->safe_string($response, 'err-code');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
                 $message = $this->safe_string($response, 'err-msg');
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 throw new ExchangeError($feedback);

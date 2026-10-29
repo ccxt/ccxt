@@ -28,8 +28,8 @@ func (this *Bitget) PublicSpotGetSpotV1PublicTime(args ...any) <-chan EndpointRe
 }
 
 // PublicSpotGetSpotV1PublicCurrencies returns a channel that yields a JSON object.
-func (this *Bitget) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
+func (this *Bitget) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...))
 }
 
 // PublicSpotGetSpotV1PublicProducts returns a channel that yields a JSON object.
@@ -98,8 +98,8 @@ func (this *Bitget) PublicSpotGetSpotV1PublicLoanHourInterest(args ...any) <-cha
 }
 
 // PublicSpotGetV2SpotPublicCoins returns a channel that yields a JSON object.
-func (this *Bitget) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
+func (this *Bitget) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...))
 }
 
 // PublicSpotGetV2SpotPublicSymbols returns a channel that yields a JSON object.
@@ -488,8 +488,8 @@ func (this *Bitget) PublicUtaGetV3MarketIndexComponents(args ...any) <-chan Endp
 }
 
 // PublicUtaGetV3MarketRiskReserveAll returns a channel that yields a JSON object.
-func (this *Bitget) PublicUtaGetV3MarketRiskReserveAll(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserveAll", args...)
+func (this *Bitget) PublicUtaGetV3MarketRiskReserveAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("publicUtaGetV3MarketRiskReserveAll", args...))
 }
 
 // PublicUtaGetV3MarketRiskReserveHour returns a channel that yields a JSON object.
@@ -3088,8 +3088,8 @@ func (this *Bitget) PrivateUtaGetV3AccountDeductInfo(args ...any) <-chan Endpoin
 }
 
 // PrivateUtaGetV3AccountFeeRate returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
+func (this *Bitget) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...))
 }
 
 // PrivateUtaGetV3AccountSwitchStatus returns a channel that yields a JSON object.
@@ -3098,8 +3098,8 @@ func (this *Bitget) PrivateUtaGetV3AccountSwitchStatus(args ...any) <-chan Endpo
 }
 
 // PrivateUtaGetV3AccountMaxTransferable returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
+func (this *Bitget) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...))
 }
 
 // PrivateUtaGetV3AccountOpenInterestLimit returns a channel that yields a JSON object.
@@ -3168,43 +3168,43 @@ func (this *Bitget) PrivateUtaGetV3BrokerQuerySubApikey(args ...any) <-chan Endp
 }
 
 // PrivateUtaGetV3InsLoanTransfered returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...))
 }
 
 // PrivateUtaGetV3InsLoanSymbols returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...))
 }
 
 // PrivateUtaGetV3InsLoanRiskUnit returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...))
 }
 
 // PrivateUtaGetV3InsLoanRepaidHistory returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...))
 }
 
 // PrivateUtaGetV3InsLoanProductInfos returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...))
 }
 
 // PrivateUtaGetV3InsLoanLoanOrder returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...))
 }
 
 // PrivateUtaGetV3InsLoanLtvConvert returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...))
 }
 
 // PrivateUtaGetV3InsLoanEnsureCoinsConvert returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
+func (this *Bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...))
 }
 
 // PrivateUtaGetV3LoanCoins returns a channel that yields a JSON object.
@@ -3368,8 +3368,8 @@ func (this *Bitget) PrivateUtaGetV3AccountInfo(args ...any) <-chan EndpointResul
 }
 
 // PrivateUtaGetV3AccountAllFeeRate returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountAllFeeRate(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaGetV3AccountAllFeeRate", args...)
+func (this *Bitget) PrivateUtaGetV3AccountAllFeeRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaGetV3AccountAllFeeRate", args...))
 }
 
 // PrivateUtaGetV3AccountDeltaInfo returns a channel that yields a JSON object.
@@ -3753,8 +3753,8 @@ func (this *Bitget) PrivateUtaPostV3BrokerDeleteSubApikey(args ...any) <-chan En
 }
 
 // PrivateUtaPostV3InsLoanBindUid returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
+func (this *Bitget) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...))
 }
 
 // PrivateUtaPostV3LoanBorrow returns a channel that yields a JSON object.

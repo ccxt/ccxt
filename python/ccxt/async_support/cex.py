@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class cex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cex, self).describe(), {
             'id': 'cex',
             'name': 'CEX.IO',
@@ -1105,7 +1105,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
         }
         result = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         order = self.safe_dict(result, 0)
@@ -1125,7 +1125,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
         }
         result = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         order = self.safe_dict(result, 0)
@@ -1329,7 +1329,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
             'cancelRequestId': 'c_' + str((self.milliseconds())),
             'timestamp': self.milliseconds(),
         }
@@ -1750,7 +1750,7 @@ class cex(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # in some cases, like from createOrder, exchange returns nested escaped JSON string:
         #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         # and because of `.parseJson` bug, we need extra fix
@@ -1758,7 +1758,7 @@ class cex(Exchange, ImplicitAPI):
         if response is None:
             if body is None:
                 raise NullResponse(self.id + ' returned empty response')
-            elif body[0] == '{':
+            elif body.startswith('{'):
                 fixed = self.fix_stringified_json_members(body)
                 responseFixed = self.parse_json(fixed)
             else:

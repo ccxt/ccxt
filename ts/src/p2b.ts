@@ -14,7 +14,7 @@ import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str,
  * @augments Exchange
  */
 export default class p2b extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'p2b',
             'name': 'p2b',
@@ -561,10 +561,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
-        let tickerInner = ticker;
-        if ('ticker' in ticker) {
-            tickerInner = this.safeDict (ticker, 'ticker');
-        }
+        const tickerInner = this.safeDict (ticker, 'ticker', ticker);
         const last = this.safeString (tickerInner, 'last');
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
@@ -1146,25 +1143,25 @@ export default class p2b extends Exchange {
         }
         const untilParam = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
-        let until: Int = undefined;
-        let sinceResolved: Int = 0;
+        let until = this.parseToInt (0);
+        let sinceResolved = this.parseToInt (0);
         if (untilParam !== undefined) {
-            until = untilParam;
+            until = this.parseToInt (untilParam);
             if (since !== undefined) {
                 if ((untilParam - since) > 86400000) {
                     throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                sinceResolved = since;
+                sinceResolved = this.parseToInt (since);
             } else {
-                sinceResolved = untilParam - 86400000;
+                sinceResolved = this.parseToInt (untilParam - 86400000);
             }
         } else if (since !== undefined) {
-            until = since + 86400000;
-            sinceResolved = since;
+            until = this.parseToInt (since + 86400000);
+            sinceResolved = this.parseToInt (since);
         } else {
             const now = this.milliseconds ();
-            until = now;
-            sinceResolved = now - 86400000;
+            until = this.parseToInt (now);
+            sinceResolved = this.parseToInt (now - 86400000);
         }
         const market = this.market (symbol);
         const sinceSec = this.parseToInt (sinceResolved / 1000);
@@ -1234,25 +1231,25 @@ export default class p2b extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let until: Int = undefined;
-        let sinceResolved: Int = 0;
+        let until = this.parseToInt (0);
+        let sinceResolved = this.parseToInt (0);
         if (untilParam !== undefined) {
-            until = untilParam;
+            until = this.parseToInt (untilParam);
             if (since !== undefined) {
                 if ((untilParam - since) > 86400000) {
                     throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                sinceResolved = since;
+                sinceResolved = this.parseToInt (since);
             } else {
-                sinceResolved = untilParam - 86400000;
+                sinceResolved = this.parseToInt (untilParam - 86400000);
             }
         } else if (since !== undefined) {
-            until = since + 86400000;
-            sinceResolved = since;
+            until = this.parseToInt (since + 86400000);
+            sinceResolved = this.parseToInt (since);
         } else {
             const now = this.milliseconds ();
-            until = now;
-            sinceResolved = now - 86400000;
+            until = this.parseToInt (now);
+            sinceResolved = this.parseToInt (now - 86400000);
         }
         const sinceSec = this.parseToInt (sinceResolved / 1000);
         const untilSec = this.parseToInt (until / 1000);
@@ -1382,17 +1379,19 @@ export default class p2b extends Exchange {
         }
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
+        let paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (paramsOmitted).length > 0) {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
         if (apiName === 'private') {
-            paramsOmitted['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            paramsOmitted['nonce'] = this.incrementingNonce ().toString ();
+            paramsOmitted = this.extend (paramsOmitted, {
+                'request': '/api/v2/' + path,
+                'nonce': this.incrementingNonce ().toString (),
+            });
             const payload = this.stringToBase64 (this.json (paramsOmitted));  // Body json encoded in base64
             const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
@@ -1406,7 +1405,7 @@ export default class p2b extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

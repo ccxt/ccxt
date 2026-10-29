@@ -8,11 +8,44 @@ public partial class BaseExchange
 {
 
     private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
-    private readonly object wsBackoffStateSync = new object();
+
+    // this exchange's ws owner: one thread runs every ws state mutation, the client
+    // tables and the cache maps (see WsOwner). The thread starts on first use.
+    private readonly WsOwner wsOwnerState = new WsOwner();
+
+    public WsOwner wsOwner()
+    {
+        return this.wsOwnerState;
+    }
+
+    // hand the cache maps to the owner; called before the first client is built
+    private void bindWsCaches()
+    {
+        (this.tickers as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.fundingRates as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.bidsasks as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.balance as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.trades as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.orderbooks as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+        (this.ohlcvs as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
+    }
+
+    // every store into a cache map is a dictionary the owner may adopt as-is
+    private IDictionary<string, object> wrapWsCache(IDictionary<string, object> value)
+    {
+        var owned = new ccxt.pro.OwnedMap(value);
+        owned.bind(this.wsOwnerState);
+        return owned;
+    }
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
+    {
+        return (int)this.wsOwnerState.Ask(() => this.calculateWsBackoffDelayOwned(url));
+    }
+
+    private int calculateWsBackoffDelayOwned(string url)
     {
         var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
         var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
@@ -21,52 +54,60 @@ public partial class BaseExchange
         var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
         var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
-        lock (wsBackoffStateSync)
+        // the owner thread is the only caller: the history needs no guard
+        long attempts = 0;
+        long lastAttempt = 0;
+        if (this.wsBackoffState.TryGetValue(url, out var history))
         {
-            long attempts = 0;
-            long lastAttempt = 0;
-            if (this.wsBackoffState.TryGetValue(url, out var history))
-            {
-                attempts = history[0];
-                lastAttempt = history[1];
-            }
-            if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
-            {
-                attempts = 0; // the previous connection was healthy long enough, start fresh
-            }
-            this.wsBackoffState[url] = new long[] { attempts + 1, now };
-            if (attempts == 0)
-            {
-                return 0; // first dial or recovered, connect immediately
-            }
-            var delay = baseDelay;
-            var capped = Math.Min(attempts, 20); // overflow guard
-            for (long i = 1; i < capped; i++)
-            {
-                delay = delay * factor;
-            }
-            var jitterMillis = now % 1000; // rng-free jitter
-            var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
-            return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
+            attempts = history[0];
+            lastAttempt = history[1];
         }
+        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+        {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState[url] = new long[] { attempts + 1, now };
+        if (attempts == 0)
+        {
+            return 0; // first dial or recovered, connect immediately
+        }
+        var delay = baseDelay;
+        var capped = Math.Min(attempts, 20); // overflow guard
+        for (long i = 1; i < capped; i++)
+        {
+            delay = delay * factor;
+        }
+        var jitterMillis = now % 1000; // rng-free jitter
+        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
 
-    public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
+    // live clients by url; every member hands its work to this exchange's ws owner, so the
+    // registry has one writer (see ccxt.pro.OwnedTable), assigned in the BaseExchange ctor
+    public ccxt.pro.OwnedTable<WebSocketClient> clients;
     public static ClientWebSocket ws = null;
 
+    // A book created here is bound to this exchange's ws owner: every mutation of it
+    // runs on that one thread (see ccxt.pro.OrderBook), so the book needs no lock.
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.OrderBook(snapshot, depth);
+        var book = new ccxt.pro.OrderBook(snapshot, depth);
+        book.bindOwner(this.wsOwnerState);
+        return book;
     }
 
     public ccxt.pro.IndexedOrderBook indexedOrderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.IndexedOrderBook(snapshot, depth);
+        var book = new ccxt.pro.IndexedOrderBook(snapshot, depth);
+        book.bindOwner(this.wsOwnerState);
+        return book;
     }
 
     public ccxt.pro.CountedOrderBook countedOrderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.CountedOrderBook(snapshot, depth);
+        var book = new ccxt.pro.CountedOrderBook(snapshot, depth);
+        book.bindOwner(this.wsOwnerState);
+        return book;
     }
 
     // Typed reads of this.orderbooks. Every value stored into the map is constructed by
@@ -156,7 +197,15 @@ public partial class BaseExchange
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
+            // the caches belong to the owner before any client can deliver a frame, and
+            // every callback of this client enters through that same owner
+            this.bindWsCaches();
+            var client = new WebSocketClient(url, proxy,
+                (c, message) => this.wsOwnerState.Ask(() => { handleMessage(c, message); return null; }),
+                (c) => this.wsOwnerState.Ask(() => ping(c)),
+                (c, error) => this.wsOwnerState.Ask(() => { onClose(c, error); return null; }),
+                (c, error) => this.wsOwnerState.Ask(() => { onError(c, error); return null; }),
+                this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -189,7 +238,13 @@ public partial class BaseExchange
         var backoffDelay = 0;
 
         Future existingFuture = null;
-        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
+        // one hand-off: an already pending future is answered without touching the
+        // client's table, a missing one is attached below
+        if (subscribeHash == null)
+        {
+            existingFuture = client.getFuture(messageHash);
+        }
+        if (existingFuture != null)
         {
             return await existingFuture;
         }
@@ -201,7 +256,9 @@ public partial class BaseExchange
         // like watchMultiple already does and send only when this call won the claim,
         // js stores null subscribe hashes under a literal undefined key, mirror that
         var subscriptionClaimKey = subscribeHash ?? "undefined";
-        bool subscriptionClaimed = (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscriptionClaimKey, subscription ?? true);
+        // the client owns the claim table: it answers which keys this call won, and
+        // the release below hands the same key back
+        bool subscriptionClaimed = client.claimSubscriptions(new List<string> { subscriptionClaimKey }, subscription).Count > 0;
         if (!client.startedConnecting)
         {
             // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
@@ -219,7 +276,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    client.subscriptions.Remove(subscriptionClaimKey);
+                    client.releaseSubscriptions(new List<string> { subscriptionClaimKey });
                     future.reject(ex);
                     // future.SetException(ex); check this out
                 }
@@ -243,15 +300,9 @@ public partial class BaseExchange
 
         if (subscribeHashes != null)
         {
-            foreach (var subscribeHash in subscribeHashes)
-            {
-                if (subscribeHash == null) continue;
-
-                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
-                {
-                    missingSubscriptions.Add(subscribeHash);
-                }
-            }
+            // one hand-off for the whole batch: the client answers the keys this
+            // call won, so a second watch on an already-claimed hash sends nothing
+            missingSubscriptions = client.claimSubscriptions(subscribeHashes, subscription);
         }
 
         var backoffDelay2 = 0;
@@ -273,10 +324,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    foreach (var subscribeHash in missingSubscriptions)
-                    {
-                        client.subscriptions.Remove(subscribeHash);
-                    }
+                    client.releaseSubscriptions(missingSubscriptions);
                     future.reject(ex); // check this out
                 }
             }

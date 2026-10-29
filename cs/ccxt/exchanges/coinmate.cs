@@ -457,7 +457,7 @@ public partial class coinmate : Exchange
         //         "serverTime": 1765250628745
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -1469,25 +1469,26 @@ public partial class coinmate : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + path);
-        if ((apiName is "public"))
+        if (apiName == "public")
         {
-            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+            Dictionary<string, object> publicQuery = this.extend(new Dictionary<string, object>() {}, parameters);
+            if ((new List<object>(publicQuery.Keys)).Count > 0)
             {
-                url = url + ("?" + this.urlencode(parameters));
+                url = url + ("?" + this.urlencode(publicQuery));
             }
         } else
         {
@@ -1516,7 +1517,7 @@ public partial class coinmate : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

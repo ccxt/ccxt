@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class bitbns(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitbns, self).describe(), {
             'id': 'bitbns',
             'name': 'Bitbns',
@@ -514,11 +514,12 @@ class bitbns(Exchange, ImplicitAPI):
             parts = key.split('availableorder')
             numParts = len(parts)
             if numParts > 1:
+                usedCurrencyId = self.safe_string(parts, 1, '')
                 currencyId = self.safe_string(parts, 1)
                 # note that "Money" stands for INR - the only fiat in bitbns
                 account = self.account()
                 account['free'] = self.safe_string(data, key)
-                account['used'] = self.safe_string(data, 'inorder' + currencyId)
+                account['used'] = self.safe_string(data, 'inorder' + usedCurrencyId)
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
@@ -1204,27 +1205,23 @@ class bitbns(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:
-        urls = self.urls
         apiName = api[0]
-        if not (apiName in urls['api']):
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
+        if baseApiUrl is None:
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         if apiName != 'www':
             self.check_required_credentials()
-        apiKeyHeaders = {
-            'X-BITBNS-APIKEY': self.apiKey,
-        }
-        requestHeaders = apiKeyHeaders if (apiName != 'www') else None
-        baseApiUrl = self.safe_string(self.urls['api'], apiName)
-        if baseApiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        requestHeaders = {}
+        if apiName != 'www':
+            requestHeaders['X-BITBNS-APIKEY'] = self.apiKey
         baseUrl = self.implode_hostname(baseApiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        nonce = str(self.nonce())
+        nonce = self.number_to_string(self.nonce())
         queryLength = len(query)
         postBody = '{}'
         if queryLength > 0:
@@ -1240,25 +1237,24 @@ class bitbns(Exchange, ImplicitAPI):
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-            requestHeaders = {} if (requestHeaders is None) else requestHeaders
             requestHeaders['X-BITBNS-PAYLOAD'] = payload
             requestHeaders['X-BITBNS-SIGNATURE'] = signature
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
         #     {"msg":"Invalid Request","status":-1,"code":400}
         #     {"data":[],"status":0,"error":"Nothing to show","code":417}
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        error = (code is not None) and (code != '200') and (code != '204')
+        error = (codeError is not None) and (codeError != '200') and (codeError != '204')
         if error or (message is not None):
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

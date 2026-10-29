@@ -39,7 +39,7 @@ from ccxt.base.precise import Precise
 
 class okx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(okx, self).describe(), {
             'id': 'okx',
             'name': 'OKX',
@@ -1537,26 +1537,23 @@ class okx(Exchange, ImplicitAPI):
         quote = 'USD'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
-        base = None
+        base = self.safe_string(optionParts, 0, '')
         if symbol.find('/') > -1:
-            base = self.safe_string(symbolBase, 0)
-        else:
-            base = self.safe_string(optionParts, 0)
-        settle = base
-        expiry = self.safe_string(optionParts, 2)
-        strike = self.safe_string(optionParts, 3)
-        optionType = self.safe_string(optionParts, 4)
-        datetime = None if (expiry is None) else self.convert_expire_date(expiry)
+            base = self.safe_string(symbolBase, 0, '')
+        expiry = self.safe_string(optionParts, 2, '')
+        strike = self.safe_string(optionParts, 3, '')
+        optionType = self.safe_string(optionParts, 4, '')
+        datetime = None if (expiry == '') else self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + base + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': base,
             'baseId': base,
             'quoteId': quote,
-            'settleId': settle,
+            'settleId': base,
             'active': False,
             'type': 'option',
             'linear': None,
@@ -1750,7 +1747,7 @@ class okx(Exchange, ImplicitAPI):
             })
         return result
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         timeDifference = self.safe_integer(self.options, 'timeDifference')
         if timeDifference is None:
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
@@ -1776,7 +1773,7 @@ class okx(Exchange, ImplicitAPI):
         promises = []
         result = []
         for i in range(0, len(types)):
-            promises.append(self.fetch_markets_by_type(types[i], params))
+            promises.append(self.fetch_markets_by_type(self.safe_string(types, i, ''), params))
         responses = promises
         for i in range(0, len(responses)):
             result = self.array_concat(result, responses[i])
@@ -1866,28 +1863,29 @@ class okx(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        symbol = base + '/' + quote
+        baseSymbol = base + '/' + quote
         # handle preopen empty markets
         if base == '' or quote == '':
-            symbol = id
+            baseSymbol = id + ''
+        symbol = baseSymbol
         expiry = None
         strikePrice = None
         optionType = None
         if contract:
+            settledSymbol = baseSymbol
             if settle is not None:
-                symbol = symbol + ':' + settle
+                settledSymbol = baseSymbol + ':' + settle
+            symbol = settledSymbol
             if future:
                 expiry = self.safe_integer(market, 'expTime')
                 if expiry is not None:
-                    ymd = self.yymmdd(expiry)
-                    symbol = symbol + '-' + ymd
+                    symbol = settledSymbol + '-' + self.yymmdd(expiry)
             elif option:
                 expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 if expiry is not None:
-                    ymd = self.yymmdd(expiry)
-                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
+                    symbol = settledSymbol + '-' + self.yymmdd(expiry) + '-' + strikePrice + '-' + optionType
                     optionType = 'put' if (optionType == 'P') else 'call'
         feesType = '' if (type is None) else type
         fees = self.safe_dict_2(self.fees, feesType, 'trading', {})
@@ -2173,8 +2171,7 @@ class okx(Exchange, ImplicitAPI):
         isFullBook = (method == 'publicGetMarketBooksFull')
         largeLimit = ((limit is None) and isFullBook) or ((limit is not None) and (limit > 400))
         limitResolved = 400 if (rpi and largeLimit) else requestedLimit
-        if limitResolved is not None:
-            request['sz'] = limitResolved  # max 400
+        request['sz'] = limitResolved  # max 400
         response: dict
         if rpi:
             response = self.publicGetMarketBooksRpi(self.extend(request, paramsMethod))
@@ -2715,7 +2712,8 @@ class okx(Exchange, ImplicitAPI):
             else:
                 response = self.publicGetMarketMarkPriceCandles(self.extend(request, paramsType))
         elif priceType == 'index':
-            request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
+            marketInfo = self.safe_dict(market, 'info', {})
+            request['instId'] = marketInfo['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryIndexCandles(self.extend(request, paramsType))
             else:
@@ -2902,7 +2900,7 @@ class okx(Exchange, ImplicitAPI):
         if market['spot'] is True:
             request['instId'] = market['id']
         elif (market['swap'] is True) or (market['future'] is True) or (market['option'] is True):
-            request['uly'] = market['baseId'] + '-' + market['quoteId']
+            request['uly'] = self.safe_string(market, 'baseId', '') + '-' + self.safe_string(market, 'quoteId', '')
         else:
             raise NotSupported(self.id + ' fetchTradingFee() supports spot, swap, future or option markets only')
         response = self.privateGetAccountTradeFee(self.extend(request, params))
@@ -3138,8 +3136,8 @@ class okx(Exchange, ImplicitAPI):
         shouldOmitSize = isConditionalOrOCO and closeFraction is not None
         if not shouldOmitSize:
             request['sz'] = self.amount_to_precision(symbol, amount)
-        spot = market['spot']
-        contract = market['contract']
+        spot = self.safe_bool(market, 'spot')
+        contract = self.safe_bool(market, 'contract')
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         # const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -3791,18 +3789,18 @@ class okx(Exchange, ImplicitAPI):
             if algoIds is not None:
                 for i in range(0, len(algoIds)):
                     request.append({
-                        'algoId': algoIds[i],
+                        'algoId': self.safe_string(algoIds, i),
                         'instId': market['id'],
                     })
             for i in range(0, len(orderIds)):
                 if (trailing) or isTrigger:
                     request.append({
-                        'algoId': orderIds[i],
+                        'algoId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'ordId': orderIds[i],
+                        'ordId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
         else:
@@ -3810,12 +3808,12 @@ class okx(Exchange, ImplicitAPI):
                 if (trailing) or isTrigger:
                     request.append({
                         'instId': market['id'],
-                        'algoClOrdId': clientOrderIds[i],
+                        'algoClOrdId': self.safe_string(clientOrderIds, i),
                     })
                 else:
                     request.append({
                         'instId': market['id'],
-                        'clOrdId': clientOrderIds[i],
+                        'clOrdId': self.safe_string(clientOrderIds, i),
                     })
         response: dict
         if method == 'privatePostTradeCancelAlgos':
@@ -6492,7 +6490,7 @@ class okx(Exchange, ImplicitAPI):
         jsonBody = None
         # const type = this.getPathAuthenticationType (path);
         if apiName == 'public':
-            if len(query) > 0:
+            if not self.is_empty(query):
                 url += '?' + self.urlencode(query)
         elif apiName == 'private':
             self.check_required_credentials()
@@ -6512,7 +6510,7 @@ class okx(Exchange, ImplicitAPI):
                     if clientOrderId is None:
                         params['clOrdId'] = brokerId + self.uuid16()
                         params['tag'] = brokerId
-            hasJsonBody = (method != 'GET') and (isArray or (len(query) > 0))
+            hasJsonBody = (method != 'GET') and (isArray or (not self.is_empty(query)))
             jsonBody = self.json(query) if hasJsonBody else None
             timestamp = self.iso8601(self.nonce())
             privateHeaders = {
@@ -6525,7 +6523,7 @@ class okx(Exchange, ImplicitAPI):
             }
             auth = timestamp + method + request
             if method == 'GET':
-                if len(query) > 0:
+                if not self.is_empty(query):
                     urlencodedQuery = '?' + self.urlencode(query)
                     url += urlencodedQuery
                     auth += urlencodedQuery
@@ -6686,7 +6684,7 @@ class okx(Exchange, ImplicitAPI):
                 ruleType = self.safe_string(marketInfo, 'ruleType')
                 isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if (market['swap'] is not True) and not isExtendedPerpetual:
-                    raise BadRequest(self.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbolsNormalized[i] + ' is not')
+                    raise BadRequest(self.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + self.safe_string(symbolsNormalized, i, '') + ' is not')
         request = {'instId': 'ANY'}
         response = self.publicGetPublicFundingRate(self.extend(request, params))
         #
@@ -6800,7 +6798,7 @@ class okx(Exchange, ImplicitAPI):
             # "limit": "100", // default 100, max 100
         }
         if limit is not None:
-            request['limit'] = str(limit)  # default 100, max 100
+            request['limit'] = self.number_to_string(limit)  # default 100, max 100
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -7851,7 +7849,9 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = 100 if ((limit is None) or (limit > 100)) else limit
+        effectiveLimit = self.parse_to_int(100)
+        if (limit is not None) and (100 > limit):
+            effectiveLimit = limit
         if limit is not None:
             request['limit'] = effectiveLimit
         if since is not None:
@@ -8155,9 +8155,10 @@ class okx(Exchange, ImplicitAPI):
             'type': '3',  # delivery
         }
         if symbol is not None:
-            market = self.market(symbol)
-            request['instId'] = market['id']
-            request['instType'] = self.convert_to_instrument_type(market['type'])
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instId'] = symbolMarket['id']
+            request['instType'] = self.convert_to_instrument_type(symbolMarket['type'])
         if since is not None:
             request['begin'] = since
         if limit is not None:
@@ -8291,9 +8292,10 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketId = self.safe_string(market, 'id', '')
         optionParts = marketId.split('-')
+        marketInfo = self.safe_dict(market, 'info', {})
         request = {
-            'uly': market['info']['uly'],
-            'instFamily': market['info']['instFamily'],
+            'uly': marketInfo['uly'],
+            'instFamily': marketInfo['instFamily'],
             'expTime': self.safe_string(optionParts, 2),
         }
         response = self.publicGetPublicOptSummary(self.extend(request, params))
@@ -8366,8 +8368,9 @@ class okx(Exchange, ImplicitAPI):
                 market = self.market(symbolsNormalized[0])
                 marketId = self.safe_string(market, 'id', '')
                 optionParts = marketId.split('-')
-                request['uly'] = market['info']['uly']
-                request['instFamily'] = market['info']['instFamily']
+                marketInfo = self.safe_dict(market, 'info', {})
+                request['uly'] = marketInfo['uly']
+                request['instFamily'] = marketInfo['instFamily']
                 request['expTime'] = self.safe_string(optionParts, 2)
         paramsOmitted = self.omit(params, ['uly', 'instFamily'])
         response = self.publicGetPublicOptSummary(self.extend(request, paramsOmitted))
@@ -8989,7 +8992,7 @@ class okx(Exchange, ImplicitAPI):
                 }
         return result
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -9012,8 +9015,8 @@ class okx(Exchange, ImplicitAPI):
         #        "msg": "Incorrect trade password"
         #    }
         #
-        code = self.safe_string(response, 'code')
-        if (code != '0') and (code != '2'):  # 2 means that bulk operation partially succeeded
+        codeError = self.safe_string(response, 'code')
+        if (codeError != '0') and (codeError != '2'):  # 2 means that bulk operation partially succeeded
             feedback = self.id + ' ' + body
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
@@ -9022,7 +9025,7 @@ class okx(Exchange, ImplicitAPI):
                 message = self.safe_string(error, 'sMsg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
 

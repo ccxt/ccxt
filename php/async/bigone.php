@@ -19,7 +19,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class bigone extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -628,7 +628,7 @@ class bigone extends Exchange {
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
         $response = $this->safe_dict($promisesResult, 0);
-        $contractResponse = $promisesResult[1];
+        $contractResponse = $this->safe_value($promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -859,7 +859,7 @@ class bigone extends Exchange {
         //    }
         //
         $marketType = 'swap';
-        if (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) {
+        if ($this->safe_string($ticker, 'asset_pair_name') !== null) {
             $marketType = 'spot';
         }
         $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
@@ -1144,7 +1144,7 @@ class bigone extends Exchange {
         }
     }
 
-    public function parse_contract_bids_asks(mixed $bidsAsks) {
+    public function parse_contract_bids_asks(array $bidsAsks) {
         $bidsAsksKeys = is_array($bidsAsks) ? array_keys($bidsAsks) : array();
         $result = array();
         for ($i = 0; $i < count($bidsAsksKeys); $i++) {
@@ -1156,8 +1156,8 @@ class bigone extends Exchange {
     }
 
     public function parse_contract_order_book(array $orderbook, string $symbol, ?int $limit = null): array {
-        $responseBids = $this->safe_dict($orderbook, 'bids');
-        $responseAsks = $this->safe_dict($orderbook, 'asks');
+        $responseBids = $this->safe_dict($orderbook, 'bids', array());
+        $responseAsks = $this->safe_dict($orderbook, 'asks', array());
         $bids = $this->parse_contract_bids_asks($responseBids);
         $asks = $this->parse_contract_bids_asks($responseAsks);
         return array(
@@ -2047,7 +2047,7 @@ class bigone extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $exchangeMillisecondsCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0);
         $exchangeTimeCorrection = $exchangeMillisecondsCorrection * 1000000;
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
@@ -2070,7 +2070,7 @@ class bigone extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $request = array(
                 'type' => 'OpenAPIV2',
                 'sub' => $this->apiKey,
@@ -2228,7 +2228,7 @@ class bigone extends Exchange {
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
         $type = 'deposit';
-        if (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) {
+        if ($this->safe_string($transaction, 'customer_id') !== null) {
             $type = 'withdrawal';
         }
         $internal = $this->safe_bool($transaction, 'is_internal');
@@ -2517,7 +2517,7 @@ class bigone extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2525,12 +2525,12 @@ class bigone extends Exchange {
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') && ($code !== null)) {
+        if (($codeError !== '0') && ($codeError !== null)) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }

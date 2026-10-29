@@ -46,7 +46,7 @@ public class Delta extends DeltaApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "delta" );
@@ -467,25 +467,14 @@ public class Delta extends DeltaApi
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
-        String base = null;
-        String optionType = null;
-        if (Boolean.TRUE.equals(hasSlash))
-        {
-            base = this.safeString(symbolBase, 0);
-            optionType = this.safeString(optionParts, 3);
-        } else
-        {
-            base = this.safeString(optionParts, 1);
-            optionType = this.safeString(optionParts, 0);
-        }
-        String rawExpiry = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 1 : 3);
-        Object expiry = null;
-        if (!java.util.Objects.equals(rawExpiry, null))
-        {
-            expiry = Helpers.add(Helpers.add((rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length()))), (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())))), (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length()))));
-        }
+        List<Object> partSource = ((Boolean.TRUE.equals(hasSlash))) ? symbolBase : optionParts;
+        Integer baseIndex = ((Boolean.TRUE.equals(hasSlash))) ? 0 : 1;
+        String base = this.safeString(partSource, baseIndex, "");
+        String optionType = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 3 : 0, "");
+        String rawExpiry = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 1 : 3, "");
+        Object expiry = Helpers.add(Helpers.add((rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length()))), (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())))), (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length()))));
         String settle = quote;
-        String strike = this.safeString(optionParts, 2);
+        String strike = this.safeString(optionParts, 2, "");
         String datetime = (String) this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         String optionTypeUnified = "put";
@@ -794,21 +783,21 @@ public class Delta extends DeltaApi
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
+            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
+                this.options.put("currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
             }
             Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId", (Object) null);
-            if ((java.util.Objects.equals(marketsByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
+            if ((java.util.Objects.equals(marketsByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                Helpers.addElementToObject(this.options, "marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
+                this.options.put("marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
             }
             return markets;
         });
 
     }
 
-    public Object indexByStringifiedNumericId(Object input)
+    public Map<String, Object> indexByStringifiedNumericId(Object input)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(input, null))
@@ -819,7 +808,7 @@ public class Delta extends DeltaApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object item = Helpers.GetValue(input, key);
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(input, key, new HashMap<String, Object>() {{}});
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
             {
@@ -1882,40 +1871,34 @@ public class Delta extends DeltaApi
                 windowSeconds = (limit * ((long) duration));
             }
             Long until = this.safeIntegerProduct(parameters, "until", 0.001);
-            Boolean untilIsDefined = !java.util.Objects.equals(until, null);
-            if (Boolean.TRUE.equals(untilIsDefined))
-            {
-                until = this.parseToInt(until);
-            }
             if (java.util.Objects.equals(since, null))
             {
                 Long end = this.seconds();
-                if (Boolean.TRUE.equals(untilIsDefined))
+                if (!java.util.Objects.equals(until, null))
                 {
                     end = this.parseToInt(until);
                 }
                 request.put("end", end);
-                if (java.util.Objects.equals(end, null))
-                {
-                    throw new ExchangeError((this.id + " fetchOHLCV() missing end")) ;
-                }
                 request.put("start", (end - windowSeconds));
             } else
             {
                 Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start", start);
-                request.put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, windowSeconds));
+                request.put("end", (((!java.util.Objects.equals(until, null)))) ? until : this.sum(start, windowSeconds));
             }
             String price = this.safeString(parameters, "price");
+            String marketId = this.safeString(market, "id", "");
             if (java.util.Objects.equals(price, "mark"))
             {
-                request.put("symbol", ("MARK:" + market.get("id")));
+                request.put("symbol", ("MARK:" + marketId));
             } else if (java.util.Objects.equals(price, "index"))
             {
-                request.put("symbol", Helpers.GetValue(Helpers.GetValue(market.get("info"), "spot_index"), "symbol"));
+                Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", (Object) null);
+                Map<String, Object> spotIndex = (Map<String, Object>) this.safeDict(marketInfo, "spot_index", (Object) null);
+                request.put("symbol", this.safeString(spotIndex, "symbol"));
             } else
             {
-                request.put("symbol", market.get("id"));
+                request.put("symbol", marketId);
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             Map<String, Object> response = (this.publicGetHistoryCandles(this.extend(request, paramsOmitted))).join();
@@ -2238,13 +2221,13 @@ public class Delta extends DeltaApi
         String marketId = this.safeString(order, "product_id");
         Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId", new HashMap<String, Object>() {{}});
         Object marketValue = this.safeValue(marketsByNumericId, marketId, market);
-        Object symbol = null;
+        String symbol = null;
         if (java.util.Objects.equals(marketValue, null))
         {
             symbol = marketId;
         } else
         {
-            symbol = ((Map<String, Object>)marketValue).get("symbol");
+            symbol = this.safeString(marketValue, "symbol");
         }
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String side = this.safeString(order, "side");
@@ -2264,7 +2247,8 @@ public class Delta extends DeltaApi
             String feeCurrencyCode = null;
             if (!java.util.Objects.equals(marketValue, null))
             {
-                Map<String, Object> settlingAsset = (Map<String, Object>) this.safeDict(((Map<String, Object>)marketValue).get("info"), "settling_asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(marketValue, "info", (Object) null);
+                Map<String, Object> settlingAsset = (Map<String, Object>) this.safeDict(marketInfo, "settling_asset", new HashMap<String, Object>() {{}});
                 String feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             }
@@ -2406,7 +2390,7 @@ public class Delta extends DeltaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", Helpers.parseInt(id) );
+                put( "id", Delta.this.parseToInt(id) );
                 put( "product_id", market.get("numericId") );
             }};
             if (!java.util.Objects.equals(amount, null))
@@ -2416,7 +2400,7 @@ public class Delta extends DeltaApi
                 {
                     sizeString = "0";
                 }
-                request.put("size", Helpers.parseInt(sizeString));
+                request.put("size", this.parseToInt(sizeString));
             }
             if (!java.util.Objects.equals(price, null))
             {
@@ -2468,7 +2452,7 @@ public class Delta extends DeltaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", Helpers.parseInt(id) );
+                put( "id", Delta.this.parseToInt(id) );
                 put( "product_id", market.get("numericId") );
             }};
             Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
@@ -2674,7 +2658,7 @@ public class Delta extends DeltaApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_time", (String.valueOf(since) + "000"));
+                request.put("start_time", this.numberToString((since * 1000L)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2743,7 +2727,7 @@ public class Delta extends DeltaApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_time", (String.valueOf(since) + "000"));
+                request.put("start_time", this.numberToString((since * 1000L)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2906,7 +2890,7 @@ public class Delta extends DeltaApi
         String currencyId = this.safeString(item, "asset_id");
         Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
         Object currencyValue = this.safeValue(currenciesByNumericId, currencyId, currency);
-        Object code = (((java.util.Objects.equals(currencyValue, null)))) ? null : ((Map<String, Object>)currencyValue).get("code");
+        String code = this.safeString(currencyValue, "code");
         String amount = this.safeString(item, "amount");
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String after = this.safeString(item, "balance");
@@ -3243,7 +3227,7 @@ public class Delta extends DeltaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3263,19 +3247,19 @@ public class Delta extends DeltaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            String amountString = String.valueOf(amount);
+            String amountString = this.numberToString(amount);
             String deltaMargin = (((java.util.Objects.equals(type, "reduce")))) ? Precise.stringMul(amountString, "-1") : amountString;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", market.get("numericId") );
@@ -3751,7 +3735,7 @@ public class Delta extends DeltaApi
         }};
     }
 
-    public Object parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
@@ -4039,10 +4023,10 @@ public class Delta extends DeltaApi
 
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = market.get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -4610,7 +4594,7 @@ public class Delta extends DeltaApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
@@ -4623,7 +4607,7 @@ public class Delta extends DeltaApi
         Map<String, Object> requestHeaders = null;
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!this.isEmpty(query))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4631,27 +4615,28 @@ public class Delta extends DeltaApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.seconds());
-            requestHeaders = new HashMap<String, Object>() {{
+            Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (!this.isEmpty(query))
                 {
                     String queryString = ("?" + this.urlencode(query));
-                    auth = (auth + queryString);
+                    auth = (((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath) + queryString);
                     url = (url + queryString);
                 }
             } else
             {
                 requestBody = this.json(query);
-                auth = (auth + requestBody);
-                requestHeaders.put("Content-Type", "application/json");
+                auth = (((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath) + requestBody);
+                privateHeaders.put("Content-Type", "application/json");
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            requestHeaders.put("signature", signature);
+            privateHeaders.put("signature", signature);
+            requestHeaders = privateHeaders;
         }
         String bodyResult = requestBody;
         Map<String, Object> headersResult = requestHeaders;
@@ -4665,7 +4650,7 @@ public class Delta extends DeltaApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

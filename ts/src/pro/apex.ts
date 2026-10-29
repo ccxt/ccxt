@@ -12,7 +12,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class apex extends apexRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -97,8 +97,8 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'recentlyTrade.H.' + this.safeString (market, 'id2');
-            topics.push (topic);
+            const marketId: Str = this.safeString (market, 'id2', '');
+            topics.push ('recentlyTrade.H.' + marketId);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
         }
@@ -133,13 +133,12 @@ export default class apex extends apexRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const trades = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic');
-        const trades = data;
         const parts = (topic as string).split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -149,7 +148,7 @@ export default class apex extends apexRest {
         const length = trades.length;
         for (let j = 0; j < length; j++) {
             const index = length - j - 1;
-            const parsed = this.parseWsTrade (trades[index], market);
+            const parsed = this.parseWsTrade (this.safeDict (trades, index, {}), market);
             stored.append (parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
@@ -223,11 +222,11 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
@@ -235,8 +234,8 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'orderBook' + limitValue.toString () + '.H.' + this.safeString (market, 'id2');
-            topics.push (topic);
+            const marketId: Str = this.safeString (market, 'id2', '');
+            topics.push ('orderBook' + this.numberToString (limitValue) + '.H.' + marketId);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
@@ -277,8 +276,9 @@ export default class apex extends apexRest {
         let url = this.safeString (this.options, 'wsPublicUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.safeString (this.urls['api']['ws'], 'public') + '&timestamp=' + timeStamp;
-            this.options['wsPublicUrl'] = url;
+            const wsEndpoint: Str = this.safeString (this.urls['api']['ws'], 'public', '');
+            this.options['wsPublicUrl'] = wsEndpoint + '&timestamp=' + timeStamp;
+            url = this.safeString (this.options, 'wsPublicUrl', '');
         }
         return url;
     }
@@ -287,8 +287,9 @@ export default class apex extends apexRest {
         let url = this.safeString (this.options, 'wsPrivateUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.safeString (this.urls['api']['ws'], 'private') + '&timestamp=' + timeStamp;
-            this.options['wsPrivateUrl'] = url;
+            const wsEndpoint: Str = this.safeString (this.urls['api']['ws'], 'private', '');
+            this.options['wsPrivateUrl'] = wsEndpoint + '&timestamp=' + timeStamp;
+            url = this.safeString (this.options, 'wsPrivateUrl', '');
         }
         return url;
     }
@@ -332,7 +333,7 @@ export default class apex extends apexRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -379,11 +380,11 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.getWsPublicUrl ();
         const messageHash = 'ticker:' + symbolValue;
-        const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
-        const topics = [ topic ];
+        const marketId: Str = this.safeString (market, 'id2', '');
+        const topics = [ 'instrumentInfo' + '.H.' + marketId ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
@@ -400,15 +401,15 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const symbol = (symbolsNormalized as string[])[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
-            topics.push (topic);
+            const marketId: Str = this.safeString (market, 'id2', '');
+            topics.push ('instrumentInfo' + '.H.' + marketId);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);
         }
@@ -511,12 +512,12 @@ export default class apex extends apexRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
-            let symbolString = this.safeString (data, 0);
+            const symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
-            symbolString = (market as Dict)['id2'];
+            const marketId: Str = this.safeString (market, 'id2', '');
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push ('candle.' + timeframeId + '.' + symbolString);
+            rawHashes.push ('candle.' + timeframeId + '.' + marketId);
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
@@ -564,15 +565,14 @@ export default class apex extends apexRest {
             marketType = 'spot';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
-        if (!((timeframe as string) in this.ohlcvs[symbol])) {
+        const symbol = this.safeString (market, 'symbol', '');
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe as string);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
@@ -621,14 +621,14 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        let messageHash = 'myTrades';
+        let messageHash: string = 'myTrades';
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
@@ -655,7 +655,7 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = '';
+        let messageHash: string = '';
         let symbolsNormalized2: Strings = undefined;
         if (this.isEmpty (symbols)) {
             symbolsNormalized2 = symbols;
@@ -698,11 +698,11 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = 'orders';
+        let messageHash: string = 'orders';
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'orders' + ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
@@ -740,7 +740,7 @@ export default class apex extends apexRest {
         const trades = this.myTrades;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            const rawTrade = lists[i];
+            const rawTrade = this.safeDict (lists, i, {});
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
@@ -748,7 +748,8 @@ export default class apex extends apexRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const key = keys[i];
+            const currentMessageHash = 'myTrades:' + key;
             client.resolve (trades, currentMessageHash);
         }
         // non-symbol specific
@@ -793,14 +794,15 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            const parsed = this.parseOrder (lists[i]);
+            const parsed = this.parseOrder (this.safeDict (lists, i, {}));
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             orders.append (parsed);
         }
         const symbolsArray = Object.keys (symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
-            const currentMessageHash = 'orders:' + symbolsArray[i];
+            const orderKey = symbolsArray[i];
+            const currentMessageHash = 'orders:' + orderKey;
             client.resolve (orders, currentMessageHash);
         }
         const messageHash = 'orders';
@@ -829,8 +831,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
             for (let ii = 0; ii < positions.length; ii++) {
-                const position = positions[ii];
-                cache.append (position);
+                cache.append (positions[ii]);
             }
         }
         // don't remove the future from the .futures cache
@@ -870,7 +871,7 @@ export default class apex extends apexRest {
         const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
-            const rawPosition = lists[i];
+            const rawPosition = this.safeDict (lists, i, {});
             const position = this.parsePosition (rawPosition);
             const side = this.safeString (position, 'side');
             // hacky solution to handle closing positions
@@ -893,7 +894,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
+            const symbolsString = this.safeString (parts, 1, '');
             const symbols = symbolsString.split (',');
             const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
             if (!this.isEmpty (positions)) {
@@ -990,7 +991,7 @@ export default class apex extends apexRest {
             }
             const success = this.safeBool (message, 'success');
             if ((success !== undefined) && (!success)) {
-                const ret_msg = this.safeString (message, 'ret_msg');
+                const ret_msg = this.safeString (message, 'ret_msg', '');
                 const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 // Benign re-subscribe notice (same shape as bitmart 90008 /

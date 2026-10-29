@@ -11,7 +11,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class coincheck extends \ccxt\async\coincheck {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -70,7 +70,7 @@ class coincheck extends \ccxt\async\coincheck {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
-            'channel' => $market['id'] . '-orderbook',
+            'channel' => $this->safe_string($market, 'id', '') . '-orderbook',
         );
         $message = $this->extend($request, $params);
         $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
@@ -98,18 +98,12 @@ class coincheck extends \ccxt\async\coincheck {
         //         }
         //     ]
         //
-        $symbol = $this->symbol($this->safe_string($message, 0));
+        $symbol = $this->safe_string($this->market($this->safe_string($message, 0)), 'symbol', '');
         $data = $this->safe_dict($message, 1, array());
         $timestamp = $this->safe_timestamp($data, 'last_update_at');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book($snapshot);
-            $this->orderbooks[$symbol] = $orderbook;
-        } else {
-            $orderbook = $this->orderbooks[$symbol];
-            $orderbook->reset($snapshot);
-        }
+        $orderbook = $this->order_book($snapshot);
+        $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
@@ -134,18 +128,17 @@ class coincheck extends \ccxt\async\coincheck {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         $messageHash = 'trade:' . $market['symbol'];
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
-            'channel' => $market['id'] . '-trades',
+            'channel' => $this->safe_string($market, 'id', '') . '-trades',
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolValue, $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
@@ -166,7 +159,7 @@ class coincheck extends \ccxt\async\coincheck {
         //     ]
         //
         $first = $this->safe_list($message, 0, array());
-        $symbol = $this->symbol($this->safe_string($first, 2));
+        $symbol = $this->safe_string($this->market($this->safe_string($first, 2)), 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

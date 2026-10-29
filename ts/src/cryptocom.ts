@@ -13,7 +13,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',
             'name': 'Crypto.com',
@@ -800,7 +800,7 @@ export default class cryptocom extends Exchange {
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
             const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
             const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             let type: Str = undefined;
             let contract: Bool = undefined;
             if (inst_type === 'CCY_PAIR') {
@@ -808,16 +808,16 @@ export default class cryptocom extends Exchange {
                 contract = false;
             } else if (inst_type === 'PERPETUAL_SWAP') {
                 type = 'swap';
-                symbol = symbol + ':' + quote;
+                symbol = base + '/' + quote + ':' + quote;
                 contract = true;
             } else if (inst_type === 'FUTURE') {
                 type = 'future';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry);
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry);
                 contract = true;
             } else if (inst_type === 'WARRANT') {
                 type = 'option';
                 const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + symbolOptionType;
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + this.safeString (market, 'strike', '') + '-' + symbolOptionType;
                 contract = true;
             }
             const isLinear = (contract === true) ? true : undefined;
@@ -898,7 +898,7 @@ export default class cryptocom extends Exchange {
                 if (symbolsLength > 1) {
                     throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbols[0];
+                symbol = this.safeString (symbols, 0);
             } else {
                 symbol = symbols;
             }
@@ -1130,7 +1130,7 @@ export default class cryptocom extends Exchange {
         if ((limit !== undefined) && (limit > 300)) {
             limitResolved = 300;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             request['count'] = limitResolved;
         }
         const now = this.microseconds ();
@@ -1359,7 +1359,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1370,7 +1370,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': (side as string).toUpperCase (),
+            'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -1521,8 +1521,8 @@ export default class cryptocom extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount: Num = this.safeValue (rawOrder, 'amount');
-            const price: Num = this.safeValue (rawOrder, 'price');
+            const amount: Num = this.safeNumber (rawOrder, 'amount');
+            const price: Num = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -1729,7 +1729,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: string, symbol: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -1831,10 +1831,10 @@ export default class cryptocom extends Exchange {
         const market = this.market (symbol);
         const orderRequests: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const order: Dict = {
                 'instrument_name': market['id'],
-                'order_id': id.toString (),
+                'order_id': id,
             };
             orderRequests.push (order);
         }
@@ -2020,7 +2020,9 @@ export default class cryptocom extends Exchange {
 
     parseAddress (addressString: Str): [Str, Str] {
         if (addressString !== undefined && addressString.indexOf ('?') > 0) {
-            const [ address, rawTag ] = addressString.split ('?');
+            const addressParts = addressString.split ('?');
+            const address = addressParts[0];
+            const rawTag = addressParts[1];
             const splitted = rawTag.split ('=');
             return [ address, splitted[1] ];
         }
@@ -2668,7 +2670,7 @@ export default class cryptocom extends Exchange {
         } as Transaction;
     }
 
-    customHandleMarginModeAndParams (methodName: any, params: Dict = {}): [Str, Dict] {
+    customHandleMarginModeAndParams (methodName: string, params: Dict = {}): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -2680,7 +2682,7 @@ export default class cryptocom extends Exchange {
         const isMargin = this.safeBool (params, 'margin', false);
         const paramsOmitted: Dict = this.omit (params, 'margin');
         let marginMode: Str = undefined;
-        let paramsMarginMode = undefined;
+        let paramsMarginMode: NullableDict = undefined;
         [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams (methodName, paramsOmitted);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -2713,17 +2715,10 @@ export default class cryptocom extends Exchange {
         //
         const networkList: Dict[] = this.safeList (fee, 'network_list', []);
         const networkListLength = networkList.length;
-        const result: Dict = {
-            'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'networks': {},
+        const networks: Dict = {};
+        const withdrawFees: Dict = {
+            'fee': undefined,
+            'percentage': undefined,
         };
         if (networkList !== undefined) {
             for (let i = 0; i < networkListLength; i++) {
@@ -2732,17 +2727,26 @@ export default class cryptocom extends Exchange {
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber (networkInfo, 'withdrawal_fee'), 'percentage': false },
                     };
                 }
                 if (networkListLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
-                    result['withdraw']['percentage'] = false;
+                    withdrawFees['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
+                    withdrawFees['percentage'] = false;
                 }
             }
         }
+        const result: Dict = {
+            'info': fee,
+            'withdraw': withdrawFees,
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': networks,
+        };
         return result;
     }
 
@@ -3020,7 +3024,7 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         let type: Str = undefined;
-        let paramsMarketType = undefined;
+        let paramsMarketType: NullableDict = undefined;
         [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option', 'WARRANT', 'FUTURE' ]);
         if (type === 'option') {
@@ -3087,7 +3091,7 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            result.push (this.parseSettlement (this.safeDict (settlements, i, {}), market));
         }
         return result;
     }
@@ -3408,7 +3412,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -3430,14 +3434,14 @@ export default class cryptocom extends Exchange {
             paramsKeys = this.sort (objectKeys);
         }
         for (let i = 0; i < (paramsKeys as string[]).length; i++) {
-            const key = (paramsKeys as string[])[i];
+            const key = this.safeString (paramsKeys, i, '');
             returnString += key;
             const value = object[key];
             if (value === 'undefined') {
                 returnString += 'null';
             } else if (Array.isArray (value)) {
                 for (let j = 0; j < value.length; j++) {
-                    returnString += this.paramsToString (value[j], level + 1);
+                    returnString += this.paramsToString (value[j], depth + 1);
                 }
             } else {
                 returnString += value.toString ();
@@ -3576,9 +3580,9 @@ export default class cryptocom extends Exchange {
         const result: Dict = {};
         result['info'] = response;
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
-            const isSwap = market['swap'];
+            const isSwap = this.safeBool (market, 'swap');
             let takerFeeKey: Str = 'effective_spot_taker_rate_bps';
             if (isSwap === true) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
@@ -3623,8 +3627,8 @@ export default class cryptocom extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const type = this.safeString (api, 0);
-        const access = this.safeString (api, 1);
+        const type = api[0];
+        const access = api[1];
         const apiUrl = this.safeString (this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -3637,7 +3641,7 @@ export default class cryptocom extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const requestParams = this.extend ({}, params);
             const paramsKeys = Object.keys (requestParams);
             const strSortKey = this.paramsToString (requestParams, 0);
@@ -3669,7 +3673,7 @@ export default class cryptocom extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;

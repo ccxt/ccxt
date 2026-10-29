@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class coinsph(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -690,28 +690,30 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
-        if ('noSymbol' in config) and not ('symbol' in params):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+        hasSymbolParam = ('symbol' in params)
+        hasSymbolsParam = ('symbols' in params)
+        limit = self.safe_integer(params, 'limit')
+        if ('noSymbol' in config) and not hasSymbolParam:
             return config['noSymbol']
-        elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
+        elif ('noSymbolAndNoSymbols' in config) and not hasSymbolParam and not hasSymbolsParam:
             return config['noSymbolAndNoSymbols']
-        elif ('byNumberOfSymbols' in config) and ('symbols' in params):
-            symbols = params['symbols']
+        elif ('byNumberOfSymbols' in config) and hasSymbolsParam:
+            symbols = self.safe_list(params, 'symbols', [])
             symbolsAmount = len(symbols)
             byNumberOfSymbols = self.safe_list(config, 'byNumberOfSymbols', [])
             for i in range(0, len(byNumberOfSymbols)):
                 entry = byNumberOfSymbols[i]
                 threshold = self.safe_integer(entry, 0)
                 if threshold is not None and symbolsAmount >= threshold:
-                    return entry[1]
-        elif ('byLimit' in config) and ('limit' in params):
-            limit = self.safe_integer(params, 'limit')
+                    return self.safe_integer(entry, 1)
+        elif ('byLimit' in config) and (limit is not None):
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 threshold = self.safe_integer(entry, 0)
-                if limit is not None and threshold is not None and limit >= threshold:
-                    return entry[1]
+                if threshold is not None and limit >= threshold:
+                    return self.safe_integer(entry, 1)
         return self.safe_value(config, 'cost', 1)
 
     def fetch_status(self, params: dict = {}) -> Status:
@@ -1391,19 +1393,20 @@ class coinsph(Exchange, ImplicitAPI):
             'side': orderSide,
         }
         options = self.safe_dict(self.options, 'createOrder', {})
-        newOrderRespType = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespTypes = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespType = 'FULL'
         # if limit order
         if orderType == 'LIMIT' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT_LIMIT' or orderType == 'LIMIT_MAKER':
             if price is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
-            newOrderRespType = self.safe_string(newOrderRespType, 'limit', 'FULL')
+            newOrderRespType = self.safe_string(newOrderRespTypes, 'limit', 'FULL')
             request['price'] = self.price_to_precision(symbol, price)
             request['quantity'] = self.amount_to_precision(symbol, amount)
             if orderType != 'LIMIT_MAKER':
                 request['timeInForce'] = self.safe_string(options, 'timeInForce', 'GTC')
         # if market order
         elif orderType == 'MARKET' or orderType == 'STOP_LOSS' or orderType == 'TAKE_PROFIT':
-            newOrderRespType = self.safe_string(newOrderRespType, 'market', 'FULL')
+            newOrderRespType = self.safe_string(newOrderRespTypes, 'market', 'FULL')
             if orderSide == 'SELL':
                 request['quantity'] = self.amount_to_precision(symbol, amount)
             elif orderSide == 'BUY':
@@ -1700,8 +1703,7 @@ class coinsph(Exchange, ImplicitAPI):
             'buy': 'BUY',
             'sell': 'SELL',
         }
-        if status is None:
-            return None
+        # safeString returns the status itself when it is absent, so no early return
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status: Str) -> Str:
@@ -1728,8 +1730,7 @@ class coinsph(Exchange, ImplicitAPI):
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         }
-        if status is None:
-            return None
+        # safeString returns the status itself when it is absent, so no early return
         return self.safe_string(statuses, status, status)
 
     def parse_order_status(self, status: Str) -> Str:
@@ -2172,7 +2173,7 @@ class coinsph(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend({}, self.omit(params, self.extract_params(path)))
         endpoint = self.implode_params(path, params)
         url = apiUrl + '/' + endpoint
         if apiName == 'private':
@@ -2185,17 +2186,17 @@ class coinsph(Exchange, ImplicitAPI):
                     query['recvWindow'] = defaultRecvWindow
             signedQuery = self.url_encode_query(query)
             signature = self.hmac(self.encode(signedQuery), self.encode(self.secret), hashlib.sha256)
-            url = url + '?' + signedQuery + '&signature=' + signature
+            url = apiUrl + '/' + endpoint + '?' + signedQuery + '&signature=' + signature
             signedHeaders = {
                 'X-COINS-APIKEY': self.apiKey,
             }
             return {'url': url, 'method': method, 'body': None, 'headers': signedHeaders}
         encodedQuery = self.url_encode_query(query)
         if len(encodedQuery) != 0:
-            url += '?' + encodedQuery
+            url = apiUrl + '/' + endpoint + '?' + encodedQuery
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

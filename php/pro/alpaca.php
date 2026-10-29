@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class alpaca extends \ccxt\async\alpaca {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -85,7 +85,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -113,7 +113,8 @@ class alpaca extends \ccxt\async\alpaca {
         //
         $ticker = $this->parse_ticker($message);
         $symbol = $ticker['symbol'];
-        $messageHash = 'ticker:' . $symbol;
+        $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
+        $messageHash = 'ticker:' . $tickerSymbol;
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
@@ -175,13 +176,13 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'action' => 'subscribe',
             'bars' => array( $market['id'] ),
@@ -239,13 +240,13 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook' . ':' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
@@ -307,12 +308,6 @@ class alpaca extends \ccxt\async\alpaca {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, array $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
-        }
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
@@ -329,13 +324,13 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
@@ -385,22 +380,25 @@ class alpaca extends \ccxt\async\alpaca {
          *
          * @see https://docs.alpaca.markets/docs/websocket-streaming#trade-updates
          *
-         * @param {string} $symbol unified market $symbol of the market $trades were made in
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of trade structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->unifiedMargin] use unified margin account
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         $messageHash = 'myTrades';
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
-            $messageHash .= ':' . $symbolResolved;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $marketSymbol;
+            $messageHash = 'myTrades:' . $marketSymbol;
         }
         $request = array(
             'action' => 'listen',
@@ -429,7 +427,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -438,8 +436,9 @@ class alpaca extends \ccxt\async\alpaca {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = 'orders:' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $marketSymbol;
+            $messageHash = 'orders:' . $marketSymbol;
         }
         $request = array(
             'action' => 'listen',
@@ -517,7 +516,8 @@ class alpaca extends \ccxt\async\alpaca {
         $orders->append($order);
         $messageHash = 'orders';
         $client->resolve($orders, $messageHash);
-        $messageHash = 'orders:' . $order['symbol'];
+        $orderSymbol = $this->safe_string($order, 'symbol', '');
+        $messageHash = 'orders:' . $orderSymbol;
         $client->resolve($orders, $messageHash);
     }
 
@@ -583,7 +583,8 @@ class alpaca extends \ccxt\async\alpaca {
             return;
         }
         $myTrades->append($trade);
-        $messageHash = 'myTrades:' . $trade['symbol'];
+        $tradeSymbol = $this->safe_string($trade, 'symbol', '');
+        $messageHash = 'myTrades:' . $tradeSymbol;
         $client->resolve($myTrades, $messageHash);
         $messageHash = 'myTrades';
         $client->resolve($myTrades, $messageHash);
@@ -654,11 +655,11 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function authenticate(string $url, $params = array()) {
+    public function authenticate(?string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(string $url, $params = array()) {
+    private function do_authenticate(?string $url, $params = array()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
@@ -670,7 +671,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'key' => $this->apiKey,
                 'secret' => $this->secret,
             );
-            if ($url === $this->safe_string($this->urls['api']['ws'], 'trading')) {
+            if ($url === $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading')) {
                 // this auth request is being deprecated in test environment
                 $request = array(
                     'action' => 'authenticate',
@@ -693,11 +694,12 @@ class alpaca extends \ccxt\async\alpaca {
         //        "msg": "invalid syntax"
         //    }
         //
-        $code = $this->safe_string($message, 'code');
+        $code = $this->safe_string($message, 'code', '');
         $msg = $this->safe_string($message, 'msg');
-        $errorMessage = $this->id . ' code => ' . $code;
+        $header = $this->id . ' code => ' . $code;
+        $errorMessage = $header;
         if ($msg !== null) {
-            $errorMessage = $errorMessage . ' message => ' . $msg;
+            $errorMessage = $header . ' message => ' . $msg;
         }
         throw new ExchangeError($errorMessage);
     }

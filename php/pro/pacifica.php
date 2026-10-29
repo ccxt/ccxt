@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class pacifica extends \ccxt\async\pacifica {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -124,7 +124,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -214,7 +216,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -282,7 +286,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -367,7 +373,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -432,7 +440,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -484,7 +494,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -528,7 +540,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -593,13 +607,13 @@ class pacifica extends \ccxt\async\pacifica {
         if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
+        $messageHash = 'orderbook:' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
         $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset($snapshot);
-        $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
 
@@ -646,7 +660,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -688,7 +704,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -726,14 +744,16 @@ class pacifica extends \ccxt\async\pacifica {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'myTrades:' . $symbolResolved;
         }
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -781,7 +801,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -884,7 +906,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $currentMessageHash = 'myTrades:' . $keys[$i];
+            $currentMessageHash = 'myTrades:' . $this->safe_string($keys, $i, '');
             $client->resolve($trades, $currentMessageHash);
         }
         // non-symbol specific
@@ -919,7 +941,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -965,7 +989,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -1003,6 +1029,7 @@ class pacifica extends \ccxt\async\pacifica {
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
+        $messageHash = 'trade:' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
@@ -1014,7 +1041,6 @@ class pacifica extends \ccxt\async\pacifica {
             $trade = $this->parse_ws_trade($data);
             $trades->append($trade);
         }
-        $messageHash = 'trade:' . $symbol;
         $client->resolve($trades, $messageHash);
     }
 
@@ -1126,7 +1152,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -1173,7 +1201,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -1217,6 +1247,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($timeframe === null) {
             return;
         }
+        $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -1229,7 +1260,6 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $parsed = $this->parse_ohlcv($data);
         $ohlcv->append($parsed);
-        $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         $client->resolve($ohlcv, $messageHash);
     }
 
@@ -1260,14 +1290,16 @@ class pacifica extends \ccxt\async\pacifica {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $messageHash = $messageHash . ':' . $this->safe_string($market, 'symbol', '');
         }
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -1314,7 +1346,9 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, $urlKey, array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public');
         if ($url === null) {
             throw new ExchangeError($this->id . ' has no websocket url for this endpoint');
         }
@@ -1400,8 +1434,11 @@ class pacifica extends \ccxt\async\pacifica {
         if ($id === null) {
             $id = $this->safe_string($data, 'id');
         }
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsHeaders = $this->safe_dict($wsOptions, 'options', array());
+        $wsHeadersFinal = $this->safe_dict($wsHeaders, 'headers', array());
         try {
-            $this->handle_errors(0, $error, '', $postType, $this->options['ws']['options']['headers'], $this->json($data), $message, array(), array());
+            $this->handle_errors(0, $error, '', $postType, $wsHeadersFinal, $this->json($data), $message, array(), '');
         } catch (Exception $e) {
             $client->reject($e, $id);
             return true;
@@ -1456,7 +1493,7 @@ class pacifica extends \ccxt\async\pacifica {
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
-            if (($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1598,11 +1635,12 @@ class pacifica extends \ccxt\async\pacifica {
             throw new ArgumentsRequired($this->id . 'postAction() requires a "operationType" argument!');
         }
         $requestId = $this->request_id();
+        $postParams = array();
+        $postParams[$operationType] = $request;
         $payload = array(
             'id' => $requestId,
-            'params' => array(),
+            'params' => $postParams,
         );
-        $payload['params'][$operationType] = $request;
         return $payload;
     }
 

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coincheck as Exchange;
 
 class coincheck extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincheck',
             'name' => 'Coincheck',
@@ -268,10 +268,11 @@ class coincheck extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            if (is_array($response) && array_key_exists($currencyId ?? '', $response)) {
+            $free = $this->safe_string($response, $currencyId);
+            if ($free !== null) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_string($response, $currencyId);
+                $account['free'] = $free;
                 $account['used'] = $this->safe_string($response, $reserved);
                 $result[$code] = $account;
             }
@@ -563,10 +564,11 @@ class coincheck extends Exchange {
         $side = null;
         $fee = null;
         $orderId = null;
-        if (is_array($trade) && array_key_exists('liquidity' ?? '', $trade)) {
-            if ($this->safe_string($trade, 'liquidity') === 'T') {
+        $liquidity = $this->safe_string($trade, 'liquidity');
+        if ($liquidity !== null) {
+            if ($liquidity === 'T') {
                 $takerOrMaker = 'taker';
-            } elseif ($this->safe_string($trade, 'liquidity') === 'M') {
+            } elseif ($liquidity === 'M') {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_dict($trade, 'funds', array());
@@ -988,7 +990,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -1002,8 +1004,9 @@ class coincheck extends Exchange {
         }
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $hasQuery = count($query) > 0;
         if ($apiName === 'public') {
-            if (count($query) > 0) {
+            if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1011,13 +1014,13 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if (count($query) > 0) {
+                if ($hasQuery) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if (count($query) > 0) {
-                    $bodySigned = $this->urlencode($this->keysort($query));
-                    $queryString = $bodySigned;
+                if ($hasQuery) {
+                    $queryString = $this->urlencode($this->keysort($query));
+                    $bodySigned = $queryString;
                 }
             }
             $auth = $nonce . $url . $queryString;
@@ -1033,7 +1036,7 @@ class coincheck extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1047,7 +1050,7 @@ class coincheck extends Exchange {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
+            throw new ExchangeError($feedback);
         }
         return null;
     }

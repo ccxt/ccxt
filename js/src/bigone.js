@@ -619,7 +619,7 @@ export default class bigone extends Exchange {
         const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = promisesResult[1];
+        const contractResponse = this.safeValue(promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -849,7 +849,7 @@ export default class bigone extends Exchange {
         //    }
         //
         let marketType = 'swap';
-        if ('asset_pair_name' in ticker) {
+        if (this.safeString(ticker, 'asset_pair_name') !== undefined) {
             marketType = 'spot';
         }
         const marketId = this.safeString2(ticker, 'asset_pair_name', 'symbol');
@@ -1128,8 +1128,8 @@ export default class bigone extends Exchange {
         return result;
     }
     parseContractOrderBook(orderbook, symbol, limit = undefined) {
-        const responseBids = this.safeDict(orderbook, 'bids');
-        const responseAsks = this.safeDict(orderbook, 'asks');
+        const responseBids = this.safeDict(orderbook, 'bids', {});
+        const responseAsks = this.safeDict(orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks(responseBids);
         const asks = this.parseContractBidsAsks(responseAsks);
         return {
@@ -1997,7 +1997,7 @@ export default class bigone extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const request = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
@@ -2149,7 +2149,7 @@ export default class bigone extends Exchange {
         const address = this.safeString(transaction, 'target_address');
         const tag = this.safeString(transaction, 'memo');
         let type = 'deposit';
-        if ('customer_id' in transaction) {
+        if (this.safeString(transaction, 'customer_id') !== undefined) {
             type = 'withdrawal';
         }
         const internal = this.safeBool(transaction, 'is_internal');
@@ -2415,7 +2415,7 @@ export default class bigone extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2423,12 +2423,12 @@ export default class bigone extends Exchange {
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if ((code !== '0') && (code !== undefined)) {
+        if ((codeError !== '0') && (codeError !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }

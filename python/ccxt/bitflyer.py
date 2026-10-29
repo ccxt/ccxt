@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class bitflyer(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
@@ -230,7 +230,7 @@ class bitflyer(Exchange, ImplicitAPI):
     def parse_expiry_date(self, expiry: str) -> Int:
         day = expiry[0:2]
         monthName = expiry[2:5]
-        year = expiry[5:9]
+        expiryYear = expiry[5:9]
         months = {
             'JAN': '01',
             'FEB': '02',
@@ -248,7 +248,7 @@ class bitflyer(Exchange, ImplicitAPI):
         month = self.safe_string(months, monthName)
         if month is None:
             return None
-        return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
+        return self.parse8601(expiryYear + '-' + month + '-' + day + 'T00:00:00Z')
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
@@ -348,8 +348,8 @@ class bitflyer(Exchange, ImplicitAPI):
             if (base is None) or (quote is None):
                 continue
             symbol = base + '/' + quote
-            taker = self.fees['trading']['taker']
-            maker = self.fees['trading']['maker']
+            taker = self.safe_number(self.fees['trading'], 'taker')
+            maker = self.safe_number(self.fees['trading'], 'maker')
             contract = swap or future
             if contract:
                 maker = 0.0
@@ -556,9 +556,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 side = None
         order = None
         if side is not None:
-            idInner = side + '_child_order_acceptance_id'
-            if idInner in trade:
-                order = self.safe_string(trade, idInner)
+            order = self.safe_string(trade, side + '_child_order_acceptance_id')
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
@@ -837,8 +835,8 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         orders = self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
-        if id in ordersById:
-            found = self.safe_dict(ordersById, id)
+        found = self.safe_dict(ordersById, id)
+        if found is not None:
             return found
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
@@ -1184,18 +1182,17 @@ class bitflyer(Exchange, ImplicitAPI):
             request += 'me/'
         request += path
         if method == 'GET':
-            if len(params) > 0:
-                request += '?' + self.urlencode(params)
+            query = self.urlencode(params)
+            if query != '':
+                request += '?' + query
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = self.implode_hostname(apiUrl)
-        url = baseUrl + request
+        url = self.implode_hostname(apiUrl) + request
         if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            content = [nonce, method, request]
-            auth = ''.join(content)
+            auth = nonce + method + request
             if len(params) > 0:
                 if method != 'GET':
                     body = self.json(params)
@@ -1211,7 +1208,7 @@ class bitflyer(Exchange, ImplicitAPI):
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to the default error handler
         feedback = self.id + ' ' + body

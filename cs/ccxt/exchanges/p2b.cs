@@ -393,12 +393,12 @@ public partial class p2b : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         IDictionary<string, object> limits = this.safeDict(market, "limits");
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", ((bs + "/") + quote) },
             { "base", bs },
@@ -446,7 +446,7 @@ public partial class p2b : Exchange
             } },
             { "created", null },
             { "info", market },
-        });
+        };
     }
 
     /**
@@ -574,11 +574,7 @@ public partial class p2b : Exchange
         //    }
         //
         Int64? timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        object tickerInner = ticker;
-        if (inOp(ticker, "ticker"))
-        {
-            tickerInner = this.safeDict(ticker, "ticker");
-        }
+        IDictionary<string, object> tickerInner = this.safeDict(ticker, "ticker", ticker);
         string? last = this.safeString(tickerInner, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "symbol") },
@@ -1198,34 +1194,34 @@ public partial class p2b : Exchange
         }
         Int64? untilParam = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
-        Int64? until = null;
-        object sinceResolved = 0;
+        Int64? until = this.parseToInt(0);
+        Int64? sinceResolved = this.parseToInt(0);
         if ((untilParam != null))
         {
-            until = untilParam;
+            until = this.parseToInt(untilParam);
             if ((since != null))
             {
                 if (((untilParam - since) > 86400000))
                 {
                     throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                 }
-                sinceResolved = since;
+                sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = (untilParam - 86400000);
+                sinceResolved = this.parseToInt((untilParam - 86400000));
             }
         } else if ((since != null))
         {
-            until = (since + 86400000);
-            sinceResolved = since;
+            until = this.parseToInt((since + 86400000));
+            sinceResolved = this.parseToInt(since);
         } else
         {
             Int64 now = this.milliseconds();
-            until = now;
-            sinceResolved = (now - 86400000);
+            until = this.parseToInt(now);
+            sinceResolved = this.parseToInt((now - 86400000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
+        Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1297,33 +1293,33 @@ public partial class p2b : Exchange
         {
             market = this.market(symbol);
         }
-        Int64? until = null;
-        object sinceResolved = 0;
+        Int64? until = this.parseToInt(0);
+        Int64? sinceResolved = this.parseToInt(0);
         if ((untilParam != null))
         {
-            until = untilParam;
+            until = this.parseToInt(untilParam);
             if ((since != null))
             {
                 if (((untilParam - since) > 86400000))
                 {
                     throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                 }
-                sinceResolved = since;
+                sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = (untilParam - 86400000);
+                sinceResolved = this.parseToInt((untilParam - 86400000));
             }
         } else if ((since != null))
         {
-            until = (since + 86400000);
-            sinceResolved = since;
+            until = this.parseToInt((since + 86400000));
+            sinceResolved = this.parseToInt(since);
         } else
         {
             Int64 now = this.milliseconds();
-            until = now;
-            sinceResolved = (now - 86400000);
+            until = this.parseToInt(now);
+            sinceResolved = this.parseToInt((now - 86400000));
         }
-        Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
+        Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceSec },
@@ -1447,13 +1443,13 @@ public partial class p2b : Exchange
         }, marketResolved);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1468,12 +1464,14 @@ public partial class p2b : Exchange
                 url = url + ("?" + this.urlencode(paramsOmitted));
             }
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
-            ((IDictionary<string,object>)paramsOmitted)["request"] = ("/api/v2/" + path);
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            ((IDictionary<string,object>)paramsOmitted)["nonce"] = ((object)this.incrementingNonce()).ToString();
+            paramsOmitted = this.extend(paramsOmitted, new Dictionary<string, object>() {
+                { "request", ("/api/v2/" + path) },
+                { "nonce", ((object)this.incrementingNonce()).ToString() },
+            });
             string payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
@@ -1497,7 +1495,7 @@ public partial class p2b : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1514,7 +1512,7 @@ public partial class p2b : Exchange
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            string codeAsString = code.ToString();
+            string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {

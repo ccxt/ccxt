@@ -33,7 +33,7 @@ public class Revolutx extends RevolutxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "revolutx" );
@@ -260,12 +260,9 @@ public class Revolutx extends RevolutxApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
-        String requestBody = null;
         String implodedPath = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer queryLength = ((List<?>)queryKeys).size();
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -274,31 +271,30 @@ public class Revolutx extends RevolutxApi
         String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + implodedPath);
         String queryString = "";
+        String bodyString = "";
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if ((queryLength != null && queryLength > 0))
+                queryString = this.urlencode(query);
+                if (!java.util.Objects.equals(queryString, ""))
                 {
-                    queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
                 }
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if ((queryLength != null && queryLength > 0))
+                queryString = this.urlencode(query);
+                if (!java.util.Objects.equals(queryString, ""))
                 {
-                    queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
             }
             String requestPath = ("/api/" + implodedPath);
-            String bodyValue = requestBody;
-            String bodyString = (((!java.util.Objects.equals(bodyValue, null)))) ? bodyValue : "";
             String message = ((((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             {
@@ -310,27 +306,29 @@ public class Revolutx extends RevolutxApi
             }
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
-                requestHeaders.put("Content-Type", "application/json");
+                requestHeaders = this.extend(requestHeaders, new HashMap<String, Object>() {{
+                    put( "Content-Type", "application/json" );
+                }});
             }
         } else
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if ((queryLength != null && queryLength > 0))
+                queryString = this.urlencode(query);
+                if (!java.util.Objects.equals(queryString, ""))
                 {
-                    queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                 }};
             }
         }
         Map<String, Object> headersResult = requestHeaders;
-        String bodyResult = requestBody;
+        String bodyResult = (((!java.util.Objects.equals(bodyString, "")))) ? bodyString : null;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);
@@ -938,11 +936,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
@@ -1015,7 +1009,16 @@ public class Revolutx extends RevolutxApi
             //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
             //     ]
             //
-            Object data = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object payload = response;
+            if ((payload instanceof List))
+            {
+                {
+                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                    hx4NewMap1.put("data", payload);
+                    payload = hx4NewMap1;
+                }
+            }
+            List<Object> data = (List<Object>) this.safeList(payload, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
@@ -1103,10 +1106,10 @@ public class Revolutx extends RevolutxApi
         if (!java.util.Objects.equals(totalFee, null))
         {
             {
-                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                hx4NewMap1.put("cost", this.parseNumber(totalFee));
-                hx4NewMap1.put("currency", feeCurrency);
-                fee = hx4NewMap1;
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("cost", this.parseNumber(totalFee));
+                hx4NewMap2.put("currency", feeCurrency);
+                fee = hx4NewMap2;
             }
         }
         String amountValue = null;
@@ -1244,13 +1247,13 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", venueOrderId);
-                j39v2.put("symbol", market.get("id"));
-                j39v2.put("status", state);
-                j39v2.put("side", side);
-                j39v2.put("type", type);
-                yield j39v2; } })), market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", venueOrderId);
+                j39v1.put("symbol", market.get("id"));
+                j39v1.put("status", state);
+                j39v1.put("side", side);
+                j39v1.put("type", type);
+                yield j39v1; } })), market);
             return order;
         }).thenApply(Order::new);
 
@@ -1744,7 +1747,7 @@ public class Revolutx extends RevolutxApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         Long statusCode = this.parseToInt(code);
         if (((statusCode != null && statusCode >= 400)))

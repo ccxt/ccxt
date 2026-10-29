@@ -544,6 +544,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
+import { w3c06Types } from './hx10w3-C06.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
@@ -646,7 +647,9 @@ export const CORE_NUMERIC_ARGS = {
     'fetchLedgerByEntries': { 2: 'Int64?' },
     'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarginAdjustmentHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'handleTradingStatisticsWindow': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
@@ -717,6 +720,18 @@ export const CORE_NUMERIC_ARGS = {
     'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
 };
+
+// retype-cs-divide-arith (hx11 w8): numeric parameters whose `divide(p, N)` / `divide(N, p)` helper call
+// prints native once the parameter is typed (the declared type is the C# twin of the TS annotation:
+// `Int` -> Int64?, required `int` -> Int64, `number` -> double). Name-keyed, so the base method and every
+// override (CS0115/CS0508 invariance) take the same type; call sites are wrapped by castCoreArgCallSites.
+export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = {
+    'fetchPaginatedCallDeterministic': { 2: 'Int64?' },
+    'createTwapOrder': { 3: 'double' },
+};
+for (const [ retypeName, retypePositions ] of Object.entries (RETYPE_CS_DIVIDE_NUMERIC_ARGS)) {
+    CORE_NUMERIC_ARGS[retypeName] = { ...(CORE_NUMERIC_ARGS[retypeName] ?? {}), ...retypePositions };
+}
 
 export const CORE_STRING_ARGS = {
     'addMargin': [ 0 ],
@@ -2358,9 +2373,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'isArray': 'bool',
     'inArray': 'bool',
     'isJsonEncodedObject': 'bool',
-    // Exchange.Functions.cs (JSON.stringify; returns null for a null input — the local
-    // must stay nullable: a `string` spelling would let it sit on the LEFT of `+`)
-    'json': 'string?',
+    // Exchange.Functions.cs: json() is declared `string` in TS and C#
+    'json': 'string',
     // Exchange.Misc.cs — retyped object -> string in this PR, but the value is NOT always
     // a string: a null path returns the null path itself on the empty/all-null dictionary
     // branch and on the list branch (the dictionary branch throws for a null path only
@@ -3066,13 +3080,12 @@ function predictionFunnelCallType (csharp, declaration) {
 // walletAddress / privateKey as `public string <name> { get; set; }`, so a read of one of them has
 // the C# static type `string` (null while unset) — a declaration initialised from that read, or
 // from an arm of a conditional that reads it, holds that string or null. Prediction tier only:
-// the same names are read in the crypto tree, where the local families belong to the REST units.
+// every tier: the retype scan re-validates each later read and write of the local.
 const CSHARP_PREDICTION_STRING_MEMBERS = new Set ([ 'apiKey', 'secret', 'password', 'walletAddress', 'privateKey' ]);
 
 function predictionMemberStringRead (declaration) {
-    if (!isPredictionSource (declaration)) {
-        return undefined;
-    }
+    // every tier: `let apiKey = this.apiKey` in the REST/pro trees (woofipro, modetrade) read the same
+    // hand-written `string` property, so the local keeps the string box instead of de-typing to object
     const read = declaration.initializer;
     if (read?.kind !== ts.SyntaxKind.PropertyAccessExpression || read.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
@@ -6454,6 +6467,12 @@ function callReturnType (csharp, initializer) {
         const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         if (localType !== undefined) {
             return localType;
+        }
+        // a venue method whose own body proves a non-null string at this site (its printed
+        // signature stays `string?`, so the candidate starts nullable and the declaration
+        // retry below promotes it with the identity cast)
+        if (sameFileGuardedStringCall (csharp, initializer)) {
+            return 'string?';
         }
         // a prediction-tier local fed by a venue helper whose DECLARATION this module already
         // retypes (installCsharp*Returns): the call's own C# static type IS the table's box, so
@@ -10701,6 +10720,208 @@ function safeStringFamilyLocal (declaration) {
     return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.text);
 }
 
+// ===== a venue method whose own body proves a non-null string =====
+//
+// `const messageType = this.getTypeByMarket (market)` prints `object messageType = …` and every
+// `messageType + 'x'` keeps `add (…)`: the TS return annotation is `Str`, so the printed C#
+// signature is `string?`. The BODY proves more than the signature — every `return` hands back a
+// string literal, and the only null return sits behind `if (<param> === undefined) return
+// undefined` — so at a site whose guard argument is a proven non-null reference (a
+// `this.market (…)` local, a dictionary parameter) that path cannot be taken and the call is a
+// non-null string. The declaration then names `string` with the identity `(string)` cast, which
+// is what lets its `+` reads print add(string, string) instead of the helper. Anything else
+// (a loose return shape, a statement this proof cannot follow, an argument whose type the
+// module cannot name) keeps the printer's `object`.
+const GUARDED_STRING_RETURN_CACHE = new WeakMap ();
+
+// the guard parameter names of a method whose every return is a non-null string literal except
+// the null/undefined returns under `if (<param> === undefined)`; undefined when the body has any
+// other shape (an assignment, a loop, a try, a computed return)
+function guardedStringReturnGuards (declaration) {
+    const body = declaration.body;
+    if (body?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    const parameters = new Set ();
+    for (const parameter of (declaration.parameters ?? [])) {
+        if (parameter.name?.kind === ts.SyntaxKind.Identifier) {
+            parameters.add (parameter.name.text);
+        }
+    }
+    const returnsOf = (node) => {
+        const out = [];
+        const visit = (n) => {
+            if (n.kind === ts.SyntaxKind.ReturnStatement) {
+                out.push (n);
+                return;
+            }
+            if (ts.isFunctionLike (n)) {
+                return;
+            }
+            n.forEachChild (visit);
+        };
+        visit (node);
+        return out;
+    };
+    const isNullish = (node) => {
+        const value = stripParens (node);
+        return (value === undefined) || (value.kind === ts.SyntaxKind.NullKeyword)
+            || ((value.kind === ts.SyntaxKind.Identifier) && (value.text === 'undefined'));
+    };
+    const isLiteral = (node) => isStringLiteral (stripParens (node));
+    const guards = new Set ();
+    for (const statement of (body.statements ?? [])) {
+        if (statement.kind === ts.SyntaxKind.ReturnStatement) {
+            if (!isLiteral (statement.expression)) {
+                return undefined;
+            }
+            continue;
+        }
+        if (statement.kind !== ts.SyntaxKind.IfStatement) {
+            return undefined;
+        }
+        if (statement.elseStatement === undefined) {
+            // the null guard: `if (<param> === undefined) return undefined;`
+            const test = nullTestOf (statement.expression);
+            if ((test?.kind !== 'isNull') || (test.identifier === undefined) || !parameters.has (test.identifier.text)) {
+                return undefined;
+            }
+            const returned = returnsOf (statement.thenStatement);
+            if ((returned.length !== 1) || !isNullish (returned[0].expression)) {
+                return undefined;
+            }
+            guards.add (test.identifier.text);
+            continue;
+        }
+        // an if/else chain: every arm returns a string literal
+        const returned = [ ...returnsOf (statement.thenStatement), ...returnsOf (statement.elseStatement) ];
+        if ((returned.length === 0) || !returned.every ((arm) => isLiteral (arm.expression))) {
+            return undefined;
+        }
+    }
+    return (guards.size === 0) ? undefined : guards;
+}
+
+// the C# types whose spelling is a non-null reference: a value of one can never be the
+// undefined/null a guard tests for
+const NON_NULL_REFERENCE_ARGUMENT_TYPES = [
+    'string', 'Dictionary<string, object>', 'IDictionary<string, object>', 'List<object>', 'IList<object>',
+];
+
+// a value this module proves is never null: a call whose own printed return type has no `?`, a
+// constructor, a literal, a non-nullable `this.<member>` read. A conditional, a bare read, a
+// null/undefined literal and every unproven call are rejected (the guard could fire there).
+function nonNullReferenceValue (csharp, node) {
+    const value = stripParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+        return 'literal';
+    case ts.SyntaxKind.NumericLiteral:
+        return 'literal';
+    case ts.SyntaxKind.NewExpression:
+    case ts.SyntaxKind.ObjectLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        return 'literal';
+    case ts.SyntaxKind.CallExpression: {
+        const own = callReturnType (csharp, value);
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (own) ? own : undefined;
+    }
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const member = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (member) ? member : undefined;
+    }
+    }
+    return undefined;
+}
+
+// a local read whose printed declaration IS a non-null reference type AND whose every write
+// stores a value this module proves non-null: the type spelling alone proves nothing (a
+// `IDictionary<string, object> x = null;` declaration carries the same spelling)
+function nonNullReferenceLocal (csharp, node) {
+    const declaration = (typeof csharp.csharpReceiverBinding === 'function') ? csharp.csharpReceiverBinding (node) : undefined;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const type = localIdentifierType (csharp, node);
+    if (!NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (type)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    if (declaration.initializer === undefined || nonNullReferenceValue (csharp, declaration.initializer) === undefined) {
+        return undefined;
+    }
+    for (const write of stringLocalWriteNodes (csharp, scope, declaration, node.text)) {
+        const parent = write.parent;
+        if ((parent?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || (nonNullReferenceValue (csharp, parent.right) === undefined)) {
+            return undefined; // a compound write, or a value this proof cannot name
+        }
+    }
+    return type;
+}
+
+function nonNullReferenceArgument (csharp, argument) {
+    const value = stripParens (argument);
+    if (value?.kind === ts.SyntaxKind.Identifier) {
+        return nonNullReferenceLocal (csharp, value);
+    }
+    return nonNullReferenceValue (csharp, value);
+}
+
+// `this.<method>(…)` of the SAME class whose body proves a non-null string at this site
+function sameFileGuardedStringCall (csharp, node) {
+    const call = stripParens (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    const declaration = boundCollectionDeclaration (csharp, call, name);
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    // the declaration must belong to the class the call is printed in
+    const owner = ts.findAncestor (declaration, (n) => ts.isClassLike (n));
+    const called = ts.findAncestor (call, (n) => ts.isClassLike (n));
+    if ((owner === undefined) || (owner !== called)) {
+        return false;
+    }
+    let guards = GUARDED_STRING_RETURN_CACHE.get (declaration);
+    if (!GUARDED_STRING_RETURN_CACHE.has (declaration)) {
+        guards = guardedStringReturnGuards (declaration);
+        GUARDED_STRING_RETURN_CACHE.set (declaration, guards);
+    }
+    if (guards === undefined) {
+        return false;
+    }
+    const parameters = declaration.parameters ?? [];
+    for (const guarded of guards) {
+        const index = parameters.findIndex ((parameter) => parameter.name?.kind === ts.SyntaxKind.Identifier && parameter.name.text === guarded);
+        if (index < 0) {
+            return false;
+        }
+        const argument = call.arguments?.[index];
+        if ((argument === undefined) || (nonNullReferenceArgument (csharp, argument) === undefined)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -11188,6 +11409,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         csharpType = 'IList<object>';
         safe = true;
     }
+    // hx11: a sign/fetch2/request path element takes the identity `(string)` cast too, so its `+` reads bind add(string, *)
+    if (!safe && csharpType === 'string?' && signApiElementInitializer (csharp, declaration.initializer)
+        && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
@@ -11201,6 +11429,15 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // (see nonNullStringValue)
     if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
+        safe = true;
+    }
+    // a `this.<venue method> (…)` whose body proves a non-null string when its guard argument is
+    // non-null (sameFileGuardedStringCall): the printed signature is `string?`, so the non-null
+    // spelling takes the identity `(string)` cast — the box does not move, and its `+` reads
+    // print add(string, string)
+    if (!safe && csharpType === 'string?' && sameFileGuardedStringCall (csharp, declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
         safe = true;
     }
     // the safeValue-twin box is only named when no use of the local treats it as the other
@@ -13568,6 +13805,19 @@ const CSHARP_SCALAR_LIST_ELEMENT_TYPES = {
 
 // the scalar element type of `recv[i]` over a receiver whose printed declaration is a scalar list, or
 // undefined. Read-only: it answers the declaration dispatch, the printed read is unchanged.
+function signApiParameterRead (csharp, receiver) {
+    const param = csharp.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    return param?.kind === ts.SyntaxKind.Parameter && method?.kind === ts.SyntaxKind.MethodDeclaration
+        && [ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) && method.parameters.indexOf (param) === 1
+        && String (param.type?.getText () ?? '').replace (/\s+/g, '') === 'string[]';
+}
+
+function signApiElementInitializer (csharp, node) {
+    return node?.kind === ts.SyntaxKind.ElementAccessExpression && node.expression?.kind === ts.SyntaxKind.Identifier
+        && signApiParameterRead (csharp, node.expression);
+}
+
 function typedListElementReadType (csharp, node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
@@ -13578,6 +13828,10 @@ function typedListElementReadType (csharp, node) {
     }
     if (!wsCacheElementSourceOk (node) || typeof csharp.csharpPrintedLocalType !== 'function') {
         return undefined;
+    }
+    // hx11: `api[N]` of sign/fetch2/request (`api: string[]`): every element is a path string
+    if (signApiParameterRead (csharp, receiver)) {
+        return 'string';
     }
     const printed = csharp.csharpPrintedLocalType (receiver);
     if (printed === undefined) {
@@ -14173,6 +14427,8 @@ const CSHARP_DICT_WRITE_MEMBER_TYPES = {
     'bidsasks': 'IDictionary<string, object>',              // ws cache, cs/ccxt/base/Exchange.Options.cs
     'trades': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
     'ohlcvs': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
+    'urls': 'IDictionary<string, object>',                // hx10w3 C04, cs/ccxt/base/Exchange.Options.cs
+    'headers': 'IDictionary<string, object>',             // hx10w3 C04, cs/ccxt/base/Exchange.Options.cs
 };
 const CSHARP_DICT_WRITE_LOCAL_TYPES = [
     'ccxt.pro.IOrderBook', 'ccxt.pro.OrderBook', 'ccxt.pro.IndexedOrderBook', 'ccxt.pro.CountedOrderBook',
@@ -15635,10 +15891,15 @@ export function installCsharpNumericComparisons (transpiler) {
 // build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
 // `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
 // `path` (0) of sign/fetch2/request: ts/src declares `path: string` and no body writes it.
+// `api` (1) of sign/fetch2/request: ts/src declares `api: string[] = [ 'public' ]` on the base
+// and on every override (coinbaseinternational's `string[] | string` is the one union, narrowed
+// there), every body write is the `??= new List<object>()` prologue or a list producer, and the
+// three intra-tier call sites forward a same-typed parameter. The runtime box is `List<object>`
+// (hand-written transformApi) so no element read needs a cast.
 export const SIGNATURE_ARG_TYPES = {
-    'fetch2': { 0: 'string' },
-    'request': { 0: 'string' },
-    'sign': { 0: 'string', 2: 'string' },
+    'fetch2': { 0: 'string', 1: 'IList<object>' },
+    'request': { 0: 'string', 1: 'IList<object>' },
+    'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
@@ -15896,7 +16157,18 @@ export function installCsharpParameterTypes (transpiler) {
 
 const CSHARP_PARAMETER_ALIAS_TYPES = {
     'Dict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Dict|undefined': { 'type': 'IDictionary<string, object>', 'value': false },
+    'NullableDict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Market': { 'type': 'IDictionary<string, object>', 'value': false },
+    'MarketInterface': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Currency': { 'type': 'IDictionary<string, object>', 'value': false },
     'List': { 'type': 'IList<object>', 'value': false },
+    'Strings': { 'type': 'IList<object>', 'value': false },
+    'string[]': { 'type': 'IList<object>', 'value': false },
+    'any[]': { 'type': 'IList<object>', 'value': false },
+    'object[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]|undefined': { 'type': 'IList<object>', 'value': false },
     'Str': { 'type': 'string', 'value': false },
     'Int': { 'type': 'Int64', 'value': true },
     'Num': { 'type': 'double', 'value': true },
@@ -17092,7 +17364,37 @@ function nativeComparisonOperand (csharp, node, symbol, comparison) {
     if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
         return undefined;
     }
-    return { nullable, text: csharp.printNode (node, 0).trim () };
+    return { nullable, text: csharp.printNode (node, 0).trim (), viaParameter: nullable && retypeNullableCompareIsParameter (csharp, node),
+        admitted: nullable && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, nativeComparisonUnwrap (node)) };
+}
+
+// ===== retype-cs-nullable-compare (hx11 w8) =====
+// A nullable operand that is a narrowed core PARAMETER (`Int64? since`) is new to the native path:
+// it printed `object` (helper call) before the parameter table typed it. For these the emitted
+// comparison follows the TS source, where `undefined <op> x` is false for all four operators:
+// an explicit `x != null &&` per nullable side (the helper's one-sided null answers are not
+// reproduced). Locals keep the legacy helper-compatible forms below, so no other site moves.
+// Scoped to the (method, position) pairs THIS unit added to CORE_NUMERIC_ARGS, so every
+// comparison that already printed natively keeps its text.
+const RETYPE_NULLABLE_COMPARE_METHODS = [ 'fetchMarginAdjustmentHistory', 'handleTradingStatisticsWindow' ];
+
+function retypeNullableCompareIsParameter (csharp, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind !== ts.SyntaxKind.Identifier || coreArgParamType (csharp, inner) === undefined) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (inner)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return RETYPE_NULLABLE_COMPARE_METHODS.includes (declaration?.parent?.name?.text);
+}
+
+function retypeNullableCompareTsForm (left, right, core) {
+    const guards = [ left, right ].filter ((side) => side.nullable && !side.admitted).map ((side) => side.text + ' != null');
+    return '(' + guards.concat ([ core ]).join (' && ') + ')';
 }
 
 function nativeComparisonExpression (csharp, node) {
@@ -17110,6 +17412,9 @@ function nativeComparisonExpression (csharp, node) {
     const core = L + ' ' + symbol + ' ' + R;
     if (!left.nullable && !right.nullable) {
         return '(' + core + ')';
+    }
+    if ((left.viaParameter && left.nullable) || (right.viaParameter && right.nullable)) {
+        return retypeNullableCompareTsForm (left, right, core);
     }
     // the lifted operator is false when either side is null; the helper's answer differs only
     // for (value, null) under `>`/`>=` and (null, *) under `<`/`<=`
@@ -18447,6 +18752,7 @@ export function installCsharpHx4C10NonNullConcat (transpiler) {
     };
     const upstreamConcat = csharp.csharpNativeStringConcat.bind (csharp);
     csharp.csharpNativeStringConcat = (left, right, leftText, rightText) => {
+        if (process.env.C06_DEBUG) console.error ('[c06w] ', JSON.stringify (leftText), JSON.stringify (rightText));
         const native = upstreamConcat (left, right, leftText, rightText);
         if (native !== undefined || typeof leftText !== 'string' || typeof rightText !== 'string' || leftText === '' || rightText === '') {
             return native;
@@ -18609,3 +18915,6 @@ function hx5X12RegisterReturnTypes () {
     }
 }
 hx5X12RegisterReturnTypes ();
+
+// hx10w3 C06: generated method RETURN types (name-keyed, so every declaration and caller agrees)
+w3c06Types (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES);

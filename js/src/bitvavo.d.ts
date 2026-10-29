@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class bitvavo extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitvavo#fetchTime
@@ -392,6 +392,6 @@ export default class bitvavo extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
 }

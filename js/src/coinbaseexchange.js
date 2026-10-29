@@ -665,7 +665,9 @@ export default class coinbaseexchange extends Exchange {
         for (let i = 0; i < rawMarkets.length; i++) {
             const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
-            const [baseId, quoteId] = id.split('-');
+            const parts = id.split('-');
+            const baseId = parts[0];
+            const quoteId = parts[1];
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
@@ -784,8 +786,9 @@ export default class coinbaseexchange extends Exchange {
     }
     parseBalance(response) {
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rawBalances = this.toArray(response);
+        for (let i = 0; i < rawBalances.length; i++) {
+            const balance = this.safeDict(rawBalances, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -897,7 +900,7 @@ export default class coinbaseexchange extends Exchange {
         let low = undefined;
         let open = undefined;
         let volume = undefined;
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         if (Array.isArray(ticker)) {
             last = this.safeString(ticker, 4);
         }
@@ -1211,8 +1214,9 @@ export default class coinbaseexchange extends Exchange {
         const maker = this.safeNumber(response, 'maker_fee_rate');
         const taker = this.safeNumber(response, 'taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1607,14 +1611,11 @@ export default class coinbaseexchange extends Exchange {
             request['size'] = this.amountToPrecision(symbol, amount);
         }
         else if (type === 'market') {
-            let cost = costParam;
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
+            if (costParam !== undefined) {
+                request['funds'] = this.costToPrecision(symbol, costParam);
             }
-            if (cost !== undefined) {
-                request['funds'] = this.costToPrecision(symbol, cost);
+            else if (price !== undefined) {
+                request['funds'] = this.costToPrecision(symbol, amount * price);
             }
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
@@ -2148,7 +2149,8 @@ export default class coinbaseexchange extends Exchange {
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy(accounts, 'currency');
         }
         const currencyId = currency['id'];
-        const account = this.safeDict(this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const accountsByCurrencyId = this.safeDict(this.options, 'coinbaseAccountsByCurrencyId');
+        const account = this.safeDict(accountsByCurrencyId, currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress(this.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
@@ -2189,8 +2191,8 @@ export default class coinbaseexchange extends Exchange {
             let payload = '';
             if (method !== 'GET') {
                 if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    payload = requestBody;
+                    payload = this.json(query);
+                    requestBody = payload;
                 }
             }
             const what = nonce + method + request + payload;
@@ -2214,7 +2216,7 @@ export default class coinbaseexchange extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 400) || (code === 404)) {
-            if (body[0] === '{') {
+            if (body.startsWith('{')) {
                 const message = this.safeString(response, 'message');
                 const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);

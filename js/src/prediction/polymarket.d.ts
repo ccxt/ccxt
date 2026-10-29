@@ -1,12 +1,12 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { OrderSide, OrderType, Int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams, NullableDict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class polymarket
  * @augments Exchange
  */
 export default class polymarket extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name polymarket#fetchMarkets
@@ -33,7 +33,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    fetchRawEventsBySearch(queries: string[], params?: Dict): Promise<any[]>;
+    fetchRawEventsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -54,7 +54,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    fetchRawEventsList(params?: Dict): Promise<any[]>;
+    fetchRawEventsList(params?: Dict): Promise<Dict[]>;
     parseEventToMarkets(event: Dict): Market[];
     /**
      * @ignore
@@ -443,8 +443,8 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of event structures
      */
     parseEvents(rawEvents: any[]): Dict[];
-    handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    nonce(): number;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    nonce(): int;
     /**
      * @ignore
      * @method

@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class hitbtc(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -786,7 +786,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'rollingWindowSize': 1000.0,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -867,9 +867,9 @@ class hitbtc(Exchange, ImplicitAPI):
                 settle = settleCode
                 linear = (quote == settleCode)
                 inverse = not linear
-                symbol = symbol + ':' + settle
+                symbol = base + '/' + quote + ':' + settle
                 if future:
-                    symbol = symbol + '-' + expiry
+                    symbol = base + '/' + quote + ':' + settle + '-' + self.safe_string(market, 'expiry', '')
                     type = 'future'
                 else:
                     type = 'swap'
@@ -987,7 +987,7 @@ class hitbtc(Exchange, ImplicitAPI):
         return self.parse_currencies(enhancedArray)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        currencyId = currency['_coin_id']
+        currencyId = self.safe_string(currency, '_coin_id')
         code = self.safe_currency_code(currencyId)
         entry = currency
         rawNetworks = self.safe_list(entry, 'networks', [])
@@ -997,7 +997,11 @@ class hitbtc(Exchange, ImplicitAPI):
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             rawNetworkCode = self.network_id_to_code(networkId, code)
             networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
-            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
+            networkCode = None
+            if networkCodeUpper is not None:
+                networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper)
+            else:
+                networkCode = code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1239,7 +1243,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             marketId = keys[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             entry = self.safe_dict(response, marketId, {})
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1258,7 +1262,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       "timestamp": "2021-10-22T07:29:14.585Z"
         #     }
         #
-        timestamp = self.parse8601(ticker['timestamp'])
+        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         symbol = self.safe_symbol(None, market)
         baseVolume = self.safe_string(ticker, 'volume')
         quoteVolume = self.safe_string(ticker, 'volume_quote')
@@ -1424,10 +1428,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #      "liquidation": false
         #  }
         #
-        timestamp = self.parse8601(trade['timestamp'])
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_symbol(marketId, marketResolved)
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_bool(trade, 'taker')
@@ -1477,7 +1481,7 @@ class hitbtc(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currencies'] = currency['id']
+            request['currencies'] = self.safe_string(currency, 'id')
         if since is not None:
             request['from'] = self.iso8601(since)
         if limit is not None:
@@ -1794,7 +1798,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         result = {}
         for i in range(0, len(response)):
-            fee = self.parse_trading_fee(response[i])
+            fee = self.parse_trading_fee(self.safe_dict(response, i, {}))
             symbol = fee['symbol']
             if symbol is not None:
                 result[symbol] = fee
@@ -1830,9 +1834,9 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = self.iso8601(since)
-        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
         if limit is not None:
-            requestUntil['limit'] = min(limit, 1000)
+            request['limit'] = min(limit, 1000)
+        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
         price = self.safe_string(paramsUntil, 'price')
         paramsOmitted = self.omit(paramsUntil, 'price')
         response = []
@@ -2347,11 +2351,12 @@ class hitbtc(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         isPostOnly = self.is_post_only(type == 'market', None, params)
+        resolvedMarketType = self.safe_string(market, 'type')
         request = {
             'type': type,
             'side': side,
             'quantity': self.amount_to_precision(market['symbol'], amount),
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
             # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             # 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
             # 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
@@ -2365,7 +2370,7 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'make_rate': 0.001, // Optional
         }
         if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'margin'):
+            if (resolvedMarketType != 'swap') and (resolvedMarketType != 'margin'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         if reduceOnly is True:
             request['reduce_only'] = reduceOnly
@@ -2493,7 +2498,7 @@ class hitbtc(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_symbol(marketId, marketResolved)
         postOnly = self.safe_bool(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_list(order, 'trades')
@@ -2777,7 +2782,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 continue
             rawFundingRate = self.safe_dict(response, marketId)
             marketInner = self.market(marketId)
-            symbol = marketInner['symbol']
+            symbol = self.safe_symbol(marketId, marketInner)
             fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)
             fundingRates[symbol] = fundingRate
         return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbolsNormalized, False), 'symbol')
@@ -2923,7 +2928,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            result.append(self.parse_position(response[i]))
+            result.append(self.parse_position(self.safe_dict(response, i, {})))
         return result
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
@@ -3044,7 +3049,7 @@ class hitbtc(Exchange, ImplicitAPI):
             collateral = self.safe_number(entry, 'margin_balance')
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_symbol(marketId, marketResolved)
         return self.safe_position({
             'info': position,
             'id': None,
@@ -3471,11 +3476,12 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        if params['margin_balance'] is None:
+        amount = self.safe_number(params, 'margin_balance')
+        if amount is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
         market = self.market(symbol)
-        amount = self.safe_number(params, 'margin_balance')
-        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 50)
+        limits = self.safe_dict(market, 'limits', {})
+        maxLeverage = self.safe_integer(limits['leverage'], 'max', 50)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         if (leverage < 1) or (leverage > maxLeverage):
@@ -3560,7 +3566,9 @@ class hitbtc(Exchange, ImplicitAPI):
             code = self.safe_string(currency, 'code')
             rawNetworkCode = self.network_id_to_code(networkId, code)
             networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
-            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else None
+            networkCode = None
+            if networkCodeUpper is not None:
+                networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper)
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_bool(networkEntry, 'default')
             withdrawResult = {
@@ -3632,7 +3640,7 @@ class hitbtc(Exchange, ImplicitAPI):
             return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         #     {
         #       "error": {
@@ -3666,32 +3674,24 @@ class hitbtc(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + '/' + implodedPath
-        getRequest = None
-        keys = list(query.keys())
-        queryLength = len(keys)
+        baseUrl = apiUrl + '/' + implodedPath
+        getRequest = ''
+        queryString = self.urlencode(query)
         headersValue = {
             'Content-Type': 'application/json',
         }
         if method == 'GET':
-            if queryLength != 0:
-                getRequest = '?' + self.urlencode(query)
-                url = url + getRequest
-        bodyResolved = None if (method == 'GET') else self.json(params)
+            if len(queryString) != 0:
+                getRequest = '?' + queryString
+        url = baseUrl + getRequest
+        bodyString = ''
+        if method != 'GET':
+            bodyString = self.json(params)
         if apiName == 'private':
             self.check_required_credentials()
-            timestamp = str(self.nonce())
-            payload = [method, '/api/3/' + implodedPath]
-            if method == 'GET':
-                if getRequest is not None:
-                    payload.append(getRequest)
-            else:
-                if bodyResolved is not None:
-                    payload.append(bodyResolved)
-            payload.append(timestamp)
-            payloadString = ''.join(payload)
+            timestamp = self.number_to_string(self.nonce())
+            payloadString = method + '/api/3/' + implodedPath + getRequest + bodyString + timestamp
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')
             secondPayload = self.apiKey + ':' + signature + ':' + timestamp
-            encoded = self.string_to_base64(secondPayload)
-            headersValue['Authorization'] = 'HS256 ' + encoded
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
+            headersValue['Authorization'] = 'HS256 ' + self.string_to_base64(secondPayload)
+        return {'url': url, 'method': method, 'body': None if (method == 'GET') else bodyString, 'headers': headersValue}

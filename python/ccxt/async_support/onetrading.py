@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(onetrading, self).describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -1101,7 +1101,9 @@ class onetrading(Exchange, ImplicitAPI):
         periodUnit = self.safe_string(self.timeframes, timeframe)
         if periodUnit is None:
             raise ExchangeError(self.id + ' fetchOHLCV() missing periodUnit')
-        period, unit = periodUnit.split('/')
+        periodUnitParts = periodUnit.split('/')
+        period = periodUnitParts[0]
+        unit = periodUnitParts[1]
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         limitResolved = 1500 if (limit is None) else limit
@@ -1888,7 +1890,7 @@ class onetrading(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

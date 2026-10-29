@@ -2,7 +2,7 @@ import alpacaRest from '../alpaca.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name alpaca#watchTicker
@@ -42,7 +42,6 @@ export default class alpaca extends alpacaRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name alpaca#watchTrades
@@ -84,10 +83,10 @@ export default class alpaca extends alpacaRest {
     handleOrder(client: Client, message: Dict): void;
     handleMyTrade(client: Client, message: Dict): void;
     parseMyTrade(trade: Dict, market?: Market): Trade | undefined;
-    authenticate(url: string, params?: Dict): Promise<any>;
+    authenticate(url: Str, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleConnected(client: Client, message: Dict): Dict;
-    handleCryptoMessage(client: Client, message: any[]): void;
+    handleCryptoMessage(client: Client, message: Dict[]): void;
     handleTradingMessage(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: Dict): void;

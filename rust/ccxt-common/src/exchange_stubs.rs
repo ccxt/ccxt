@@ -30,17 +30,20 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
     &mut *ptr
 }
 
+// One owner thread hands out the counter, so two tasks can never take the same
+// value and no call site touches an atomic.
+static RANDOM_COUNTER: once_cell::sync::Lazy<crate::value::OwnerThread<u64>> =
+    once_cell::sync::Lazy::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
+
 /// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
 /// counter mixed with the high-resolution clock. Good enough for the
 /// `uuid*` helpers — uniqueness across calls, not security.
 fn random_u64() -> u64 {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos() as u64)
         .unwrap_or(0);
-    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let n = RANDOM_COUNTER.run(|c| { *c = c.wrapping_add(1); *c });
     let mut z = now ^ n.wrapping_mul(0x9E37_79B9_7F4A_7C15);
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
@@ -665,6 +668,35 @@ impl Exchange {
         }
     }
 
+    /// `safe_string_k` without the box: same lookup, empty-string and default
+    /// rules, `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
+    /// `safe_string` without the box (Value key): same lookup and default rules.
+    #[inline]
+    pub fn safe_string_opt(&self, obj: Value, key: Value, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     #[inline]
     pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
@@ -844,6 +876,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_string_upper_k` without the box: the found value is upper-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_uppercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
@@ -897,6 +942,19 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower_k` without the box: the found value is lower-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_lowercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
     }
 
     pub fn safe_string_lower2(
@@ -3081,8 +3139,8 @@ impl Exchange {
     /// `rateLimit` is milliseconds-per-token, so `refillRate = 1/rateLimit`
     /// tokens/ms; `tokens` may go negative (a request proceeds when `tokens >= 0`
     /// and then subtracts its cost), and the next request waits until the bucket
-    /// refills back to zero. State lives in `internals.throttle` behind an async
-    /// mutex, so concurrent calls on one instance serialize (the TS single queue).
+    /// refills back to zero. The bucket is owned by one task, so concurrent calls
+    /// on one instance serialize by queuing there (the TS single queue).
     /// A no-op when `enableRateLimit` is false or the rate is effectively
     /// unlimited.
     pub async fn throttle(&self, cost: &[Value]) -> Value {
@@ -3110,32 +3168,7 @@ impl Exchange {
             .and_then(|v| v.as_f64())
             .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
 
-        let now_ms = || {
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_millis() as i64)
-                .unwrap_or(0)
-        };
-
-        let mut guard = self.internals.throttle.lock().await;
-        let (tokens, last_ms) = &mut *guard;
-        if *last_ms == 0 {
-            *last_ms = now_ms();
-        }
-        // Refill for the elapsed time (capped at capacity).
-        let n = now_ms();
-        *tokens = (*tokens + refill_rate * (n - *last_ms).max(0) as f64).min(capacity);
-        *last_ms = n;
-        // In deficit → wait until the bucket refills to zero, holding the lock so
-        // requests stay serialized.
-        if *tokens < 0.0 {
-            let wait = ((-*tokens) / refill_rate).max(delay_ms);
-            tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
-            let n2 = now_ms();
-            *tokens = (*tokens + refill_rate * (n2 - *last_ms).max(0) as f64).min(capacity);
-            *last_ms = n2;
-        }
-        *tokens -= this_cost;
+        self.internals.throttle.wait(refill_rate, capacity, delay_ms, this_cost).await;
         Value::Null
     }
 

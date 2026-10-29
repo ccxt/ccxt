@@ -1236,7 +1236,7 @@ class weex extends weex$1["default"] {
         }
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const rawTicker = response[i];
+            const rawTicker = this.safeValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString(rawTicker, 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1307,7 +1307,7 @@ class weex extends weex$1["default"] {
         const marketId = this.safeString(ticker, 'symbol');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract'] === true))) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (this.safeBool(market, 'contract', false)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -1616,19 +1616,22 @@ class weex extends weex$1["default"] {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
-            let startTime = since;
-            let endTime = until;
             const now = this.milliseconds();
+            let startTime = since;
+            let endTime = now;
+            if (until !== undefined) {
+                endTime = until;
+            }
             if ((since === undefined) || (until === undefined)) {
-                const duration = this.parseTimeframe(timeframe) * 1000;
+                const duration = this.parseToInt(this.parseTimeframe(timeframe) * 1000);
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                let historyLimit = maxHistoricalLimit;
+                let historyLimit = this.parseToInt(maxHistoricalLimit);
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    historyLimit = Math.min(limit, maxHistoricalLimit);
+                    historyLimit = this.parseToInt(Math.min(limit, maxHistoricalLimit));
                 }
-                const timeDelta = historyLimit * duration;
+                const timeDelta = this.parseToInt(historyLimit * duration);
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1645,7 +1648,7 @@ class weex extends weex$1["default"] {
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if ((endTime !== undefined) && (endTime > now)) {
+            if (endTime > now) {
                 endTime = now;
             }
             request['startTime'] = startTime;
@@ -1927,8 +1930,7 @@ class weex extends weex$1["default"] {
         let interval = undefined;
         const collectCycle = this.safeString(contract, 'collectCycle');
         if (collectCycle !== undefined) {
-            interval = Precise["default"].stringDiv(collectCycle, '60');
-            interval = interval + 'h';
+            interval = Precise["default"].stringDiv(collectCycle, '60') + 'h';
         }
         return {
             'info': contract,
@@ -2229,7 +2231,8 @@ class weex extends weex$1["default"] {
         }
         const market = this.market(symbol);
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiV3Order(request);
+        let response = undefined;
+        response = await this.privatePostApiV3Order(request);
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -4345,8 +4348,7 @@ class weex extends weex$1["default"] {
             return marketId; // a live market id, not a demo one
         }
         if (marketId.endsWith('SUSDT')) {
-            const baseLength = marketId.length - 5;
-            return marketId.slice(0, baseLength) + 'USDT';
+            return marketId.slice(0, -5) + 'USDT';
         }
         return marketId;
     }
@@ -4360,7 +4362,7 @@ class weex extends weex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -4370,7 +4372,7 @@ class weex extends weex$1["default"] {
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if ((sandboxMode) && (path.indexOf('capi/v3/sim/') !== 0)) {

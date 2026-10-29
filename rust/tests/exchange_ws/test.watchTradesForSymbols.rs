@@ -17,7 +17,7 @@ pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedPropertie
     let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
     let mut returnedSymbols: Value = Value::from(vec![]);
     let mut allReceived: Value = Value::Bool(false);
-    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&allReceived) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !(allReceived.as_bool() == Some(true)) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -30,12 +30,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if is_true(&(success)) && (response != Value::Null) {
+        if (success).as_bool() == Some(true) && (response != Value::Null) {
             assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1602: bool = true;
-                while { if !__for_first_1602 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1602 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1601: bool = true;
+                while { if !__for_first_1601 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                    } __for_first_1601 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut trade: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
@@ -54,7 +55,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     }
     let mut receivedLength: Value = Value::Int(returnedSymbols.len() as i64);
     assert!(ccxt::runtime::is_true(&((receivedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    if !is_true(&allReceived) {
+    if !(allReceived.as_bool() == Some(true)) {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
         println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols.clone())).into()));
     }

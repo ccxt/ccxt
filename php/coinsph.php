@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coinsph as Exchange;
 
 class coinsph extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
             'name' => 'Coins.ph',
@@ -676,30 +676,32 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+        $hasSymbolParam = (is_array($params) && array_key_exists('symbol' ?? '', $params));
+        $hasSymbolsParam = (is_array($params) && array_key_exists('symbols' ?? '', $params));
+        $limit = $this->safe_integer($params, 'limit');
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !$hasSymbolParam) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
+        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !$hasSymbolParam && !$hasSymbolsParam) {
             return $config['noSymbolAndNoSymbols'];
-        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && (is_array($params) && array_key_exists('symbols' ?? '', $params))) {
-            $symbols = $params['symbols'];
+        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && $hasSymbolsParam) {
+            $symbols = $this->safe_list($params, 'symbols', array());
             $symbolsAmount = count($symbols);
             $byNumberOfSymbols = $this->safe_list($config, 'byNumberOfSymbols', array());
             for ($i = 0; $i < count($byNumberOfSymbols); $i++) {
                 $entry = $byNumberOfSymbols[$i];
                 $threshold = $this->safe_integer($entry, 0);
                 if ($threshold !== null && $symbolsAmount >= $threshold) {
-                    return $entry[1];
+                    return $this->safe_integer($entry, 1);
                 }
             }
-        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $this->safe_integer($params, 'limit');
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && ($limit !== null)) {
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 $threshold = $this->safe_integer($entry, 0);
-                if ($limit !== null && $threshold !== null && $limit >= $threshold) {
-                    return $entry[1];
+                if ($threshold !== null && $limit >= $threshold) {
+                    return $this->safe_integer($entry, 1);
                 }
             }
         }
@@ -1426,13 +1428,14 @@ class coinsph extends Exchange {
             'side' => $orderSide,
         );
         $options = $this->safe_dict($this->options, 'createOrder', array());
-        $newOrderRespType = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespTypes = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespType = 'FULL';
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
-            $newOrderRespType = $this->safe_string($newOrderRespType, 'limit', 'FULL');
+            $newOrderRespType = $this->safe_string($newOrderRespTypes, 'limit', 'FULL');
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             if ($orderType !== 'LIMIT_MAKER') {
@@ -1440,7 +1443,7 @@ class coinsph extends Exchange {
             }
         // if market order
         } elseif ($orderType === 'MARKET' || $orderType === 'STOP_LOSS' || $orderType === 'TAKE_PROFIT') {
-            $newOrderRespType = $this->safe_string($newOrderRespType, 'market', 'FULL');
+            $newOrderRespType = $this->safe_string($newOrderRespTypes, 'market', 'FULL');
             if ($orderSide === 'SELL') {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($orderSide === 'BUY') {
@@ -1766,9 +1769,7 @@ class coinsph extends Exchange {
             'buy' => 'BUY',
             'sell' => 'SELL',
         );
-        if ($status === null) {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1798,9 +1799,7 @@ class coinsph extends Exchange {
             'take_profit' => 'TAKE_PROFIT',
             'take_profit_limit' => 'TAKE_PROFIT_LIMIT',
         );
-        if ($status === null) {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2288,7 +2287,7 @@ class coinsph extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
         $endpoint = $this->implode_params($path, $params);
         $url = $apiUrl . '/' . $endpoint;
         if ($apiName === 'private') {
@@ -2303,7 +2302,7 @@ class coinsph extends Exchange {
             }
             $signedQuery = $this->url_encode_query($query);
             $signature = $this->hmac($this->encode($signedQuery), $this->encode($this->secret), 'sha256');
-            $url = $url . '?' . $signedQuery . '&signature=' . $signature;
+            $url = $apiUrl . '/' . $endpoint . '?' . $signedQuery . '&signature=' . $signature;
             $signedHeaders = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );
@@ -2311,12 +2310,12 @@ class coinsph extends Exchange {
         }
         $encodedQuery = $this->url_encode_query($query);
         if (strlen($encodedQuery) !== 0) {
-            $url .= '?' . $encodedQuery;
+            $url = $apiUrl . '/' . $endpoint . '?' . $encodedQuery;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

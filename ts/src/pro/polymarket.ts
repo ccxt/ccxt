@@ -10,7 +10,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 //  ---------------------------------------------------------------------------
 
 export default class polymarket extends polymarketRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -84,8 +84,8 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params: Dict = {}, checkHashes: Strings = undefined) {
-        const url = this.urls['api']['ws'];
+    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params: Dict = {}, checkHashes: Strings = undefined): Dict {
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
@@ -128,14 +128,13 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolResolved;
-        const channel = 'book::' + market['id'];
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
-        const url = this.urls['api']['ws'];
+        const request = this.sendSubscription ('sub', [ 'book::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
+        const url = this.safeString (this.urls['api'], 'ws');
         const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
@@ -149,19 +148,19 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const channel = 'book::' + market['id'];
+        const channel = 'book::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'orderbook',
             'symbol': symbolResolved,
         };
         const request = this.sendSubscription ('unsub', [ channel ], [ messageHash ], [ subMessageHash ], context, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -184,7 +183,7 @@ export default class polymarket extends polymarketRest {
         const parts = ch.split ('::');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const data = this.safeDict (message, 'data', {});
         const timestamp = this.safeInteger (message, 'ts');
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
@@ -208,14 +207,13 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'ticker:' + symbolResolved;
-        const channel = 'tickers::' + market['id'];
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
-        const url = this.urls['api']['ws'];
+        const request = this.sendSubscription ('sub', [ 'tickers::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -228,19 +226,19 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const channel = 'tickers::' + market['id'];
+        const channel = 'tickers::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'ticker',
             'symbol': symbolResolved,
         };
         const request = this.sendSubscription ('unsub', [ channel ], [ messageHash ], [ subMessageHash ], context, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -253,10 +251,10 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const messageHashes: string[] = [];
         const channels: string[] = [];
         if (symbolsNormalized === undefined) {
@@ -265,8 +263,8 @@ export default class polymarket extends polymarketRest {
         } else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                messageHashes.push ('ticker:' + market['symbol']);
-                channels.push ('tickers::' + market['id']);
+                messageHashes.push ('ticker:' + this.safeString (market, 'symbol', ''));
+                channels.push ('tickers::' + this.safeString (market, 'id', ''));
             }
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
@@ -301,7 +299,7 @@ export default class polymarket extends polymarketRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeInteger (message, 'ts');
         const ticker = this.safeTicker ({
             'symbol': symbol,
@@ -327,16 +325,16 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const messageHashes: string[] = [];
         const channels: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (symbolsNormalized[i]);
-            messageHashes.push ('bidask:' + market['symbol']);
-            channels.push ('bbo::' + market['id']);
+            messageHashes.push ('bidask:' + this.safeString (market, 'symbol', ''));
+            channels.push ('bbo::' + this.safeString (market, 'id', ''));
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
         const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
@@ -367,7 +365,7 @@ export default class polymarket extends polymarketRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeInteger (message, 'ts');
         const ticker = this.safeTicker ({
             'symbol': symbol,
@@ -394,14 +392,13 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbolResolved;
-        const channel = 'trades::' + market['id'];
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
-        const url = this.urls['api']['ws'];
+        const request = this.sendSubscription ('sub', [ 'trades::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
+        const url = this.safeString (this.urls['api'], 'ws');
         const trades = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -419,19 +416,19 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'trade:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const channel = 'trades::' + market['id'];
+        const channel = 'trades::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'trades',
             'symbol': symbolResolved,
         };
         const request = this.sendSubscription ('unsub', [ channel ], [ messageHash ], [ subMessageHash ], context, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -470,14 +467,14 @@ export default class polymarket extends polymarketRest {
         const first = this.safeDict (rows, 0, {});
         const marketId = this.safeString (first, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.trades[symbol];
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const trade = this.parseWsTrade (row, market);
             trades.append (trade);
@@ -536,19 +533,19 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const wsTimeframes = this.safeDict (this.options, 'wsTimeframes', {});
         const interval = this.safeString (wsTimeframes, timeframe);
         if (interval === undefined) {
             throw new NotSupported (this.id + ' watchOHLCV() does not support the ' + timeframe + ' timeframe over the websocket');
         }
         const messageHash = 'candles:' + timeframe + ':' + symbolResolved;
-        const channel = 'klines::' + market['id'] + '::' + interval;
+        const channel = 'klines::' + this.safeString (market, 'id', '') + '::' + interval;
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -567,22 +564,22 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const wsTimeframes = this.safeDict (this.options, 'wsTimeframes', {});
         const interval = this.safeString (wsTimeframes, timeframe, timeframe);
         const subMessageHash = 'candles:' + timeframe + ':' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const channel = 'klines::' + market['id'] + '::' + interval;
+        const channel = 'klines::' + this.safeString (market, 'id', '') + '::' + interval;
         const context: Dict = {
             'topic': 'ohlcv',
             'symbol': symbolResolved,
             'timeframe': timeframe,
         };
         const request = this.sendSubscription ('unsub', [ channel ], [ messageHash ], [ subMessageHash ], context, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -605,7 +602,7 @@ export default class polymarket extends polymarketRest {
         const marketId = this.safeString (parts, 1);
         const interval = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timeframe = this.findTimeframe (interval);
         if (timeframe === undefined) {
             return;
@@ -642,7 +639,7 @@ export default class polymarket extends polymarketRest {
      */
     async authenticate (params: Dict = {}): Promise<any> {
         const credentials = await this.loadProxyCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture (messageHash);
@@ -682,19 +679,20 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         let messageHash = 'orders';
         let symbolResolved: Str = symbol;
-        if (symbolResolved !== undefined) {
-            const market = this.market (symbolResolved);
-            symbolResolved = market['symbol'];
-            messageHash = 'orders:' + symbolResolved;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const resolvedSymbol: string = this.safeString (market, 'symbol', '');
+            symbolResolved = resolvedSymbol;
+            messageHash = 'orders:' + resolvedSymbol;
         }
         const subscribeHashes = [ 'orders' ];
         const request = this.sendSubscription ('sub', [ 'orders' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const orders = await this.watch (url, messageHash, request, 'orders');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -743,7 +741,7 @@ export default class polymarket extends polymarketRest {
         }
         const stored = this.orders;
         const symbols: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const parsed = this.parseOrder (row);
             stored.append (parsed);
@@ -755,7 +753,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (stored, 'orders');
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
-            const symbol = symbolKeys[i];
+            const symbol = this.safeString (symbolKeys, i, '');
             client.resolve (stored, 'orders:' + symbol);
         }
     }
@@ -771,19 +769,20 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         let messageHash = 'myTrades';
         let symbolResolved: Str = symbol;
-        if (symbolResolved !== undefined) {
-            const market = this.market (symbolResolved);
-            symbolResolved = market['symbol'];
-            messageHash = 'myTrades:' + symbolResolved;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const resolvedSymbol: string = this.safeString (market, 'symbol', '');
+            symbolResolved = resolvedSymbol;
+            messageHash = 'myTrades:' + resolvedSymbol;
         }
         const subscribeHashes = [ 'fills' ];
         const request = this.sendSubscription ('sub', [ 'fills' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const trades = await this.watch (url, messageHash, request, 'fills');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -836,7 +835,7 @@ export default class polymarket extends polymarketRest {
         }
         const stored = this.myTrades;
         const symbols: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const parsed = this.parseTrade (row);
             stored.append (parsed);
@@ -848,7 +847,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (stored, 'myTrades');
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
-            const symbol = symbolKeys[i];
+            const symbol = this.safeString (symbolKeys, i, '');
             client.resolve (stored, 'myTrades:' + symbol);
         }
     }
@@ -864,17 +863,16 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions;
-        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             const snapshot = await client.future ('fetchPositionsSnapshot');
@@ -928,10 +926,10 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         this.setBalanceCache (client);
         const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);

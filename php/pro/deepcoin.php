@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class deepcoin extends \ccxt\async\deepcoin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -107,7 +107,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, string $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -121,8 +121,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
-        $marketId = $this->safe_string($market, 'symbol'); // spot markets use symbol with slash
+    public function create_public_request(array $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
+        $marketId = $this->safe_string($market, 'symbol', ''); // spot markets use symbol with slash
         if ($this->safe_string($market, 'type') === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
         }
@@ -142,12 +142,13 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $request;
     }
 
-    public function watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
+    public function watch_public(array $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
         return Async\async(self::do_watch_public(...))($market, $messageHash, $topicID, $params, $suffix);
     }
 
-    private function do_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = '') {
-        $url = $this->urls['api']['ws']['public'][$market['type']];
+    private function do_watch_public(array $market, string $messageHash, string $topicID, $params = array(), string $suffix = '') {
+        $marketType = $this->safe_string($market, 'type', '');
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $marketType, '');
         $requestId = $this->request_id();
         $request = $this->create_public_request($market, $requestId, $topicID, $suffix);
         $subscription = array(
@@ -157,12 +158,13 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
-    public function un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
+    public function un_watch_public(array $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
         return Async\async(self::do_un_watch_public(...))($market, $messageHash, $topicID, $params, $subscription, $suffix);
     }
 
-    private function do_un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = '') {
-        $url = $this->urls['api']['ws']['public'][$market['type']];
+    private function do_un_watch_public(array $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = '') {
+        $marketType = $this->safe_string($market, 'type', '');
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $marketType, '');
         $requestId = $this->request_id();
         $client = $this->client($url);
         $existingSubscription = $this->safe_dict($client->subscriptions, $messageHash);
@@ -187,8 +189,7 @@ class deepcoin extends \ccxt\async\deepcoin {
 
     private function do_watch_private(string $messageHash, $params = array()) {
         $listenKey = Async\await($this->authenticate());
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '?listenKey=' . $listenKey;
-        return Async\await($this->watch($url, $messageHash, null, 'private', $params));
+        return Async\await($this->watch($this->safe_string($this->urls['api']['ws'], 'private', '') . '?listenKey=' . $listenKey, $messageHash, null, 'private', $params));
     }
 
     public function authenticate($params = array()): PromiseInterface {
@@ -281,7 +282,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'ticker' . '::' . $market['symbol'];
+        $messageHash = 'ticker' . '::' . $this->safe_string($market, 'symbol', '');
         return Async\await($this->watch_public($market, $messageHash, '7', $params));
     }
 
@@ -303,7 +304,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'ticker' . '::' . $market['symbol'];
+        $messageHash = 'ticker' . '::' . $this->safe_string($market, 'symbol', '');
         $subscription = array(
             'topic' => 'ticker',
         );
@@ -434,7 +435,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'trades' . '::' . $market['symbol'];
+        $messageHash = 'trades' . '::' . $this->safe_string($market, 'symbol', '');
         $trades = Async\await($this->watch_public($market, $messageHash, '2', $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -461,7 +462,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'trades' . '::' . $market['symbol'];
+        $messageHash = 'trades' . '::' . $this->safe_string($market, 'symbol', '');
         $subscription = array(
             'topic' => 'trades',
         );
@@ -607,7 +608,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv' . '::' . $symbolValue . '::' . $timeframe;
@@ -639,7 +640,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv' . '::' . $symbolValue . '::' . $timeframe;
@@ -743,7 +744,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'orderbook' . '::' . $market['symbol'];
+        $messageHash = 'orderbook' . '::' . $this->safe_string($market, 'symbol', '');
         list($suffix, $paramsValue) = $this->order_book_suffix($market, 'watchOrderBook', $params);
         $orderbook = Async\await($this->watch_public($market, $messageHash, '25', $paramsValue, $suffix));
         return $orderbook->limit();
@@ -768,7 +769,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'orderbook' . '::' . $market['symbol'];
+        $messageHash = 'orderbook' . '::' . $this->safe_string($market, 'symbol', '');
         list($suffix, $paramsValue) = $this->order_book_suffix($market, 'unWatchOrderBook', $params);
         $subscription = array(
             'topic' => 'orderbook',
@@ -788,7 +789,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
-        $symbol = $this->safe_string($market, 'symbol');
+        $symbol = $this->safe_string($market, 'symbol', '');
         $aggregation = null;
         $paramsAggregation = null;
         list($aggregation, $paramsAggregation) = $this->handle_option_string_and_params($params, $methodName, 'aggregation');
@@ -854,10 +855,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         $market = $this->safe_market($marketId, null, '/');
         $symbol = $this->safe_symbol($marketId, $market);
         $orderbook = $this->orderbooks[$symbol];
-        $orderedEntries = array(
-            'bids' => array(),
-            'asks' => array(),
-        );
+        $bids = array();
+        $asks = array();
         for ($i = 0; $i < count($entries); $i++) {
             $entry = $this->safe_dict($entries, $i);
             $entryData = $this->safe_dict($entry, 'd', array());
@@ -866,12 +865,16 @@ class deepcoin extends \ccxt\async\deepcoin {
             $volume = $this->safe_number($entryData, 'V');
             if ($side === '0') {
                 // bid
-                $orderedEntries['bids'][] = array( $price, $volume );
+                $bids[] = array( $price, $volume );
             } elseif ($side === '1') {
                 // ask
-                $orderedEntries['asks'][] = array( $price, $volume );
+                $asks[] = array( $price, $volume );
             }
         }
+        $orderedEntries = array(
+            'bids' => $bids,
+            'asks' => $asks,
+        );
         $timestamp = $this->safe_integer($message, 'mt', 0);
         $snapshot = $this->parse_order_book($orderedEntries, $symbol, $timestamp);
         $orderbook->reset($snapshot);
@@ -947,9 +950,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
-            $messageHash .= '::' . $symbolResolved;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash = 'myTrades' . '::' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $trades = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;
@@ -1031,9 +1035,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
-            $messageHash .= '::' . $symbolResolved;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash = 'orders' . '::' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $orders = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;
@@ -1190,7 +1195,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         } else {
             $messageHashes[] = $messageHash;
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '?listenKey=' . $listenKey;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private', '') . '?listenKey=' . $listenKey;
         $positions = Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' )));
         if ($this->newUpdates) {
             return $positions;
@@ -1371,7 +1376,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
             $subId = $this->safe_integer($data, 'L');
             $subscription = $this->safe_dict($subscriptionsById, $subId, array()); // original watch subscription
-            $subHash = $this->safe_string($subscription, 'subHash');
+            $subHash = $this->safe_string($subscription, 'subHash', '');
             $unsubHash = 'unsubscribe::' . $subHash;
             $unsubsciption = $this->safe_dict($client->subscriptions, $unsubHash, array()); // unWatch subscription
             $this->handle_un_subscription($client, $unsubsciption);

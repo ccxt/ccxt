@@ -8,7 +8,7 @@ from ccxt.pro.okx import okx
 
 class myokx(okx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(myokx, self).describe(), {
             'id': 'myokx',
             'name': 'MyOKX (EEA)',

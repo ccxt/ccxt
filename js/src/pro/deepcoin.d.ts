@@ -3,13 +3,13 @@ import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class deepcoin extends deepcoinRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): Str;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: string): string;
     requestId(): number;
-    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
-    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    createPublicRequest(market: Dict, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
+    watchPublic(market: Dict, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: Dict, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<Str>;
     /**

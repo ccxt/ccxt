@@ -24,7 +24,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class opinion extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'opinion',
             'name' => 'Opinion',
@@ -319,8 +319,8 @@ class opinion extends Exchange {
         $outcomes = array();
         $resolvedOutcome = null;
         for ($i = 0; $i < count($outcomeLabels); $i++) {
-            $label = $outcomeLabels[$i];
-            $tokenId = $outcomeTokenIds[$i];
+            $label = $this->safe_string($outcomeLabels, $i);
+            $tokenId = $this->safe_string($outcomeTokenIds, $i);
             $outcomeHandle = $this->slug_to_outcome_symbol($effectiveEventSlug, $slug, $label);
             $winner = null;
             $settleFraction = null;
@@ -380,8 +380,8 @@ class opinion extends Exchange {
             'expiryDatetime' => $this->iso8601($expiryTimestamp),
             'strike' => null,
             'optionType' => null,
-            'taker' => $this->fees['trading']['taker'],
-            'maker' => $this->fees['trading']['maker'],
+            'taker' => $this->safe_number($this->fees['trading'], 'taker'),
+            'maker' => $this->safe_number($this->fees['trading'], 'maker'),
             'percentage' => true,
             'tierBased' => false,
             'feeSide' => 'get',
@@ -671,7 +671,7 @@ class opinion extends Exchange {
          * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
-        $tokenId = $outcomeObj['outcomeId'];
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $promises = array(
             $this->opinionPublicGetTokenLatestPrice($this->extend(array( 'token_id' => $tokenId ), $params)),
             $this->opinionPublicGetTokenOrderbook($this->extend(array( 'token_id' => $tokenId ), $params)),
@@ -764,7 +764,7 @@ class opinion extends Exchange {
         $promises = array();
         for ($i = 0; $i < $outcomesLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
-            $tokenId = $outcomeObj['outcomeId'];
+            $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $promises[] = $this->opinionPublicGetTokenLatestPrice($this->extend(array( 'token_id' => $tokenId ), $params));
             $promises[] = $this->opinionPublicGetTokenOrderbook($this->extend(array( 'token_id' => $tokenId ), $params));
         }
@@ -773,8 +773,8 @@ class opinion extends Exchange {
         for ($i = 0; $i < $outcomesLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $priceIndex = $i * 2;
-            $priceResponse = $responses[$priceIndex];
-            $bookResponse = $responses[$this->sum($priceIndex, 1)];
+            $priceResponse = $this->safe_value($responses, $priceIndex);
+            $bookResponse = $this->safe_value($responses, $this->sum($priceIndex, 1));
             $response = array( 'price' => $priceResponse, 'book' => $bookResponse );
             $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
             $symbolKey = $this->safe_string($ticker, 'outcome');
@@ -801,7 +801,7 @@ class opinion extends Exchange {
          * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
-        $tokenId = $outcomeObj['outcomeId'];
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $request = array(
             'token_id' => $tokenId,
         );
@@ -844,13 +844,13 @@ class opinion extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} a list of $candles ordered as $timestamp, open, high, low, close, volume
          */
-        if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
+        $interval = $this->safe_string($this->timeframes, $timeframe);
+        if ($interval === null) {
             $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
-        $tokenId = $outcomeObj['outcomeId'];
-        $interval = $this->safe_string($this->timeframes, $timeframe);
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $response = Async\await($this->opinionPublicGetTokenPriceHistory($this->extend(array(
             'token_id' => $tokenId,
             'interval' => $interval,
@@ -984,7 +984,7 @@ class opinion extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $order);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($this->safe_integer($sig, 'v'));
     }
 
     public function opinion_order_raw_amounts(bool $isMarket, string $side, ?float $amount, ?float $price, ?int $decimals): array {
@@ -1048,7 +1048,7 @@ class opinion extends Exchange {
         Async\await($this->load_api_key());
         $this->check_required_credentials();
         $outcomeObj = Async\await($this->load_outcome($outcome));
-        $tokenId = $outcomeObj['outcomeId'];
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $isMarket = ($type === 'market');
         $sideStr = strtoupper($side);
         if ($price === null) {
@@ -1068,9 +1068,7 @@ class opinion extends Exchange {
         $topicId = $this->safe_integer($info, 'marketId');
         $quoteTokenAddress = $this->safe_string($info, 'quoteToken');
         $quoteToken = Async\await($this->load_quote_token($quoteTokenAddress));
-        $exchangeAddress = $this->safe_string($quoteToken, 'ctfExchangeAddress', '');
-        $decimals = $this->safe_integer($quoteToken, 'decimal', 18);
-        $amounts = $this->opinion_order_raw_amounts($isMarket, $sideStr, $amount, $price, $decimals);
+        $amounts = $this->opinion_order_raw_amounts($isMarket, $sideStr, $amount, $price, $this->safe_integer($quoteToken, 'decimal', 18));
         $makerAmount = $this->safe_string($amounts, 'makerAmount');
         $takerAmount = $this->safe_string($amounts, 'takerAmount');
         $sideInt = ($sideStr === 'BUY') ? 0 : 1;
@@ -1098,7 +1096,7 @@ class opinion extends Exchange {
             'side' => $sideInt,
             'signatureType' => $signatureType,
         );
-        $signature = $this->sign_opinion_order($order, $exchangeAddress);
+        $signature = $this->sign_opinion_order($order, $this->safe_string($quoteToken, 'ctfExchangeAddress', ''));
         $signatureNo0x = $this->remove0x_prefix($signature);
         $orderBody = $this->extend(array(
             'salt' => $salt,
@@ -1378,20 +1376,17 @@ class opinion extends Exchange {
         return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
     }
 
-    public function load_trade_market(?int $marketId): PromiseInterface {
+    public function load_trade_market(int $marketId): PromiseInterface {
         return Async\async(self::do_load_trade_market(...))($marketId);
     }
 
-    private function do_load_trade_market(?int $marketId) {
+    private function do_load_trade_market(int $marketId) {
         /**
          * @ignore
          * fetches and caches a single $market by its numeric $marketId, and indexes its outcomes
          * @param {int} $marketId the numeric $market id
          * @return {array} the parsed $market
          */
-        if ($marketId === null) {
-            throw new ArgumentsRequired($this->id . ' loadTradeMarket() requires a marketId');
-        }
         $cacheKey = 'tradeMarketsById';
         $cached = $this->safe_dict($this->options, $cacheKey, array());
         $idStr = (string) $marketId;
@@ -1582,8 +1577,8 @@ class opinion extends Exchange {
     public function sign_hash(string $hash, string $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign before padStart so the PHP str_pad regex matches
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         return array(
@@ -1618,7 +1613,7 @@ class opinion extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $messageData);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($this->safe_integer($sig, 'v'));
     }
 
     public function create_api_key($params = array()): PromiseInterface {
@@ -1727,7 +1722,8 @@ class opinion extends Exchange {
         $this->options['apiKey'] = $creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        $this->apiKey = $creds['apiKey'];
+        // an empty string, not undefined: the strict base types the credential as string
+        $this->apiKey = $this->safe_string($creds, 'apiKey', '');
         return $creds;
     }
 
@@ -1766,12 +1762,12 @@ class opinion extends Exchange {
          */
         Async\await($this->load_api_key());
         $url = $this->opinion_ws_url();
-        $subscriptionKey = $channel . ':' . $this->number_to_string($marketId);
         $subscribeMsg = array(
             'action' => 'SUBSCRIBE',
             'channel' => $channel,
             'marketId' => $marketId,
         );
+        $subscriptionKey = $channel . ':' . $this->safe_string($subscribeMsg, 'marketId', '');
         return Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscriptionKey));
     }
 
@@ -1844,16 +1840,16 @@ class opinion extends Exchange {
         Async\await($this->load_api_key());
         $url = $this->opinion_ws_url();
         $client = $this->client($url);
-        $subscriptionKey = $channel . ':' . $this->number_to_string($marketId);
-        $isNewSubscription = $this->safe_value($client->subscriptions, $subscriptionKey) === null;
-        if ($isNewSubscription) {
-            Async\await($this->seed_order_book($outcome, $sym, $limit));
-        }
         $subscribeMsg = array(
             'action' => 'SUBSCRIBE',
             'channel' => $channel,
             'marketId' => $marketId,
         );
+        $subscriptionKey = $channel . ':' . $this->safe_string($subscribeMsg, 'marketId', '');
+        $isNewSubscription = $this->safe_value($client->subscriptions, $subscriptionKey) === null;
+        if ($isNewSubscription) {
+            Async\await($this->seed_order_book($outcome, $sym, $limit));
+        }
         $future = $this->watch($url, $messageHash, $subscribeMsg, $subscriptionKey);
         if ($isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -1893,7 +1889,7 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        if ($this->safe_value($this->orderbooks, $sym) === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($sym ?? '', $this->orderbooks))) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
@@ -2244,7 +2240,7 @@ class opinion extends Exchange {
         $client->resolve($stored, 'myTrades');
     }
 
-    public function handle_errors(?int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2270,7 +2266,7 @@ class opinion extends Exchange {
          * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
+        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['opinion']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -2287,10 +2283,9 @@ class opinion extends Exchange {
                     throw new ArgumentsRequired($this->id . ' ' . $path . ' requires a walletAddress and privateKey');
                 }
                 $actionByMethod = array( 'POST' => 'create', 'GET' => 'get', 'DELETE' => 'delete' );
-                $action = $this->safe_string($actionByMethod, $method, 'get');
                 $timestamp = $this->number_to_string($this->seconds());
                 $headersExtended['OPINION_ADDRESS'] = $this->walletAddress;
-                $headersExtended['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $action, $timestamp);
+                $headersExtended['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $this->safe_string($actionByMethod, $method, 'get'), $timestamp);
                 $headersExtended['OPINION_TIMESTAMP'] = $timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the

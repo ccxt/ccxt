@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List, OpenInterest, OpenInterests } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List, OpenInterest, OpenInterests, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, Fun
  * @augments Exchange
  */
 export default class nado extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'nado',
             'name': 'Nado',
@@ -527,8 +527,7 @@ export default class nado extends Exchange {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams (paramsRecvWindow);
-            const triggerDirection: Str = triggerDirectionAndParams[0];
+            const triggerDirection = this.safeString (this.handleTriggerDirectionAndParams (paramsRecvWindow), 0);
             let directionSuffix: Str = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -1050,7 +1049,7 @@ export default class nado extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            productIds.push (this.parseToInt (market['id']));
+            productIds.push (this.parseToInt (this.safeString (market, 'id')));
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
@@ -1062,7 +1061,7 @@ export default class nado extends Exchange {
         const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         const tx: Dict = {
             'sender': sender,
-            'recvTime': this.numberToString (this.milliseconds () + recvWindow),
+            'recvTime': this.numberToString (this.sum (this.milliseconds (), recvWindow)),
         };
         const request: Dict = {
             'tx': tx,
@@ -1223,12 +1222,12 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+            ordersRequest['product_ids'] = [ this.parseToInt (this.safeString (market, 'id')) ];
+        }
+        if (limit !== undefined) {
+            ordersRequest['limit'] = Math.min (limit, 500);
         }
         const [ ordersRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', ordersRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            ordersRequestUntil['limit'] = Math.min (limit, 500);
-        }
         const request: Dict = {
             'orders': ordersRequestUntil,
         };
@@ -1332,12 +1331,12 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            matchesRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+            matchesRequest['product_ids'] = [ this.parseToInt (this.safeString (market, 'id')) ];
+        }
+        if (limit !== undefined) {
+            matchesRequest['limit'] = Math.min (limit, 500);
         }
         const [ matchesRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', matchesRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            matchesRequestUntil['limit'] = Math.min (limit, 500);
-        }
         const request: Dict = {
             'matches': matchesRequestUntil,
         };
@@ -1767,7 +1766,7 @@ export default class nado extends Exchange {
             const settle = contract ? quote : undefined;
             let symbol: string = base + '/' + quote;
             if (contract) {
-                symbol += ':' + settle;
+                symbol = base + '/' + quote + ':' + quote;
             }
             const tradingStatus = this.safeString (market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -1848,7 +1847,7 @@ export default class nado extends Exchange {
         const result: Dict = {};
         const assets = this.toArray (response);
         for (let i = 0; i < assets.length; i++) {
-            const currency = assets[i];
+            const currency = this.safeValue (assets, i);
             const parsed = this.parseCurrency (currency);
             const code = this.safeString (parsed, 'code');
             if (code === undefined) {
@@ -1913,7 +1912,7 @@ export default class nado extends Exchange {
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const tickers = await this.fetchTickers ([ symbolValue ], params);
         const ticker = this.safeDict (tickers, symbolValue) as Ticker;
         if (ticker === undefined) {
@@ -2265,18 +2264,19 @@ export default class nado extends Exchange {
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
-        const request: Dict = {
-            'candlesticks': {
-                'product_id': this.parseToInt (market['id']),
-                'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
-            },
+        const candlesticks: Dict = {
+            'product_id': this.parseToInt (market['id']),
+            'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = Math.min (limit, 500);
+            candlesticks['limit'] = Math.min (limit, 500);
         }
         if (until !== undefined) {
-            request['candlesticks']['max_time'] = this.parseToInt (until / 1000);
+            candlesticks['max_time'] = this.parseToInt (until / 1000);
         }
+        const request: Dict = {
+            'candlesticks': candlesticks,
+        };
         const response = await this.archivePost (this.deepExtend (request, paramsOmitted));
         //
         //     {
@@ -3003,7 +3003,7 @@ export default class nado extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    convertToX18 (value: Str) {
+    convertToX18 (value: Str): Str {
         if (value === undefined) {
             throw new ArgumentsRequired (this.id + ' convertToX18() requires a value');
         }
@@ -3081,7 +3081,8 @@ export default class nado extends Exchange {
     }
 
     async queryContracts (params: Dict = {}): Promise<Dict> {
-        if (this.safeDict (this.options, 'gatewayContracts') === undefined) {
+        const gatewayContracts = this.safeDict (this.options, 'gatewayContracts');
+        if (gatewayContracts === undefined) {
             const request: Dict = {
                 'type': 'contracts',
             };
@@ -3095,10 +3096,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
-    padHex (value: string, length: Int, left: boolean = true): string {
-        if (length === undefined) {
-            throw new ArgumentsRequired (this.id + ' padHex() requires length');
-        }
+    padHex (value: string, length: number, left: boolean = true): string {
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
@@ -3127,8 +3125,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
-        const hash = '0x' + this.hash (encoded, keccak, 'hex');
-        return this.signHash (hash, this.privateKey);
+        return this.signHash (this.hash (encoded, keccak, 'hex'), this.privateKey);
     }
 
     signCancellation (cancellation: Dict, chainId: Str, endpointAddress: Str): string {
@@ -3147,8 +3144,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash (encoded, keccak, 'hex');
-        return this.signHash (hash, this.privateKey);
+        return this.signHash (this.hash (encoded, keccak, 'hex'), this.privateKey);
     }
 
     signCancellationProducts (cancellation: Dict, chainId: Str, endpointAddress: Str): string {
@@ -3166,8 +3162,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash (encoded, keccak, 'hex');
-        return this.signHash (hash, this.privateKey);
+        return this.signHash (this.hash (encoded, keccak, 'hex'), this.privateKey);
     }
 
     signFetchTriggerOrders (tx: Dict, chainId: Str, endpointAddress: Str): string {
@@ -3184,15 +3179,14 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, tx);
-        const hash = '0x' + this.hash (encoded, keccak, 'hex');
-        return this.signHash (hash, this.privateKey);
+        return this.signHash (this.hash (encoded, keccak, 'hex'), this.privateKey);
     }
 
     signHash (hash: string, privateKey: Str): string {
         if (privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' signHash() requires privateKey');
         }
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const signature = ecdsa (hash, privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16 (this.sum (27, signature['v'])).toLowerCase ();
@@ -3216,7 +3210,10 @@ export default class nado extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const pathSuffix = (path !== '') ? ('/' + this.implodeParams (path, params)) : '';
+        let pathSuffix: string = '';
+        if (path !== '') {
+            pathSuffix = '/' + this.implodeParams (path, params);
+        }
         let url = baseApiUrl + pathSuffix;
         const query = this.omit (params, this.extractParams (path));
         const headersValue: NullableDict = {};
@@ -3225,7 +3222,7 @@ export default class nado extends Exchange {
         }
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencode (query);
+                url = baseApiUrl + pathSuffix + '?' + this.urlencode (query);
             }
         } else {
             headersValue['Content-Type'] = 'application/json';
@@ -3235,7 +3232,7 @@ export default class nado extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
-    override handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

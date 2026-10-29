@@ -790,55 +790,54 @@ public partial class deribit : Exchange
     {
         // support expired option contracts
         string quote = "USD";
-        object settle = null;
+        string settle = "";
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        object bs = null;
+        bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
+        bool hasUsdc = ((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1;
+        string? bs = null;
         string? expiry = null;
-        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
+        if (hasSlash)
         {
-            bs = this.safeString(symbolBase, 0);
+            bs = this.safeString(symbolBase, 0, "");
             expiry = this.safeString(optionParts, 1);
-            if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
-            {
-                bs = add(bs, "_USDC");
-            }
         } else
         {
-            bs = this.safeString(optionParts, 0);
+            bs = this.safeString(optionParts, 0, "");
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
+        if ((bs == null))
+        {
+            throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing base")) ;
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        string baseSuffix = "";
+        if (hasSlash && hasUsdc)
+        {
+            baseSuffix = "_USDC";
+        }
+        string baseResolved = (bs + baseSuffix);
+        if (hasUsdc)
         {
             quote = "USDC";
             settle = "USDC";
         } else
         {
-            settle = bs;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        object splitBase = bs;
-        if ((bs == null))
-        {
-            throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing base")) ;
-        }
-        if (((string)bs).IndexOf("_", StringComparison.Ordinal) > -1)
-        {
-            List<object> splitSymbol = ((string)bs).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        string? strike = this.safeString(optionParts, 2);
-        string? optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        string splitBase = this.safeString(baseResolved.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>(), 0, "");
+        string? strike = this.safeString(optionParts, 2, "");
+        string? optionType = this.safeString(optionParts, 3, "");
         string? datetime = this.convertExpireDate(expiry);
-        Int64? timestamp = this.parse8601(datetime);
-        object id = add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType);
-        object symbolExpired = add(add(add(add(add(add(add(add(add(add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType);
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
-            { "id", id },
-            { "symbol", symbolExpired },
-            { "base", bs },
+        return new Dictionary<string, object>() {
+            { "id", (((baseResolved + "-") + this.convertExpireDateToMarketIdDate(expiry)) + (((("-" + strike) + "-") + optionType))) },
+            { "symbol", (((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + (((("-" + strike) + "-") + optionType))) },
+            { "base", baseResolved },
             { "quote", quote },
             { "settle", settle },
-            { "baseId", bs },
+            { "baseId", baseResolved },
             { "quoteId", quote },
             { "settleId", settle },
             { "active", false },
@@ -852,7 +851,7 @@ public partial class deribit : Exchange
             { "margin", false },
             { "contract", true },
             { "contractSize", null },
-            { "expiry", timestamp },
+            { "expiry", this.parse8601(datetime) },
             { "expiryDatetime", datetime },
             { "optionType", (optionType == "C") ? "call" : "put" },
             { "strike", this.parseNumber(strike) },
@@ -875,7 +874,7 @@ public partial class deribit : Exchange
                 } },
             } },
             { "info", null },
-        });
+        };
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
@@ -911,7 +910,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "result"));
+        return this.safeInteger(response, "result") ?? 0;
     }
 
     /**
@@ -1298,7 +1297,7 @@ public partial class deribit : Exchange
                     symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
-                        symbol = add(add(symbol, "-"), this.yymmdd(expiry, ""));
+                        symbol = add(((object)(symbol == null ? null : symbol + "-")), this.yymmdd(expiry, ""));
                         if (option)
                         {
                             strike = this.safeNumber(market, "strike");
@@ -1748,20 +1747,15 @@ public partial class deribit : Exchange
         };
         if ((type != null))
         {
-            string? requestType = null;
             if (type == "spot")
             {
-                requestType = "spot";
+                request["kind"] = "spot";
             } else if (type == "future" || (type == "contract"))
             {
-                requestType = "future";
+                request["kind"] = "future";
             } else if (type == "option")
             {
-                requestType = "option";
-            }
-            if ((requestType != null))
-            {
-                request["kind"] = requestType;
+                request["kind"] = "option";
             }
         }
         Dictionary<string, object> response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -1850,7 +1844,7 @@ public partial class deribit : Exchange
         int defaultLimit = 1000;
         Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
         Int64? limitResolved = (((since == null)) && ((limit == null))) ? defaultLimit : limit;
-        object sinceResolved = ((since == null)) ? null : mathMax(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1), 0);
+        object sinceResolved = ((since == null)) ? null : mathMax((since - 1), 0);
         if ((since == null))
         {
             request["start_timestamp"] = (now - ((((windowLimit - 1)) * duration) * 1000));
@@ -2649,9 +2643,9 @@ public partial class deribit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object order = this.safeValue(result, "order");
-        List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        ((IDictionary<string,object>)order)["trades"] = trades;
+        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+            { "trades", this.safeList(result, "trades", new List<object>() {}) },
+        });
         return this.parseOrder(order, market);
     }
 
@@ -2702,9 +2696,9 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object order = this.safeValue(result, "order");
-        List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        ((IDictionary<string,object>)order)["trades"] = trades;
+        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+            { "trades", this.safeList(result, "trades", new List<object>() {}) },
+        });
         return this.parseOrder(order);
     }
 
@@ -3238,8 +3232,7 @@ public partial class deribit : Exchange
         //
         string? contract = this.safeString(position, "instrument_name");
         Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
-        string? side = this.safeString(position, "direction");
-        side = (side == "buy") ? "long" : "short";
+        string side = ((this.safeString(position, "direction") == "buy")) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
         string? notionalString = this.safeString(position, "size_currency");
@@ -3820,22 +3813,30 @@ public partial class deribit : Exchange
         Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
         Int64 defaultSince = (now - month);
         Int64? sinceResolved = ((since == null)) ? defaultSince : since;
-        Int64? time = ((since == null)) ? now : (since + month);
+        Int64? time = now;
+        if ((since != null))
+        {
+            time = this.parseToInt((since + month));
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "start_timestamp", (sinceResolved - 1) },
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
-        Int64? endTimestamp = ((until != null)) ? until : time;
+        Int64? endTimestamp = time;
+        if ((until != null))
+        {
+            endTimestamp = this.parseToInt(until);
+        }
         request["end_timestamp"] = endTimestamp;
-        bool isPaginationCall = ((paramsUntil is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("isDeribitPaginationCall")));
+        bool? isPaginationCall = this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
         object paramsOmitted = paramsUntil;
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             paramsOmitted = this.omit(paramsUntil, "isDeribitPaginationCall");
         }
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             if ((limit == null))
             {
@@ -3945,7 +3946,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3998,10 +3999,10 @@ public partial class deribit : Exchange
             int dataLength = data?.Count ?? 0;
             if (dataLength > 0)
             {
-                object first = (data != null && 0 < data.Count ? data[0] : null);
-                object last = (data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null);
-                ((IDictionary<string,object>)first)["continuation"] = cursor;
-                ((IDictionary<string,object>)last)["continuation"] = cursor;
+                IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> last = this.safeDict(data, (dataLength - 1), new Dictionary<string, object>() {});
+                first["continuation"] = cursor;
+                last["continuation"] = cursor;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;
                 ((List<object>)data)[Convert.ToInt32((dataLength - 1))] = last;
             }
@@ -4034,7 +4035,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -4527,21 +4528,21 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string request = (((((("/" + "api/") + this.version) + "/") + (apiName)) + "/") + path);
-        if ((apiName is "public"))
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string request = (((((("/" + "api/") + this.version) + "/") + apiName) + "/") + path);
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -4557,7 +4558,7 @@ public partial class deribit : Exchange
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+            string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4570,7 +4571,7 @@ public partial class deribit : Exchange
                 { "headers", signedHeaders },
             };
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4584,7 +4585,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (((response == null)) || ((response == null)))
         {

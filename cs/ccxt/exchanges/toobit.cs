@@ -764,7 +764,7 @@ public partial class toobit : Exchange
         //         "serverTime": 1699827319559
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -1139,7 +1139,7 @@ public partial class toobit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (all?.Count ?? 0); i++)
         {
-            object market = all[i];
+            IDictionary<string, object> market = this.safeDict(all, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseMarket(market);
             if ((parsed != null))
             {
@@ -1155,12 +1155,12 @@ public partial class toobit : Exchange
         string? baseId = this.safeString(market, "baseAsset", "");
         string? quoteId = this.safeString(market, "quoteAsset");
         List<object> baseParts = baseId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-        string? baseIdClean = ((string)(baseParts != null && 0 < baseParts.Count ? baseParts[0] : null));
+        string? baseIdClean = this.safeString(baseParts, 0);
         string? bs = this.safeCurrencyCode(baseIdClean);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string? settleId = this.safeString(market, "marginToken");
         string? settle = this.safeCurrencyCode(settleId);
@@ -1172,11 +1172,11 @@ public partial class toobit : Exchange
         IDictionary<string, object> lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         IDictionary<string, object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         string symbol = ((bs + "/") + quote);
-        bool isContract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractMultiplier")));
+        bool isContract = ((this.safeString(market, "contractMultiplier") != null));
         bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isContract)
         {
-            symbol = symbol + (":" + settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1728,12 +1728,11 @@ public partial class toobit : Exchange
         //            "t": "1755936610506"
         //        }, ...
         //
-        return ccxt.BaseExchange.ToTickers(this.parseBidsAsksCustom(response, symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.parseBidsAsksCustom(response, symbolsNormalized, new Dictionary<string, object>() {}));
     }
 
-    public virtual object parseBidsAsksCustom(IList<object> tickers, IList<object> symbols = null, IDictionary<string, object>? parameters = null)
+    public virtual object parseBidsAsksCustom(IList<object> tickers, IList<object> symbols, IDictionary<string, object> parameters)
     {
-        parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
         for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
@@ -2154,7 +2153,7 @@ public partial class toobit : Exchange
             }
         }
         object paramsOmitted = this.omit(paramsTrigger, new List<object>() {"stopLoss", "takeProfit"});
-        if (!(inOp(paramsOmitted, "newClientOrderId")))
+        if ((this.safeString(paramsOmitted, "newClientOrderId") == null))
         {
             request["newClientOrderId"] = this.uuid();
         }
@@ -2413,9 +2412,8 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        string idsString = String.Join(",", ids.ToArray());
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ids", idsString },
+            { "ids", String.Join(",", ids.ToArray()) },
         };
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -2910,9 +2908,10 @@ public partial class toobit : Exchange
             {
                 throw new BadRequest ((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
             }
-            market = this.market(symbol);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+                { "symbol", (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null) },
             };
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend(request, paramsSymbol));
         }
@@ -2926,14 +2925,13 @@ public partial class toobit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> entry = response;
-        string? marketId = this.safeString(entry, "symbol");
-        market = this.safeMarket(marketId, market);
-        Dictionary<string, object> fee = this.parseTradingFee(entry, market);
-        result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = fee;
+        Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(entry, "symbol"), market);
+        Dictionary<string, object> fee = this.parseTradingFee(entry, marketResolved);
+        result[(string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null)] = fee;
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object data, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> data, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
@@ -2998,13 +2996,13 @@ public partial class toobit : Exchange
         {
             request["startTime"] = since;
         }
+        if (!(limit == null))
+        {
+            request["limit"] = limit;
+        }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if (!(limit == null))
-        {
-            requestUntil["limit"] = limit;
-        }
         List<object> response = new List<object>() {};
         if ((type == "deposits"))
         {
@@ -3024,7 +3022,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,((string)currencyCode), since, limit));
     }
 
-    public virtual object parseTransactionWithType(object transaction, object currency = null, string? transactType = null)
+    public virtual object parseTransactionWithType(object transaction, IDictionary<string, object>? currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))
@@ -3295,7 +3293,7 @@ public partial class toobit : Exchange
         //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3328,7 +3326,7 @@ public partial class toobit : Exchange
         //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3474,13 +3472,13 @@ public partial class toobit : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3491,12 +3489,12 @@ public partial class toobit : Exchange
         bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
         object query = this.omit(parameters, this.extractParams(path));
-        if (!(apiName is "private"))
+        if (apiName != "private")
         {
             // Public endpoints
             if (!isPost)
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if (!this.isEmpty(query))
                 {
                     url = url + ("?" + this.urlencode(query));
                 }
@@ -3510,7 +3508,7 @@ public partial class toobit : Exchange
             extraQuery["timestamp"] = timestamp.ToString();
             Dictionary<string, object> queryExtended = this.extend(query, extraQuery);
             string queryString = "";
-            object privateBody = null;
+            string privateBody = "";
             if (isPost || isDelete)
             {
                 // everything else except Batch-Orders
@@ -3526,15 +3524,10 @@ public partial class toobit : Exchange
             {
                 queryString = this.urlencode(queryExtended);
             }
-            object payloadBody = null;
+            string payload = queryString;
             if (isPost || isDelete)
             {
-                payloadBody = privateBody;
-            }
-            object payload = queryString;
-            if ((payloadBody != null))
-            {
-                payload = add(payloadBody, payload);
+                payload = (privateBody + queryString);
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
             if (queryString != "")
@@ -3543,7 +3536,7 @@ public partial class toobit : Exchange
                 url = url + ("?" + queryString);
             } else
             {
-                privateBody = add(privateBody, ("&signature=" + signature));
+                privateBody = privateBody + ("&signature=" + signature);
             }
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "Referrer", "CCXT" },
@@ -3551,7 +3544,7 @@ public partial class toobit : Exchange
                 { "X-BB-API-PLATFORM", this.safeString(this.options, "brokerId", "177321641268789") },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
-            object requestBody = null;
+            string? requestBody = null;
             if (isPost || isDelete)
             {
                 requestBody = privateBody;
@@ -3571,7 +3564,7 @@ public partial class toobit : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

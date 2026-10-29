@@ -643,7 +643,7 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
-        return ccxt.BaseExchange.ToInt64Value(timestamp);
+        return timestamp ?? 0;
     }
 
     /**
@@ -728,7 +728,7 @@ public partial class alpaca : Exchange
         }
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         string? status = this.safeString(asset, "status");
@@ -816,7 +816,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -904,7 +904,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? id = this.safeString(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", id },
@@ -982,7 +982,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
@@ -1299,7 +1299,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market",side, 0d, null, this.extend(req, parameters));
     }
 
     /**
@@ -1322,7 +1322,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", 0d, null, this.extend(req, parameters));
     }
 
     /**
@@ -1345,7 +1345,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -1372,7 +1372,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? id = this.safeString(market, "id");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", id },
             { "side", side },
@@ -1642,7 +1642,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1664,7 +1664,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "closed" },
         };
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1768,7 +1768,7 @@ public partial class alpaca : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
@@ -2063,9 +2063,10 @@ public partial class alpaca : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         object addressValue = address;
-        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag == "")))
+        string? tagSuffix = this.safeString(parameters, "tag", "");
+        if (tagSuffix != "")
         {
-            addressValue = ((address + ":") + tagWithdrawTag);
+            addressValue = ((address + ":") + tagSuffix);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -2298,7 +2299,8 @@ public partial class alpaca : Exchange
         {
             string? netAmount = this.safeString(transaction, "net_amount");
             bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(netAmount, "0"));
-            timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
+            string date = this.safeString(transaction, "date", "");
+            timestamp = this.parse8601((date + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = isIncoming ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));
@@ -2328,7 +2330,7 @@ public partial class alpaca : Exchange
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
             type = this.parseTransactionType(this.safeString(transaction, "direction"));
-            amount = this.safeNumber(transaction, "amount");
+            amount = this.parseNumber(this.safeString(transaction, "amount"));
             string? currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
             network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
@@ -2507,13 +2509,13 @@ public partial class alpaca : Exchange
         for (int i = 0; i < positions.Count; i++)
         {
             IDictionary<string, object> position = this.safeDict(positions, i);
-            string? positionSymbol = this.safeString(position, "symbol");
-            if ((positionSymbol == null))
+            string? positionSymbol = this.safeString(position, "symbol", "");
+            if (positionSymbol == "")
             {
                 continue;
             }
             string? baseId = null;
-            if (positionSymbol.IndexOf("/", StringComparison.Ordinal) >= 0)
+            if ((positionSymbol?.IndexOf("/", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 List<object> parts = positionSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
                 baseId = this.safeString(parts, 0);
@@ -2521,9 +2523,9 @@ public partial class alpaca : Exchange
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 int baseLength = (positionSymbol.Length - 3);
-                if ((baseLength > 0) && ((((object)(slice(positionSymbol, baseLength, null))) is "USD")))
+                if ((baseLength > 0) && positionSymbol.EndsWith("USD"))
                 {
-                    baseId = slice(positionSymbol, 0, baseLength);
+                    baseId = ((positionSymbol == null) ? null : positionSymbol.Substring(0, Math.Max(Math.Min((baseLength < 0 ? positionSymbol.Length + (baseLength) : baseLength), positionSymbol.Length), 0)));
                 }
             }
             if ((baseId == null))
@@ -2542,19 +2544,19 @@ public partial class alpaca : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (api != null && 0 < api.Count ? api[0] : null));
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if ((getValue(api, 1) is "private"))
+        if (((api != null && 1 < api.Count ? api[1] : null) is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["APCA-API-KEY-ID"] = this.apiKey;
@@ -2583,7 +2585,7 @@ public partial class alpaca : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2595,16 +2597,14 @@ public partial class alpaca : Exchange
         // }
         string feedback = ((this.id + " ") + (body));
         string? errorCode = this.safeString(response, "code");
-        if (!(code == null))
-        {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            string codeAsString = code.ToString();
+            string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {

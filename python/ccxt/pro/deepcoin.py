@@ -14,7 +14,7 @@ from ccxt.base.errors import BadRequest
 
 class deepcoin(ccxt.async_support.deepcoin):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deepcoin, self).describe(), {
             'has': {
                 'ws': True,
@@ -101,7 +101,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # prevent automatic disconnects on private channel
         return 'ping'
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: str):
         client.lastPong = self.milliseconds()
         return message
 
@@ -113,8 +113,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
-        marketId = self.safe_string(market, 'symbol')  # spot markets use symbol with slash
+    def create_public_request(self, market: dict, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
+        marketId = self.safe_string(market, 'symbol', '')  # spot markets use symbol with slash
         if self.safe_string(market, 'type') == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
         action = '1'  # subscribe
@@ -131,8 +131,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return request
 
-    async def watch_public(self, market: object, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
-        url = self.urls['api']['ws']['public'][market['type']]
+    async def watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
+        marketType = self.safe_string(market, 'type', '')
+        url = self.safe_string(self.urls['api']['ws']['public'], marketType, '')
         requestId = self.request_id()
         request = self.create_public_request(market, requestId, topicID, suffix)
         subscription = {
@@ -141,8 +142,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def un_watch_public(self, market: object, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
-        url = self.urls['api']['ws']['public'][market['type']]
+    async def un_watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
+        marketType = self.safe_string(market, 'type', '')
+        url = self.safe_string(self.urls['api']['ws']['public'], marketType, '')
         requestId = self.request_id()
         client = self.client(url)
         existingSubscription = self.safe_dict(client.subscriptions, messageHash)
@@ -161,8 +163,7 @@ class deepcoin(ccxt.async_support.deepcoin):
 
     async def watch_private(self, messageHash: str, params: dict = {}) -> object:
         listenKey = await self.authenticate()
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '?listenKey=' + listenKey
-        return await self.watch(url, messageHash, None, 'private', params)
+        return await self.watch(self.safe_string(self.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, None, 'private', params)
 
     async def authenticate(self, params: dict = {}) -> Str:
         self.check_required_credentials()
@@ -238,7 +239,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'ticker' + '::' + market['symbol']
+        messageHash = 'ticker' + '::' + self.safe_string(market, 'symbol', '')
         return await self.watch_public(market, messageHash, '7', params)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
@@ -254,7 +255,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'ticker' + '::' + market['symbol']
+        messageHash = 'ticker' + '::' + self.safe_string(market, 'symbol', '')
         subscription = {
             'topic': 'ticker',
         }
@@ -376,7 +377,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'trades' + '::' + market['symbol']
+        messageHash = 'trades' + '::' + self.safe_string(market, 'symbol', '')
         trades = await self.watch_public(market, messageHash, '2', params)
         limitResolved = limit
         if self.newUpdates:
@@ -396,7 +397,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'trades' + '::' + market['symbol']
+        messageHash = 'trades' + '::' + self.safe_string(market, 'symbol', '')
         subscription = {
             'topic': 'trades',
         }
@@ -529,7 +530,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         interval = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe
@@ -554,7 +555,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         interval = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe
@@ -647,7 +648,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'orderbook' + '::' + market['symbol']
+        messageHash = 'orderbook' + '::' + self.safe_string(market, 'symbol', '')
         suffix, paramsValue = self.order_book_suffix(market, 'watchOrderBook', params)
         orderbook = await self.watch_public(market, messageHash, '25', paramsValue, suffix)
         return orderbook.limit()
@@ -666,7 +667,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'orderbook' + '::' + market['symbol']
+        messageHash = 'orderbook' + '::' + self.safe_string(market, 'symbol', '')
         suffix, paramsValue = self.order_book_suffix(market, 'unWatchOrderBook', params)
         subscription = {
             'topic': 'orderbook',
@@ -685,7 +686,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         # 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         # itself was accepted on 116 and 117 of them, and the handful whose
         # tick was rejected accepted the next coarser level
-        symbol = self.safe_string(market, 'symbol')
+        symbol = self.safe_string(market, 'symbol', '')
         aggregation = None
         paramsAggregation = None
         aggregation, paramsAggregation = self.handle_option_string_and_params(params, methodName, 'aggregation')
@@ -744,10 +745,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         market = self.safe_market(marketId, None, '/')
         symbol = self.safe_symbol(marketId, market)
         orderbook = self.orderbooks[symbol]
-        orderedEntries = {
-            'bids': [],
-            'asks': [],
-        }
+        bids = []
+        asks = []
         for i in range(0, len(entries)):
             entry = self.safe_dict(entries, i)
             entryData = self.safe_dict(entry, 'd', {})
@@ -756,10 +755,14 @@ class deepcoin(ccxt.async_support.deepcoin):
             volume = self.safe_number(entryData, 'V')
             if side == '0':
                 # bid
-                orderedEntries['bids'].append([price, volume])
+                bids.append([price, volume])
             elif side == '1':
                 # ask
-                orderedEntries['asks'].append([price, volume])
+                asks.append([price, volume])
+        orderedEntries = {
+            'bids': bids,
+            'asks': asks,
+        }
         timestamp = self.safe_integer(message, 'mt', 0)
         snapshot = self.parse_order_book(orderedEntries, symbol, timestamp)
         orderbook.reset(snapshot)
@@ -824,9 +827,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'myTrades'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += '::' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
+            messageHash = 'myTrades' + '::' + self.safe_string(self.market(symbol), 'symbol', '')
         trades = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -897,9 +901,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'orders'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += '::' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
+            messageHash = 'orders' + '::' + self.safe_string(self.market(symbol), 'symbol', '')
         orders = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -1041,7 +1046,7 @@ class deepcoin(ccxt.async_support.deepcoin):
                 messageHashes.append(symbolMessageHash)
         else:
             messageHashes.append(messageHash)
-        url = self.safe_string(self.urls['api']['ws'], 'private') + '?listenKey=' + listenKey
+        url = self.safe_string(self.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey
         positions = await self.watch_multiple(url, messageHashes, params, ['private'])
         if self.newUpdates:
             return positions
@@ -1207,7 +1212,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             subscriptionsById = self.index_by(client.subscriptions, 'id')
             subId = self.safe_integer(data, 'L')
             subscription = self.safe_dict(subscriptionsById, subId, {})  # original watch subscription
-            subHash = self.safe_string(subscription, 'subHash')
+            subHash = self.safe_string(subscription, 'subHash', '')
             unsubHash = 'unsubscribe::' + subHash
             unsubsciption = self.safe_dict(client.subscriptions, unsubHash, {})  # unWatch subscription
             self.handle_un_subscription(client, unsubsciption)

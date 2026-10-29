@@ -24,7 +24,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class predictfun extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'predictfun',
             'name' => 'predict.fun',
@@ -375,10 +375,8 @@ class predictfun extends Exchange {
         } else {
             $request = array();
             $tags = $this->safe_list($paramsValue, 'tags', array());
-            $tagsLength = count($tags);
-            if ($tagsLength > 0) {
-                $tagsString = implode(',', $tags);
-                $request['tagIds'] = $tagsString;
+            if (strlen($tags) > 0) {
+                $request['tagIds'] = implode(',', $tags);
             }
             $postOmitKeys[] = 'limit';
             $paramsCategories = $this->omit($paramsValue, array( 'limit', 'tags' ));
@@ -638,7 +636,7 @@ class predictfun extends Exchange {
         $orphanSlugs = array();
         for ($i = 0; $i < $queriesLength; $i++) {
             $request = array(
-                'query' => $queries[$i],
+                'query' => $this->safe_string($queries, $i, ''),
                 'limit' => $limit,
                 'includeResolved' => $includeResolved,
             );
@@ -1450,7 +1448,7 @@ class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            $requested = $this->safe_outcome_symbol(null, $market);
+            $requested = $this->safe_string($market, 'outcome', '');
             throw new BadSymbol($this->id . ' fetchTicker() did not find ' . $requested . ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -1736,7 +1734,7 @@ class predictfun extends Exchange {
          */
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        $wasSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
+        $wasSandbox = ($this->safe_bool($this->options, 'sandboxMode', false) === true);
         parent::set_sandbox_mode($enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -1999,9 +1997,9 @@ class predictfun extends Exchange {
         $marketFeeRateBps = $this->safe_string($marketRow, 'feeRateBps', '200');  // should be at least 200
         $feeRateBps = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', $marketFeeRateBps);
         $marketIsNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-        $isNegRisk = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk);
+        $isNegRisk = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk) === true);
         $marketIsYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
-        $isYieldBearing = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing);
+        $isYieldBearing = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing) === true);
         $defaultExpiration = $this->safe_integer($this->options, 'defaultExpiration', 3600); // 1 hour
         $expirationDelta = $defaultExpiration;
         $expiration = $this->safe_integer($paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2175,7 +2173,7 @@ class predictfun extends Exchange {
         $wanted = array();
         $wantedOutcomes = $this->to_array($outcomes);
         for ($i = 0; $i < $outcomesLength; $i++) {
-            $outcomeObj = $this->outcome($wantedOutcomes[$i]);
+            $outcomeObj = $this->outcome($this->safe_string($wantedOutcomes, $i));
             $wantedId = $this->safe_string($outcomeObj, 'outcomeId', '');
             $wanted[$wantedId] = true;
         }
@@ -2689,19 +2687,19 @@ class predictfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_errors(?int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         /**
          * @ignore
          * maps the venue's $error slugs and messages onto the unified exceptions
-         * @param {int} $statusCode the http status code
-         * @param {string} $statusText the http status text
+         * @param {int} $code the http status $code
+         * @param {string} $reason the http status text
          * @param {string} $url the request $url
          * @param {string} $method the http $method
-         * @param {array} $responseHeaders the $response headers
-         * @param {string} $responseBody the raw $response body
+         * @param {array} $headers the $response $headers
+         * @param {string} $body the raw $response $body
          * @param {array} $response the parsed $response
-         * @param {array} $requestHeaders the request headers
-         * @param {array} $requestBody the request body
+         * @param {array} $requestHeaders the request $headers
+         * @param {array} $requestBody the request $body
          * @return {null} nothing, it throws when the venue reported a failure
          */
         if ($response === null) {
@@ -2711,7 +2709,7 @@ class predictfun extends Exchange {
         if ($success) {
             return null;
         }
-        $feedback = $this->id . ' ' . $responseBody;
+        $feedback = $this->id . ' ' . $body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2721,7 +2719,7 @@ class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if ($statusCode === 401) {
+        if ($code === 401) {
             $this->options['jwtToken'] = null;
             $this->options['jwtTokenExpiresAt'] = 0;
         }
@@ -2729,7 +2727,7 @@ class predictfun extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if ($statusCode === 400) {
+        if ($code === 400) {
             throw new BadRequest($feedback);
         }
         throw new ExchangeError($feedback);
@@ -2824,13 +2822,7 @@ class predictfun extends Exchange {
         $rHex = $this->pad_hex_to_even($rHex);
         $sHex = $this->pad_hex_to_even($sHex);
         $yParity = $this->safe_integer($signature, 'v');
-        $signedFields = array();
-        for ($i = 0; $i < count($fields); $i++) {
-            $signedFields[] = $fields[$i];
-        }
-        $signedFields[] = $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity));
-        $signedFields[] = $this->rlp_encode_bytes($rHex);
-        $signedFields[] = $this->rlp_encode_bytes($sHex);
+        $signedFields = $this->array_concat($fields, array( $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity)), $this->rlp_encode_bytes($rHex), $this->rlp_encode_bytes($sHex) ));
         return '0x02' . $this->rlp_encode_list($signedFields);
     }
 
@@ -2879,8 +2871,8 @@ class predictfun extends Exchange {
             $marketSymbol = $this->safe_string($outcomeObj, 'market');
             $marketObj = $this->safe_dict($this->markets, $marketSymbol, array());
             $marketRow = $this->safe_dict($marketObj, 'info', array());
-            $isNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-            $isYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
+            $isNegRisk = ($this->safe_bool($marketRow, 'isNegRisk', false) === true);
+            $isYieldBearing = ($this->safe_bool($marketRow, 'isYieldBearing', false) === true);
         }
         if ($side === 'sell') {
             $ctfToken = $this->safe_string($params, 'token', $this->conditional_tokens_address($isNegRisk, $isYieldBearing));
@@ -2909,7 +2901,7 @@ class predictfun extends Exchange {
             $receipts = array();
             $operatorsLength = count($operators);
             for ($i = 0; $i < $operatorsLength; $i++) {
-                $operatorAddress = $operators[$i];
+                $operatorAddress = $this->safe_string($operators, $i);
                 if ($operatorAddress === null) {
                     throw new ArgumentsRequired($this->id . ' approve() could not resolve the operator to approve for chain ' . $chainKey);
                 }
@@ -3107,7 +3099,7 @@ class predictfun extends Exchange {
             throw $error;
         }
         for ($i = 0; $i < $messageHashesLength; $i++) {
-            $client->reject($error, $messageHashes[$i]);
+            $client->reject($error, $this->safe_string($messageHashes, $i, ''));
         }
     }
 
@@ -3437,10 +3429,10 @@ class predictfun extends Exchange {
          * @return {array[]} the outcome objects
          */
         $result = array();
-        $cached = $this->outcomes;
-        if (($marketId === null) || ($cached === null)) {
+        if (($marketId === null) || ($this->outcomes === null)) {
             return $result;
         }
+        $cached = $this->outcomes;
         $handles = is_array($cached) ? array_keys($cached) : array();
         $handlesLength = count($handles);
         for ($i = 0; $i < $handlesLength; $i++) {
@@ -3933,7 +3925,7 @@ class predictfun extends Exchange {
         }
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return $this->milliseconds();

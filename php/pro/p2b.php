@@ -14,7 +14,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class p2b extends \ccxt\async\p2b {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -155,8 +155,7 @@ class p2b extends \ccxt\async\p2b {
         $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         $tickerSubs = $this->options['tickerSubs'];
         $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
-        $messageHash = $nameOption . '::' . $market['symbol'];
-        return Async\await($this->subscribe($nameOption . '.subscribe', $messageHash, $request, $paramsName));
+        return Async\await($this->subscribe($nameOption . '.subscribe', $nameOption . '::' . $this->safe_string($market, 'symbol', ''), $request, $paramsName));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -184,9 +183,9 @@ class p2b extends \ccxt\async\p2b {
         list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', $name);
         $messageHashes = array();
         $args = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
-            $messageHashes[] = $nameOption . '::' . $market['symbol'];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
+            $messageHashes[] = $nameOption . '::' . $this->safe_string($market, 'symbol', '');
             $args[] = $market['id'];
         }
         $url = $this->urls['api']['ws'];
@@ -359,18 +358,18 @@ class p2b extends \ccxt\async\p2b {
         //    }
         //
         $data = $this->safe_list($message, 'params', array());
-        $trades = $this->safe_list($data, 1);
+        $trades = $this->safe_list($data, 1, array());
         $marketId = $this->safe_string($data, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $this->safe_string($market, 'symbol');
+        $symbol = $this->safe_string($market, 'symbol', '');
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArray = new ArrayCache($tradesLimit);
             $this->trades[$symbol] = $tradesArray;
         }
-        for ($i = 0; $i < count(($trades)); $i++) {
-            $item = ($trades)[$i];
+        for ($i = 0; $i < count($trades); $i++) {
+            $item = $trades[$i];
             $trade = $this->parse_trade($item, $market);
             $tradesArray->append($trade);
         }
@@ -429,7 +428,7 @@ class p2b extends \ccxt\async\p2b {
         } else {
             $ticker = $this->parse_ticker($tickerData, $market);
         }
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol', '');
         $this->tickers[$symbol] = $ticker;
         if ($messageHashStart !== null) {
             $messageHash = $messageHashStart . '::' . $symbol;
@@ -464,8 +463,8 @@ class p2b extends \ccxt\async\p2b {
         $bids = $this->safe_list($data, 'bids');
         $marketId = $this->safe_string($params, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook::' . $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'orderbook::' . $symbol;
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);

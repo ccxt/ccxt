@@ -34,7 +34,7 @@ public class Bitbns extends BitbnsApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitbns" );
@@ -425,36 +425,36 @@ public class Bitbns extends BitbnsApi
                 {
                     uppercaseId = (((baseId + "_") + quoteId));
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("uppercaseId", uppercaseId);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", this.safeBool(market, "active", (Object) null));
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("uppercaseId", uppercaseId);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", this.safeBool(market, "active", (Object) null));
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "amount"))) );
                         put( "price", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "price"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -472,9 +472,9 @@ public class Bitbns extends BitbnsApi
                             put( "max", Bitbns.this.safeNumber(costLimits, "max", (Object) null) );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -663,11 +663,12 @@ public class Bitbns extends BitbnsApi
             Integer numParts = ((List<?>)parts).size();
             if ((numParts != null && numParts > 1))
             {
+                String usedCurrencyId = this.safeString(parts, 1, "");
                 String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(data, key));
-                account.put("used", this.safeString(data, ("inorder" + currencyId)));
+                account.put("used", this.safeString(data, ("inorder" + usedCurrencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))
                 {
                     currencyId = "INR";
@@ -1533,9 +1534,9 @@ public class Bitbns extends BitbnsApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object urls = this.urls;
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
+        if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -1543,19 +1544,15 @@ public class Bitbns extends BitbnsApi
         {
             this.checkRequiredCredentials(true);
         }
-        Map<String, Object> apiKeyHeaders = new HashMap<String, Object>() {{
-            put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
-        }};
-        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : null;
-        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
-        if (java.util.Objects.equals(baseApiUrl, null))
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(apiName, "www"))
         {
-            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            requestHeaders.put("X-BITBNS-APIKEY", this.apiKey);
         }
         String baseUrl = (String) this.implodeHostname(baseApiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String nonce = String.valueOf(this.nonce());
+        String nonce = this.numberToString(this.nonce());
         Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         String postBody = "{}";
         if ((queryLength != null && queryLength > 0))
@@ -1577,10 +1574,9 @@ public class Bitbns extends BitbnsApi
             }};
             String payload = this.stringToBase64(this.json(auth));
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
-            requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-            ((Map<String, Object>)requestHeaders).put("X-BITBNS-PAYLOAD", payload);
-            ((Map<String, Object>)requestHeaders).put("X-BITBNS-SIGNATURE", signature);
-            ((Map<String, Object>)requestHeaders).put("Content-Type", "application/x-www-form-urlencoded");
+            requestHeaders.put("X-BITBNS-PAYLOAD", payload);
+            requestHeaders.put("X-BITBNS-SIGNATURE", signature);
+            requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -1592,7 +1588,7 @@ public class Bitbns extends BitbnsApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1602,13 +1598,13 @@ public class Bitbns extends BitbnsApi
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
-        Boolean error = (!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(code, "200")) && (!java.util.Objects.equals(code, "204"));
+        Boolean error = (!java.util.Objects.equals(codeError, null)) && (!java.util.Objects.equals(codeError, "200")) && (!java.util.Objects.equals(codeError, "204"));
         if (Boolean.TRUE.equals(error) || (!java.util.Objects.equals(message, null)))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;

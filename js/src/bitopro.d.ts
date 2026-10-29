@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Mark
  * @augments Exchange
  */
 export default class bitopro extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitopro#fetchCurrencies
@@ -133,7 +133,7 @@ export default class bitopro extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    parseCancelOrders(data: any): Order[];
+    parseCancelOrders(data: Dict): Order[];
     /**
      * @method
      * @name bitopro#cancelOrders
@@ -276,5 +276,5 @@ export default class bitopro extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

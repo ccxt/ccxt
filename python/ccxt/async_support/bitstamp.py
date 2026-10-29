@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class bitstamp(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
@@ -681,8 +681,9 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            market = response[i]
-            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+            market = self.safe_dict(response, i)
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             if (base is None) or (quote is None):
@@ -697,7 +698,7 @@ class bitstamp(Exchange, ImplicitAPI):
             elif marketTypeRaw == 'PERPETUAL':
                 type = 'swap'
                 settleId = quoteId
-                symbol = base + '/' + quote + ':' + settleId
+                symbol = base + '/' + quote + ':' + self.safe_string(market, 'counter_currency', '')
                 payoffType = self.safe_string(market, 'payoff_type')
                 if payoffType == 'Linear':
                     subType = 'linear'
@@ -760,6 +761,9 @@ class bitstamp(Exchange, ImplicitAPI):
     def construct_currency_object(self, id: Str, code: Str, name: Str, precision: Int, minCost: Num, originalPayload: dict) -> dict:
         currencyType = 'crypto'
         description = self.describe()
+        fees = self.safe_dict(description, 'fees', {})
+        fundingFees = self.safe_dict(fees, 'funding', {})
+        withdrawFee = self.safe_number(fundingFees, 'withdraw')
         if self.is_fiat(code):
             currencyType = 'fiat'
         tickSize = self.parse_number(self.parse_precision(self.number_to_string(precision)))
@@ -772,7 +776,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'active': True,
             'deposit': None,
             'withdraw': None,
-            'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
+            'fee': withdrawFee,
             'precision': tickSize,
             'limits': {
                 'amount': {
@@ -863,19 +867,22 @@ class bitstamp(Exchange, ImplicitAPI):
         result = {}
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
-            market = arr[i]
-            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+            market = self.safe_dict(arr, i, {})
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             description = self.safe_string(market, 'description')
             if description is None:
                 raise ExchangeError(self.id + ' parseCurrencies() missing description')
-            baseDescription, quoteDescription = description.split(' / ')
+            descriptionParts = description.split(' / ')
+            baseDescription = self.safe_string(descriptionParts, 0)
+            quoteDescription = self.safe_string(descriptionParts, 1)
             minimumOrder = self.safe_string(market, 'minimum_order_value')
             if minimumOrder is None:
                 raise ExchangeError(self.id + ' parseCurrencies() missing minimumOrder')
             parts = minimumOrder.split(' ')
-            cost = parts[0]
+            cost = self.safe_string(parts, 0)
             if (base is not None) and not (base in result):
                 baseDecimals = self.safe_integer(market, 'base_decimals')
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
@@ -1087,10 +1094,12 @@ class bitstamp(Exchange, ImplicitAPI):
         if numCurrencyIds > 2:
             raise ExchangeError(self.id + ' getMarketFromTrade() too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(tradeOmitted))
         if numCurrencyIds == 2:
-            marketId = currencyIds[0] + currencyIds[1]
+            firstCurrencyId = self.safe_string(currencyIds, 0, '')
+            secondCurrencyId = self.safe_string(currencyIds, 1, '')
+            marketId = firstCurrencyId + secondCurrencyId
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 return self.safe_market(marketId)
-            marketId = currencyIds[1] + currencyIds[0]
+            marketId = secondCurrencyId + firstCurrencyId
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 return self.safe_market(marketId)
         return None
@@ -1140,7 +1149,6 @@ class bitstamp(Exchange, ImplicitAPI):
         side = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
         rawMarketId = None
@@ -1168,8 +1176,8 @@ class bitstamp(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, self.safe_string(marketResolved, 'baseId'), amountString)
         costString = self.safe_string(trade, self.safe_string(marketResolved, 'quoteId'), costString)
         # this endpoint is not aligned with "markets" endpoint
-        baseIdLower = self.safe_string_lower(marketResolved, 'baseId')
-        quoteIdLower = self.safe_string_lower(marketResolved, 'quoteId')
+        baseIdLower = self.safe_string_lower(marketResolved, 'baseId', '')
+        quoteIdLower = self.safe_string_lower(marketResolved, 'quoteId', '')
         dashedIdLower = baseIdLower + '_' + quoteIdLower
         if priceString is None:
             priceString = self.safe_string(trade, dashedIdLower)
@@ -1198,10 +1206,10 @@ class bitstamp(Exchange, ImplicitAPI):
                 else:
                     side = 'buy'
         else:
-            side = self.safe_string(trade, 'type')
-            if side == '1':
+            sideRaw = self.safe_string(trade, 'type')
+            if sideRaw == '1':
                 side = 'sell'
-            elif side == '0':
+            elif sideRaw == '0':
                 side = 'buy'
             else:
                 side = None
@@ -1219,7 +1227,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': self.safe_string(trade, 'order_id'),
             'type': type,
             'side': side,
             'takerOrMaker': None,
@@ -1369,11 +1377,9 @@ class bitstamp(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        responseList = response
-        if response is None:
-            responseList = []
-        for i in range(0, len(responseList)):
-            currencyBalance = self.safe_dict(responseList, i)
+        responseEntries = self.to_array(response)
+        for i in range(0, len(responseEntries)):
+            currencyBalance = self.safe_dict(responseEntries, i)
             currencyId = self.safe_string(currencyBalance, 'currency')
             currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1458,10 +1464,11 @@ class bitstamp(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def parse_trading_fees(self, fees: list[object]) -> dict:
+    def parse_trading_fees(self, fees: list[dict]) -> dict:
         result = {'info': fees}
-        for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
+        feesList = self.to_array(fees)
+        for i in range(0, len(feesList)):
+            fee = self.parse_trading_fee(feesList[i])
             symbol = fee['symbol']
             if symbol is not None:
                 result[symbol] = fee
@@ -1521,7 +1528,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response)
 
-    def parse_transaction_fees(self, response: object, codes: Strings = None):
+    def parse_transaction_fees(self, response: object, codes: Strings = None) -> dict:
         result = {}
         currencies = self.index_by(response, 'currency')
         ids = list(currencies.keys())
@@ -1568,10 +1575,10 @@ class bitstamp(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         result = self.deposit_withdraw_fee(fee)
         code = self.safe_string(currency, 'code')
-        for j in range(0, len(fee)):
-            networkEntry = self.safe_dict(fee, j)
-            networkId = self.safe_string(networkEntry, 'network')
-            networkCode = self.network_id_to_code(networkId, code)
+        feeEntries = self.to_array(fee)
+        for j in range(0, len(feeEntries)):
+            networkEntry = self.safe_dict(feeEntries, j)
+            networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'network'), code)
             withdrawFee = self.safe_number(networkEntry, 'fee')
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -2073,14 +2080,14 @@ class bitstamp(Exchange, ImplicitAPI):
             # from fetchWithdrawals
             type = 'withdrawal'
         tag = None
-        address = self.safe_string(transaction, 'address')
-        if address is not None:
+        address = None
+        addressRaw = self.safe_string(transaction, 'address')
+        if addressRaw is not None:
             # dt (destination tag) is embedded into the address field
-            addressParts = address.split('?dt=')
-            numParts = len(addressParts)
-            if numParts > 1:
-                address = addressParts[0]
-                tag = addressParts[1]
+            addressParts = addressRaw.split('?dt=')
+            address = self.safe_string(addressParts, 0)
+            if len(addressParts) > 1:
+                tag = self.safe_string(addressParts, 1)
         fee = {
             'currency': None,
             'cost': None,
@@ -2272,14 +2279,15 @@ class bitstamp(Exchange, ImplicitAPI):
             market = None
             keys = list(item.keys())
             for i in range(0, len(keys)):
-                if keys[i].find('_') >= 0:
-                    marketId = keys[i].replace('_', '')
+                currentKey = keys[i]
+                if currentKey.find('_') >= 0:
+                    marketId = currentKey.replace('_', '')
                     market = self.safe_market(marketId, market)
             # if the market is still not defined
             # try to deduce it from used keys
             if market is None:
                 market = self.get_market_from_trade(item)
-            direction = 'in' if (parsedTrade['side'] == 'buy') else 'out'
+            direction = 'in' if (self.safe_string(parsedTrade, 'side') == 'buy') else 'out'
             return self.safe_ledger_entry({
                 'info': item,
                 'id': parsedTrade['id'],
@@ -2474,10 +2482,9 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
-        name = self.get_currency_name(code)
         # the per-currency implicit methods (privatePostBtcAddress etc.) all route
         # through request(), called here directly to avoid dynamic dispatch
-        response = await self.request(name + '_address/', ['private'], 'POST', params)
+        response = await self.request(self.get_currency_name(code) + '_address/', ['private'], 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2515,7 +2522,6 @@ class bitstamp(Exchange, ImplicitAPI):
         currency = None
         response = None
         if not self.is_fiat(code):
-            name = self.get_currency_name(code)
             if code == 'XRP':
                 if tagWithdrawTag is not None:
                     request['destination_tag'] = tagWithdrawTag
@@ -2525,7 +2531,7 @@ class bitstamp(Exchange, ImplicitAPI):
             request['address'] = address
             # the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             # route through request(), called here directly to avoid dynamic dispatch
-            response = await self.request(name + '_withdrawal/', ['private'], 'POST', self.extend(request, paramsWithdrawTag))
+            response = await self.request(self.get_currency_name(code) + '_withdrawal/', ['private'], 'POST', self.extend(request, paramsWithdrawTag))
         else:
             currency = self.currency(code)
             request['iban'] = address
@@ -2552,7 +2558,7 @@ class bitstamp(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'amount': self.parse_to_numeric(self.currency_to_precision(code, amount)),
-            'currency': currency['id'].upper(),
+            'currency': self.safe_string_upper(currency, 'id'),
         }
         response = None
         if fromAccount == 'main':
@@ -2599,7 +2605,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -2614,17 +2620,17 @@ class bitstamp(Exchange, ImplicitAPI):
         isPrivatePost = (apiName != 'public') and (method == 'POST')
         # an empty POST triggers an API0020 error, so empty requests send a dummy object
         # https://github.com/ccxt/ccxt/issues/6846
-        emptyPostBody = self.urlencode({'foo': 'bar'})
-        postBody = emptyPostBody
-        if len(query) > 0:
-            postBody = self.urlencode(query)
+        queryString = self.urlencode(query)
+        postBody = self.urlencode({'foo': 'bar'})
+        if queryString != '':
+            postBody = queryString
         requestBody = None
         if isPrivatePost:
             requestBody = postBody
-        privateHeaders = None
+        privateHeaders = {}
         if apiName == 'public':
-            if len(query) > 0:
-                url += '?' + self.urlencode(query)
+            if queryString != '':
+                url += '?' + queryString
         else:
             self.check_required_credentials()
             xAuth = 'BITSTAMP ' + self.apiKey
@@ -2642,15 +2648,15 @@ class bitstamp(Exchange, ImplicitAPI):
                 contentType = 'application/x-www-form-urlencoded'
                 privateHeaders['Content-Type'] = contentType
             authBody = ''
-            if requestBody is not None and requestBody != '':
-                authBody = requestBody
+            if isPrivatePost and postBody != '':
+                authBody = postBody
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             privateHeaders['X-Auth-Signature'] = signature
         requestHeaders = None if (apiName == 'public') else privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #
@@ -2680,12 +2686,12 @@ class bitstamp(Exchange, ImplicitAPI):
                 all = self.safe_list(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
-            code = self.safe_string(response, 'code')
-            if code == 'API0005':
+            codeError = self.safe_string(response, 'code')
+            if codeError == 'API0005':
                 raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
             feedback = self.id + ' ' + body
             for i in range(0, len(errors)):
-                value = errors[i]
+                value = self.safe_string(errors, i)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], value, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], value, feedback)
             raise ExchangeError(feedback)

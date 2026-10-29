@@ -598,7 +598,7 @@ class woofipro extends woofipro$1["default"] {
         }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
-        const symbol = base + '/' + quote + ':' + settle;
+        const symbol = base + '/' + quote + ':' + quote;
         return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
@@ -858,7 +858,6 @@ class woofipro extends woofipro$1["default"] {
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
-        const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
@@ -874,7 +873,7 @@ class woofipro extends woofipro$1["default"] {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': Precise["default"].stringMul(price, amount),
             'order': order_id,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
@@ -1705,7 +1704,6 @@ class woofipro extends woofipro$1["default"] {
         const side = this.safeStringLower(order, 'side');
         const filled = this.safeStringN(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed']);
         const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise["default"].stringSub(amount, filled);
         const fee = this.safeValue2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeList(order, 'Transactions');
@@ -1746,7 +1744,7 @@ class woofipro extends woofipro$1["default"] {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining, // TO_DO
+            'remaining': Precise["default"].stringSub(amount, filled), // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1826,7 +1824,8 @@ class woofipro extends woofipro$1["default"] {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1933,7 +1932,8 @@ class woofipro extends woofipro$1["default"] {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeList(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -1999,7 +1999,8 @@ class woofipro extends woofipro$1["default"] {
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(orderParams, 'childOrders') !== undefined);
+            const paramsChildOrders = this.safeList(orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -2061,7 +2062,8 @@ class woofipro extends woofipro$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         if (price !== undefined) {
@@ -2369,8 +2371,10 @@ class woofipro extends woofipro$1["default"] {
         //     }
         // }
         //
-        const orders = this.safeDict(response, 'data', response);
-        const parsedOrders = (orders === undefined) ? {} : orders;
+        let parsedOrders = this.safeDict(response, 'data', response);
+        if (parsedOrders === undefined) {
+            parsedOrders = {};
+        }
         return this.parseOrder(parsedOrders, market);
     }
     /**
@@ -2686,7 +2690,7 @@ class woofipro extends woofipro$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['balance_token'] = currency['id'];
+            request['balance_token'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2910,8 +2914,8 @@ class woofipro extends woofipro$1["default"] {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -2972,7 +2976,7 @@ class woofipro extends woofipro$1["default"] {
             'chainId': this.parseToInt(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -3474,10 +3478,10 @@ class woofipro extends woofipro$1["default"] {
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
-            requestHeaders = {
+            const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
@@ -3486,32 +3490,30 @@ class woofipro extends woofipro$1["default"] {
             if (method === 'POST' || method === 'PUT') {
                 requestBody = this.json(requestParams);
                 auth += requestBody;
-                requestHeaders['content-type'] = 'application/json';
+                authHeaders['content-type'] = 'application/json';
             }
             else {
                 if (Object.keys(requestParams).length > 0) {
                     url += '?' + this.urlencode(requestParams);
                     auth += '?' + this.rawencode(requestParams);
                 }
-                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                authHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if (method === 'DELETE') {
                     requestBody = '';
                 }
             }
             let secret = this.secret;
-            const rawSecret = this.secret;
-            if (rawSecret.indexOf('ed25519:') >= 0) {
-                const parts = rawSecret.split('ed25519:');
+            if (this.secret.indexOf('ed25519:') >= 0) {
+                const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
-            requestHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            authHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            requestHeaders = authHeaders;
         }
-        const bodyResult = requestBody;
-        const headersResult = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

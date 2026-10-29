@@ -7,11 +7,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
@@ -62,7 +61,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
  * Netty-based WebSocket client for CCXT.
  * Matches the architecture of C# Client.cs and Go exchange_wsclient.go:
  * - Single async connection per URL
- * - ConcurrentHashMap for futures and subscriptions
+ * - Owner-thread maps for futures and subscriptions
  * - Ping/pong keep-alive loop
  * - Reconnection via lazy re-connect on next watch() call
  */
@@ -80,46 +79,42 @@ public class WsClient {
         }, "ccxt-ws-shutdown"));
     }
 
-    // State — typed as Object for compatibility with transpiled code that casts these
+    // State. Every field here is owned by this client's message thread: only an owner
+    // task (ownerCall/ownerRun) reads or writes it. The public maps are OwnerMap
+    // hand-off views over those owner-thread HashMaps, so transpiled code keeps its shape.
     public String url;
-    public Object futures = new ConcurrentHashMap<String, Future>();
-    public Object subscriptions = new ConcurrentHashMap<String, Object>();
-    public Object rejections = new ConcurrentHashMap<String, Object>();
-    public volatile boolean isConnected = false;
-    public final AtomicBoolean startedConnecting = new AtomicBoolean(false);
-    public volatile long connectionEstablished = 0;
-    public volatile CompletableFuture<Boolean> connected;
-    public volatile long lastPong = 0;
-    // mirrors js Client.error: null while live, the terminal error once
-    // retired. written under futuresSync, volatile for the onClose guard read.
-    public volatile Object error = null;
+    private final Map<String, Future> futuresOwned = new java.util.LinkedHashMap<>();
+    private final Map<String, Object> subscriptionsOwned = new java.util.LinkedHashMap<>();
+    private final Map<String, Object> rejectionsOwned = new java.util.LinkedHashMap<>();
+    public final Map<String, Future> futures = new OwnerMap<>(this.futuresOwned);
+    public final Map<String, Object> subscriptions = new OwnerMap<>(this.subscriptionsOwned);
+    public final Map<String, Object> rejections = new OwnerMap<>(this.rejectionsOwned);
+    public boolean isConnected = false;
+    public boolean startedConnecting = false;
+    public long connectionEstablished = 0;
+    public CompletableFuture<Boolean> connected;
+    public long lastPong = 0;
+    // mirrors js Client.error: null while live, the terminal error once retired.
+    // Owner-thread state like the rest of the client: a caller reads it through errorState()
+    // and publishes it through setError(), both of which are owner tasks.
+    private Object error = null;
     public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
-    public final java.util.List<Object> mockSentMessages = java.util.Collections.synchronizedList(new java.util.ArrayList<>()); // frames recorded in mock mode
+    public final java.util.List<Object> mockSentMessages = new java.util.ArrayList<>(); // owner thread only
     /**
      * Optional typed reason for a deliberate close. Set by Exchange.close()
      * to an ExchangeClosedByUser before invoking this.close(); the close path
      * then uses it to reject in-flight futures so callers can distinguish
      * "I asked for this" from a remote-side disconnect.
      */
-    public volatile Throwable closeReason = null;
+    public Throwable closeReason = null;
 
-    // Guards atomic complete-then-replace of `connected` and ping-thread bookkeeping.
-    private final Object connectedLock = new Object();
-    /**
-     * Guards the futures / rejections pair. ConcurrentHashMap is per-map only;
-     * future/resolve/reject are a compound check-then-act across both maps.
-     * Settle after releasing: CompletableFuture may run continuations inline.
-     */
-    private final Object futuresSync = new Object();
-    private volatile Thread pingThread;
+    // Set by close()/teardown; owner thread only.
+    private boolean closed = false;
+    // Owner thread only.
+    private boolean executorShutdownScheduled = false;
 
     // Typed accessors for internal use
-    @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Future> futuresMap() { return (ConcurrentHashMap<String, Future>) futures; }
-    @SuppressWarnings("unchecked")
-    public ConcurrentHashMap<String, Object> subscriptionsMap() { return (ConcurrentHashMap<String, Object>) subscriptions; }
-    @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Object> rejectionsMap() { return (ConcurrentHashMap<String, Object>) rejections; }
+    public Map<String, Object> subscriptionsMap() { return subscriptions; }
 
     // Config
     public long keepAlive = 30000;
@@ -135,7 +130,7 @@ public class WsClient {
     public BiConsumer<WsClient, Object> onErrorCallback;
 
     // Netty internals
-    private volatile Channel channel;
+    private Channel channel; // owner thread only; the event loop hands it over in attachChannel
     private String proxy;
 
     // Headers attached to the upgrade request. Set by Exchange.client() from
@@ -143,17 +138,152 @@ public class WsClient {
     // when missing so Cloudflare-fronted endpoints don't 403 on the bot fingerprint.
     public java.util.Map<String, String> handshakeHeaders;
 
-    // Per-client single-thread executor: serializes handleMessageCallback so that
-    // frames from one connection are processed in arrival order (matches C# Client.cs
-    // Receiving loop). Different WsClients still run in parallel since each owns its
-    // own executor. Virtual-thread factory keeps blocking .join() calls cheap.
+    // Fallback single-thread executor: one thread per client when the owning exchange
+    // installed no owner (standalone WsClient, tests). Serializes owner tasks and keeps
+    // frame arrival order. Virtual-thread factory keeps blocking .join() calls cheap.
     private final ExecutorService messageExecutor = Executors.newSingleThreadExecutor(
             Thread.ofVirtual().name("ws-msg-", 0).factory());
+
+    // Installed by the owning exchange: every client of that exchange runs its owner
+    // tasks on this one thread, so the ws caches get a single writer by construction.
+    private volatile ExecutorService ownerExecutor;
+
+    private ExecutorService executor() {
+        ExecutorService shared = this.ownerExecutor;
+        return (shared != null) ? shared : this.messageExecutor;
+    }
+
+    /** True while this client's own executor (not a shared exchange owner) is in charge. */
+    private boolean ownsExecutor() {
+        return this.ownerExecutor == null;
+    }
+
+    /** Hand the per-exchange owner thread over; null keeps the per-client fallback. */
+    public void setOwnerExecutor(ExecutorService owner) {
+        this.ownerExecutor = owner;
+    }
 
     /** Grace period before a discarded client's messageExecutor shuts down; overridable in tests. */
     public long executorShutdownDelayMs = 5000;
 
-    private final AtomicBoolean executorShutdownScheduled = new AtomicBoolean(false);
+    // ─── Owner thread ───
+    // All mutable client state lives on the owner thread: the exchange's single ws
+    // owner when one is installed, else this client's messageExecutor. Callers enter
+    // through that executor's queue, so state changes are serialized without a monitor.
+    private static final ThreadLocal<Boolean> OWNER = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    private boolean isOwner() {
+        return OWNER.get(); // unboxed: the ThreadLocal always holds a value
+    }
+
+    /** Run body on the owner thread; failures are logged, callers never wait. */
+    private void ownerRun(Runnable body) {
+        if (this.isOwner()) {
+            body.run();
+            return;
+        }
+        try {
+            this.executor().execute(() -> {
+                OWNER.set(Boolean.TRUE);
+                try {
+                    body.run();
+                } catch (Throwable t) {
+                    if (this.verbose) {
+                        System.err.println(getFormattedDate() + "owner task failed: " + t);
+                    }
+                } finally {
+                    OWNER.remove();
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            body.run(); // owner already retired: discarded client, nothing to serialize against
+        }
+    }
+
+    /** Run body on the owner thread and return its value to the caller. */
+    private <T> T ownerCall(java.util.function.Supplier<T> body) {
+        if (this.isOwner()) {
+            return body.get();
+        }
+        CompletableFuture<T> reply = new CompletableFuture<>();
+        try {
+            this.executor().execute(() -> {
+                OWNER.set(Boolean.TRUE);
+                try {
+                    reply.complete(body.get());
+                } catch (Throwable t) {
+                    reply.completeExceptionally(t);
+                } finally {
+                    OWNER.remove();
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            return body.get(); // owner already retired: discarded client
+        }
+        return reply.join();
+    }
+
+    /** The terminal error (null while live), read on the owner thread. */
+    public Object errorState() {
+        return this.ownerCall(() -> this.error);
+    }
+
+    /** Publish the terminal error; the owner performs the write, and only the first one lands. */
+    public void setError(Object terminal) {
+        this.ownerRun(() -> {
+            if (this.error == null) {
+                this.error = terminal;
+            }
+        });
+    }
+
+    /**
+     * Map view whose state lives on the owner thread: every operation is an owner
+     * task, so the backing map is single-owner and readers never see a partial write.
+     * Bulk reads return a copy taken on the owner; nothing holds a reference to it.
+     */
+    private final class OwnerMap<K, V> extends java.util.AbstractMap<K, V> {
+        private final Map<K, V> owned;
+
+        OwnerMap(Map<K, V> owned) {
+            this.owned = owned;
+        }
+
+        private <R> R onOwner(java.util.function.Supplier<R> body) {
+            return WsClient.this.ownerCall(body);
+        }
+
+        private void onOwnerRun(Runnable body) {
+            WsClient.this.ownerRun(body);
+        }
+
+        private Map<K, V> snapshot() {
+            return onOwner(() -> new java.util.LinkedHashMap<>(this.owned));
+        }
+
+        @Override public int size() { return onOwner(() -> this.owned.size()); }
+        @Override public boolean isEmpty() { return onOwner(() -> this.owned.isEmpty()); }
+        @Override public boolean containsKey(Object key) { return onOwner(() -> this.owned.containsKey(key)); }
+        @Override public boolean containsValue(Object value) { return onOwner(() -> this.owned.containsValue(value)); }
+        @Override public V get(Object key) { return onOwner(() -> this.owned.get(key)); }
+        @Override public V getOrDefault(Object key, V fallback) { return onOwner(() -> this.owned.getOrDefault(key, fallback)); }
+        @Override public V put(K key, V value) { return onOwner(() -> (value == null) ? this.owned.remove(key) : this.owned.put(key, value)); }
+        @Override public V putIfAbsent(K key, V value) { return onOwner(() -> this.owned.putIfAbsent(key, value)); }
+        @Override public void putAll(Map<? extends K, ? extends V> other) { onOwnerRun(() -> this.owned.putAll(other)); }
+        @Override public V remove(Object key) { return onOwner(() -> this.owned.remove(key)); }
+        @Override public boolean remove(Object key, Object value) { return onOwner(() -> this.owned.remove(key, value)); }
+        @Override public V replace(K key, V value) { return onOwner(() -> this.owned.replace(key, value)); }
+        @Override public boolean replace(K key, V oldValue, V newValue) { return onOwner(() -> this.owned.replace(key, oldValue, newValue)); }
+        @Override public V computeIfAbsent(K key, java.util.function.Function<? super K, ? extends V> fn) { return onOwner(() -> this.owned.computeIfAbsent(key, fn)); }
+        @Override public V computeIfPresent(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.computeIfPresent(key, fn)); }
+        @Override public V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.compute(key, fn)); }
+        @Override public V merge(K key, V value, java.util.function.BiFunction<? super V, ? super V, ? extends V> fn) { return onOwner(() -> this.owned.merge(key, value, fn)); }
+        @Override public void clear() { onOwnerRun(() -> this.owned.clear()); }
+        @Override public void forEach(java.util.function.BiConsumer<? super K, ? super V> action) { snapshot().forEach(action); }
+        @Override public java.util.Set<K> keySet() { return snapshot().keySet(); }
+        @Override public java.util.Collection<V> values() { return snapshot().values(); }
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet() { return snapshot().entrySet(); }
+    }
 
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
@@ -188,15 +318,15 @@ public class WsClient {
     /**
      * Get or create a Future for a messageHash.
      * A rejection queued before the future existed fails it fast.
-     * Mutate under futuresSync; settle outside so continuations can re-enter.
+     * Both maps are touched inside one owner task, so the check-then-act is atomic.
      */
     public Future future(String messageHash) {
-        Future f;
-        Object rejection = null;
-        synchronized (futuresSync) {
-            f = futuresMap().computeIfAbsent(messageHash, k -> new Future());
-            rejection = rejectionsMap().remove(messageHash);
-        }
+        return this.ownerCall(() -> this.futureOwned(messageHash));
+    }
+
+    private Future futureOwned(String messageHash) {
+        Future f = futuresOwned.computeIfAbsent(messageHash, k -> new Future());
+        Object rejection = rejectionsOwned.remove(messageHash);
         if (rejection != null) {
             f.reject(rejection);
         }
@@ -213,6 +343,14 @@ public class WsClient {
      * With no consumer future the value is dropped.
      */
     public void resolve(Object content, Object messageHash2) {
+        // hand-off with a reply: a caller observes the settled future when this returns
+        this.ownerCall(() -> {
+            this.resolveOwned(content, messageHash2);
+            return null;
+        });
+    }
+
+    private void resolveOwned(Object content, Object messageHash2) {
         if (messageHash2 == null) {
             if (this.verbose) {
                 System.out.println("resolve received null messageHash");
@@ -220,11 +358,8 @@ public class WsClient {
             return;
         }
         String messageHash = messageHash2.toString();
-        Future f;
-        synchronized (futuresSync) {
-            f = futuresMap().remove(messageHash);
-            rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
-        }
+        Future f = futuresOwned.remove(messageHash);
+        rejectionsOwned.remove(messageHash); // clear any stale rejection for this hash
         if (f != null) {
             f.resolve(content);
         }
@@ -234,27 +369,29 @@ public class WsClient {
      * Reject a specific future, or all futures if messageHash is null.
      */
     public void reject(Object error, Object messageHash2) {
+        // hand-off with a reply: a caller observes the settlement when this returns
+        this.ownerCall(() -> {
+            this.rejectOwned(error, messageHash2);
+            return null;
+        });
+    }
+
+    private void rejectOwned(Object error, Object messageHash2) {
         if (messageHash2 != null) {
             String messageHash = messageHash2.toString();
-            Future f;
-            synchronized (futuresSync) {
-                f = futuresMap().remove(messageHash);
-                if (f == null) {
-                    rejectionsMap().put(messageHash, error);
-                }
-            }
-            if (f != null) {
+            Future f = futuresOwned.remove(messageHash);
+            if (f == null) {
+                rejectionsOwned.put(messageHash, error);
+            } else {
                 f.reject(error);
             }
         } else {
-            // Drain under the monitor; settle outside so continuations cannot re-enter.
+            // Drain first, then settle: a continuation may re-enter the client.
             var settled = new java.util.ArrayList<Future>();
-            synchronized (futuresSync) {
-                for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
-                    Future f = futuresMap().remove(key);
-                    if (f != null) {
-                        settled.add(f);
-                    }
+            for (String key : new java.util.ArrayList<>(futuresOwned.keySet())) {
+                Future f = futuresOwned.remove(key);
+                if (f != null) {
+                    settled.add(f);
                 }
             }
             for (Future f : settled) {
@@ -283,24 +420,29 @@ public class WsClient {
      * If already connecting/connected, returns the existing future.
      */
     public CompletableFuture<Boolean> connect(int backoffDelay) {
-        // The CAS and the read of `connected` must be one atomic unit: onError()
-        // clears the flag and swaps in a fresh future under connectedLock, so an
-        // unsynchronized reader here could pair a successful CAS with a stale
-        // future (or vice versa) and concurrent callers would observe different
-        // future references, see https://github.com/ccxt/ccxt/issues/23490 and
-        // WsClientConcurrencyTest.testConnectIsAtomic
-        synchronized (connectedLock) {
-            if (this.startedConnecting.compareAndSet(false, true)) {
-                if (backoffDelay > 0) {
-                    CompletableFuture.delayedExecutor(backoffDelay,
-                            java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
-                            .execute(this::createConnection);
-                } else {
-                    Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
-                }
+        return this.ownerCall(() -> this.connectOwned(backoffDelay));
+    }
+
+    /**
+     * Owner task: the start/CAS and the read of `connected` are one step, so a
+     * concurrent onError cannot pair a started flag with a stale future.
+     */
+    private CompletableFuture<Boolean> connectOwned(int backoffDelay) {
+        if (!this.startedConnecting) {
+            this.startedConnecting = true;
+            if (this.isMock) {
+                // mocked transport: the offline harness drives the frames, no socket is opened
+                return this.connected;
             }
-            return this.connected;
+            if (backoffDelay > 0) {
+                CompletableFuture.delayedExecutor(backoffDelay,
+                        java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
+                        .execute(this::createConnection);
+            } else {
+                Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
+            }
         }
+        return this.connected;
     }
 
     private void createConnection() {
@@ -422,69 +564,75 @@ public class WsClient {
     }
 
     void onOpen() {
+        // hand-off with a reply: the caller observes the opened state when this returns
+        this.ownerCall(() -> {
+            this.onOpenOwned();
+            return null;
+        });
+    }
+
+    private void onOpenOwned() {
         if (this.verbose) {
             System.out.println(getFormattedDate() + "WsClient connected: " + this.url);
         }
+        this.closed = false;
         this.isConnected = true;
         this.connectionEstablished = System.currentTimeMillis();
         this.lastPong = this.connectionEstablished;
         this.connected.complete(true);
-
-        // Start ping loop on a virtual thread; keep a reference so close() can interrupt it.
-        this.pingThread = Thread.ofVirtual().start(this::pingLoop);
+        // Keep-alive ticks are owner tasks: no ping thread, no interrupted sleep.
+        this.scheduleNextPing(this.keepAlive);
     }
 
     void onMessage(Object message) {
-        // Any received frame counts as keepalive — many exchanges (lbank,
-        // hashkey, krakenfutures, …) use application-level ping/pong rather
-        // than WS protocol PING/PONG, so onPong() never fires. Without this,
-        // pingLoop kills the connection after `keepAlive * maxPingPongMisses`
-        // ms even though the link is healthy and delivering data.
-        this.lastPong = System.currentTimeMillis();
-        if (this.handleMessageCallback != null) {
-            // Offload to a per-client single-thread executor: keeps Netty's event loop
-            // unblocked AND preserves frame ordering per connection. Cross-frame races
-            // on shared exchange state (orderbook cache, balance sub-maps, etc.) are
-            // eliminated for same-client traffic.
-            try {
-                messageExecutor.execute(() -> {
-                    try {
-                        if (this.verbose) {
-                            System.out.println(getFormattedDate() + "OnMessage:" + message);
-                        }
-                        this.handleMessageCallback.accept(this, message);
-                    } catch (Exception e) {
-                        if (this.verbose) {
-                            System.err.println("handleMessage error: " + e.getMessage());
-                        }
-                        this.reject(e);
-                    }
-                });
-            } catch (java.util.concurrent.RejectedExecutionException e) {
-                // Client already discarded — drop late frames instead of propagating.
-                if (this.verbose) {
-                    System.out.println(getFormattedDate()
-                            + "Dropping frame after executor shutdown: " + this.url);
-                }
+        this.ownerRun(() -> {
+            // Any received frame counts as keepalive — many exchanges (lbank,
+            // hashkey, krakenfutures, …) use application-level ping/pong, so
+            // onPong() never fires and pingTick would kill a healthy link.
+            this.lastPong = System.currentTimeMillis();
+            if (this.closed) {
+                return; // close() already settled this client: drop late frames
             }
-        }
+            if (this.handleMessageCallback == null) {
+                return;
+            }
+            // Owner task: Netty's event loop stays free and frames keep arrival order.
+            try {
+                if (this.verbose) {
+                    System.out.println(getFormattedDate() + "OnMessage:" + message);
+                }
+                this.handleMessageCallback.accept(this, message);
+            } catch (Exception e) {
+                if (this.verbose) {
+                    System.err.println("handleMessage error: " + e.getMessage());
+                }
+                this.reject(e);
+            }
+        });
     }
 
     public void onPong() {
-        this.lastPong = System.currentTimeMillis();
-        if (this.verbose) {
-            System.out.println(getFormattedDate() + "Pong received: " + this.lastPong);
-        }
+        this.ownerRun(() -> {
+            this.lastPong = System.currentTimeMillis();
+            if (this.verbose) {
+                System.out.println(getFormattedDate() + "Pong received: " + this.lastPong);
+            }
+        });
     }
 
     void onClose(Object reason) {
+        this.ownerCall(() -> {
+            this.onCloseOwned(reason);
+            return null;
+        });
+    }
+
+    private void onCloseOwned(Object reason) {
         if (this.verbose) {
             System.out.println(getFormattedDate() + "WsClient closed: " + this.url + " reason: " + reason);
         }
         this.isConnected = false;
-        synchronized (connectedLock) {
-            this.startedConnecting.set(false);
-        }
+        this.startedConnecting = false;
         // this.error stays set: BaseExchange.onClose reads it as the terminal marker
         if (this.onCloseCallback != null) {
             this.onCloseCallback.accept(this, reason);
@@ -492,9 +640,16 @@ public class WsClient {
     }
 
     // mirrors js Client.onError: set the error marker, reset, notify the
-    // exchange. the connected future always rotates; the lock elects one winner
-    // for the rest when the transport error, a late onClose and a close race.
+    // exchange. one owner task elects a single winner when the transport error,
+    // a late onClose and a close race.
     public void onError(Object err) {
+        this.ownerCall(() -> {
+            this.onErrorOwned(err);
+            return null;
+        });
+    }
+
+    private void onErrorOwned(Object err) {
         if (this.verbose) {
             System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
         }
@@ -513,23 +668,19 @@ public class WsClient {
 
         // Complete-then-replace: surface the error to current awaiters and
         // install a fresh future for the next connect() attempt.
-        synchronized (connectedLock) {
-            if (!this.connected.isDone()) {
-                this.connected.completeExceptionally(wrapped);
-            }
-            this.connected = new CompletableFuture<>();
-            // cleared only after the fresh future is installed - a connect() caller
-            // that wins the CAS must be guaranteed to read the new future
-            this.startedConnecting.set(false);
+        if (!this.connected.isDone()) {
+            this.connected.completeExceptionally(wrapped);
         }
+        this.connected = new CompletableFuture<>();
+        // cleared only after the fresh future is installed - a connect() caller
+        // that wins the start must be guaranteed to read the new future
+        this.startedConnecting = false;
 
-        synchronized (futuresSync) {
-            if (this.error != null) {
-                return;
-            }
-            this.error = wrapped;
+        if (this.error != null) {
+            return;
         }
-        this.subscriptionsMap().clear();
+        this.error = wrapped;
+        this.subscriptionsOwned.clear();
         this.reject(wrapped); // no messageHash: rejects every pending future
 
         if (this.onErrorCallback != null) {
@@ -560,56 +711,54 @@ public class WsClient {
 
     // ─── Ping/Pong keep-alive ───
 
-    private void pingLoop() {
-        try {
-            Thread.sleep(this.keepAlive);
-            long now = System.currentTimeMillis();
-            if (this.lastPong == 0) {
-                this.lastPong = now;
-            }
+    /** Arm the next keep-alive tick on the owner; there is no ping thread to interrupt. */
+    private void scheduleNextPing(long delayMs) {
+        if (this.keepAlive <= 0) {
+            return;
+        }
+        CompletableFuture.delayedExecutor(delayMs,
+                java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
+                .execute(() -> this.ownerRun(this::pingTick));
+    }
 
-            while (this.keepAlive > 0 && this.isConnected) {
-                now = System.currentTimeMillis();
-                if (this.lastPong + this.keepAlive * this.maxPingPongMisses < now) {
-                    this.onError(new RuntimeException(
-                          getFormattedDate() + "Connection to " + this.url + " lost, no pong within " + this.keepAlive + "ms"));
-                    break;
-                }
-
-                if (this.pingCallback != null) {
-                    try {
-                        Object pingResult = this.pingCallback.apply(this);
-                        if (pingResult != null) {
-                            this.send(pingResult);
-                        } else {
-                            // callback was not overriden we still need to send the frame
-                            if (this.channel != null && this.channel.isActive()) {
-                                if (this.verbose) {
-                                    System.out.println(getFormattedDate() + "Ping Frame: " + this.lastPong);
-                                }
-                                this.channel.writeAndFlush(new PingWebSocketFrame());
-                            }
-                        }
-                    } catch (Exception pingEx) {
-                        this.onError(pingEx);
-                        break;
-                    }
+    private void pingTick() {
+        if (this.closed || !this.isConnected || this.keepAlive <= 0) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (this.lastPong == 0) {
+            this.lastPong = now;
+        }
+        if (this.lastPong + this.keepAlive * this.maxPingPongMisses < now) {
+            this.onError(new RuntimeException(
+                    getFormattedDate() + "Connection to " + this.url + " lost, no pong within " + this.keepAlive + "ms"));
+            return;
+        }
+        boolean ok = true;
+        if (this.pingCallback != null) {
+            try {
+                Object pingResult = this.pingCallback.apply(this);
+                if (pingResult != null) {
+                    this.send(pingResult);
                 } else if (this.channel != null && this.channel.isActive()) {
+                    // callback was not overriden we still need to send the frame
                     if (this.verbose) {
                         System.out.println(getFormattedDate() + "Ping Frame: " + this.lastPong);
                     }
                     this.channel.writeAndFlush(new PingWebSocketFrame());
                 }
-
-                Thread.sleep(this.keepAlive);
+            } catch (Exception pingEx) {
+                this.onError(pingEx);
+                ok = false;
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (Exception e) {
+        } else if (this.channel != null && this.channel.isActive()) {
             if (this.verbose) {
-                System.err.println(getFormattedDate() + "PingLoop error: " + e.getMessage());
+                System.out.println(getFormattedDate() + "Ping Frame: " + this.lastPong);
             }
-            this.onError(e);
+            this.channel.writeAndFlush(new PingWebSocketFrame());
+        }
+        if (ok) {
+            this.scheduleNextPing(this.keepAlive);
         }
     }
 
@@ -621,6 +770,21 @@ public class WsClient {
      * Callers should handle the returned future to detect send failures.
      */
     public CompletableFuture<Void> send(Object message) {
+        if (this.isOwner()) {
+            return this.sendOwned(message);
+        }
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        this.ownerRun(() -> this.sendOwned(message).whenComplete((v, err) -> {
+            if (err != null) {
+                result.completeExceptionally(err);
+            } else {
+                result.complete(null);
+            }
+        }));
+        return result;
+    }
+
+    private CompletableFuture<Void> sendOwned(Object message) {
         if (this.isMock) {
             // static ws tests: record the outgoing frame so the test can assert it
             try {
@@ -672,6 +836,17 @@ public class WsClient {
      * registry entry is then detached by BaseExchange.onClose's error == null guard.
      */
     public void close() {
+        this.ownerCall(() -> {
+            this.closeOwned();
+            return null;
+        });
+    }
+
+    private void closeOwned() {
+        if (this.closed) {
+            return; // idempotent: the first close settles the table
+        }
+        this.closed = true;
         if (this.verbose) {
             System.out.println("WsClient closing: " + this.url);
         }
@@ -679,33 +854,26 @@ public class WsClient {
             this.channel.writeAndFlush(new CloseWebSocketFrame());
         }
         this.isConnected = false;
-        this.startedConnecting.set(false);
+        this.startedConnecting = false;
 
-        // Wake the ping loop so it exits without waiting for the next keepAlive tick.
-        Thread pt = this.pingThread;
-        if (pt != null) {
-            pt.interrupt();
-        }
-
-        // Drain under futuresSync, then settle outside the monitor.
+        // Drain first, then settle: a continuation may re-enter the client.
         // Prefer closeReason (ExchangeClosedByUser) over a bare RuntimeException.
         Throwable rejectionReason = (this.closeReason != null)
                 ? this.closeReason
                 : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
         var settled = new java.util.ArrayList<Future>();
-        synchronized (futuresSync) {
-            for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
-                Future f = futuresMap().remove(key);
-                if (f != null && !f.isDone()) {
-                    settled.add(f);
-                }
+        for (String key : new java.util.ArrayList<>(futuresOwned.keySet())) {
+            Future f = futuresOwned.remove(key);
+            if (f != null && !f.isDone()) {
+                settled.add(f);
             }
         }
         for (Future f : settled) {
             f.reject(rejectionReason);
         }
 
-        messageExecutor.shutdown();
+        // The owner retires on its own timer, so a late connect() never lands mid-close.
+        this.scheduleExecutorShutdownOwned();
     }
 
     /**
@@ -715,25 +883,53 @@ public class WsClient {
      * later disconnect can re-arm it.
      */
     public void scheduleExecutorShutdown() {
-        if (executorShutdownScheduled.compareAndSet(false, true)) {
-            CompletableFuture.delayedExecutor(executorShutdownDelayMs,
-                    java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
-                    .execute(() -> {
-                        // Serialize with connect()'s CAS on startedConnecting.
-                        synchronized (connectedLock) {
-                            if (this.isConnected || this.startedConnecting.get()) {
-                                executorShutdownScheduled.set(false);
-                                return;
-                            }
-                            messageExecutor.shutdown();
-                        }
-                    });
+        this.ownerRun(this::scheduleExecutorShutdownOwned);
+    }
+
+    private void scheduleExecutorShutdownOwned() {
+        if (this.executorShutdownScheduled) {
+            return;
         }
+        this.executorShutdownScheduled = true;
+        CompletableFuture.delayedExecutor(this.executorShutdownDelayMs,
+                java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
+                .execute(() -> this.ownerRun(() -> {
+                    // Same owner as connect(): a reconnect disarms the timer first.
+                    if (this.isConnected || this.startedConnecting) {
+                        this.executorShutdownScheduled = false;
+                        return;
+                    }
+                    this.closed = true;
+                    // A shared exchange owner outlives this client: only retire our own.
+                    if (this.ownsExecutor()) {
+                        messageExecutor.shutdown();
+                    }
+                }));
+    }
+
+    /** Netty's event loop hands the live transport channel to the owner thread. */
+    void attachChannel(Channel ch) {
+        this.ownerCall(() -> {
+            this.channel = ch;
+            return null;
+        });
+    }
+
+    /**
+     * Hand-off for the offline ws test harness: run ws work on the owner thread and
+     * wait for it, so a mocked frame and the state it writes never straddle threads.
+     */
+    public void runOnOwner(Runnable body) {
+        this.ownerCall(() -> {
+            body.run();
+            return null;
+        });
     }
 
     /** For tests and consumers verifying cleanup. */
     public boolean isMessageExecutorShutdown() {
-        return messageExecutor.isShutdown();
+        // a client on the shared exchange owner retires without shutting the owner down
+        return this.ownsExecutor() ? messageExecutor.isShutdown() : this.closed;
     }
 
     // ─── Binary decompression (matches C# lines 393-471) ───
@@ -806,7 +1002,7 @@ public class WsClient {
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
             handshaker.handshake(ctx.channel());
-            wsClient.channel = ctx.channel();
+            wsClient.attachChannel(ctx.channel());
         }
 
         @Override

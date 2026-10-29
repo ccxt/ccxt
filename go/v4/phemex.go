@@ -18,7 +18,7 @@ func newPhemex() *Phemex {
 	return p
 }
 
-func (this *Phemex) Describe() any {
+func (this *Phemex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "phemex",
 		"name":      "Phemex",
@@ -968,12 +968,7 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 		// "1 USD"
 		// "0.005 ETH"
 		var parts []string = strings.Split(*contractSizeString, " ")
-		contractSize = this.ParseNumber(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
-			}
-			return nil
-		}())
+		contractSize = this.ParseNumber(parts[0])
 	} else {
 		// "1.0"
 		contractSize = this.ParseNumber(contractSizeString)
@@ -1482,11 +1477,11 @@ func (this *Phemex) ParseCurrency(rawCurrency any) map[string]any {
 	})
 }
 func (this *Phemex) CustomParseBidAsk(bidask any, optionalArgs ...any) []any {
-	priceKey := GetArg(optionalArgs, 0, 0)
+	var priceKey int64 = GetArgInt64(optionalArgs, 0, 0)
 	_ = priceKey
-	amountKey := GetArg(optionalArgs, 1, 1)
+	var amountKey int64 = GetArgInt64(optionalArgs, 1, 1)
 	_ = amountKey
-	market := GetArg(optionalArgs, 2, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 2, nil)
 	_ = market
 	if market == nil {
 		panic(ArgumentsRequired(this.Id + " customParseBidAsk() requires a market argument"))
@@ -1495,7 +1490,7 @@ func (this *Phemex) CustomParseBidAsk(bidask any, optionalArgs ...any) []any {
 	if derefPtr := this.SafeString(bidask, amountKey); derefPtr != nil {
 		amount = *derefPtr
 	}
-	if GetValue(market, "spot") == true {
+	if *this.SafeBool(market, "spot", false) {
 		amount = this.FromEv(amount, market)
 	}
 	return []any{this.ParseNumber(this.FromEp(this.SafeString(bidask, priceKey), market)), this.ParseNumber(amount)}
@@ -1507,9 +1502,9 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
 	_ = bidsKey
 	var asksKey string = GetArgString(optionalArgs, 2, "asks")
 	_ = asksKey
-	priceKey := GetArg(optionalArgs, 3, 0)
+	var priceKey int64 = GetArgInt64(optionalArgs, 3, 0)
 	_ = priceKey
-	amountKey := GetArg(optionalArgs, 4, 1)
+	var amountKey int64 = GetArgInt64(optionalArgs, 4, 1)
 	_ = amountKey
 	var market map[string]any = GetArgMap(optionalArgs, 5, nil)
 	_ = market
@@ -1519,28 +1514,17 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
 		"datetime":  this.Iso8601(timestamp),
 		"nonce":     nil,
 	}
-	var sides []any = []any{bidsKey, asksKey}
+	var sides []string = []string{bidsKey, asksKey}
 	for i := 0; i < len(sides); i++ {
-		var side *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(sides) {
-				return DerefScalar(sides[i])
-			}
-			return nil
-		}())
+		var side string = sides[i]
 		var orders []any = []any{}
 		var bidasks []any = SafeListTyped(orderbook, side)
 		for k := 0; k < len(bidasks); k++ {
-			orders = append(orders, this.CustomParseBidAsk(func() any {
-				if k >= 0 && k < len(bidasks) {
-					return DerefScalar(bidasks[k])
-				}
-				return nil
-			}(), priceKey, amountKey, market))
+			orders = append(orders, this.CustomParseBidAsk(bidasks[k], priceKey, amountKey, market))
 		}
-		AddElementToObject(result, side, orders)
+		var descending bool = (i == 0)
+		result[side] = this.SortBy(orders, 0, descending)
 	}
-	AddElementToObject(result, bidsKey, this.SortBy(GetValue(result, bidsKey), 0, true))
-	AddElementToObject(result, asksKey, this.SortBy(GetValue(result, asksKey), 0))
 	return result
 }
 
@@ -1566,7 +1550,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1580,7 +1564,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if (market["linear"] == true) && isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) && isStableSettled {
 
 		r1 := <-this.V2GetMdV2Orderbook(this.Extend(request, params))
 		if r1.Err != nil {
@@ -1668,7 +1652,7 @@ func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	return this.ToEn(price, this.SafeInteger(market, "priceScale"))
 }
 func (this *Phemex) FromEn(en any, scale any) any {
-	if IsEqual(en, nil) || IsEqual(scale, nil) {
+	if (IsEqual(en, nil)) || IsEqual(scale, nil) {
 		return nil
 	}
 	precise := NewPrecise(en)
@@ -1714,10 +1698,10 @@ func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//         48759063370, // quote volume
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var baseVolume any = nil
-	if (market != nil) && (GetValue(market, "spot") == true) {
+	if (market != nil) && (*this.SafeBool(market, "spot", false)) {
 		baseVolume = this.ParseNumber(this.FromEv(this.SafeString(ohlcv, 7), market))
 	} else {
 		if derefPtr := this.SafeNumber(ohlcv, 7); derefPtr != nil {
@@ -1759,7 +1743,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1776,7 +1760,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	var usesSpecialFromToEndpoint bool = ((market["linear"] == true) || isStableSettled) && ((since != nil) || (until != nil))
+	var usesSpecialFromToEndpoint bool = ((*this.SafeBool(market, "linear", false)) || isStableSettled) && ((since != nil) || (until != nil))
 	var maxLimit int = 1000
 	if usesSpecialFromToEndpoint {
 		maxLimit = 2000
@@ -1790,7 +1774,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	request["limit"] = limitResolved
 	var sinceSeconds any = nil
 	var response map[string]any = nil
-	if (market["linear"] == true) || isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) || isStableSettled {
 		if (until != nil) || (since != nil) {
 			var candleDuration int64 = this.ParseTimeframe(timeframe)
 			if since != nil {
@@ -1802,7 +1786,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 				} else {
 					// when since is defined 'to' is mandatory
 					var now int64 = this.Seconds()
-					var to int64 = this.ParseToInt(Add(fromSeconds, (int64(maxLimit) * candleDuration)))
+					var to int64 = this.ParseToInt(this.ParseToInt(fromSeconds) + (int64(maxLimit) * candleDuration))
 					request["to"] = func() int64 {
 						if to > now {
 							return now
@@ -1977,7 +1961,7 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1989,8 +1973,8 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if market["swap"] == true {
-		if (market["inverse"] == true) || (market["settle"] == "USD") {
+	if *this.SafeBool(market, "swap", false) {
+		if (*this.SafeBool(market, "inverse", false)) || (market["settle"] == "USD") {
 
 			r1 := <-this.V1GetMdTicker24hr(this.Extend(request, params))
 			if r1.Err != nil {
@@ -2086,7 +2070,7 @@ func (this *Phemex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2155,7 +2139,7 @@ func (this *Phemex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2169,7 +2153,7 @@ func (this *Phemex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if (market["linear"] == true) && isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) && isStableSettled {
 
 		r1 := <-this.V2GetMdV2Trade(this.Extend(request, params))
 		if r1.Err != nil {
@@ -2423,7 +2407,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			amountString = nil
 		}
-		if IsNumber(GetValue(trade, tradeLength-2)) {
+		var priceAmount any = GetValue(trade, tradeLength-2)
+		if IsNumber(priceAmount) {
 			priceString = this.FromEp(priceString, marketResolved)
 			amountString = this.FromEv(amountString, marketResolved)
 		}
@@ -2497,7 +2482,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			feeCostString = this.FromEr(this.OmitZero(this.SafeString(trade, "execFeeEv")), marketResolved)
 			if !IsEqual(feeCostString, nil) {
 				feeRateString = this.FromEr(this.SafeString(trade, "feeRateEr"), marketResolved)
-				if marketResolved["spot"] == true {
+				if *this.SafeBool(marketResolved, "spot", false) {
 					feeCurrencyCode = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 				} else {
 					var info map[string]any = SafeMapTyped(marketResolved, "info")
@@ -2573,7 +2558,7 @@ func (this *Phemex) ParseSpotBalance(response any) map[string]any {
 		var balance map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var currency map[string]any = SafeMapTyped(this.Currencies, code)
+		var currency map[string]any = SafeMapTyped(this.Currencies(), code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account map[string]any = this.Account()
 		var balanceEv *string = this.SafeString(balance, "balanceEv")
@@ -2683,7 +2668,7 @@ func (this *Phemex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3274,7 +3259,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3319,7 +3304,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 	}
 	var orderParams any = this.Omit(paramsOmitted, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
-	if market["spot"] == true {
+	if *this.SafeBool(market, "spot", false) {
 		var qtyType *string = this.SafeString(orderParams, "qtyType", "ByBase")
 		if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
 			if price != nil {
@@ -3360,7 +3345,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			var amountString *string = this.AmountToPrecision(symbol, amount)
 			request["baseQtyEv"] = this.ToEv(amountString, market)
 		}
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 		var hedged *bool = this.SafeBool(orderParams, "hedged", false)
 		orderParams = this.Omit(orderParams, "hedged")
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
@@ -3402,9 +3387,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			var triggerType *string = this.SafeString(orderParams, "triggerType", "ByMarkPrice")
 			request["triggerType"] = triggerType
 			// set direction & exchange specific order type
-			var triggerDirectionparamsTriggerDirectionVariable []any = this.HandleParamString(orderParams, "triggerDirection")
-			var triggerDirection *string = SafeStringPtr(triggerDirectionparamsTriggerDirectionVariable[0])
-			paramsTriggerDirection := GetValue(triggerDirectionparamsTriggerDirectionVariable, 1)
+			triggerDirection, paramsTriggerDirection := this.HandleParamString(orderParams, "triggerDirection")
 			orderParams = paramsTriggerDirection
 			if triggerDirection == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value"))
@@ -3457,7 +3440,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var stopLossTriggerPriceType *string = this.SafeString2(stopLoss, "triggerPriceType", "slTrigger")
 				if stopLossTriggerPriceType != nil {
-					request["slTrigger"] = this.SafeString(GetValue(this.Options, "triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType)
+					request["slTrigger"] = this.SafeString(this.Options["triggerPriceTypesMap"], stopLossTriggerPriceType, stopLossTriggerPriceType)
 				}
 				var slLimitPrice *string = this.SafeString(stopLoss, "price")
 				if slLimitPrice != nil {
@@ -3476,7 +3459,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var takeProfitTriggerPriceType *string = this.SafeString2(takeProfit, "triggerPriceType", "tpTrigger")
 				if takeProfitTriggerPriceType != nil {
-					request["tpTrigger"] = this.SafeString(GetValue(this.Options, "triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType)
+					request["tpTrigger"] = this.SafeString(this.Options["triggerPriceTypesMap"], takeProfitTriggerPriceType, takeProfitTriggerPriceType)
 				}
 				var tpLimitPrice *string = this.SafeString(takeProfit, "price")
 				if tpLimitPrice != nil {
@@ -3519,7 +3502,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["contract"] == true {
+	} else if *this.SafeBool(market, "contract", false) {
 
 		r2 := <-this.PrivatePostOrders(this.Extend(request, orderParams))
 		if r2.Err != nil {
@@ -3645,7 +3628,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3705,7 +3688,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivatePutOrdersReplace(this.Extend(request, paramsOmitted3))
 		if r2.Err != nil {
@@ -3752,7 +3735,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3783,7 +3766,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateDeleteOrdersCancel(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3828,7 +3811,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3853,7 +3836,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateDeleteOrdersAll(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3900,7 +3883,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3927,7 +3910,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["spot"] == true {
+	} else if *this.SafeBool(market, "spot", false) {
 
 		r2 := <-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3954,7 +3937,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
-	} else if market["spot"] == true {
+	} else if *this.SafeBool(market, "spot", false) {
 		var rows []any = SafeListTyped(data, "rows")
 		var numRows int = len(rows)
 		if numRows < 1 {
@@ -4001,7 +3984,7 @@ func (this *Phemex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4028,7 +4011,7 @@ func (this *Phemex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateGetExchangeOrderList(this.Extend(request, params))
 		if r2.Err != nil {
@@ -4081,7 +4064,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4091,7 +4074,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -4133,7 +4116,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 					panic(r2.Err)
 				}
 				response = r2.Value
-			} else if market["swap"] == true {
+			} else if *this.SafeBool(market, "swap", false) {
 
 				r3 := <-this.PrivateGetOrdersActiveList(this.Extend(request, params))
 				if r3.Err != nil {
@@ -4199,7 +4182,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4229,7 +4212,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if (market != nil) && (market["swap"] == true) {
+	} else if (market != nil) && (*this.SafeBool(market, "swap", false)) {
 
 		r2 := <-this.PrivateGetExchangeOrderList(this.Extend(request, params))
 		if r2.Err != nil {
@@ -4322,7 +4305,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4510,7 +4493,7 @@ func (this *Phemex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4596,7 +4579,7 @@ func (this *Phemex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4665,7 +4648,7 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4879,7 +4862,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5024,12 +5007,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var positions []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = func() any {
-			if i >= 0 && i < len(positions) {
-				return DerefScalar(positions[i])
-			}
-			return nil
-		}()
+		var position any = DerefScalar(positions[i])
 		result = append(result, PositionToMap(this.ParsePosition(position)))
 	}
 
@@ -5063,7 +5041,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5112,7 +5090,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	//    }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data, []any{symbolValue})
+	var positions []any = this.ParsePositions(data, []any{symbolValue})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbolValue, since, limit))}
 	return nil
@@ -5246,7 +5224,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	// Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
 	// Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
 	var priceDiff *string = nil
-	if marketResolved["linear"] == true {
+	if *this.SafeBool(marketResolved, "linear", false) {
 		if side != nil && *side == "long" {
 			priceDiff = Precise.StringSub(markPriceString, entryPriceString)
 		} else {
@@ -5335,7 +5313,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5396,12 +5374,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	var rows []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(rows) {
-				return DerefScalar(rows[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(rows[i])
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
@@ -5457,7 +5430,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5465,14 +5438,14 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	var response any = map[string]any{}
-	if market["linear"] != true {
+	if !(*this.SafeBool(market, "linear", false)) {
 
 		r1 := <-this.V1GetMdTicker24hr(this.Extend(request, params))
 		if r1.Err != nil {
@@ -5604,7 +5577,7 @@ func (this *Phemex) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5698,7 +5671,7 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5706,7 +5679,7 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToLower(marginMode)
@@ -5763,12 +5736,12 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Phemex) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Phemex) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5776,7 +5749,7 @@ func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5790,7 +5763,7 @@ func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if EvalTruthy(hedged) {
+	if hedged == true {
 		request["targetPosMode"] = "Hedged"
 	} else {
 		request["targetPosMode"] = "OneWay"
@@ -5824,7 +5797,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5948,10 +5921,10 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var riskLimits any = (GetValue(marketResolved["info"], "riskLimits"))
+	var riskLimits []any = SafeListTyped(marketResolved["info"], "riskLimits")
 	var tiers []any = []any{}
 	var minNotional any = 0
-	for i := 0; i < GetArrayLength(riskLimits); i++ {
+	for i := 0; i < len(riskLimits); i++ {
 		var tier map[string]any = SafeMapTyped(riskLimits, i)
 		var maxNotional *int64 = this.SafeInteger(tier, "limit")
 		var minNotionalResponse any = minNotional // java req
@@ -5969,36 +5942,34 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 	}
 	return tiers
 }
-func (this *Phemex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.ImplodeParams(path, params)
 	var url string = requestPath
 	var queryString string = ""
 	if (method == "GET") || (method == "DELETE") || (method == "PUT") || (url == "/positions/assign") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			queryString = this.UrlencodeWithArrayRepeat(query)
 			url += "?" + queryString
 		}
 	}
 	var requestBody *string = nil
-	var privateHeaders any = nil
-	if apiName != nil && *apiName == "private" {
+	var privateHeaders map[string]any = map[string]any{}
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Seconds()
 		var xPhemexRequestExpiry *int64 = this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
 		var expiry int64 = this.Sum(timestamp, xPhemexRequestExpiry).(int64)
 		var expiryString string = strconv.FormatInt(expiry, 10)
-		privateHeaders = map[string]any{
-			"x-phemex-access-token":   this.ApiKey,
-			"x-phemex-request-expiry": expiryString,
-		}
+		privateHeaders["x-phemex-access-token"] = this.ApiKey
+		privateHeaders["x-phemex-request-expiry"] = expiryString
 		var payload string = ""
 		if method == "POST" {
 			var isOrderPlacement bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders")
@@ -6010,23 +5981,23 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 			}
 			payload = this.Json(params)
 			requestBody = SafeStringPtr(payload)
-			AddElementToObject(privateHeaders, "Content-Type", "application/json")
+			privateHeaders["Content-Type"] = "application/json"
 		}
 		var auth string = requestPath + queryString + expiryString + payload
-		AddElementToObject(privateHeaders, "x-phemex-request-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
+		privateHeaders["x-phemex-request-signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 	}
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
-	var isPrivatePost bool = (apiName != nil && *apiName == "private") && (method == "POST")
+	var isPrivatePost bool = (apiName == "private") && (method == "POST")
 	var bodyResolved *string = nil
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
 	var requestHeaders any = func() any {
-		if apiName != nil && *apiName == "private" {
+		if apiName == "private" {
 			return privateHeaders
 		}
 		return nil
@@ -6072,7 +6043,7 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if (leverage < -100) || (leverage > 100) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between -100 and 100"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6151,7 +6122,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6224,17 +6195,21 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
-		if IsEqual(transfer["fromAccount"], nil) {
+		if this.SafeString(transfer, "fromAccount") == nil {
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 		}
-		if IsEqual(transfer["toAccount"], nil) {
-			AddElementToObject(transfer, "toAccount", toAccount)
+		if this.SafeString(transfer, "toAccount") == nil {
+			if transfer != nil {
+				transfer["toAccount"] = toAccount
+			}
 		}
-		if IsEqual(transfer["amount"], nil) {
+		if this.SafeString(transfer, "amount") == nil {
 			AddElementToObject(transfer, "amount", amount)
 		}
-		if IsEqual(transfer["currency"], nil) {
-			AddElementToObject(transfer, "currency", code)
+		if this.SafeString(transfer, "currency") == nil {
+			if transfer != nil {
+				transfer["currency"] = code
+			}
 		}
 	}
 
@@ -6269,7 +6244,7 @@ func (this *Phemex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6420,7 +6395,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6430,7 +6405,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var market map[string]any = this.Market(symbol)
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isUsdtSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
@@ -6440,19 +6415,19 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes510819 []any = r1.Value
-		if retRes510819 == nil {
+		var retRes510619 []any = r1.Value
+		if retRes510619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes510819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes510619)}
 		}
 		return nil
 	}
-	var customSymbol any = nil
+	var customSymbol string
 	if isUsdtSettled {
-		customSymbol = Add(Add(".", market["id"]), "FR8H") // phemex requires a custom symbol for funding rate history
+		customSymbol = "." + *this.SafeString(market, "id", "") + "FR8H" // phemex requires a custom symbol for funding rate history
 	} else {
-		customSymbol = Add(Add(".", market["baseId"]), "FR8H")
+		customSymbol = "." + *this.SafeString(market, "baseId", "") + "FR8H"
 	}
 	var request map[string]any = map[string]any{
 		"symbol": customSymbol,
@@ -6500,12 +6475,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var rates []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
-		var item any = func() any {
-			if i >= 0 && i < len(rates) {
-				return DerefScalar(rates[i])
-			}
-			return nil
-		}()
+		var item any = rates[i]
 		var timestamp *int64 = this.SafeInteger(item, "fundingTime")
 		result = append(result, map[string]any{
 			"info":        item,
@@ -6544,15 +6514,9 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	if this.Markets == nil {
+	var tagWithdrawTag *string = nil
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6561,9 +6525,7 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
-	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
-	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
+	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkId any = nil
 	if networkCode != nil {
 		networkId = this.NetworkCodeToId(networkCode, code)
@@ -6583,7 +6545,7 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		"chainName": ToUpper(networkId),
 	}
 	if tagWithdrawTag != nil {
-		request["addressTag"] = tagWithdrawTag
+		request["addressTag"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivatePostPhemexWithdrawWalletsApiCreateWithdraw(this.Extend(request, paramsNetworkCode))
@@ -6643,7 +6605,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6651,7 +6613,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["contract"] != true {
+	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest is only supported for contract markets."))
 	}
 	var request map[string]any = map[string]any{
@@ -6750,7 +6712,7 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromC
 	_ = amount
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6819,7 +6781,7 @@ func (this *Phemex) createConvertTradeBody(ch chan AsyncResult[Conversion], id s
 	_ = amount
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6898,7 +6860,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7053,7 +7015,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -7122,12 +7084,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	var ranks []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
 	for i := 0; i < len(ranks); i++ {
-		var rank any = func() any {
-			if i >= 0 && i < len(ranks) {
-				return DerefScalar(ranks[i])
-			}
-			return nil
-		}()
+		var rank any = ranks[i]
 		result = append(result, this.ParseADLRank(rank))
 	}
 
@@ -7264,7 +7221,7 @@ func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   nil,
 	}
 }
-func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -7295,7 +7252,7 @@ func NewPhemex(userConfig map[string]any) *Phemex {
 func (this *Phemex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

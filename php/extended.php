@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\extended as Exchange;
 
 class extended extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'extended',
             'name' => 'Extended',
@@ -363,7 +363,7 @@ class extended extends Exchange {
         $keys = is_array($input) ? array_keys($input) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $item = $input[$key];
+            $item = $this->safe_dict($input, $key, array());
             $numericIdString = $this->safe_string($item, 'numericId');
             if ($numericIdString === null) {
                 continue;
@@ -1037,7 +1037,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1107,7 +1107,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1150,7 +1150,7 @@ class extended extends Exchange {
     public function parse_funding_histories(array $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($histories); $i++) {
-            $result[] = $this->parse_funding_history($histories[$i], $market);
+            $result[] = $this->parse_funding_history($this->safe_dict($histories, $i, array()), $market);
         }
         $symbol = ($market === null) ? null : $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
@@ -1328,7 +1328,7 @@ class extended extends Exchange {
             return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000);
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $limitResolved = ($limit === null) ? 100 : $limit;
         $until = $this->safe_integer($paramsPaginate, 'until', $this->milliseconds());
         $endTime = $this->safe_integer($paramsPaginate, 'endTime', $until);
@@ -1366,7 +1366,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1646,7 +1646,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1760,7 +1760,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1906,7 +1906,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -1936,8 +1936,7 @@ class extended extends Exchange {
         $currency = $this->currency($code);
         $account = $this->fetch_extended_account();
         $currentAccountId = $this->safe_string($account, 'accountId', '');
-        $fromAccountResolved = ($fromAccount === null) ? $currentAccountId : $fromAccount;
-        if ($fromAccountResolved !== $currentAccountId) {
+        if (($fromAccount !== null) && ($fromAccount !== $currentAccountId)) {
             throw new BadRequest($this->id . ' transfer() can only transfer from the authenticated account');
         }
         $toVault = $this->safe_string_2($params, 'toVault', 'receiverPositionId');
@@ -1948,7 +1947,7 @@ class extended extends Exchange {
         $amountString = $this->currency_to_precision($code, $amount);
         $settlement = $this->create_transfer_settlement_data($amountString, $currency, $account, $toVault, $toL2Key, $params);
         $request = array(
-            'fromAccount' => $fromAccountResolved,
+            'fromAccount' => $currentAccountId,
             'toAccount' => $toAccount,
             'amount' => $amountString,
             'transferredAsset' => $currency['id'],
@@ -1979,7 +1978,7 @@ class extended extends Exchange {
             'datetime' => $this->iso8601($now),
             'currency' => $currency['code'],
             'amount' => $this->parse_number($amountString),
-            'fromAccount' => $fromAccountResolved,
+            'fromAccount' => $currentAccountId,
             'toAccount' => $toAccount,
             'status' => $status,
         );
@@ -2029,7 +2028,7 @@ class extended extends Exchange {
             return $this->safe_string($currencyByNumericId, 'code');
         }
         if ($currency !== null) {
-            return $currency['code'];
+            return $this->safe_string($currency, 'code');
         }
         $code = $this->safe_currency_code($assetId);
         if ($code === 'USD') {
@@ -2412,7 +2411,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -2503,7 +2502,7 @@ class extended extends Exchange {
             return $this->safe_dict($this->options, 'account', array());
         }
         $accountData = $this->fetch_account($params);
-        $this->options['account'] = $accountData['info'];
+        $this->options['account'] = $this->safe_dict($accountData, 'info', array());
         return $this->safe_dict($this->options, 'account', array());
     }
 
@@ -2542,8 +2541,8 @@ class extended extends Exchange {
         );
         $msgHash = $this->get_extended_order_msg_hash($settlement);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
-        $r = $this->get_extended_signature_hex($sig[0]);
-        $s = $this->get_extended_signature_hex($sig[1]);
+        $r = $this->get_extended_signature_hex($this->safe_string($sig, 0));
+        $s = $this->get_extended_signature_hex($this->safe_string($sig, 1));
         $settlement['r'] = $r;
         $settlement['s'] = $s;
         return $settlement;
@@ -2576,8 +2575,8 @@ class extended extends Exchange {
         $msgHash = $this->get_extended_withdrawal_msg_hash($settlement, $starkKey);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
         $settlement['signature'] = array(
-            'r' => $this->get_extended_signature_hex($sig[0]),
-            's' => $this->get_extended_signature_hex($sig[1]),
+            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0)),
+            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1)),
         );
         return $settlement;
     }
@@ -2608,8 +2607,8 @@ class extended extends Exchange {
         $msgHash = $this->get_extended_transfer_msg_hash($settlement);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
         $settlement['signature'] = array(
-            'r' => $this->get_extended_signature_hex($sig[0]),
-            's' => $this->get_extended_signature_hex($sig[1]),
+            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0)),
+            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1)),
         );
         return $settlement;
     }
@@ -2971,8 +2970,9 @@ class extended extends Exchange {
         $market = null;
         $orderSymbol = $symbol;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $orderSymbol = $market['symbol'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $orderSymbol = $symbolMarket['symbol'];
         }
         $response = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
@@ -3265,7 +3265,7 @@ class extended extends Exchange {
         $result = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if (($cursor !== null) && ($i === $dataLength - 1)) {
                 $entry = $this->extend($entry, array( 'cursor' => $cursor ));
             }
@@ -3437,7 +3437,8 @@ class extended extends Exchange {
         $result = '';
         while (Precise::string_gt($decimalString, '0')) {
             $remainder = $this->parse_to_int(Precise::string_mod($decimalString, '16'));
-            $result = $hexChars[$remainder] . $result;
+            $hexChar = $this->safe_string($hexChars, $remainder, '');
+            $result = $hexChar . $result;
             $decimalString = Precise::string_div($decimalString, '16', 0);
         }
         if ($result === '') {
@@ -3564,7 +3565,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3586,8 +3587,7 @@ class extended extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
-        $version = $this->safe_string($api, 0);
-        $accessibility = $this->safe_string($api, 1);
+        $accessibility = $api[1];
         $endpoint = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryPost = ($path === 'user/deadmanswitch');
@@ -3608,7 +3608,7 @@ class extended extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $url = $this->implode_hostname($baseApiUrl) . '/api/' . $version . $endpoint;
+        $url = $this->implode_hostname($baseApiUrl) . '/api/' . $api[0] . $endpoint;
         if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }

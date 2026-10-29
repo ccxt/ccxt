@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class delta(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(delta, self).describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -357,20 +357,14 @@ class delta(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         hasSlash = symbol.find('/') > -1
-        base = None
-        optionType = None
-        if hasSlash:
-            base = self.safe_string(symbolBase, 0)
-            optionType = self.safe_string(optionParts, 3)
-        else:
-            base = self.safe_string(optionParts, 1)
-            optionType = self.safe_string(optionParts, 0)
-        rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3)
-        expiry = None
-        if rawExpiry is not None:
-            expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
+        partSource = symbolBase if hasSlash else optionParts
+        baseIndex = 0 if hasSlash else 1
+        base = self.safe_string(partSource, baseIndex, '')
+        optionType = self.safe_string(optionParts, 3 if hasSlash else 0, '')
+        rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3, '')
+        expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
         settle = quote
-        strike = self.safe_string(optionParts, 2)
+        strike = self.safe_string(optionParts, 2, '')
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         optionTypeUnified = 'put'
@@ -644,7 +638,7 @@ class delta(Exchange, ImplicitAPI):
         keys = list(input.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            item = input[key]
+            item = self.safe_dict(input, key, {})
             numericIdString = self.safe_string(item, 'numericId')
             if numericIdString is None:
                 continue
@@ -1627,28 +1621,26 @@ class delta(Exchange, ImplicitAPI):
             limitValue = limit  # max 2000
             windowSeconds = limit * duration
         until = self.safe_integer_product(params, 'until', 0.001)
-        untilIsDefined = until is not None
-        if untilIsDefined:
-            until = self.parse_to_int(until)
         if since is None:
             end = self.seconds()
-            if untilIsDefined:
+            if until is not None:
                 end = self.parse_to_int(until)
             request['end'] = end
-            if end is None:
-                raise ExchangeError(self.id + ' fetchOHLCV() missing end')
             request['start'] = end - windowSeconds
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = until if untilIsDefined else self.sum(start, windowSeconds)
+            request['end'] = until if (until is not None) else self.sum(start, windowSeconds)
         price = self.safe_string(params, 'price')
+        marketId = self.safe_string(market, 'id', '')
         if price == 'mark':
-            request['symbol'] = 'MARK:' + market['id']
+            request['symbol'] = 'MARK:' + marketId
         elif price == 'index':
-            request['symbol'] = market['info']['spot_index']['symbol']
+            marketInfo = self.safe_dict(market, 'info')
+            spotIndex = self.safe_dict(marketInfo, 'spot_index')
+            request['symbol'] = self.safe_string(spotIndex, 'symbol')
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = marketId
         paramsOmitted = self.omit(params, ['price', 'until'])
         response = await self.publicGetHistoryCandles(self.extend(request, paramsOmitted))
         #
@@ -1929,7 +1921,7 @@ class delta(Exchange, ImplicitAPI):
         if marketValue is None:
             symbol = marketId
         else:
-            symbol = marketValue['symbol']
+            symbol = self.safe_string(marketValue, 'symbol')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
@@ -1944,7 +1936,8 @@ class delta(Exchange, ImplicitAPI):
         if feeCostString is not None:
             feeCurrencyCode = None
             if marketValue is not None:
-                settlingAsset = self.safe_dict(marketValue['info'], 'settling_asset', {})
+                marketInfo = self.safe_dict(marketValue, 'info')
+                settlingAsset = self.safe_dict(marketInfo, 'settling_asset', {})
                 feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
@@ -2069,7 +2062,7 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': int(id),
+            'id': self.parse_to_int(id),
             'product_id': market['numericId'],
             # "limit_price": this.priceToPrecision (symbol, price),
             # "size": this.amountToPrecision (symbol, amount),
@@ -2078,7 +2071,7 @@ class delta(Exchange, ImplicitAPI):
             sizeString = self.amount_to_precision(symbol, amount)
             if sizeString is None:
                 sizeString = '0'
-            request['size'] = int(sizeString)
+            request['size'] = self.parse_to_int(sizeString)
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
         response = await self.privatePutOrders(self.extend(request, params))
@@ -2118,7 +2111,7 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': int(id),
+            'id': self.parse_to_int(id),
             'product_id': market['numericId'],
         }
         response = await self.privateDeleteOrders(self.extend(request, params))
@@ -2292,7 +2285,7 @@ class delta(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
         if since is not None:
-            request['start_time'] = str(since) + '000'
+            request['start_time'] = self.number_to_string(since * 1000)
         if limit is not None:
             request['page_size'] = limit
         response = None
@@ -2353,7 +2346,7 @@ class delta(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
         if since is not None:
-            request['start_time'] = str(since) + '000'
+            request['start_time'] = self.number_to_string(since * 1000)
         if limit is not None:
             request['page_size'] = limit
         response = await self.privateGetFills(self.extend(request, params))
@@ -2502,7 +2495,7 @@ class delta(Exchange, ImplicitAPI):
         currencyId = self.safe_string(item, 'asset_id')
         currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId')
         currencyValue = self.safe_value(currenciesByNumericId, currencyId, currency)
-        code = None if (currencyValue is None) else currencyValue['code']
+        code = self.safe_string(currencyValue, 'code')
         amount = self.safe_string(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
         after = self.safe_string(item, 'balance')
@@ -2818,10 +2811,10 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: str, params: dict = {}) -> MarginModification:
         await self.load_markets()
         market = self.market(symbol)
-        amountString = str(amount)
+        amountString = self.number_to_string(amount)
         deltaMargin = Precise.string_mul(amountString, '-1') if (type == 'reduce') else amountString
         request = {
             'product_id': market['numericId'],
@@ -3511,7 +3504,7 @@ class delta(Exchange, ImplicitAPI):
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         symbol = None
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         return {
             'info': marginMode,
             'symbol': symbol,
@@ -4059,32 +4052,33 @@ class delta(Exchange, ImplicitAPI):
         requestBody = None
         requestHeaders = None
         if apiName == 'public':
-            if len(query) > 0:
+            if not self.is_empty(query):
                 url += '?' + self.urlencode(query)
         elif apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.seconds())
-            requestHeaders = {
+            privateHeaders = {
                 'api-key': self.apiKey,
                 'timestamp': timestamp,
             }
             auth = method + timestamp + requestPath
             if method == 'GET':
-                if len(query) > 0:
+                if not self.is_empty(query):
                     queryString = '?' + self.urlencode(query)
-                    auth += queryString
+                    auth = method + timestamp + requestPath + queryString
                     url += queryString
             else:
                 requestBody = self.json(query)
-                auth += requestBody
-                requestHeaders['Content-Type'] = 'application/json'
+                auth = method + timestamp + requestPath + requestBody
+                privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            requestHeaders['signature'] = signature
+            privateHeaders['signature'] = signature
+            requestHeaders = privateHeaders
         bodyResult = requestBody
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

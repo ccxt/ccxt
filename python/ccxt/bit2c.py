@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -304,8 +304,9 @@ class bit2c(Exchange, ImplicitAPI):
             code = codes[i]
             account = self.account()
             currency = self.currency(code)
-            uppercase = currency['id'].upper()
-            if uppercase in response:
+            currencyId = self.safe_string(currency, 'id', '')
+            uppercase = currencyId.upper()
+            if self.safe_string(response, uppercase) is not None:
                 account['free'] = self.safe_string(response, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_string(response, uppercase)
             result[code] = account
@@ -473,7 +474,7 @@ class bit2c(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
-        method = self.handle_option('fetchTrades', 'method', optionValue)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        method = self.safe_string(self.handle_option_and_params({}, 'fetchTrades', 'method', optionValue), 0)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         request = {
             'pair': market['id'],
         }
@@ -696,8 +697,9 @@ class bit2c(Exchange, ImplicitAPI):
         #
         orderUnified = None
         isNewOrder = False
-        if 'NewOrder' in order:
-            orderUnified = order['NewOrder']
+        newOrder = self.safe_value(order, 'NewOrder')
+        if newOrder is not None:
+            orderUnified = newOrder
             isNewOrder = True
         else:
             orderUnified = order
@@ -833,9 +835,7 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        responseList = []
-        if response is not None:
-            responseList = self.to_array(response)
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def remove_comma_from_value(self, str: str) -> str:
@@ -921,10 +921,8 @@ class bit2c(Exchange, ImplicitAPI):
             tradeMarket = self.safe_market(None, market)
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if (side is not None) and (side != ''):
-                    side = 'buy'
-                else:
-                    side = 'sell'
+                # safeValue already drops an empty string, so a present isBid is a buy here
+                side = 'buy'
         marketResolved = self.safe_market(None, tradeMarket)
         return self.safe_trade({
             'info': trade,
@@ -990,7 +988,7 @@ class bit2c(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -1025,7 +1023,7 @@ class bit2c(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

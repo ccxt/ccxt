@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class xt(ccxt.async_support.xt):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(xt, self).describe(), {
             'has': {
                 'ws': True,
@@ -82,7 +82,8 @@ class xt(ccxt.async_support.xt):
         tradeType = 'spot'
         if isContract:
             tradeType = 'contract'
-        url = self.safe_string(self.urls['api']['ws'], tradeType)
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType)
         if not isContract:
             url = url + '/private'
         client = self.client(url)
@@ -195,7 +196,7 @@ class xt(ccxt.async_support.xt):
         privateAccess = access == 'private'
         type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
-        id = self.number_to_string(self.milliseconds()) + name  # call back ID
+        id = str(self.milliseconds()) + name  # call back ID
         subscribe = {
             'method': 'SUBSCRIBE' if isContract else 'subscribe',
             'id': id,
@@ -223,7 +224,8 @@ class xt(ccxt.async_support.xt):
         subscription = {
             'id': id,
         }
-        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType, '') + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params: dict = {}, subscriptionParams={}) -> object:
@@ -248,7 +250,7 @@ class xt(ccxt.async_support.xt):
         privateAccess = access == 'private'
         type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
-        id = self.number_to_string(self.milliseconds()) + name  # call back ID
+        id = str(self.milliseconds()) + name  # call back ID
         unsubscribe = {
             'method': 'UNSUBSCRIBE' if isContract else 'unsubscribe',
             'id': id,
@@ -271,7 +273,8 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, tradeType, '') + '/' + tail
         subscription = {
             'unsubscribe': True,
             'id': id,
@@ -304,8 +307,7 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
         method = self.safe_string(params, 'method', defaultMethod)
-        name = method + '@' + market['id']
-        return await self.subscribe(name, 'public', 'watchTicker', market, None, params)
+        return await self.subscribe(method + '@' + self.safe_string(market, 'id', ''), 'public', 'watchTicker', market, None, params)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}):
         """
@@ -325,7 +327,7 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'unWatchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
         method = self.safe_string(params, 'method', defaultMethod)
-        name = method + '@' + market['id']
+        name = method + '@' + self.safe_string(market, 'id', '')
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, None, params)
 
@@ -346,12 +348,15 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
+        if name is None:
+            return self.filter_by_array(self.tickers, 'symbol', symbols)
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
-        tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
-        if self.newUpdates:
-            return tickers
+        if name is not None:
+            tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
+            if self.newUpdates:
+                return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}):
@@ -371,10 +376,14 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'unWatchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
+        if name is None:
+            return None
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only')
-        messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
+        if name is not None:
+            messageHash = 'unsubscribe::' + name
+            return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
+        return None
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -393,8 +402,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        name = 'kline@' + market['id'] + ',' + timeframe
-        ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
+        ohlcv = await self.subscribe('kline@' + self.safe_string(market, 'id', '') + ',' + timeframe, 'public', 'watchOHLCV', market, None, params)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbol, limit)
@@ -415,7 +423,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        name = 'kline@' + market['id'] + ',' + timeframe
+        name = 'kline@' + self.safe_string(market, 'id', '') + ',' + timeframe
         messageHash = 'unsubscribe::' + name
         symbolsAndTimeframes = [[market['symbol'], timeframe]]
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, {'symbolsAndTimeframes': symbolsAndTimeframes})
@@ -436,8 +444,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        name = 'trade@' + market['id']
-        trades = await self.subscribe(name, 'public', 'watchTrades', market, None, params)
+        trades = await self.subscribe('trade@' + self.safe_string(market, 'id', ''), 'public', 'watchTrades', market, None, params)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbol, limit)
@@ -457,7 +464,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        name = 'trade@' + market['id']
+        name = 'trade@' + self.safe_string(market, 'id', '')
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trades', market, [symbol], params)
 
@@ -481,9 +488,10 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         paramsOmitted = self.omit(params, 'levels')
-        name = 'depth_update@' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        name = 'depth_update@' + marketId
         if levels is not None:
-            name = 'depth@' + market['id'] + ',' + levels
+            name = 'depth@' + marketId + ',' + levels
         orderbook = await self.subscribe(name, 'public', 'watchOrderBook', market, None, paramsOmitted)
         return orderbook.limit()
 
@@ -506,9 +514,10 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         paramsOmitted = self.omit(params, 'levels')
-        name = 'depth_update@' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        name = 'depth_update@' + marketId
         if levels is not None:
-            name = 'depth@' + market['id'] + ',' + levels
+            name = 'depth@' + marketId + ',' + levels
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], paramsOmitted)
 
@@ -591,7 +600,8 @@ class xt(ccxt.async_support.xt):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.safe_string(self.urls['api']['ws'], 'contract') + '/' + 'user'
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        url = self.safe_string(apiUrls, 'contract', '') + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -621,8 +631,7 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         if market['swap'] is not True:
             raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
-        name = 'fund_rate@' + market['id']
-        return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
+        return await self.subscribe('fund_rate@' + self.safe_string(market, 'id', ''), 'public', 'watchFundingRate', market, None, params)
 
     async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -639,7 +648,7 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
-        name = 'fund_rate@' + market['id']
+        name = 'fund_rate@' + self.safe_string(market, 'id', '')
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)
 
@@ -908,7 +917,7 @@ class xt(ccxt.async_support.xt):
             if symbol is not None:
                 self.tickers[symbol] = ticker
             newTickers.append(ticker)
-        messageHashStart = self.safe_string(message, 'topic') + '::' + tradeType
+        messageHashStart = self.safe_string(message, 'topic', '') + '::' + tradeType
         messageHashes = self.find_message_hashes(client, messageHashStart + '::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1325,11 +1334,10 @@ class xt(ccxt.async_support.xt):
         #           }
         #    }
         #
-        orders = self.orders
-        if orders is None:
+        if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
-            orders = ArrayCacheBySymbolById(limit)
-            self.orders = orders
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
         order = self.safe_dict(message, 'data', {})
         marketId = self.safe_string_2(order, 's', 'symbol')
         if marketId is not None:
@@ -1428,11 +1436,10 @@ class xt(ccxt.async_support.xt):
         #    }
         #
         data = self.safe_dict(message, 'data', {})
-        stored = self.myTrades
-        if stored is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = ArrayCacheBySymbolById(limit)
-            self.myTrades = stored
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        stored = self.myTrades
         parsedTrade = self.parse_trade(data)
         tradeSymbol = parsedTrade['symbol']
         if tradeSymbol is None:

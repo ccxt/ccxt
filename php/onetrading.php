@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\onetrading as Exchange;
 
 class onetrading extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
             'name' => 'One Trading',
@@ -1123,7 +1123,9 @@ class onetrading extends Exchange {
         if ($periodUnit === null) {
             throw new ExchangeError($this->id . ' fetchOHLCV() missing periodUnit');
         }
-        list($period, $unit) = explode('/', $periodUnit);
+        $periodUnitParts = explode('/', $periodUnit);
+        $period = $periodUnitParts[0];
+        $unit = $periodUnitParts[1];
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $limitResolved = ($limit === null) ? 1500 : $limit;
@@ -1964,7 +1966,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class independentreserve(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
@@ -331,7 +331,8 @@ class independentreserve(Exchange, ImplicitAPI):
         quoteCurrenciesPromise = self.publicGetGetValidSecondaryCurrencyCodes(params)
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
         limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
-        baseCurrencies, quoteCurrencies, limits = [baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]
+        responses = [baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]
+        limits = self.safe_value(responses, 2)
         #
         #     {
         #         "Xbt": 0.0001,
@@ -341,14 +342,14 @@ class independentreserve(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        baseCurrencyIds = self.to_array(baseCurrencies)
-        quoteCurrencyIds = self.to_array(quoteCurrencies)
+        baseCurrencyIds = self.to_array(self.safe_value(responses, 0))
+        quoteCurrencyIds = self.to_array(self.safe_value(responses, 1))
         for i in range(0, len(baseCurrencyIds)):
-            baseId = baseCurrencyIds[i]
+            baseId = self.safe_string(baseCurrencyIds, i, '')
             base = self.safe_currency_code(baseId)
             minAmount = self.safe_number(limits, baseId)
             for j in range(0, len(quoteCurrencyIds)):
-                quoteId = quoteCurrencyIds[j]
+                quoteId = self.safe_string(quoteCurrencyIds, j, '')
                 quote = self.safe_currency_code(quoteId)
                 if (base is None) or (quote is None):
                     continue
@@ -406,8 +407,9 @@ class independentreserve(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        accounts = self.to_array(response)
+        for i in range(0, len(accounts)):
+            balance = self.safe_dict(accounts, i)
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -584,8 +586,8 @@ class independentreserve(Exchange, ImplicitAPI):
             if (base is not None) and (quote is not None):
                 symbol = base + '/' + quote
         elif market is not None:
-            symbol = market['symbol']
-            base = market['base']
+            symbol = self.safe_string(market, 'symbol')
+            base = self.safe_string(market, 'base')
             quote = self.safe_string(market, 'quote')
         orderType = self.safe_string_2(order, 'Type', 'OrderType')
         side = None
@@ -747,7 +749,7 @@ class independentreserve(Exchange, ImplicitAPI):
         return self.parse_trades(data, market, since, limitResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        timestamp = self.parse8601(trade['TradeTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(trade, 'TradeTimestampUtc'))
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
         priceString = self.safe_string_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
@@ -880,7 +882,7 @@ class independentreserve(Exchange, ImplicitAPI):
             response = self.privatePostPlaceMarketOrder(self.extend(request, params))
         return self.safe_order({
             'info': response,
-            'id': response['OrderGuid'],
+            'id': self.safe_string(response, 'OrderGuid'),
         }, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1066,7 +1068,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
@@ -1082,16 +1084,18 @@ class independentreserve(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             # independentreserve requires an increasing nonce
-            nonce = self.incrementing_nonce()
+            rawNonce = self.incrementing_nonce()
+            nonce = self.parse_to_int(rawNonce)
             auth = [
                 url,
                 'apiKey=' + self.apiKey,
                 'nonce=' + str(nonce),
             ]
-            keys = list(params.keys())
+            paramsDict = self.extend({}, params)
+            keys = list(paramsDict.keys())
             for i in range(0, len(keys)):
                 key = keys[i]
-                value = str(params[key])
+                value = self.safe_string(paramsDict, key, '')
                 auth.append(key + '=' + value)
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
@@ -1101,7 +1105,7 @@ class independentreserve(Exchange, ImplicitAPI):
             query['signature'] = signature.upper()
             for i in range(0, len(keys)):
                 key = keys[i]
-                query[key] = params[key]
+                query[key] = paramsDict[key]
             signedBody = self.json(query)
             signedHeaders = {'Content-Type': 'application/json'}
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}

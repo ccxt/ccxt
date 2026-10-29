@@ -16,7 +16,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class kalshi extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kalshi',
             'name' => 'Kalshi',
@@ -279,11 +279,11 @@ class kalshi extends Exchange {
                 $parsed = $this->parse_binary_market_to_outcomes($raw);
                 $eventTicker = $this->safe_string($raw, 'event_ticker');
                 $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                $eventKey = ($eventTitle !== null && $eventTitle !== '') ? $this->shorten_slug($eventTitle) : '';
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
-                    if ($eventKey !== '') {
+                    if ($eventTitle !== null && $eventTitle !== '') {
+                        $eventKey = $this->shorten_slug($eventTitle);
                         if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                             $eventsDict[$eventKey] = array(
                                 'id' => $eventTicker,
@@ -419,7 +419,8 @@ class kalshi extends Exchange {
          */
         $tickers = array();
         $seen = array();
-        for ($i = 0; $i < count($outcomeSymbols); $i++) {
+        $outcomeSymbolsLength = count($outcomeSymbols);
+        for ($i = 0; $i < $outcomeSymbolsLength; $i++) {
             $outcomeSymbol = $outcomeSymbols[$i];
             if (mb_strpos($outcomeSymbol, ':') !== false) {
                 continue;
@@ -463,7 +464,7 @@ class kalshi extends Exchange {
                 $this->index_market_outcomes($parsed);
             }
         }
-        for ($i = 0; $i < count($outcomeSymbols); $i++) {
+        for ($i = 0; $i < $outcomeSymbolsLength; $i++) {
             if (!$this->has_outcome($outcomeSymbols[$i])) {
                 Async\await($this->fetch_outcome($outcomeSymbols[$i]));
             }
@@ -471,7 +472,7 @@ class kalshi extends Exchange {
         return $this->outcomes;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -578,15 +579,14 @@ class kalshi extends Exchange {
         $liquidity = $this->safe_number_2($raw, 'liquidity_dollars', 'liquidity');
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        $eventParts = array();
+        $seriesTicker = $eventTicker;
         if (($eventTicker !== null) && ($eventTicker !== '')) {
             $eventParts = explode('-', $eventTicker);
-        }
-        $seriesTicker = $eventTicker;
-        $eventPartsLength = count($eventParts);
-        if ($eventPartsLength > 1) {
-            $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
-            $seriesTicker = implode('-', $seriesParts);
+            $eventPartsLength = count($eventParts);
+            if ($eventPartsLength > 1) {
+                $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
+                $seriesTicker = implode('-', $seriesParts);
+            }
         }
         // market symbol (no outcome suffix)
         $subtitleOrTicker = $ticker;
@@ -1015,15 +1015,11 @@ class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         Async\await($this->load_outcomes($outcomes));
-        $targets = array();
-        for ($i = 0; $i < count($outcomes); $i++) {
-            $targets[] = $outcomes[$i];
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         $outcomesByTicker = array();
         $tickers = array();
-        for ($i = 0; $i < count($targets); $i++) {
-            $outcomeObj = $this->outcome($targets[$i]);
+        for ($i = 0; $i < count($outcomes); $i++) {
+            $outcomeObj = $this->outcome($outcomes[$i]);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             if ($ticker === null) {
                 continue;
@@ -1033,7 +1029,7 @@ class kalshi extends Exchange {
                 $tickers[] = $ticker;
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            $grouped = $outcomesByTicker[$ticker];
+            $grouped = $this->safe_list($outcomesByTicker, $ticker, array());
             $grouped[] = $outcomeObj;
             $outcomesByTicker[$ticker] = $grouped;
         }
@@ -2111,7 +2107,7 @@ class kalshi extends Exchange {
         $filledCount = $this->safe_number($response, 'fill_count');
         if ($filledCount !== null) {
             $order['filled'] = $filledCount;
-        } elseif (($remainingCount !== null) && ($amount !== null)) {
+        } elseif ($remainingCount !== null) {
             $order['filled'] = $amount - $remainingCount;
         }
         if ($remainingCount !== null) {
@@ -2729,7 +2725,7 @@ class kalshi extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
+        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['kalshi']);
         $implodedPath = $this->implode_params($path, $params);

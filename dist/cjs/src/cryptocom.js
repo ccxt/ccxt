@@ -808,18 +808,18 @@ class cryptocom extends cryptocom$1["default"] {
             }
             else if (inst_type === 'PERPETUAL_SWAP') {
                 type = 'swap';
-                symbol = symbol + ':' + quote;
+                symbol = base + '/' + quote + ':' + quote;
                 contract = true;
             }
             else if (inst_type === 'FUTURE') {
                 type = 'future';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry);
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd(expiry);
                 contract = true;
             }
             else if (inst_type === 'WARRANT') {
                 type = 'option';
                 const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd(expiry) + '-' + this.safeString(market, 'strike', '') + '-' + symbolOptionType;
                 contract = true;
             }
             const isLinear = (contract === true) ? true : undefined;
@@ -899,7 +899,7 @@ class cryptocom extends cryptocom$1["default"] {
                 if (symbolsLength > 1) {
                     throw new errors.BadRequest(this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbols[0];
+                symbol = this.safeString(symbols, 0);
             }
             else {
                 symbol = symbols;
@@ -1128,7 +1128,7 @@ class cryptocom extends cryptocom$1["default"] {
         if ((limit !== undefined) && (limit > 300)) {
             limitResolved = 300;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             request['count'] = limitResolved;
         }
         const now = this.microseconds();
@@ -1530,8 +1530,8 @@ class cryptocom extends cryptocom$1["default"] {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -1855,10 +1855,10 @@ class cryptocom extends cryptocom$1["default"] {
         const market = this.market(symbol);
         const orderRequests = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const order = {
                 'instrument_name': market['id'],
-                'order_id': id.toString(),
+                'order_id': id,
             };
             orderRequests.push(order);
         }
@@ -2040,7 +2040,9 @@ class cryptocom extends cryptocom$1["default"] {
     }
     parseAddress(addressString) {
         if (addressString !== undefined && addressString.indexOf('?') > 0) {
-            const [address, rawTag] = addressString.split('?');
+            const addressParts = addressString.split('?');
+            const address = addressParts[0];
+            const rawTag = addressParts[1];
             const splitted = rawTag.split('=');
             return [address, splitted[1]];
         }
@@ -2719,17 +2721,10 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const networkList = this.safeList(fee, 'network_list', []);
         const networkListLength = networkList.length;
-        const result = {
-            'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'networks': {},
+        const networks = {};
+        const withdrawFees = {
+            'fee': undefined,
+            'percentage': undefined,
         };
         if (networkList !== undefined) {
             for (let i = 0; i < networkListLength; i++) {
@@ -2738,17 +2733,26 @@ class cryptocom extends cryptocom$1["default"] {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
                     };
                 }
                 if (networkListLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
-                    result['withdraw']['percentage'] = false;
+                    withdrawFees['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
+                    withdrawFees['percentage'] = false;
                 }
             }
         }
+        const result = {
+            'info': fee,
+            'withdraw': withdrawFees,
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': networks,
+        };
         return result;
     }
     /**
@@ -3085,7 +3089,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            result.push(this.parseSettlement(this.safeDict(settlements, i, {}), market));
         }
         return result;
     }
@@ -3422,7 +3426,7 @@ class cryptocom extends cryptocom$1["default"] {
             paramsKeys = this.sort(objectKeys);
         }
         for (let i = 0; i < paramsKeys.length; i++) {
-            const key = paramsKeys[i];
+            const key = this.safeString(paramsKeys, i, '');
             returnString += key;
             const value = object[key];
             if (value === 'undefined') {
@@ -3430,7 +3434,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
             else if (Array.isArray(value)) {
                 for (let j = 0; j < value.length; j++) {
-                    returnString += this.paramsToString(value[j], level + 1);
+                    returnString += this.paramsToString(value[j], depth + 1);
                 }
             }
             else {
@@ -3566,9 +3570,9 @@ class cryptocom extends cryptocom$1["default"] {
         const result = {};
         result['info'] = response;
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
-            const isSwap = market['swap'];
+            const isSwap = this.safeBool(market, 'swap');
             let takerFeeKey = 'effective_spot_taker_rate_bps';
             if (isSwap === true) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
@@ -3611,8 +3615,8 @@ class cryptocom extends cryptocom$1["default"] {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const type = this.safeString(api, 0);
-        const access = this.safeString(api, 1);
+        const type = api[0];
+        const access = api[1];
         const apiUrl = this.safeString(this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -3626,7 +3630,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const requestParams = this.extend({}, params);
             const paramsKeys = Object.keys(requestParams);
             const strSortKey = this.paramsToString(requestParams, 0);

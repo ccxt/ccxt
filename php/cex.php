@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\cex as Exchange;
 
 class cex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
@@ -1151,7 +1151,7 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
         $order = $this->safe_dict($result, 0);
@@ -1173,7 +1173,7 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
         $order = $this->safe_dict($result, 0);
@@ -1388,7 +1388,7 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
             'cancelRequestId' => 'c_' . (string) ($this->milliseconds()),
             'timestamp' => $this->milliseconds(),
         );
@@ -1850,7 +1850,7 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
@@ -1858,7 +1858,7 @@ class cex extends Exchange {
         if ($response === null) {
             if ($body === null) {
                 throw new NullResponse($this->id . ' returned empty response');
-            } elseif ($body[0] === '{') {
+            } elseif (str_starts_with($body, '{')) {
                 $fixed = $this->fix_stringified_json_members($body);
                 $responseFixed = $this->parse_json($fixed);
             } else {

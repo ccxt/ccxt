@@ -32,7 +32,7 @@ public class Mercado extends MercadoApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "mercado" );
@@ -383,45 +383,45 @@ public class Mercado extends MercadoApi
             List<Object> coins = this.toArray(response);
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
-                Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
-                Object baseId = coin;
+                String coin = this.safeString(coins, i, "");
+                String baseId = coin;
                 String quoteId = "BRL";
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
                 }
                 String id = (quote + base);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", null);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", null);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Mercado.this.parseNumber("1e-8") );
                         put( "price", Mercado.this.parseNumber("1e-5") );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -439,9 +439,9 @@ public class Mercado extends MercadoApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", coin);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", coin);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -748,7 +748,7 @@ public class Mercado extends MercadoApi
             // TODO: replace this with a call to parseOrder for unification
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("info", response);
-            mapLiteral2.put("id", String.valueOf(Helpers.GetValue(Helpers.GetValue(response.get("response_data"), "order"), "order_id")));
+            mapLiteral2.put("id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id"));
             return this.safeOrder(mapLiteral2, market);
         }).thenApply(Order::new);
 
@@ -852,7 +852,7 @@ public class Mercado extends MercadoApi
         String id = this.safeString(order, "order_id");
         String order_type = this.safeString(order, "order_type");
         String side = null;
-        if (((Map<?, ?>)order).containsKey("order_type"))
+        if (!java.util.Objects.equals(order_type, null))
         {
             side = (((java.util.Objects.equals(order_type, "1")))) ? "buy" : "sell";
         }
@@ -922,7 +922,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin_pair", market.get("id") );
-                put( "order_id", Helpers.parseInt(id) );
+                put( "order_id", Mercado.this.parseToInt(id) );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
@@ -1085,7 +1085,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "resolution", Mercado.this.safeString(Mercado.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "15m"), java.util.Objects.requireNonNullElse(timeframe, "15m")) );
-                put( "symbol", ((market.get("base") + "-") + market.get("quote")) );
+                put( "symbol", ((Mercado.this.safeString(market, "base", "") + "-") + Mercado.this.safeString(market, "quote", "")) );
             }};
             // set some default limit, as it's required if user doesn't provide it
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
@@ -1216,12 +1216,12 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object ordersToTrades(Object orders)
+    public List<Object> ordersToTrades(Object orders)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(this.safeValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
@@ -1238,7 +1238,7 @@ public class Mercado extends MercadoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -1247,7 +1247,7 @@ public class Mercado extends MercadoApi
         String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v4Public")) || (java.util.Objects.equals(apiName, "v4PublicNet"));
-        String privateBody = null;
+        String privateBody = "";
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
         {
@@ -1261,7 +1261,7 @@ public class Mercado extends MercadoApi
             this.checkRequiredCredentials(true);
             url = (url + (this.version + "/"));
             // mercado requires each tonce to be greater than the previous one
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             privateBody = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
@@ -1293,7 +1293,7 @@ public class Mercado extends MercadoApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

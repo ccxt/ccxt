@@ -15,7 +15,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class bitvavo extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
@@ -474,7 +474,6 @@ export default class bitvavo extends Exchange {
 
     override parseMarkets (markets: any) {
         const result: Market[] = [];
-        const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict (markets, i);
             const id = this.safeString (market, 'market');
@@ -510,8 +509,8 @@ export default class bitvavo extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
                     'price': this.safeNumber (market, 'tickSize'),
@@ -997,7 +996,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1130,12 +1129,12 @@ export default class bitvavo extends Exchange {
             const sinceLimit: Int = (limit === undefined) ? 1440 : Math.min (limit, 1440);
             request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+            request['limit'] = Math.min (limit, 1440); // default 1440, max 1440
         } else if (since !== undefined) {
-            requestUntil['limit'] = 1440;
+            request['limit'] = 1440;
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
         return this.extend (requestUntil, paramsUntil);
     }
 
@@ -1153,7 +1152,7 @@ export default class bitvavo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1279,20 +1278,24 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let subaccountId = this.safeString (params, 'subaccountId');
-        const paramsOmitted: Dict = this.omit (params, 'subaccountId');
+        const subaccountParam = this.safeString (params, 'subaccountId');
         let direction: Str = undefined;
+        let subaccountId: Str = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new ArgumentsRequired (this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         } else if (fromAccount === 'master') {
             direction = 'masterToSub';
-            if (subaccountId === undefined) {
+            if (subaccountParam === undefined) {
                 subaccountId = toAccount;
+            } else {
+                subaccountId = subaccountParam;
             }
         } else if (toAccount === 'master') {
             direction = 'subToMaster';
-            if (subaccountId === undefined) {
+            if (subaccountParam === undefined) {
                 subaccountId = fromAccount;
+            } else {
+                subaccountId = subaccountParam;
             }
         } else {
             throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be master');
@@ -1306,7 +1309,7 @@ export default class bitvavo extends Exchange {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers (this.extend (request, paramsOmitted));
+        const response = await this.privatePostSubaccountsTransfers (this.extend (request, this.omit (params, 'subaccountId')));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -2692,7 +2695,7 @@ export default class bitvavo extends Exchange {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys (query).length > 0) {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2700,9 +2703,9 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    payload = requestBody;
+                if (!this.isEmpty (query)) {
+                    payload = this.json (query);
+                    requestBody = payload;
                 }
             }
             const timestamp = this.milliseconds ().toString ();
@@ -2727,7 +2730,7 @@ export default class bitvavo extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2747,7 +2750,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(ccxt.async_support.onetrading):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(onetrading, self).describe(), {
             'has': {
                 'ws': True,
@@ -91,7 +91,7 @@ class onetrading(ccxt.async_support.onetrading):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.authenticate(params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         messageHash = 'balance'
         subscribeHash = 'ACCOUNT_HISTORY'
         bpRemainingQuota = self.safe_integer(self.options, 'bp_remaining_quota', 200)
@@ -170,7 +170,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         subscriptionHash = 'MARKET_TICKER'
         messageHash = 'ticker.' + symbolValue
         request = {
@@ -235,11 +235,12 @@ class onetrading(ccxt.async_support.onetrading):
             ticker = tickers[i]
             marketId = self.safe_string(ticker, 'instrument')
             symbol = self.safe_symbol(marketId)
-            self.tickers[symbol] = self.parse_ws_ticker(ticker)
+            parsedTicker = self.parse_ws_ticker(ticker)
+            self.tickers[symbol] = parsedTicker
             timestamp = self.parse8601(datetime)
-            self.tickers[symbol]['timestamp'] = timestamp
-            self.tickers[symbol]['datetime'] = self.iso8601(timestamp)
-            client.resolve(self.tickers[symbol], 'ticker.' + symbol)
+            parsedTicker['timestamp'] = timestamp
+            parsedTicker['datetime'] = self.iso8601(timestamp)
+            client.resolve(parsedTicker, 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -296,10 +297,11 @@ class onetrading(ccxt.async_support.onetrading):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbolValue = self.safe_string(market, 'symbol', '')
+            symbolResolved = symbolValue
+            messageHash = 'myTrades:' + symbolValue
         await self.authenticate(params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         subscribeHash = 'ACCOUNT_HISTORY'
         bpRemainingQuota = self.safe_integer(self.options, 'bp_remaining_quota', 200)
         subscribe = {
@@ -336,7 +338,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'book:' + symbolValue
         subscriptionHash = 'ORDER_BOOK'
         depth = 0
@@ -383,7 +385,7 @@ class onetrading(ccxt.async_support.onetrading):
         #         "time": "2022-06-23T15:38:02.751301Z"
         #     }
         #
-        type = self.safe_string(message, 'type')
+        type = self.safe_string(message, 'type', '')
         marketId = self.safe_string(message, 'instrument_code')
         symbol = self.safe_symbol(marketId)
         dateTime = self.safe_string(message, 'time')
@@ -450,10 +452,11 @@ class onetrading(ccxt.async_support.onetrading):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            symbolValue = self.safe_string(market, 'symbol', '')
+            symbolResolved = symbolValue
+            messageHash = 'orders:' + symbolValue
         await self.authenticate(params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         subscribeHash = self.safe_string(params, 'channel', 'ACCOUNT_HISTORY')
         bpRemainingQuota = self.safe_integer(self.options, 'bp_remaining_quota', 200)
         subscribe = {
@@ -527,7 +530,8 @@ class onetrading(ccxt.async_support.onetrading):
         order = self.parse_trading_order(message)
         orders = self.orders
         orders.append(order)
-        client.resolve(self.orders, 'orders:' + order['symbol'])
+        orderSymbol = self.safe_string(order, 'symbol', '')
+        client.resolve(self.orders, 'orders:' + orderSymbol)
         client.resolve(self.orders, 'orders')
 
     def parse_trading_order(self, order: dict, market: Market = None) -> Order:
@@ -1049,9 +1053,9 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        marketId = market['id']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        url = self.safe_string(self.urls['api'], 'ws')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_dict(timeframes, timeframe)
         if timeframeId is None:
@@ -1080,7 +1084,8 @@ class onetrading(ccxt.async_support.onetrading):
         properties = []
         marketIds = list(subscription.keys())
         for i in range(0, len(marketIds)):
-            marketIdtimeframes = list(subscription[marketIds[i]].keys())
+            marketSubscription = self.safe_dict(subscription, marketIds[i], {})
+            marketIdtimeframes = list(marketSubscription.keys())
             for ii in range(0, len(marketIdtimeframes)):
                 marketTimeframeId = self.safe_dict(timeframes, timeframe)
                 property = {
@@ -1153,24 +1158,26 @@ class onetrading(ccxt.async_support.onetrading):
             self.safe_number(message, 'close'),
             self.safe_number(message, 'volume'),
         ]
-        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = symbolOhlcvs
+        stored = self.safe_value(symbolOhlcvs, timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
         stored.append(parsed)
         if symbol is not None and timeframe is not None:
-            self.ohlcvs[symbol][timeframe] = stored
+            symbolOhlcvs[timeframe] = stored
         client.resolve(stored, channel)
 
-    def find_timeframe(self, timeframe: object, timeframes: object = None) -> Str:
+    def find_timeframe(self, timeframe: object, timeframes: dict = None) -> Str:
         timeframesResolved = self.timeframes if (timeframes is None) else timeframes
         if timeframesResolved is None:
             raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
         keys = list(timeframesResolved.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if timeframesResolved[key]['unit'] == timeframe['unit'] and timeframesResolved[key]['period'] == timeframe['period']:
+            timeframeResolved = self.safe_dict(timeframesResolved, key, {})
+            if timeframeResolved['unit'] == timeframe['unit'] and timeframeResolved['period'] == timeframe['period']:
                 return key
         return None
 
@@ -1290,7 +1297,7 @@ class onetrading(ccxt.async_support.onetrading):
             marketIds = list(marketsById.keys())
         else:
             marketIds = self.market_ids(symbols)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         client = self.safe_value(self.clients, url)
         type = 'SUBSCRIBE'
         subscription = {}
@@ -1313,7 +1320,7 @@ class onetrading(ccxt.async_support.onetrading):
         return await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscription)
 
     async def authenticate(self, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.reusableFuture('authenticated')

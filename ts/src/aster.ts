@@ -15,7 +15,7 @@ import { ecdsa } from './base/functions/crypto.js';
  * @augments Exchange
  */
 export default class aster extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'aster',
             'name': 'Aster',
@@ -990,6 +990,7 @@ export default class aster extends Exchange {
             return undefined;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
+        const tradingFees = this.safeDict (this.fees, 'trading', {});
         let spot: Bool = undefined;
         let symbol: Str = undefined;
         let settle: Str = undefined;
@@ -1047,8 +1048,8 @@ export default class aster extends Exchange {
             'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1180,13 +1181,13 @@ export default class aster extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsUntil, 'price');
         let response: Dict | List;
         if (isMark) {
-            requestUntil['symbol'] = market['id'];
+            requestUntil['symbol'] = this.safeString (market, 'id', '');
             response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else if (isIndex) {
-            requestUntil['pair'] = market['id'];
+            requestUntil['pair'] = this.safeString (market, 'id', '');
             response = await this.fapiPublicGetV3IndexPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else {
-            requestUntil['symbol'] = market['id'];
+            requestUntil['symbol'] = this.safeString (market, 'id', '');
             if (market['linear'] === true) {
                 response = await this.fapiPublicGetV3Klines (this.extend (requestUntil, paramsOmitted));
             } else {
@@ -2083,8 +2084,9 @@ export default class aster extends Exchange {
 
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2164,7 +2166,7 @@ export default class aster extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         let strValue: Str = 'false';
-        if (hedged) {
+        if (hedged === true) {
             strValue = 'true';
         }
         const request: Dict = {
@@ -2695,18 +2697,19 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
         const orderSymbols: string[] = [];
-        if (orders.length > 5) {
+        const ordersLength = orders.length;
+        if (ordersLength > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const currentMarket = this.market (marketId);
             orderSymbols.push (currentMarket['symbol']);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -2714,7 +2717,7 @@ export default class aster extends Exchange {
         const orderSymbolsResolved = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (orderSymbolsResolved[0]);
         if (market['spot'] === true) {
-            throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' createOrders() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         const request: Dict = {
             'batchOrders': ordersRequests,
@@ -2839,7 +2842,8 @@ export default class aster extends Exchange {
                 const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
+                    const marketPrecision = this.safeDict (market, 'precision', {});
+                    const precision = marketPrecision['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
@@ -3442,13 +3446,13 @@ export default class aster extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
-            requestUntil['startTime'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min (limit, 1000); // max 1000
+            request['limit'] = Math.min (limit, 1000); // max 1000
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.fapiPrivateGetV3Income (this.extend (requestUntil, paramsUntil));
         return this.parseIncomes (response, market, since, limit);
     }
@@ -3841,8 +3845,8 @@ export default class aster extends Exchange {
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (code in balances) {
-                    const balance = this.safeDict (balances, code);
+                const balance = this.safeDict (balances, code);
+                if (balance !== undefined) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
                         'crossMargin': this.safeString (balance, 'crossMargin'),
                         'crossWalletBalance': this.safeString (balance, 'crossWalletBalance'),
@@ -3978,15 +3982,15 @@ export default class aster extends Exchange {
             }
             const pricePrecision = this.precisionFromString (this.safeString (marketResolved['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
-            const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
+            const pricePrecisionPlusOneString = this.numberToString (pricePrecisionPlusOne);
             const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
             if (truncatedLiquidationPrice === undefined) {
                 throw new ExchangeError (this.id + ' method() missing truncatedLiquidationPrice');
             }
-            if (truncatedLiquidationPrice[0] === '-') {
+            if (truncatedLiquidationPrice.startsWith ('-')) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = undefined;
@@ -4464,7 +4468,7 @@ export default class aster extends Exchange {
         //        }
         //    ]
         //
-        const approvedBuilders = result;
+        const approvedBuilders = this.toArray (result);
         const length = approvedBuilders.length;
         let found = false;
         const builderAddress = this.safeString (this.options, 'builder');
@@ -4502,7 +4506,7 @@ export default class aster extends Exchange {
         return undefined; // just c#
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -4512,12 +4516,12 @@ export default class aster extends Exchange {
         //        "msg": "Invalid symbol.",
         //    }
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (code !== undefined && code !== '200') {
+        if (codeError !== undefined && codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

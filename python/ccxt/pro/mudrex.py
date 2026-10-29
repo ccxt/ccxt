@@ -14,7 +14,7 @@ from ccxt.base.errors import RateLimitExceeded
 
 class mudrex(ccxt.async_support.mudrex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mudrex, self).describe(), {
             'has': {
                 'ws': True,
@@ -71,9 +71,10 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = 'ticker:' + symbolValue
         url = self.urls['api']['ws']
         self.set_broker_headers()
-        baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
-        quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
-        assetId = baseIdString.lower() + quoteIdString.lower()
+        baseIdString = self.safe_string(market, 'baseId', '')
+        quoteIdString = self.safe_string(market, 'quoteId', '')
+        assetId = baseIdString.lower()
+        assetId = assetId + quoteIdString.lower()
         subscribe = {
             'id': self.request_id(),
             'method': 'SUBSCRIBE',
@@ -93,9 +94,11 @@ class mudrex(ccxt.async_support.mudrex):
             for i in range(0, len(symbolsNormalized)):
                 market = self.market(symbolsNormalized[i])
                 messageHashes.append('ticker:' + market['symbol'])
-                baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
-                quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
-                assets.append(baseIdString.lower() + quoteIdString.lower())
+                baseIdString = self.safe_string(market, 'baseId', '')
+                quoteIdString = self.safe_string(market, 'quoteId', '')
+                assetId = baseIdString.lower()
+                assetId = assetId + quoteIdString.lower()
+                assets.append(assetId)
         url = self.urls['api']['ws']
         self.set_broker_headers()
         subscribe = {
@@ -127,8 +130,8 @@ class mudrex(ccxt.async_support.mudrex):
         prefix = 'kline'
         if priceType == 'mark':
             prefix = 'markKline'
-        streamBaseId = market['baseId'] if (market['baseId'] is not None) else ''
-        streamQuoteId = market['quoteId'] if (market['quoteId'] is not None) else ''
+        streamBaseId = self.safe_string(market, 'baseId', '')
+        streamQuoteId = self.safe_string(market, 'quoteId', '')
         stream = prefix + '@' + interval + '@' + streamBaseId.lower() + streamQuoteId.lower()
         messageHash = stream
         url = self.urls['api']['ws']
@@ -162,7 +165,7 @@ class mudrex(ccxt.async_support.mudrex):
     def handle_error_message(self, client: Client, message: dict):
         error = self.safe_dict(message, 'error', {})
         code = self.safe_string(error, 'code')
-        msg = self.safe_string(error, 'msg')
+        msg = self.safe_string(error, 'msg', '')
         feedback = self.id + ' ' + msg
         if code == '429':
             raise RateLimitExceeded(feedback)

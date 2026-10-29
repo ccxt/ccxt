@@ -162,12 +162,11 @@ class bingx extends bingx$1["default"] {
         else {
             url = this.safeString(this.urls['api']['ws'], marketType);
         }
-        const dataType = market['id'] + '@ticker';
         const messageHash = this.getMessageHash('ticker', this.safeString(market, 'symbol'));
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': dataType,
+            'dataType': this.safeString(market, 'id', '') + '@ticker',
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
@@ -194,7 +193,7 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const dataType = market['id'] + '@ticker';
+        const dataType = this.safeString(market, 'id', '') + '@ticker';
         const subMessageHash = this.getMessageHash('ticker', this.safeString(market, 'symbol'));
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'ticker';
@@ -385,12 +384,11 @@ class bingx extends bingx$1["default"] {
         else {
             url = this.safeString(this.urls['api']['ws'], marketType);
         }
-        const rawHash = market['id'] + '@trade';
         const messageHash = 'trade::' + symbolValue;
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': rawHash,
+            'dataType': this.safeString(market, 'id', '') + '@trade',
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
@@ -429,12 +427,11 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const dataType = market['id'] + '@trade';
         const subMessageHash = this.getMessageHash('trade', this.safeString(market, 'symbol'));
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'trades';
         const methodName = 'unWatchTrades';
-        return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
+        return await this.unWatch(messageHash, subMessageHash, messageHash, this.safeString(market, 'id', '') + '@trade', topic, market, methodName, params);
     }
     handleTrades(client, message) {
         //
@@ -520,7 +517,8 @@ class bingx extends bingx$1["default"] {
         //
         const data = this.safeValue(message, 'data', []);
         const rawHash = this.safeString(message, 'dataType', '');
-        const marketId = rawHash.split('@')[0];
+        const hashParts = rawHash.split('@');
+        const marketId = this.safeString(hashParts, 0);
         const isSwap = client.url.indexOf('swap') >= 0;
         let marketType = 'spot';
         if (isSwap) {
@@ -574,8 +572,8 @@ class bingx extends bingx$1["default"] {
             url = this.safeString(this.urls['api']['ws'], marketType);
         }
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger(options, 'depth', 100);
-        const subscriptionHash = market['id'] + '@' + 'depth' + this.numberToString(depth);
+        const depth = this.safeString(options, 'depth', '100');
+        const subscriptionHash = this.safeString(market, 'id', '') + '@depth' + depth;
         const messageHash = this.getMessageHash('orderbook', this.safeString(market, 'symbol'));
         const uuid = this.uuid();
         const request = {
@@ -622,8 +620,8 @@ class bingx extends bingx$1["default"] {
         }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger(options, 'depth', 100);
-        const subMessageHash = market['id'] + '@' + 'depth' + this.numberToString(depth);
+        const depth = this.safeString(options, 'depth', '100');
+        const subMessageHash = this.safeString(market, 'id', '') + '@depth' + depth;
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'orderbook';
         const methodName = 'unWatchOrderBook';
@@ -705,7 +703,7 @@ class bingx extends bingx$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
-        const firstPart = parts[0];
+        const firstPart = this.safeString(parts, 0);
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString(data, 'symbol', firstPart);
         const isSwap = client.url.indexOf('swap') >= 0;
@@ -846,7 +844,7 @@ class bingx extends bingx$1["default"] {
         const isSwap = client.url.indexOf('swap') >= 0;
         const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
-        const firstPart = parts[0];
+        const firstPart = this.safeString(parts, 0);
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString(message, 's', firstPart);
         let marketType = 'spot';
@@ -869,7 +867,8 @@ class bingx extends bingx$1["default"] {
         }
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-        const rawTimeframe = dataType.split('_')[1];
+        const timeframeParts = dataType.split('_');
+        const rawTimeframe = this.safeString(timeframeParts, 1);
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
@@ -932,7 +931,7 @@ class bingx extends bingx$1["default"] {
         const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = this.getMessageHash('ohlcv', this.safeString(market, 'symbol'), timeframe);
-        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
+        const subscriptionHash = this.safeString(market, 'id', '') + '@kline_' + rawTimeframe;
         const uuid = this.uuid();
         const request = {
             'id': uuid,
@@ -975,7 +974,7 @@ class bingx extends bingx$1["default"] {
         const options = this.safeDict(this.options, market['type'], {});
         const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
-        const subMessageHash = market['id'] + '@kline_' + rawTimeframe;
+        const subMessageHash = this.safeString(market, 'id', '') + '@kline_' + rawTimeframe;
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'ohlcv';
         const methodName = 'unWatchOHLCV';
@@ -1007,7 +1006,7 @@ class bingx extends bingx$1["default"] {
         }
         const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchOrders', market, params);
-        const subType = this.handleSubTypeAndParams('watchOrders', market, paramsMarketType, 'linear')[0];
+        const [subType] = this.handleSubTypeAndParams('watchOrders', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1022,7 +1021,12 @@ class bingx extends bingx$1["default"] {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbolResolved;
+            if (isSpot) {
+                messageHash = spotMessageHash + ':' + this.safeString(market, 'symbol', '');
+            }
+            else {
+                messageHash = swapMessageHash + ':' + this.safeString(market, 'symbol', '');
+            }
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
@@ -1081,7 +1085,7 @@ class bingx extends bingx$1["default"] {
         }
         const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
-        const subType = this.handleSubTypeAndParams('watchMyTrades', market, paramsMarketType, 'linear')[0];
+        const [subType] = this.handleSubTypeAndParams('watchMyTrades', market, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1096,7 +1100,12 @@ class bingx extends bingx$1["default"] {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbolResolved;
+            if (isSpot) {
+                messageHash = spotMessageHash + ':' + this.safeString(market, 'symbol', '');
+            }
+            else {
+                messageHash = swapMessageHash + ':' + this.safeString(market, 'symbol', '');
+            }
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
@@ -1187,7 +1196,7 @@ class bingx extends bingx$1["default"] {
         const client = this.client(url);
         this.setBalanceCache(client, type, subType, subscriptionHash, paramsSubType);
         const [fetchBalanceSnapshot, paramsFetchBalanceSnapshot] = this.handleOptionBoolAndParams(paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const awaitBalanceSnapshot = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        const [awaitBalanceSnapshot] = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
@@ -1201,7 +1210,7 @@ class bingx extends bingx$1["default"] {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionBoolAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
+        const [fetchBalanceSnapshot] = this.handleOptionBoolAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1265,7 +1274,7 @@ class bingx extends bingx$1["default"] {
         const client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
         const [fetchPositionsSnapshot, paramsFetchPositionsSnapshot] = this.handleOptionBoolAndParams(paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
+        const [awaitPositionsSnapshot] = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
         const uuid = this.uuid();
         const subscription = {
             'unsubscribe': false,
@@ -1418,7 +1427,7 @@ class bingx extends bingx$1["default"] {
         }
         const messageHashes = this.findMessageHashes(client, 'swap:positions::');
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString(messageHashes, i, '');
             const parts = messageHash.split('::');
             const symbolsString = parts[1];
             const filteredSymbols = symbolsString.split(',');
@@ -1675,7 +1684,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         stored.append(parsedOrder);
-        const symbol = parsedOrder['symbol'];
+        const symbol = this.safeString(parsedOrder, 'symbol', '');
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
         let messageHash = swapHash;
@@ -1757,7 +1766,7 @@ class bingx extends bingx$1["default"] {
         const marketId = this.safeString(result, 's');
         const market = this.safeMarket(marketId, undefined, '-', type);
         const parsed = this.parseTrade(result, market);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
         let messageHash = swapHash;
@@ -1931,8 +1940,8 @@ class bingx extends bingx$1["default"] {
         const messageHashes = this.safeList(subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
+            const unsubHash = this.safeString(messageHashes, i, '');
+            const subHash = this.safeString(subMessageHashes, i, '');
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

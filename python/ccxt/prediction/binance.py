@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class binance(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
@@ -147,7 +147,7 @@ class binance(PredictionExchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -193,7 +193,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.set_events(parsedEvents)
         return flatMarkets
 
-    async def fetch_raw_topics(self, maxTopics: Int, rest: dict = {}) -> list[object]:
+    async def fetch_raw_topics(self, maxTopics: Int, rest: dict = {}) -> list[dict]:
         """
  @ignore
         pages the market/list endpoint and returns up to `maxTopics` raw market topics
@@ -205,9 +205,13 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: raw market topic objects
         """
         maxTopicsOption = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200)
-        maxTopicsResolved = maxTopics if (maxTopics is not None) else maxTopicsOption
+        maxTopicsResolved = self.parse_to_int(maxTopicsOption)
+        if maxTopics is not None:
+            maxTopicsResolved = self.parse_to_int(maxTopics)
         pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        pageLimit = 100 if (pageLimitOption > 100) else pageLimitOption
+        pageLimit = self.parse_to_int(100)
+        if pageLimitOption < 100:
+            pageLimit = self.parse_to_int(pageLimitOption)
         collected = []
         offset = 0
         while(True):
@@ -263,7 +267,7 @@ class binance(PredictionExchange, ImplicitAPI):
             offset = self.sum(offset, pageTopicsLength)
         return collected
 
-    async def fetch_raw_topic_detail(self, topicId: str, params: dict = {}) -> object:
+    async def fetch_raw_topic_detail(self, topicId: str, params: dict = {}) -> dict:
         """
  @ignore
         fetches a single raw market topic(with nested markets and outcome tokens) by its id
@@ -276,7 +280,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         return await self.sapiPrivateGetMarketDetail(self.extend(request, params))
 
-    async def complete_raw_topics(self, rawTopics: list[object]) -> list[object]:
+    async def complete_raw_topics(self, rawTopics: list[dict]) -> list[dict]:
         """
  @ignore
         ensures each raw topic carries fully-populated nested markets(with outcome token ids), fetching the topic detail when the listing/search payload omitted them
@@ -398,7 +402,7 @@ class binance(PredictionExchange, ImplicitAPI):
         postParams = self.omit(paramsOmitted, postOmitKeys)
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[object]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[dict]:
         """
  @ignore
         resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
@@ -1001,7 +1005,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         wallet = await self.fetch_wallet('fetchOpenOrders', paramsMaxEntriesPerRequest)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderList(self.extend(request, paramsMaxEntriesPerRequest))
         #
         # {
@@ -1083,7 +1087,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endDate'] = self.yyyymmdd(until)
         wallet = await self.fetch_wallet('fetchOrders', paramsOmitted)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderHistory(self.extend(request, paramsOmitted))
         #
         # {
@@ -1145,7 +1149,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 requestedOutcomeSymbols[requestedOutcome] = True
         wallet = await self.fetch_wallet('fetchPositions', params)
         request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
         }
         response = await self.sapiPrivateGetPositionList(self.extend(request, params))
         #
@@ -1228,7 +1232,7 @@ class binance(PredictionExchange, ImplicitAPI):
             market = self.market(outcomeObj['market'])
             request['marketTopicId'] = market['info']['marketTopicId']
         wallet = await self.fetch_wallet('fetchOrders', params)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetPositionFilter(self.extend(request, params))
         #
         #
@@ -1331,7 +1335,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endDate'] = self.yyyymmdd(until)
         wallet = await self.fetch_wallet('fetchMyTrades', paramsOmitted)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderHistory(self.extend(request, paramsOmitted))
         #
         # {
@@ -1487,7 +1491,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 return self.safe_dict(self.options, 'wallet')
         raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
 
-    async def fetch_quote(self, request: dict, params: dict = {}) -> object:
+    async def fetch_quote(self, request: dict, params: dict = {}) -> dict:
         """
         request for quote from binance server
 
@@ -1585,7 +1589,7 @@ class binance(PredictionExchange, ImplicitAPI):
         cost = self.safe_string(params, 'cost')
         slippageBps = self.parse_to_int(Precise.string_mul(slippage, '10000'))
         commonRequest = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         }
@@ -1625,7 +1629,7 @@ class binance(PredictionExchange, ImplicitAPI):
         quote = await self.fetch_quote(quoteRequest, paramsOmitted)
         quoteId = self.safe_string(quote, 'quoteId')
         orderRequest = self.extend(commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': self.safe_string(wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
@@ -1702,8 +1706,8 @@ class binance(PredictionExchange, ImplicitAPI):
             outcomeObj = self.outcome(outcome)
         wallet = await self.fetch_wallet('cancelOrders', params)
         request = {
-            'walletAddress': wallet['walletAddress'],
-            'walletId': wallet['walletId'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
+            'walletId': self.safe_string(wallet, 'walletId'),
         }
         # flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for i in range(0, len(ids)):
@@ -1728,15 +1732,13 @@ class binance(PredictionExchange, ImplicitAPI):
         failedOrders = self.safe_list(response, 'failed', [])
         failedOrdersLength = len(failedOrders)
         if failedOrdersLength > 0:
-            failedDetails = ''
+            failedDetails = []
             for i in range(0, failedOrdersLength):
                 failedOrder = self.safe_dict(failedOrders, i)
-                failedOrderId = self.safe_string(failedOrder, 'orderId')
-                failedReason = self.safe_string(failedOrder, 'reason')
-                if i > 0:
-                    failedDetails = failedDetails + ', '
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason
-            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + failedDetails)
+                failedOrderId = self.safe_string(failedOrder, 'orderId', '')
+                failedReason = self.safe_string(failedOrder, 'reason', '')
+                failedDetails.append(failedOrderId + ': ' + failedReason)
+            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + ', '.join(failedDetails))
         orders = []
         canceledOrdersLength = len(canceledOrders)
         for i in range(0, canceledOrdersLength):
@@ -1756,7 +1758,7 @@ class binance(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order(order))
         return orders
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')
