@@ -943,7 +943,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 $subType = 'inverse';
             }
-            $marketId = $market['lowercaseId'];
+            $marketId = $this->safe_string($market, 'lowercaseId', '*');
         } else {
             $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
@@ -1087,7 +1087,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $type = $this->safe_string($market, 'type');
-            $suffix = $market['lowercaseId'];
+            $suffix = $this->safe_string($market, 'lowercaseId', '*');
             if ($market['linear'] === true) {
                 $subType = 'linear';
             } else {

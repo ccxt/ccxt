@@ -149,7 +149,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'ticker:' . $symbolValue;
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchTicker', 'uta', false);
         list($instType, $paramsValue) = $this->get_inst_type('watchTicker', $market, $uta, $paramsUta);
@@ -559,7 +559,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $timeframes = $this->safe_dict($this->options, 'timeframes');
         $interval = $this->safe_string($timeframes, $timeframe);
         $messageHash = null;
@@ -715,7 +715,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
         $this->ohlcvs[$symbol] = $symbolOhlcvs;
         $channel = $this->safe_string_2($arg, 'channel', 'topic', '');
@@ -1297,7 +1297,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -3106,7 +3106,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $instId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($instId, null, null, $type);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'unsubscribe:trade:' . $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'trade:' . $symbol;
         if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
@@ -3183,7 +3183,7 @@ class bitget extends \ccxt\async\bitget {
         $timeframes = $this->safe_dict($this->options, 'timeframes');
         $timeframe = $this->find_timeframe($interval, $timeframes);
         $market = $this->safe_market($instId, null, null, $type);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = null;
         $subMessageHash = null;
         if ($isUta) {

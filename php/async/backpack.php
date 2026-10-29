@@ -941,7 +941,7 @@ class backpack extends Exchange {
             $inverse = false;
             $settleId = $this->safe_string($market, 'quoteSymbol');
             $settle = $this->safe_currency_code($settleId);
-            $symbol = $base . '/' . $quote . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $quote; // settle is the quote currency
             $contractSize = 1;
         } else {
             return null;

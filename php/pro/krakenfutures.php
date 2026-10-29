@@ -1312,8 +1312,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
-        $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
@@ -1348,8 +1347,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
-        $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $orderbook = $this->orderbooks[$symbol];
         $side = $this->safe_string($message, 'side');

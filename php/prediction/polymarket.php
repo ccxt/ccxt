@@ -3415,7 +3415,8 @@ class polymarket extends Exchange {
         if ($outcomeResolved !== null) {
             $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'orders::' . $outcomeResolved;
+            $outcomeName = $this->safe_string($outcomeObj, 'outcome', '');
+            $messageHash = 'orders::' . $outcomeName;
         }
         $orders = Async\await($this->subscribe_user_channel($messageHash, $params));
         $limitResolved = $limit;
@@ -3447,7 +3448,8 @@ class polymarket extends Exchange {
         if ($outcomeResolved !== null) {
             $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'myTrades::' . $outcomeResolved;
+            $outcomeName = $this->safe_string($outcomeObj, 'outcome', '');
+            $messageHash = 'myTrades::' . $outcomeName;
         }
         $trades = Async\await($this->subscribe_user_channel($messageHash, $params));
         $limitResolved = $limit;
