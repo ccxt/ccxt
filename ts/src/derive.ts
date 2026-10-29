@@ -1672,7 +1672,7 @@ export default class derive extends Exchange {
             //     }
             //
         }
-        const result = this.safeList (response, 'result');
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
