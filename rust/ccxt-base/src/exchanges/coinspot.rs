@@ -1508,17 +1508,18 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __api_empty = Vec::new();
-        let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut apiLength: f64 = ((api.len() as i64) as f64);
         let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
-        let mut accessType: Value = (if isVersionedApi { api.get(1).cloned().unwrap_or(Value::Null) } else { api.get(0).cloned().unwrap_or(Value::Null) });
+        let mut accessType: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
+        if isVersionedApi {
+            accessType = api.as_array().into_iter().flatten().nth(1).cloned().unwrap_or(Value::Null);
+        }
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut fullPath: Value = endpoint.clone();
         if isVersionedApi {
-            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), api.get(0).cloned().unwrap_or(Value::Null)).into()), endpoint).into());
+            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint).into());
         }
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
         if (apiUrl.is_none()) {

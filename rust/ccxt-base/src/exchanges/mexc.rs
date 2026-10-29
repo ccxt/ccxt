@@ -5289,10 +5289,12 @@ impl MexcCore {
         //         "tradeEnabled": true
         //     }
         //
+        let mut isMarginType: bool = marketType.as_str() == Some("margin");
+        let mut isSwapType: bool = marketType.as_str() == Some("swap");
         let mut wallet: Value = Value::Null;
-        if (marketType.as_str() == Some("margin")) {
+        if isMarginType {
             wallet = self.safe_list_k(response.clone(), "assets", &[Value::from(vec![])]);
-        }  else if (marketType.as_str() == Some("swap")) {
+        }  else if isSwapType {
             wallet = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             wallet = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
@@ -5302,7 +5304,7 @@ impl MexcCore {
                 m.insert("info".to_string(), response);
             m
         });
-        if (marketType.as_str() == Some("margin")) {
+        if isMarginType {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_951: bool = true;
@@ -5327,7 +5329,7 @@ impl MexcCore {
             }
             }
             return self.safe_balance(result.clone());
-        }  else if (marketType.as_str() == Some("swap")) {
+        }  else if isSwapType {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_952: bool = true;
