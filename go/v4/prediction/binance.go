@@ -2518,14 +2518,14 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var failedOrders []any = ccxt.SafeListTyped(response, "failed")
 	var failedOrdersLength int = len(failedOrders)
 	if failedOrdersLength > 0 {
-		var failedDetails []any = []any{}
+		var failedDetails []string = []string{}
 		for i := 0; i < failedOrdersLength; i++ {
 			var failedOrder map[string]any = ccxt.SafeMapTyped(failedOrders, i)
 			var failedOrderId *string = this.SafeString(failedOrder, "orderId", "")
 			var failedReason *string = this.SafeString(failedOrder, "reason", "")
 			failedDetails = append(failedDetails, *failedOrderId+": "+*failedReason)
 		}
-		panic(ccxt.OrderNotFound(this.Id + " cancelOrders() failed for " + ccxt.Join(failedDetails, ", ")))
+		panic(ccxt.OrderNotFound(this.Id + " cancelOrders() failed for " + strings.Join(failedDetails, ", ")))
 	}
 	var orders []any = []any{}
 	var canceledOrdersLength int = len(canceledOrders)

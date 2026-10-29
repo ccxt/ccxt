@@ -1604,7 +1604,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) map[strin
 		// independentreserve requires an increasing nonce
 		var rawNonce int64 = this.IncrementingNonce()
 		var nonce int64 = this.ParseToInt(rawNonce)
-		var auth []any = []any{url, "apiKey=" + this.ApiKey, "nonce=" + strconv.FormatInt(nonce, 10)}
+		var auth []string = []string{url, "apiKey=" + this.ApiKey, "nonce=" + strconv.FormatInt(nonce, 10)}
 		var paramsDict map[string]any = this.Extend(map[string]any{}, params)
 		var keys []string = nil
 		if paramsDict != nil {
@@ -1618,7 +1618,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) map[strin
 			var value *string = this.SafeString(paramsDict, key, "")
 			auth = append(auth, key+"="+*value)
 		}
-		var message string = Join(auth, ",")
+		var message string = strings.Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
 		var query map[string]any = map[string]any{}
 		query["apiKey"] = this.ApiKey

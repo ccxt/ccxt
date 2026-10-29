@@ -727,7 +727,7 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 	}
 	var results []any = ListTyped(r.Value)
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
-	var failedMethods []any = []any{}
+	var failedMethods []string = []string{}
 	for i := 0; i < len(testNames); i++ {
 		var testName string = testNames[i]
 		var testReturnedValue any = results[i]
@@ -742,7 +742,7 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 		return "PRIVATE_TESTS"
 	}()
 	if len(failedMethods) > 0 {
-		var errorsString string = Join(failedMethods, ", ")
+		var errorsString string = strings.Join(failedMethods, ", ")
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
 	}
 	if EvalTruthy(this.Info) {

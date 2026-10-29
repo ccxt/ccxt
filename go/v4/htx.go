@@ -10203,8 +10203,8 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 			var sortedRequest map[string]any = this.Keysort(request)
 			var auth string = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
-			var content []any = []any{method, this.Hostname, url, auth}
-			var payload string = Join(content, "\n") // eslint-disable-line quotes
+			var content []string = []string{method, this.Hostname, url, auth}
+			var payload string = strings.Join(content, "\n") // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth += "&" + this.Urlencode(map[string]any{
 				"Signature": signature,
