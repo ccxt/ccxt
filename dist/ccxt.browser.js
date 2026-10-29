@@ -305077,7 +305077,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
-                'fetchL2OrderBook': false,
+                'fetchL2OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
@@ -413799,22 +413799,32 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair": "ETH:USD",
-        //        "symbol": "fi_ethusd_220624",
-        //        "markPrice": "2925.72",
-        //        "bid": "2923.8",
-        //        "bidSize": "16804",
-        //        "ask": "2928.65",
-        //        "askSize": "1339",
-        //        "vol24h": "860493",
-        //        "openInterest": "3023363.00000000",
-        //        "open24h": "3021.25",
-        //        "indexPrice": "2893.71",
-        //        "last": "2942.25",
-        //        "lastTime": "2022-02-18T14:08:15.578Z",
-        //        "lastSize": "151",
-        //        "suspended": false
+        //        "symbol": "PF_XBTUSD",
+        //        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        //        "pair": "XBT:USD",
+        //        "last": 80462,
+        //        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        //        "lastSize": 0.0043,
+        //        "markPrice": 80460.58444719581,
+        //        "indexPrice": 80454.68,
+        //        "bid": 80462,
+        //        "bidSize": 0.2292,
+        //        "ask": 80463,
+        //        "askSize": 0.1758,
+        //        "open24h": 80424,
+        //        "high24h": 80938,
+        //        "low24h": 79983,
+        //        "vwap24h": 80525.59286860962,
+        //        "vol24h": 2431.0631,
+        //        "volumeQuote": 195762797.4285,
+        //        "change24h": 0.05,
+        //        "openInterest": 2629.0003,
+        //        "fundingRate": 0.8337156123064435,
+        //        "fundingRatePrediction": 0.6968080809793065,
+        //        "relativeFundingRate": 1.0348054166667e-05,
+        //        "relativeFundingRatePrediction": 8.656733333333e-06,
+        //        "suspended": false,
+        //        "postOnly": false
         //    }
         //
         //    {
@@ -413833,27 +413843,32 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         const percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(change, open), '100');
         const average = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(open, last), '2');
         const volume = this.safeString(ticker, 'vol24h');
+        const quoteVolume = this.safeString(ticker, 'volumeQuote');
+        const vwap = this.safeString(ticker, 'vwap24h');
+        // vol24h counts contracts: base units on linear markets, quote (usd) units
+        // on inverse ones, where the base side has to come from vwap24h instead
         let baseVolume = undefined;
-        let quoteVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
         if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             } else if (marketResolved['inverse'] === true) {
-                quoteVolume = volume;
+                baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(quoteVolume, vwap);
             }
         }
+        const high = this.safeString(ticker, 'high24h');
+        const low = this.safeString(ticker, 'low24h');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': high,
+            'low': low,
             'bid': this.safeString(ticker, 'bid'),
             'bidVolume': this.safeString(ticker, 'bidSize'),
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': this.safeString(ticker, 'askSize'),
-            'vwap': undefined,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,
@@ -572021,7 +572036,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
-        const first = this.safeList(trades, 0);
+        const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -583084,7 +583099,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
@@ -584410,7 +584425,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
-        const first = this.safeList(trades, 0);
+        const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {

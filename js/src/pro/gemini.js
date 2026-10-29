@@ -96,7 +96,7 @@ export default class gemini extends geminiRest {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
-        const first = this.safeList(trades, 0);
+        const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
