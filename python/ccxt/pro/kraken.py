@@ -724,7 +724,7 @@ class kraken(ccxt.async_support.kraken):
         trades = await self.watch_multi_helper('trade', 'trade', symbols, None, params)
         limitResolved = limit
         if self.newUpdates:
-            first = self.safe_list(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)

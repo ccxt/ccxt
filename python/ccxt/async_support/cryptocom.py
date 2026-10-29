@@ -1199,7 +1199,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         responseResult = self.safe_dict(response, 'result', {})
         data = self.safe_list(responseResult, 'data', [])
-        positionBalances = self.safe_list(data[0], 'position_balances', [])
+        positionBalances = self.safe_list(self.safe_dict(data, 0), 'position_balances', [])
         result = {'info': response}
         for i in range(0, len(positionBalances)):
             balance = self.safe_dict(positionBalances, i)

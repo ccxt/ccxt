@@ -2271,7 +2271,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !(matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]"))) {
-                panic!("{}", e);
+                // if it's not a BadRequest, it means our request was not created succesfully
+                // so we might have an error in the request creation
+                self.requestTestsFailed = Value::Bool(true);
+                let mut creationErrorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+                dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), creationErrorMessage).into())]);
+                return Value::Bool(true);
             }
             output = get_value(&exchange, &Value::Str("last_request_body".into()));
             requestUrl = get_value(&exchange, &Value::Str("last_request_url".into()));

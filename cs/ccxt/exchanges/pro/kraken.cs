@@ -852,7 +852,7 @@ public partial class kraken : ccxt.kraken
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            List<object> first = this.safeList(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }

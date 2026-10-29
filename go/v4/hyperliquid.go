@@ -3217,6 +3217,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -3237,11 +3238,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes252719 map[string]any = StructResultMap(r.Value, OrderToMap)
-		if retRes252719 == nil {
+		var retRes252819 map[string]any = StructResultMap(r.Value, OrderToMap)
+		if retRes252819 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes252719)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes252819)}
 		}
 		return nil
 	}
@@ -3250,8 +3251,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3082, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv3082
+	listRecv3083, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = listRecv3083
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -3270,6 +3271,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -3440,6 +3442,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	 * @param {string[]} ids order ids
 	 * @param {string} symbol unified market symbol
 	 * @param {object} [params]
+	 * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
 	 * @returns {object} the raw request object to be sent to the exchange
 	 */
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3448,7 +3451,8 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	_ = params
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var fast *bool = this.SafeBool(params, "fast", false)
+	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id", "fast"})
 	var nonce any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3481,6 +3485,10 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 		}
 	}
 	cancelAction["cancels"] = cancelReq
+	if fast != nil && *fast {
+		// "f" must be omitted when false, actions hashed with "f": false are rejected
+		cancelAction["f"] = true
+	}
 	var vaultAddress any = nil
 	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
@@ -3506,6 +3514,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -3585,6 +3594,11 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		return "cancel"
 	}()
 	cancelAction["cancels"] = cancelReq
+	var fast *bool = this.SafeBool(params, "fast", false)
+	if fast != nil && *fast {
+		// "f" must be omitted when false, actions hashed with "f": false are rejected
+		cancelAction["f"] = true
+	}
 	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
@@ -5566,11 +5580,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[MarginModification], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes422015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes422015 == nil {
+	var retRes423415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes423415 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes422015)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes423415)}
 	}
 	return nil
 }
@@ -5602,11 +5616,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan AsyncResult[MarginModification
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes423615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes423615 == nil {
+	var retRes425015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes425015 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes423615)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes425015)}
 	}
 	return nil
 }
@@ -5824,8 +5838,8 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5486, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5486
+		listRecv5500, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5500
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = GetValue(isUnifiedqueryVariable, 1)
 		useSendAsset = (isUnified == true)
@@ -7547,6 +7561,7 @@ func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOr
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -7576,6 +7591,7 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -7630,6 +7646,7 @@ func (this *Hyperliquid) CancelTwapOrder(id string, options ...CancelTwapOrderOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {

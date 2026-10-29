@@ -1896,10 +1896,10 @@ class bitstamp(Exchange, ImplicitAPI):
         #         "timestamp": "1644406050"
         #     }
         #
-        timestamp = self.safe_integer_product(contract, 'timestamp', 0.001)
+        timestamp = self.safe_integer_product(contract, 'timestamp', 1000)
         return {
             'info': contract,
-            'symbol': None,
+            'symbol': self.safe_symbol(None, market),
             'fundingRate': self.safe_number(contract, 'funding_rate'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

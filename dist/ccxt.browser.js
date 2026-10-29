@@ -264219,10 +264219,10 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
         //         "timestamp": "1644406050"
         //     }
         //
-        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 0.001);
+        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 1000);
         return {
             'info': contract,
-            'symbol': undefined,
+            'symbol': this.safeSymbol(undefined, market),
             'fundingRate': this.safeNumber(contract, 'funding_rate'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp)
@@ -305077,7 +305077,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
-                'fetchL2OrderBook': false,
+                'fetchL2OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
@@ -326233,7 +326233,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeList(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(this.safeDict(data, 0), 'position_balances', []);
         const result = {
             'info': response
         };
@@ -403195,6 +403195,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
      * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (this.safeBool(params, 'twap', false)) {
@@ -403218,6 +403219,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrders(ids, symbol = undefined, params = {}) {
         this.checkRequiredCredentials();
@@ -403330,12 +403332,15 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
+         * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */ const market = this.market(symbol);
         let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const fast = this.safeBool(params, 'fast', false);
         let params2 = this.omit(params, [
             'clientOrderId',
-            'client_id'
+            'client_id',
+            'fast'
         ]);
         const nonce = this.incrementingNonce();
         const request = {
@@ -403371,6 +403376,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             }
         }
         cancelAction['cancels'] = cancelReq;
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -403393,6 +403402,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrdersForSymbols(orders, params = {}) {
         this.checkRequiredCredentials();
@@ -403434,6 +403444,11 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
+        const fast = this.safeBool(params, 'fast', false);
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         const vaultAddressOption = this.handleOptionStringAndParams2(params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
@@ -413799,22 +413814,32 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair": "ETH:USD",
-        //        "symbol": "fi_ethusd_220624",
-        //        "markPrice": "2925.72",
-        //        "bid": "2923.8",
-        //        "bidSize": "16804",
-        //        "ask": "2928.65",
-        //        "askSize": "1339",
-        //        "vol24h": "860493",
-        //        "openInterest": "3023363.00000000",
-        //        "open24h": "3021.25",
-        //        "indexPrice": "2893.71",
-        //        "last": "2942.25",
-        //        "lastTime": "2022-02-18T14:08:15.578Z",
-        //        "lastSize": "151",
-        //        "suspended": false
+        //        "symbol": "PF_XBTUSD",
+        //        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        //        "pair": "XBT:USD",
+        //        "last": 80462,
+        //        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        //        "lastSize": 0.0043,
+        //        "markPrice": 80460.58444719581,
+        //        "indexPrice": 80454.68,
+        //        "bid": 80462,
+        //        "bidSize": 0.2292,
+        //        "ask": 80463,
+        //        "askSize": 0.1758,
+        //        "open24h": 80424,
+        //        "high24h": 80938,
+        //        "low24h": 79983,
+        //        "vwap24h": 80525.59286860962,
+        //        "vol24h": 2431.0631,
+        //        "volumeQuote": 195762797.4285,
+        //        "change24h": 0.05,
+        //        "openInterest": 2629.0003,
+        //        "fundingRate": 0.8337156123064435,
+        //        "fundingRatePrediction": 0.6968080809793065,
+        //        "relativeFundingRate": 1.0348054166667e-05,
+        //        "relativeFundingRatePrediction": 8.656733333333e-06,
+        //        "suspended": false,
+        //        "postOnly": false
         //    }
         //
         //    {
@@ -413833,27 +413858,32 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         const percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(change, open), '100');
         const average = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(open, last), '2');
         const volume = this.safeString(ticker, 'vol24h');
+        const quoteVolume = this.safeString(ticker, 'volumeQuote');
+        const vwap = this.safeString(ticker, 'vwap24h');
+        // vol24h counts contracts: base units on linear markets, quote (usd) units
+        // on inverse ones, where the base side has to come from vwap24h instead
         let baseVolume = undefined;
-        let quoteVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
         if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             } else if (marketResolved['inverse'] === true) {
-                quoteVolume = volume;
+                baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(quoteVolume, vwap);
             }
         }
+        const high = this.safeString(ticker, 'high24h');
+        const low = this.safeString(ticker, 'low24h');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': high,
+            'low': low,
             'bid': this.safeString(ticker, 'bid'),
             'bidVolume': this.safeString(ticker, 'bidSize'),
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': this.safeString(ticker, 'askSize'),
-            'vwap': undefined,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,
@@ -572021,7 +572051,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
-        const first = this.safeList(trades, 0);
+        const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -583084,7 +583114,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
@@ -584410,7 +584440,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
-        const first = this.safeList(trades, 0);
+        const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -589729,7 +589759,9 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': true
+                'watchOHLCV': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true
             },
             'urls': {
                 'api': {
@@ -589770,6 +589802,33 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
         if (market !== undefined && market['contract'] === true) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
         }
+    }
+    /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {object} request the unsubscribe request
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */ async unSubscribe(subHash, request, subscription, params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client(url);
+        if (subHash in client.subscriptions) {
+            try {
+                await client.send(this.deepExtend(request, params));
+            } catch (e) {
+                // the socket is not open (yet), so the queued subscribe has not gone out either -
+                // keep the subscription instead of letting that subscribe stream unwatched
+                throw new _base_errors_js__rspack_import_1.NetworkError(this.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open');
+            }
+        }
+        // lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        this.cleanCache(subscription);
+        this.cleanUnsubscription(client, subHash, 'unsubscribe:' + subHash);
+        return true;
     }
     /**
      * @method
@@ -589845,6 +589904,44 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
             limitResolved = ohlcv.getLimit(symbol, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+    }
+    /**
+     * @method
+     * @name lbank#unWatchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */ async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        this.checkContractMarket(market, 'unWatchOHLCV');
+        const watchOHLCVOptions = this.safeDict(this.options, 'watchOHLCV', {});
+        const timeframes = this.safeDict(watchOHLCVOptions, 'timeframes', {});
+        const timeframeId = this.safeString(timeframes, timeframe);
+        if (timeframeId === undefined) {
+            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' unWatchOHLCV() does not support the ' + timeframe + ' timeframe');
+        }
+        const request = {
+            'action': 'unsubscribe',
+            'subscribe': 'kbar',
+            'kbar': timeframeId,
+            'pair': market['id']
+        };
+        const subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [
+                [
+                    market['symbol'],
+                    timeframe
+                ]
+            ]
+        };
+        return await this.unSubscribe('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params);
     }
     handleOHLCV(client, message) {
         //
@@ -589937,6 +590034,11 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 this.safeNumber(rawOHLCV, 'c'),
                 this.safeNumber(rawOHLCV, 'v')
             ];
+            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            if (!(messageHash in client.subscriptions)) {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
             const timeframe = this.findTimeframe(timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -589946,7 +590048,6 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append(parsed);
-            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
             client.resolve(stored, messageHash);
         }
     }
@@ -590137,6 +590238,33 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
         const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
         return this.sortBy(result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
+    /**
+     * @method
+     * @name lbank#unWatchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */ async unWatchTrades(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        this.checkContractMarket(market, 'unWatchTrades');
+        const request = {
+            'action': 'unsubscribe',
+            'subscribe': 'trade',
+            'pair': market['id']
+        };
+        const subscription = {
+            'topic': 'trades',
+            'symbols': [
+                market['symbol']
+            ]
+        };
+        return await this.unSubscribe('trades:' + market['symbol'], request, subscription, params);
+    }
     handleTrades(client, message) {
         //
         // request
@@ -590167,13 +590295,18 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(message, 'pair');
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
+        const rawTrade = this.safeDict(message, 'trade');
+        const subHash = 'trades:' + symbol;
+        if (rawTrade !== undefined && !(subHash in client.subscriptions)) {
+            // a trade lbank pushed before it processed an unWatchTrades, which it does not acknowledge
+            return;
+        }
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCache */.I3(limit);
             this.trades[symbol] = stored;
         }
-        const rawTrade = this.safeDict(message, 'trade');
         const rawTrades = this.safeList(message, 'trades', [
             rawTrade
         ]);
@@ -630930,7 +631063,6 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */ async fetchStatus(params = {}) {
@@ -631841,7 +631973,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -631886,7 +632018,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}

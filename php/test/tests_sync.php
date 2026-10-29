@@ -4,6 +4,7 @@ namespace ccxt;
 
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\InvalidProxySettings;
 use ccxt\OperationFailed;
@@ -1888,7 +1889,12 @@ class testMainClass {
             }
         } catch(\Throwable $e) {
             if (!($e instanceof InvalidProxySettings)) {
-                throw $e;
+                // if it's not a BadRequest, it means our request was not created succesfully
+                // so we might have an error in the request creation
+                $this->request_tests_failed = true;
+                $creation_error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+                dump('[TEST_FAILURE]' . $creation_error_message);
+                return true;
             }
             $output = $exchange->last_request_body;
             $request_url = $exchange->last_request_url;

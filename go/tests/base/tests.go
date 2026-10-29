@@ -2653,6 +2653,8 @@ func (this *testMainClass) TestRequestStaticallyAsync(exchange ccxt.ICoreExchang
 func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, method any, data any, typeVar any, skipKeys any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	chSent := false
+	_ = chSent
 	var output any = nil
 	var requestUrl any = nil
 	if EvalTruthy(this.Info) {
@@ -2669,7 +2671,15 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[an
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						if !(IsInstance(e, InvalidProxySettings)) {
-							panic(e)
+							// if it's not a BadRequest, it means our request was not created succesfully
+							// so we might have an error in the request creation
+							this.RequestTestsFailed = true
+							var creationErrorMessage any = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add("[", this.Lang), "][STATIC_REQUEST]"), "["), exchange.GetId()), "]"), "["), method), "]"), "["), GetValue(data, "description")), "]"), ExceptionMessage(e))
+							Dump(Add("[TEST_FAILURE]", creationErrorMessage))
+
+							ch <- ccxt.AsyncResult[any]{Value: true}
+							chSent = true
+							return nil
 						}
 						output = exchange.GetLast_request_body()
 						requestUrl = exchange.GetLast_request_url()
@@ -2689,6 +2699,9 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[an
 			}
 			return nil
 		}(this)
+		if chSent {
+			return nil
+		}
 
 	}
 
@@ -2733,6 +2746,9 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[an
 			}
 			return nil
 		}(this)
+		if chSent {
+			return nil
+		}
 
 	}
 

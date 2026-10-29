@@ -1225,7 +1225,7 @@ export default class cryptocom extends Exchange {
     override parseBalance (response: any): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data: Dict[] = this.safeList (responseResult, 'data', []);
-        const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
+        const positionBalances: Dict[] = this.safeList (this.safeDict (data, 0), 'position_balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = this.safeDict (positionBalances, i);
