@@ -3316,7 +3316,7 @@ impl XtCore {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
         let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
-        let mut hasSpotKeys: bool = (matches!(&ticker, Value::Dict(__d) if __d.contains_key("cv"))) || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("aq")));
+        let mut hasSpotKeys: bool = (self.safe_string_k(ticker.clone(), "cv", &[]) != Value::Null) || (self.safe_string_k(ticker.clone(), "aq", &[]) != Value::Null);
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
@@ -3709,7 +3709,7 @@ impl XtCore {
         //
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
-        let mut hasSpotKeys: bool = (matches!(&trade, Value::Dict(__d) if __d.contains_key("b"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("bizType"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("oi")));
+        let mut hasSpotKeys: bool = (self.safe_bool_k(trade.clone(), "b", &[]) != Value::Null) || (self.safe_string_k(trade.clone(), "bizType", &[]) != Value::Null) || (self.safe_string_k(trade.clone(), "oi", &[]) != Value::Null);
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
@@ -6083,7 +6083,7 @@ impl XtCore {
         //         "id": 950898
         //     }
         //
-        let mut type_var: Value = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("fromAddr"))) { Value::Str("deposit".into()) } else { Value::Str("withdraw".into()) });
+        let mut type_var: Value = (if (self.safe_string_k(transaction.clone(), "fromAddr", &[]) != Value::Null) { Value::Str("deposit".into()) } else { Value::Str("withdraw".into()) });
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "createdTime", &[]);
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut memo: Option<String> = self.safe_string_k_opt(transaction.clone(), "memo", &[]);

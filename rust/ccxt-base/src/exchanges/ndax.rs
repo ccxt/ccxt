@@ -3098,16 +3098,17 @@ impl NdaxCore {
         //         "NotionalProductId": 0
         //     }
         //
-        let mut id: Value = Value::Null;
+        let mut id: Value = self.safe_string_k(transaction.clone(), "DepositId", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut type_var: Value = Value::Null;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("DepositId"))) {
-            id = self.safe_string_k(transaction.clone(), "DepositId", &[]);
+        if (id != Value::Null) {
             type_var = Value::Str("deposit".into());
-        }  else if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("WithdrawId"))) {
+        }  else {
             id = self.safe_string_k(transaction.clone(), "WithdrawId", &[]);
-            type_var = Value::Str("withdrawal".into());
+            if (id != Value::Null) {
+                type_var = Value::Str("withdrawal".into());
+            }
         }
         let mut templateForm: Value = self.parse_json_value(self.safe_value2(transaction.clone(), Value::Str("TemplateForm".into()), Value::Str("DepositInfo".into()), &[]));
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "LastUpdateTimeStamp", &[]);
