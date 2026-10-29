@@ -15,7 +15,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: Str | Strings, params?: Dict): Promise<any>;
+    subscribe(name: string, isPrivate: boolean, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -27,7 +27,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str | Strings): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str): Promise<any>;
     /**
      * @ignore
      * @method

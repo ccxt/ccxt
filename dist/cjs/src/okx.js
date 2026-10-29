@@ -2186,9 +2186,7 @@ class okx extends okx$1["default"] {
         const isFullBook = (method === 'publicGetMarketBooksFull');
         const largeLimit = ((limit === undefined) && isFullBook) || ((limit !== undefined) && (limit > 400));
         const limitResolved = (rpi && largeLimit) ? 400 : requestedLimit;
-        if (limitResolved !== undefined) {
-            request['sz'] = limitResolved; // max 400
-        }
+        request['sz'] = limitResolved; // max 400
         let response;
         if (rpi) {
             response = await this.publicGetMarketBooksRpi(this.extend(request, paramsMethod));

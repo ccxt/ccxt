@@ -74,12 +74,7 @@ export default class coinbase extends coinbaseRest {
         let market = undefined;
         let messageHash = name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            messageHash = name + '::' + symbols.join(',');
-        }
-        else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             messageHash = name + '::' + symbol;
             productIds = [this.safeString(market, 'id')];
@@ -121,13 +116,7 @@ export default class coinbase extends coinbaseRest {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            watchMessageHash = name + '::' + symbols.join(',');
-            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbols.join(',');
-        }
-        else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;

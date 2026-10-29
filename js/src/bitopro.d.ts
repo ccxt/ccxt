@@ -133,7 +133,7 @@ export default class bitopro extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    parseCancelOrders(data: any): Order[];
+    parseCancelOrders(data: Dict): Order[];
     /**
      * @method
      * @name bitopro#cancelOrders

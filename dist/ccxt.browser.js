@@ -255213,7 +255213,7 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseCancelOrders(data);
     }
     /**
@@ -463881,9 +463881,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const isFullBook = method === 'publicGetMarketBooksFull';
         const largeLimit = limit === undefined && isFullBook || limit !== undefined && limit > 400;
         const limitResolved = rpi && largeLimit ? 400 : requestedLimit;
-        if (limitResolved !== undefined) {
-            request['sz'] = limitResolved; // max 400
-        }
+        request['sz'] = limitResolved; // max 400
         let response;
         if (rpi) {
             response = await this.publicGetMarketBooksRpi(this.extend(request, paramsMethod));
@@ -551975,6 +551973,9 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market(symbol);
         const rawTrades = this.safeList(data, 'trades', []);
         const trades = this.parseTrades(rawTrades, market);
@@ -558529,11 +558530,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         let messageHash = name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            messageHash = name + '::' + symbols.join(',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             messageHash = name + '::' + symbol;
             productIds = [
@@ -558573,12 +558570,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
-        if (Array.isArray(symbol)) {
-            const symbols = this.marketSymbols(symbol);
-            productIds = this.marketIds(symbols);
-            watchMessageHash = name + '::' + symbols.join(',');
-            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbols.join(',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
@@ -622945,10 +622937,7 @@ class revolutx extends _abstract_revolutx_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const request = {};
         if (market !== undefined) {
             request['symbol'] = market['id'];

@@ -1281,7 +1281,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseCancelOrders(data);
     }
     /**

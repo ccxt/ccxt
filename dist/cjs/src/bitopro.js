@@ -1279,7 +1279,7 @@ class bitopro extends bitopro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseCancelOrders(data);
     }
     /**
