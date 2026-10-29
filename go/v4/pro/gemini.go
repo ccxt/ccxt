@@ -571,7 +571,7 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 			asks.(ccxt.IOrderBookSide).Store(price, size)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	orderbook.SetSymbol(symbol)
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

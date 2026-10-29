@@ -438,10 +438,10 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			this.HandleDeltas(orderbook.GetAsks(), asks)
 			this.HandleDeltas(orderbook.GetBids(), bids)
 		}
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(orderbook, "nonce", nonce)
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
+		orderbook.SetNonce(nonce)
+		orderbook.SetSymbol(symbol)
 		this.Orderbooks[*symbol] = orderbook
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}

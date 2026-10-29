@@ -847,8 +847,8 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	// typed ccxt.WsOrderBook surfaces this as `"symbol":null` in the output
 	// Python/JS dict-backed orderbooks happen to mask it but the
 	// unconditional assignment is correct for every language.
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
+	orderbook.SetSymbol(symbol)
+	orderbook.SetNonce(sequenceNumber)
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

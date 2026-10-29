@@ -306,7 +306,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var nonce *int64 = this.SafeInteger(message, "sequence")
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
+	orderbook.SetNonce(nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol *string, optionalArgs ...any) any {
