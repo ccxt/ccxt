@@ -6881,7 +6881,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
-func (this *Gate) EditOrderRequest(id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Gate) EditOrderRequest(id string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -6905,7 +6905,7 @@ func (this *Gate) EditOrderRequest(id *string, symbol any, typeVar any, side any
 		}
 	}
 	var request map[string]any = map[string]any{
-		"order_id":      *id,
+		"order_id":      id,
 		"currency_pair": market["id"],
 		"account":       account,
 	}
@@ -6973,7 +6973,7 @@ func (this *Gate) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var extendedRequest map[string]any = this.EditOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var extendedRequest map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var response map[string]any = nil
 	if market["spot"] == true {
 

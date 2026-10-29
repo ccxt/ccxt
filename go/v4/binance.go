@@ -7884,7 +7884,7 @@ func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, sy
 	if market["spot"] != true {
 		panic(NotSupported(this.Id + " editSpotOrder() does not support " + *this.SafeString(market, "type", "") + " orders"))
 	}
-	var payload map[string]any = this.EditSpotOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var payload map[string]any = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostOrderCancelReplace(payload)
 	if r1.Err != nil {
@@ -7935,7 +7935,7 @@ func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, sy
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Binance) EditSpotOrderRequest(id *string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Binance) EditSpotOrderRequest(id string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

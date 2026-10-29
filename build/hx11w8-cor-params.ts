@@ -55,7 +55,7 @@ export function installHx11w8CorParams (goTranspiler: any) {
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
         // only the order-request builders: every other method keeps the upstream verdict
-        if ((goType !== 'string') || (fn?.name?.text !== 'createOrderRequest')) { return false; }
+        if ((goType !== 'string') || !/^(create|edit)\w*OrderRequest$/.test (fn?.name?.text ?? '')) { return false; }
         const name = fn.name.text;
         for (const call of this.goSameFileCallsOf (fn, name)) {
             const arg = call.arguments?.[index];
