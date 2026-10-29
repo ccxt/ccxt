@@ -524,6 +524,9 @@ class deepcoin extends deepcoin$1["default"] {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
+            if (settle === undefined) {
+                return undefined;
+            }
             symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});

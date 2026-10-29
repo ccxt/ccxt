@@ -647,8 +647,7 @@ export default class hibachi extends Exchange {
             this.publicGetMarketDataPrices(this.extend(request, params)),
             this.publicGetMarketDataStats(this.extend(request, params)),
         ];
-        const promises = await Promise.all(rawPromises);
-        const pricesResponse = promises[0];
+        const [pricesResponse, statsResponse] = await Promise.all(rawPromises);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -661,7 +660,6 @@ export default class hibachi extends Exchange {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const statsResponse = promises[1];
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",

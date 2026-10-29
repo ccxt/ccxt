@@ -3026,7 +3026,7 @@ class BaseExchange {
         return result;
     }
     filterByLimit(array, limit = undefined, key = 'timestamp', fromStart = false) {
-        if (this.valueIsDefined(limit)) {
+        if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
@@ -3056,7 +3056,7 @@ class BaseExchange {
         if (array === undefined) {
             return [];
         }
-        const sinceIsDefined = this.valueIsDefined(since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray = this.toArray(array);
         let result = parsedArray;
         if (sinceIsDefined) {
@@ -3079,7 +3079,7 @@ class BaseExchange {
     }
     filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
-        const sinceIsDefined = this.valueIsDefined(since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray = this.toArray(array);
         let result = parsedArray;
         // single-pass filter for both symbol and since
@@ -4145,13 +4145,16 @@ class BaseExchange {
             freeBalance[code] = this.parseNumber(free);
             usedBalance[code] = this.parseNumber(used);
             totalBalance[code] = this.parseNumber(total);
-            balance[code]['free'] = freeBalance[code];
-            balance[code]['used'] = usedBalance[code];
-            balance[code]['total'] = totalBalance[code];
+            const entry = {
+                'free': freeBalance[code],
+                'used': usedBalance[code],
+                'total': totalBalance[code],
+            };
             if (debt !== undefined) {
                 debtBalance[code] = this.parseNumber(debt);
-                balance[code]['debt'] = debtBalance[code];
+                entry['debt'] = debtBalance[code];
             }
+            balance[code] = this.extend(balances[code], entry);
         }
         balance['free'] = freeBalance;
         balance['used'] = usedBalance;

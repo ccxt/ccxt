@@ -179342,7 +179342,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return result;
     }
     filterByLimit(array, limit = undefined, key = 'timestamp', fromStart = false) {
-        if (this.valueIsDefined(limit)) {
+        if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
@@ -179372,7 +179372,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (array === undefined) {
             return [];
         }
-        const sinceIsDefined = this.valueIsDefined(since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray = this.toArray(array);
         let result = parsedArray;
         if (sinceIsDefined) {
@@ -179395,7 +179395,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
     filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
-        const sinceIsDefined = this.valueIsDefined(since);
+        const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray = this.toArray(array);
         let result = parsedArray;
         // single-pass filter for both symbol and since
@@ -180490,13 +180490,16 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             freeBalance[code] = this.parseNumber(free);
             usedBalance[code] = this.parseNumber(used);
             totalBalance[code] = this.parseNumber(total);
-            balance[code]['free'] = freeBalance[code];
-            balance[code]['used'] = usedBalance[code];
-            balance[code]['total'] = totalBalance[code];
+            const entry = {
+                'free': freeBalance[code],
+                'used': usedBalance[code],
+                'total': totalBalance[code]
+            };
             if (debt !== undefined) {
                 debtBalance[code] = this.parseNumber(debt);
-                balance[code]['debt'] = debtBalance[code];
+                entry['debt'] = debtBalance[code];
             }
+            balance[code] = this.extend(balances[code], entry);
         }
         balance['free'] = freeBalance;
         balance['used'] = usedBalance;
@@ -310380,11 +310383,11 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         // using the size might be fragile, so we add an option to force v2 cloud api key if needed
         return this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
     }
-    createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
+    createAuthToken(seconds, url, method = undefined, useEddsa = false) {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
-        if (url !== undefined) {
+        if (url !== '') {
             uri = method + ' ' + url.replace('https://', '');
             const quesPos = uri.indexOf('?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
@@ -310521,7 +310524,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
+                    const token = this.createAuthToken(seconds, url, method, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
@@ -330645,6 +330648,9 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             isLinear = quoteId !== 'USD';
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
+            if (settle === undefined) {
+                return undefined;
+            }
             symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});
@@ -337493,7 +337499,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
                 }
             } else {
                 requestBody = this.json(query);
-                auth += requestBody;
+                auth = method + timestamp + requestPath + requestBody;
                 privateHeaders['Content-Type'] = 'application/json';
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
@@ -381626,8 +381632,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
             this.publicGetMarketDataPrices(this.extend(request, params)),
             this.publicGetMarketDataStats(this.extend(request, params))
         ];
-        const promises = await Promise.all(rawPromises);
-        const pricesResponse = promises[0];
+        const [pricesResponse, statsResponse] = await Promise.all(rawPromises);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -381640,7 +381645,6 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const statsResponse = promises[1];
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -460661,23 +460665,38 @@ class ndax extends _abstract_ndax_js__rspack_import_0/* ["default"] */.A {
         } else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const sessionToken = this.safeString(this.options, 'sessionToken');
+            const isPost = method === 'POST';
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_5/* .sha256 */.sc);
+                if (isPost) {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid,
+                        'Content-Type': 'application/json'
+                    };
+                } else {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid
+                    };
+                }
+            } else if (isPost) {
                 headersSigned = {
-                    'Nonce': nonce,
-                    'APIKey': this.apiKey,
-                    'Signature': signature,
-                    'UserId': this.uid
+                    'APToken': sessionToken,
+                    'Content-Type': 'application/json'
                 };
             } else {
                 headersSigned = {
                     'APToken': sessionToken
                 };
             }
-            if (method === 'POST') {
-                headersSigned['Content-Type'] = 'application/json';
+            if (isPost) {
                 bodySigned = this.json(query);
             } else {
                 if (Object.keys(query).length > 0) {
@@ -493292,6 +493311,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             if (code !== undefined && (codesValue === undefined || this.inArray(code, codesValue))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
+                const parsedFee = this.safeDict(depositWithdrawFees, code, {});
                 const childChains = this.safeList(feeInfo, 'childChains', []);
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -493314,9 +493334,10 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                                 }
                             };
                         }
-                        depositWithdrawFees[code]['networks'] = this.extend(this.safeDict(depositWithdrawFees[code], 'networks', {}), networkObject);
+                        parsedFee['networks'] = this.extend(this.safeDict(parsedFee, 'networks', {}), networkObject);
                     }
                 }
+                depositWithdrawFees[code] = parsedFee;
             }
         }
         return depositWithdrawFees;
@@ -502529,7 +502550,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
                 tickers.push(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesByTicker[ticker];
+            const grouped = this.safeList(outcomesByTicker, ticker, []);
             grouped.push(outcomeObj);
             outcomesByTicker[ticker] = grouped;
         }
@@ -513278,9 +513299,6 @@ class opinion extends _abstract_prediction_opinion_js__rspack_import_0/* ["defau
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */ async loadTradeMarket(marketId) {
-        if (marketId === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' loadTradeMarket() requires a marketId');
-        }
         const cacheKey = 'tradeMarketsById';
         const cached = this.safeDict(this.options, cacheKey, {});
         const idStr = marketId.toString();
@@ -558706,7 +558724,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
             const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken(seconds, undefined, undefined, this.isEddsaApiKey());
+                const token = this.createAuthToken(seconds, '', undefined, this.isEddsaApiKey());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
@@ -572586,9 +572604,13 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
             const size = this.safeNumber(delta, 2);
-            const side = this.safeString(delta, 0) === 'buy' ? 'bids' : 'asks';
-            const bookside = orderbook[side];
-            bookside.store(price, size);
+            if (this.safeString(delta, 0) === 'buy') {
+                const bids = orderbook['bids'];
+                bids.store(price, size);
+            } else {
+                const asks = orderbook['asks'];
+                asks.store(price, size);
+            }
         }
         orderbook['symbol'] = symbol;
         this.orderbooks[symbol] = orderbook;
@@ -583791,14 +583813,15 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
                 //         }
                 //     }
                 //
-                subscription = this.safeDict(response, 'result');
+                subscription = this.extend(this.safeDict(response, 'result'), {
+                    'start': now
+                });
                 const token = this.safeString(subscription, 'token');
                 if (token === undefined) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new _base_errors_js__rspack_import_1.AuthenticationError(this.id + ' authenticate() received an empty token');
                 }
-                subscription['start'] = now;
                 client.subscriptions[authenticated] = subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
@@ -614265,8 +614288,8 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
         if (this.clients !== undefined && url in this.clients) {
             return;
         }
-        const timestamp = this.nonce();
-        const payload = this.numberToString(timestamp) + '/v3/ws/private';
+        const timestamp = this.nonce().toString();
+        const payload = timestamp + '/v3/ws/private';
         const signature = this.hmac(this.encode(payload), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_1/* .sha256 */.sc, 'base64');
         const originalHeaders = this.safeDict(this.options['ws']['options'], 'headers');
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
@@ -614278,7 +614301,7 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
                         'ACCESS-KEY': this.apiKey,
                         'ACCESS-SIGN': signature,
                         'ACCESS-PASSPHRASE': this.password,
-                        'ACCESS-TIMESTAMP': this.numberToString(timestamp)
+                        'ACCESS-TIMESTAMP': timestamp
                     }
                 }
             }
@@ -615857,7 +615880,7 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
+        if (!(accountType in this.balance)) {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
@@ -661396,8 +661419,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         let signedBody = undefined;
         if (signed) {
             this.checkRequiredCredentials();
-            const defaultRecvWindow = this.safeString(this.options, 'recvWindow', '5000');
-            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', this.safeString(this.options, 'recvWindow', '5000'));
             const timestamp = this.numberToString(this.nonce());
             if (payload === '/v4/order' || payload === '/future/trade/v1/order/create' || payload === '/future/trade/v1/entrust/create-plan' || payload === '/future/trade/v1/entrust/create-profit' || payload === '/future/trade/v1/order/create-batch') {
                 const id = 'CCXT';
@@ -661411,7 +661433,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             if (method === 'PUT' && endpoint === 'spot') {
                 isUndefinedBody = false;
             }
-            signedBody = isUndefinedBody ? undefined : this.json(query);
+            const jsonBody = this.json(query);
+            signedBody = isUndefinedBody ? undefined : jsonBody;
             let payloadString = '';
             if (endpoint === 'spot' || endpoint === 'user') {
                 const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
@@ -661423,7 +661446,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                         payloadString = spotPrefix + '#' + method + '#' + payload;
                     }
                 } else {
-                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + signedBody;
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + jsonBody;
                 }
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
@@ -661437,7 +661460,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                         payloadString = futurePrefix + '#' + payload;
                     }
                 } else {
-                    payloadString = futurePrefix + '#' + payload + '#' + signedBody;
+                    payloadString = futurePrefix + '#' + payload + '#' + jsonBody;
                 }
             }
             headersValue['xt-validate-appkey'] = this.apiKey;

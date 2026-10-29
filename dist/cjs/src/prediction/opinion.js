@@ -1310,9 +1310,6 @@ class opinion extends opinion$1["default"] {
      * @returns {object} the parsed market
      */
     async loadTradeMarket(marketId) {
-        if (marketId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' loadTradeMarket() requires a marketId');
-        }
         const cacheKey = 'tradeMarketsById';
         const cached = this.safeDict(this.options, cacheKey, {});
         const idStr = marketId.toString();

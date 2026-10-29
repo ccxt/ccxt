@@ -1226,14 +1226,13 @@ class kraken extends kraken$1["default"] {
                 //         }
                 //     }
                 //
-                subscription = this.safeDict(response, 'result');
+                subscription = this.extend(this.safeDict(response, 'result'), { 'start': now });
                 const token = this.safeString(subscription, 'token');
                 if (token === undefined) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new errors.AuthenticationError(this.id + ' authenticate() received an empty token');
                 }
-                subscription['start'] = now;
                 client.subscriptions[authenticated] = subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads

@@ -3389,6 +3389,7 @@ export default class poloniex extends Exchange {
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
+                const parsedFee = this.safeDict(depositWithdrawFees, code, {});
                 const childChains = this.safeList(feeInfo, 'childChains', []);
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -3411,9 +3412,10 @@ export default class poloniex extends Exchange {
                                 },
                             };
                         }
-                        depositWithdrawFees[code]['networks'] = this.extend(this.safeDict(depositWithdrawFees[code], 'networks', {}), networkObject);
+                        parsedFee['networks'] = this.extend(this.safeDict(parsedFee, 'networks', {}), networkObject);
                     }
                 }
+                depositWithdrawFees[code] = parsedFee;
             }
         }
         return depositWithdrawFees;

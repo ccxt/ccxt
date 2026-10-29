@@ -5211,11 +5211,11 @@ export default class coinbase extends Exchange {
         // using the size might be fragile, so we add an option to force v2 cloud api key if needed
         return this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
     }
-    createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
+    createAuthToken(seconds, url, method = undefined, useEddsa = false) {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
-        if (url !== undefined) {
+        if (url !== '') {
             uri = method + ' ' + url.replace('https://', '');
             const quesPos = uri.indexOf('?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
@@ -5345,7 +5345,7 @@ export default class coinbase extends Exchange {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
+                    const token = this.createAuthToken(seconds, url, method, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 }

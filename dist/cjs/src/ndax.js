@@ -2712,15 +2712,33 @@ class ndax extends ndax$1["default"] {
         else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const sessionToken = this.safeString(this.options, 'sessionToken');
+            const isPost = (method === 'POST');
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
+                if (isPost) {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid,
+                        'Content-Type': 'application/json',
+                    };
+                }
+                else {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid,
+                    };
+                }
+            }
+            else if (isPost) {
                 headersSigned = {
-                    'Nonce': nonce,
-                    'APIKey': this.apiKey,
-                    'Signature': signature,
-                    'UserId': this.uid,
+                    'APToken': sessionToken,
+                    'Content-Type': 'application/json',
                 };
             }
             else {
@@ -2728,8 +2746,7 @@ class ndax extends ndax$1["default"] {
                     'APToken': sessionToken,
                 };
             }
-            if (method === 'POST') {
-                headersSigned['Content-Type'] = 'application/json';
+            if (isPost) {
                 bodySigned = this.json(query);
             }
             else {

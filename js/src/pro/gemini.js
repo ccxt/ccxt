@@ -445,9 +445,14 @@ export default class gemini extends geminiRest {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
             const size = this.safeNumber(delta, 2);
-            const side = (this.safeString(delta, 0) === 'buy') ? 'bids' : 'asks';
-            const bookside = orderbook[side];
-            bookside.store(price, size);
+            if (this.safeString(delta, 0) === 'buy') {
+                const bids = orderbook['bids'];
+                bids.store(price, size);
+            }
+            else {
+                const asks = orderbook['asks'];
+                asks.store(price, size);
+            }
         }
         orderbook['symbol'] = symbol;
         this.orderbooks[symbol] = orderbook;

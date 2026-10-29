@@ -646,7 +646,7 @@ export default class coinbase extends Exchange {
      * @returns {boolean} true if the secret is an Ed25519 key
      */
     isEddsaApiKey(): boolean;
-    createAuthToken(seconds: int, method?: Str, url?: Str, useEddsa?: boolean): string;
+    createAuthToken(seconds: int, url: string, method?: Str, useEddsa?: boolean): string;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;

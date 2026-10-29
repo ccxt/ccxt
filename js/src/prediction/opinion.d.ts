@@ -262,7 +262,7 @@ export default class opinion extends Exchange {
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
-    loadTradeMarket(marketId: Int): Promise<Market>;
+    loadTradeMarket(marketId: int): Promise<Market>;
     /**
      * @ignore
      * @method

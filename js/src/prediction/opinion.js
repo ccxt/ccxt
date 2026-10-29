@@ -1310,9 +1310,6 @@ export default class opinion extends Exchange {
      * @returns {object} the parsed market
      */
     async loadTradeMarket(marketId) {
-        if (marketId === undefined) {
-            throw new ArgumentsRequired(this.id + ' loadTradeMarket() requires a marketId');
-        }
         const cacheKey = 'tradeMarketsById';
         const cached = this.safeDict(this.options, cacheKey, {});
         const idStr = marketId.toString();

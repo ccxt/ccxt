@@ -133,8 +133,8 @@ class weex extends weex$1["default"] {
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
-        const timestamp = this.nonce();
-        const payload = this.numberToString(timestamp) + '/v3/ws/private';
+        const timestamp = this.nonce().toString();
+        const payload = timestamp + '/v3/ws/private';
         const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
         const originalHeaders = this.safeDict(this.options['ws']['options'], 'headers');
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
@@ -146,7 +146,7 @@ class weex extends weex$1["default"] {
                         'ACCESS-KEY': this.apiKey,
                         'ACCESS-SIGN': signature,
                         'ACCESS-PASSPHRASE': this.password,
-                        'ACCESS-TIMESTAMP': this.numberToString(timestamp),
+                        'ACCESS-TIMESTAMP': timestamp,
                     },
                 },
             },
@@ -1723,7 +1723,7 @@ class weex extends weex$1["default"] {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
+        if (!(accountType in this.balance)) {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;

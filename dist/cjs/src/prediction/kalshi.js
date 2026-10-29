@@ -1000,7 +1000,7 @@ class kalshi extends kalshi$1["default"] {
                 tickers.push(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesByTicker[ticker];
+            const grouped = this.safeList(outcomesByTicker, ticker, []);
             grouped.push(outcomeObj);
             outcomesByTicker[ticker] = grouped;
         }
