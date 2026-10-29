@@ -8884,7 +8884,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9476,7 +9476,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
     const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
     const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
-    return hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx11w8PromiseAllSlots (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out))))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse
+    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx11w8PromiseAllSlots (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out)))))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse, tuple-slot
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -14065,5 +14065,52 @@ export function hx11w8ParseSnippetChecks (): string[] {
     check ('string cast operand', '        object s = o;\n        o = parseInt(((string)s));', '        object s = o;\n        o = JsParse.parseInt(((string)s));');
     check ('arithmetic parent keeps type', '        string s = "1";\n        Int64? t = (parseInt(s) * 1000);', '        string s = "1";\n        Int64? t = (JsParse.parseInt(s) * 1000);');
     if (hx11w8ParseNative (false, wrap ('        string s = "1"; Int64? n = parseInt(s);')) !== wrap ('        string s = "1"; Int64? n = parseInt(s);')) problems.push ('hx11w8 parse: fired in a non-final pass');
+    return problems;
+}
+
+// hx11 w8 tuple-slot: `getValue(this.handleXAndParams(..), 0)` -> `this.handleXAndParams(..)[0]`.
+// These producers always return a two-element List<object> (cs/ccxt/base, bitget), so the
+// index read equals GetValue's list branch; the surrounding cast is kept.
+export function hx11w8TupleSlotRead (objectNull: boolean, content: string): string {
+    if (!objectNull || !/\bgetValue\(this\.handle/.test (content) || /^namespace Tests;/m.test (content)) {
+        return content;
+    }
+    const producers = [ 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleProductTypeAndParams', 'handleOptionAndParams', 'handleOptionAndParams2' ];
+    const head = new RegExp ('(?<![\\w.])getValue\\(this\\.(?:' + producers.join ('|') + ')\\(', 'g');
+    let out = '';
+    let pos = 0;
+    let m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        let i = m.index + m[0].length;
+        let depth = 1;
+        let quote = false;
+        for (; (i < content.length) && (depth > 0) && (content[i] !== '\n'); i++) {
+            const c = content[i];
+            if (quote) { if (c === '\\') i++; else if (c === '"') quote = false; continue; }
+            if (c === '"') quote = true;
+            else if (c === '(') depth++;
+            else if (c === ')') depth--;
+        }
+        if ((depth !== 0) || !content.startsWith (', 0)', i)) continue;
+        out += content.slice (pos, m.index) + m[0].slice ('getValue('.length) + content.slice (m.index + m[0].length, i) + '[0]';
+        pos = i + ', 0)'.length;
+        head.lastIndex = pos;
+    }
+    return (pos === 0) ? content : out + content.slice (pos);
+}
+
+export function hx11w8TupleSlotSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string) => `namespace ccxt;\n\npublic partial class BaseExchange\n{\n    public void Target (object o)\n    {\n${body}\n    }\n}\n`;
+    const check = (name: string, body: string, expected: string) => {
+        const output = hx11w8TupleSlotRead (true, wrap (body));
+        if (output !== wrap (expected)) problems.push (`hx11w8 tuple-slot: ${name}: ${output.replace (/\n/g, ' | ').slice (0, 300)}`);
+        if (hx11w8TupleSlotRead (true, output) !== output) problems.push (`hx11w8 tuple-slot: ${name}: not idempotent`);
+    };
+    check ('market type slot 0', '        string? t = ((string)getValue(this.handleMarketTypeAndParams("f", market, parameters), 0));', '        string? t = ((string)this.handleMarketTypeAndParams("f", market, parameters)[0]);');
+    check ('nested call args', '        object t = getValue(this.handleSubTypeAndParams(m, this.market(s), p, "linear"), 0);', '        object t = this.handleSubTypeAndParams(m, this.market(s), p, "linear")[0];');
+    check ('slot 1 keeps helper', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);');
+    check ('other producer keeps helper', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);');
+    if (hx11w8TupleSlotRead (false, wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) !== wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) problems.push ('hx11w8 tuple-slot: fired in a non-final pass');
     return problems;
 }
