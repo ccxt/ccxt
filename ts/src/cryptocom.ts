@@ -1359,13 +1359,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
+    createOrderRequest (symbol: string, type: string, side: string, amount: number, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
@@ -1729,7 +1723,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: Str, symbol: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: string, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
