@@ -97,22 +97,12 @@ public class BaseExchange {
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(Object url) {
         String urlKey = url.toString();
-        long base = 1000L;
-        long factor = 2L;
-        long maxDelay = 60000L;
-        long stableAfter = 30000L;
-        Object wsOptions = this.options.get("ws");
-        Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
-        if (backoff != null) {
-            Object value = Helpers.GetValue(backoff, "base");
-            if (value != null) { base = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "factor");
-            if (value != null) { factor = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "max");
-            if (value != null) { maxDelay = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "stableAfter");
-            if (value != null) { stableAfter = Helpers.toInt64(value); }
-        }
+        Object wsOptions = this.safeValue(this.options, "ws");
+        Object backoff = this.safeValue(wsOptions, "backoff");
+        long base = this.safeInteger(backoff, "base", 1000L);
+        long factor = this.safeInteger(backoff, "factor", 2L);
+        long maxDelay = this.safeInteger(backoff, "max", 60000L);
+        long stableAfter = this.safeInteger(backoff, "stableAfter", 30000L);
         long now = this.milliseconds();
         long attempts = 0L;
         long lastAttempt = 0L;
