@@ -1661,7 +1661,7 @@ public partial class bybit : ccxt.bybit
         }
         for (int i = 0; i < data.Count; i++)
         {
-            object rawTrade = data[i];
+            IDictionary<string, object> rawTrade = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = null;
             if (spot && !executionFast)
             {

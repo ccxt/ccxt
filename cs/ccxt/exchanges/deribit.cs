@@ -1747,20 +1747,15 @@ public partial class deribit : Exchange
         };
         if ((type != null))
         {
-            string? requestType = null;
             if (type == "spot")
             {
-                requestType = "spot";
+                request["kind"] = "spot";
             } else if (type == "future" || (type == "contract"))
             {
-                requestType = "future";
+                request["kind"] = "future";
             } else if (type == "option")
             {
-                requestType = "option";
-            }
-            if ((requestType != null))
-            {
-                request["kind"] = requestType;
+                request["kind"] = "option";
             }
         }
         Dictionary<string, object> response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -3237,8 +3232,7 @@ public partial class deribit : Exchange
         //
         string? contract = this.safeString(position, "instrument_name");
         Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
-        string? side = this.safeString(position, "direction");
-        side = (side == "buy") ? "long" : "short";
+        string side = ((this.safeString(position, "direction") == "buy")) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
         string? notionalString = this.safeString(position, "size_currency");

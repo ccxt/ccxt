@@ -3456,10 +3456,6 @@ public partial class kucoin : Exchange
             { "margin", "MARGIN" },
             { "swap", "FUTURES" },
         };
-        if ((type == null))
-        {
-            return null;
-        }
         return this.safeString(tradeTypes, type, type);
     }
 

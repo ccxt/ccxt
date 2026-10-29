@@ -242,7 +242,11 @@ public partial class binance : PredictionExchange
             maxTopicsResolved = this.parseToInt(maxTopics);
         }
         Int64? pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
-        Int64? pageLimit = ((pageLimitOption > 100)) ? 100 : pageLimitOption;
+        Int64? pageLimit = this.parseToInt(100);
+        if (((pageLimitOption == null || pageLimitOption < 100)))
+        {
+            pageLimit = this.parseToInt(pageLimitOption);
+        }
         List<object> collected = new List<object>() {};
         object offset = 0;
         while (true)
@@ -1953,7 +1957,7 @@ public partial class binance : PredictionExchange
         object quote = await this.FetchQuote(quoteRequest, paramsOmitted);
         string? quoteId = this.safeString(quote, "quoteId");
         Dictionary<string, object> orderRequest = this.extend(commonRequest, new Dictionary<string, object>() {
-            { "walletId", getValue(wallet, "walletId") },
+            { "walletId", this.safeString(wallet, "walletId") },
             { "quoteId", quoteId },
             { "timeInForce", timeInForce },
             { "accountType", accountType },
@@ -2022,7 +2026,7 @@ public partial class binance : PredictionExchange
         object wallet = await this.FetchWallet("cancelOrders", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.safeString(wallet, "walletAddress") },
-            { "walletId", getValue(wallet, "walletId") },
+            { "walletId", this.safeString(wallet, "walletId") },
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (int i = 0; i < (ids?.Count ?? 0); i++)
