@@ -2281,7 +2281,9 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
     const n = goAccessEscape (name);
     const call = new RegExp ('(?<![\\w.])' + n + '(?:\\.\\(ccxt\\.OrderBookInterface\\))?\\.(?:GetAsks|GetBids|Reset|GetCache|Limit)\\(');
     const write = new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*(?:=(?!=)|:=)|&\\s*' + n + '\\b');
+    // a single-value interface assertion panics on nil: the book is already non-nil after it
     const asserted = new RegExp ('^\\s*(?:var ' + n + ' (?:ccxt\\.)?OrderBookInterface = |' + n + ' = )[^\\n]*\\.\\((?:ccxt\\.)?OrderBookInterface\\)$');
+    let level = indent;
     for (let j = k - 1; j >= 0; j--) {
         if (/^func /.test (masked[j])) {
             return false;
@@ -2290,16 +2292,32 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
             continue;
         }
         const ind = /^\t*/.exec (masked[j])[0].length;
-        if (ind < indent) {
-            return false;  // the block holding any earlier line closed or opened above line k
+        if (ind < level) {
+            // an enclosing block opener (`if x {`, `for ... {`, `func() {`) keeps the statements above it in force;
+            // an `} else {` or a case label means the earlier lines were another branch
+            if (!/\{$/.test (masked[j]) || /^\s*(?:\}|case\b|default\b)/.test (masked[j])) {
+                return false;
+            }
+            if (/^\s*for\b|\bfunc\(/.test (masked[j])) {
+                // a loop or closure body may run again after a later write: the local must never be rebound after k
+                for (let m = k + 1; m < masked.length && !/^\}/.test (masked[m]); m++) {
+                    if (write.test (masked[m])) {
+                        return false;
+                    }
+                }
+            }
+            level = ind;
+            continue;
         }
         if ((ind === indent) && asserted.test (masked[j])) {
             return true;  // a single-value interface assertion panics on nil: the book is already non-nil here
         }
         if (/^\s*(?:\w+:|goto\b)/.test (masked[j]) || write.test (masked[j])) {
-            return false;
+            if (!(ind === level && asserted.test (masked[j]))) {
+                return false;
+            }
         }
-        if ((ind === indent) && call.test (masked[j])) {
+        if ((ind === level) && (call.test (masked[j]) || asserted.test (masked[j]))) {
             return true;
         }
     }
@@ -2387,6 +2405,14 @@ function goOrderBookSetterCheck (): string[] {
     r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
     if (!r.includes ('orderbook.SetTimestamp(ts)')) {
         problems.push ('orderbook setter: a book from a single-value assertion is non-nil: ' + r);
+    }
+    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + typed.replace ('OrderBookTyped(this.Orderbooks[*symbol])', 'this.Orderbooks[*symbol].(ccxt.OrderBookInterface)') + '\n\tfor i := 0; i < 2; i++ {\n\t\tif ts != nil {\n\t\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\t}\n\t}\n\treturn nil\n}\n');
+    if (!r.includes ('orderbook.SetTimestamp(ts)')) {
+        problems.push ('orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
+    }
+    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
+    if (r.includes ('.SetTimestamp(')) {
+        problems.push ('orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
     }
     return problems;
 }

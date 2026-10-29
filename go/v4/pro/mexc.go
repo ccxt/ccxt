@@ -1158,8 +1158,8 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 			// try block:
 			this.HandleBookDelta(storedOrderBook, data)
 			var timestamp *int64 = this.SafeIntegerN(message, []any{"t", "ts", "sendTime"})
-			ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
-			ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
+			storedOrderBook.SetTimestamp(timestamp)
+			storedOrderBook.SetDatetime(this.Iso8601(timestamp))
 			return nil
 		}(this)
 
