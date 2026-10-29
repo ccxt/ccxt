@@ -631,7 +631,7 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // generation 1
         //
@@ -735,7 +735,7 @@ class bithumb extends bithumb$1["default"] {
             //     }
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

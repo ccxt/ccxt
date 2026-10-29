@@ -1126,7 +1126,7 @@ export default class hitbtc extends Exchange {
             'tag': tag,
         };
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict(response, i);
@@ -1181,7 +1181,7 @@ export default class hitbtc extends Exchange {
         //       ...
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

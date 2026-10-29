@@ -664,7 +664,7 @@ class bullish extends bullish$1["default"] {
         const messageType = this.safeString(message, 'type');
         if (messageType === 'snapshot') {
             const data = this.safeList(message, 'data', []);
-            const parsed = this.parseBalance(data);
+            const parsed = this.parseBalanceList(data);
             const parsedKeys = Object.keys(parsed);
             for (let i = 0; i < parsedKeys.length; i++) {
                 const parsedKey = parsedKeys[i];

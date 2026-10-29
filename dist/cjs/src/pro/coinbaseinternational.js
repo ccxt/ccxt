@@ -249,7 +249,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     handleBalance(client, message) {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
-        const parsed = this.parseBalance(data);
+        const parsed = this.parseBalanceList(data);
         this.balance = this.deepExtend(this.balance, parsed);
         client.resolve(this.balance, 'balance');
     }
@@ -1751,7 +1751,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let balance = { 'info': result };
         const summariesLength = summaries.length;
         for (let i = 0; i < summariesLength; i++) {
-            balance = this.deepExtend(balance, this.parseBalance(summaries[i]));
+            balance = this.deepExtend(balance, this.parseBalanceList(summaries[i]));
         }
         return this.safeBalance(balance);
     }

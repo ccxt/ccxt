@@ -287,7 +287,7 @@ export default class paradex extends paradexRest {
         const marketId = this.safeString(data, 'market');
         const market = this.safeMarket(marketId);
         const timestamp = this.safeInteger(data, 'last_updated_at');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }

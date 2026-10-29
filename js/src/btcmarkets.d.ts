@@ -65,7 +65,7 @@ export default class btcmarkets extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: Dict): Promise<Int>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name btcmarkets#fetchBalance

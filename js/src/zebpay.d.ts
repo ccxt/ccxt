@@ -320,7 +320,7 @@ export default class zebpay extends Exchange {
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parsePosition(position: Dict, market?: Market): Position;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;

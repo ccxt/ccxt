@@ -351,7 +351,7 @@ export default class bullish extends Exchange {
      */
     fetchBalance(params?: Dict): Promise<Balances>;
     parseBalanceForSingleCurrency(response: Dict, code: Str): Balances;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name bullish#fetchPositions

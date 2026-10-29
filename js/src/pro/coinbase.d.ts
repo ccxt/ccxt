@@ -15,7 +15,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: Str, params?: Dict): Promise<any>;
+    subscribe(name: string, isPrivate?: boolean, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -27,7 +27,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate?: boolean, symbol?: Str): Promise<any>;
     /**
      * @ignore
      * @method
@@ -39,7 +39,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribeMultiple(name: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    subscribeMultiple(name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -52,7 +52,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribeMultiple(topic: string, name: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    unSubscribeMultiple(topic: string, name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     createWSAuth(name: string, productIds: Str[]): Dict;
     /**
      * @method

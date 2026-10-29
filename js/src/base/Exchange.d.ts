@@ -575,7 +575,7 @@ export declare class BaseExchange {
     handleBookDeltas(orderbook: WsOrderBook, deltas: any[]): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleDeltasWithKeys(bookSide: any, deltas: any[], priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
-    getCacheIndex(orderbook: any, deltas: any): number;
+    getCacheIndex(orderbook: NullableDict, deltas: any[]): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): Str;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): Str;
@@ -840,7 +840,7 @@ export declare class BaseExchange {
     oath(): string;
     fetchBalance(params?: Dict): Promise<Balances>;
     fetchBalanceWs(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     watchBalance(params?: Dict): Promise<Balances>;
     fetchPartialBalance(part: any, params?: Dict): Promise<Balance>;
     fetchFreeBalance(params?: Dict): Promise<Balance>;

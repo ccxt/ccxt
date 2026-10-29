@@ -31,7 +31,7 @@ declare abstract class Exchange extends _Exchange {
     publicGetPublicFuturesCandlesPremiumIndexSymbol(params?: {}): Promise<List>;
     publicGetPublicFuturesCandlesOpenInterest(params?: {}): Promise<Dict>;
     publicGetPublicFuturesCandlesOpenInterestSymbol(params?: {}): Promise<List>;
-    privateGetSpotBalance(params?: {}): Promise<Dict>;
+    privateGetSpotBalance(params?: {}): Promise<List>;
     privateGetSpotBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetSpotOrder(params?: {}): Promise<List>;
     privateGetSpotOrderClientOrderId(params?: {}): Promise<Dict>;
@@ -50,7 +50,7 @@ declare abstract class Exchange extends _Exchange {
     privateGetMarginHistoryPositions(params?: {}): Promise<List>;
     privateGetMarginHistoryClearing(params?: {}): Promise<List>;
     privateGetMarginSettings(params?: {}): Promise<Dict>;
-    privateGetFuturesBalance(params?: {}): Promise<Dict>;
+    privateGetFuturesBalance(params?: {}): Promise<List>;
     privateGetFuturesBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetFuturesAccount(params?: {}): Promise<List>;
     privateGetFuturesAccountIsolatedSymbol(params?: {}): Promise<Dict>;
@@ -64,7 +64,7 @@ declare abstract class Exchange extends _Exchange {
     privateGetFuturesHistoryPositions(params?: {}): Promise<List>;
     privateGetFuturesHistoryClearing(params?: {}): Promise<List>;
     privateGetUserApiKeys(params?: {}): Promise<List>;
-    privateGetWalletBalance(params?: {}): Promise<Dict>;
+    privateGetWalletBalance(params?: {}): Promise<List>;
     privateGetWalletBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetWalletCryptoAddressWhiteList(params?: {}): Promise<Dict>;
     privateGetWalletCryptoAddress(params?: {}): Promise<List>;

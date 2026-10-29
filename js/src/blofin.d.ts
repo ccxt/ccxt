@@ -115,7 +115,7 @@ export default class blofin extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseBalanceByType(response: Dict): Balances;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseFundingBalance(response: Dict): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**

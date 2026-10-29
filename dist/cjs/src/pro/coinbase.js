@@ -66,7 +66,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe(name, isPrivate, symbol = undefined, params = {}) {
+    async subscribe(name, isPrivate = false, symbol = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -103,7 +103,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe(topic, name, isPrivate, symbol = undefined) {
+    async unSubscribe(topic, name, isPrivate = false, symbol = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -155,7 +155,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribeMultiple(name, isPrivate, symbols = undefined, params = {}) {
+    async subscribeMultiple(name, isPrivate = false, symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -192,7 +192,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribeMultiple(topic, name, isPrivate, symbols = undefined, params = {}) {
+    async unSubscribeMultiple(topic, name, isPrivate = false, symbols = undefined, params = {}) {
         if (this.safeBool(this.options, 'unSubscriptionPending', false)) {
             throw new errors.ExchangeError(this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }

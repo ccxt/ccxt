@@ -39,7 +39,7 @@ export default class bitstamp extends bitstampRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
-    getCacheIndex(orderbook: any, deltas: any): number;
+    getCacheIndex(orderbook: NullableDict, deltas: any[]): number;
     /**
      * @method
      * @name bitstamp#watchTrades

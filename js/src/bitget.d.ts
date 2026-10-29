@@ -333,7 +333,7 @@ export default class bitget extends Exchange {
      */
     fetchBalance(params?: Dict): Promise<Balances>;
     parseUtaBalance(balance: Dict[], response?: Dict | undefined): Balances;
-    parseBalance(balance: any): Balances;
+    parseBalanceList(balance: Dict[]): Balances;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**

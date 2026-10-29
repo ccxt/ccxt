@@ -866,7 +866,6 @@ export default class htx extends htxRest {
             await this.loadMarkets();
         }
         let type = undefined;
-        let marketId = '*'; // wildcard
         let market = undefined;
         let messageHash = undefined;
         let channel = undefined;
@@ -881,7 +880,6 @@ export default class htx extends htxRest {
             else {
                 subType = 'inverse';
             }
-            marketId = this.safeString(market, 'lowercaseId', '*');
         }
         else {
             type = this.safeString(this.options, 'defaultType', 'spot');
@@ -899,7 +897,7 @@ export default class htx extends htxRest {
             let mode = this.safeString2(this.options, 'watchMyTrades', 'mode', '0');
             mode = this.safeString(paramsRequest, 'mode', mode);
             paramsRequest = this.omit(paramsRequest, 'mode');
-            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
+            messageHash = 'trade.clearing' + '#' + this.safeString(market, 'lowercaseId', '*') + '#' + mode;
             channel = messageHash;
         }
         else if (isV5Linear) {
@@ -1023,11 +1021,9 @@ export default class htx extends htxRest {
         let type = undefined;
         let subType = undefined;
         let market = undefined;
-        let suffix = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            suffix = this.safeString(market, 'lowercaseId', '*');
             if (market['linear'] === true) {
                 subType = 'linear';
             }
@@ -1050,7 +1046,7 @@ export default class htx extends htxRest {
         let messageHash = undefined;
         let channel = undefined;
         if (type === 'spot') {
-            messageHash = 'orders' + '#' + suffix;
+            messageHash = 'orders' + '#' + this.safeString(market, 'lowercaseId', '*');
             channel = messageHash;
         }
         else if (isV5Linear) {

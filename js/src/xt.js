@@ -2518,9 +2518,9 @@ export default class xt extends Exchange {
             const data = this.safeDict(response, 'result', {});
             balances = this.safeList(data, 'assets', []);
         }
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // spot
         //

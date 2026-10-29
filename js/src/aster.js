@@ -2042,7 +2042,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn();
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance(paramsMarketType);
             //
@@ -2073,9 +2073,9 @@ export default class aster extends Exchange {
             //     ]
             //
         }
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         const rows = this.toArray(response);
         for (let i = 0; i < rows.length; i++) {

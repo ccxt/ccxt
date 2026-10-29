@@ -38,7 +38,7 @@ export default class bitso extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bitso#fetchBalance

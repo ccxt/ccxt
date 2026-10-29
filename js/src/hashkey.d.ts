@@ -149,7 +149,7 @@ export default class hashkey extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(balance: any): Balances;
+    parseBalance(balance: Dict): Balances;
     parseSwapBalance(balance: Dict): Balances;
     /**
      * @method

@@ -15,7 +15,7 @@ export default class apex extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: Dict): Promise<Int>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name apex#fetchBalance

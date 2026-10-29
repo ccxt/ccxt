@@ -24,7 +24,7 @@ declare abstract class Exchange extends _Exchange {
     privatePostGetClosedOrders(params?: {}): Promise<Dict>;
     privatePostGetClosedFilledOrders(params?: {}): Promise<Dict>;
     privatePostGetOrderDetails(params?: {}): Promise<Dict>;
-    privatePostGetAccounts(params?: {}): Promise<Dict>;
+    privatePostGetAccounts(params?: {}): Promise<List>;
     privatePostGetTransactions(params?: {}): Promise<Dict>;
     privatePostGetFiatBankAccounts(params?: {}): Promise<List>;
     privatePostGetDigitalCurrencyDepositAddress(params?: {}): Promise<Dict>;

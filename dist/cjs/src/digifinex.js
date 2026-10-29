@@ -825,7 +825,7 @@ class digifinex extends digifinex$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // spot and margin
         //
@@ -940,7 +940,7 @@ class digifinex extends digifinex$1["default"] {
             balanceRequest = 'data';
         }
         const balances = this.safeList(response, balanceRequest, []);
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
     /**
      * @method

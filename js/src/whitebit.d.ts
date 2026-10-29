@@ -295,7 +295,7 @@ export default class whitebit extends Exchange {
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name whitebit#fetchBalance

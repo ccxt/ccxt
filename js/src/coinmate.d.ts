@@ -24,7 +24,7 @@ export default class coinmate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name coinmate#fetchBalance

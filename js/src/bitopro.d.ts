@@ -95,7 +95,7 @@ export default class bitopro extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     insertMissingCandles(candles: any[], distanceInMs: number, since: Int, limit: number): any[];
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name bitopro#fetchBalance

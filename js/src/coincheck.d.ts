@@ -6,7 +6,7 @@ import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, Order, O
  */
 export default class coincheck extends Exchange {
     describe(): Dict;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name coincheck#fetchStatus

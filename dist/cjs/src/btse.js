@@ -1084,9 +1084,9 @@ class btse extends btse$1["default"] {
             //     ]
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
         };

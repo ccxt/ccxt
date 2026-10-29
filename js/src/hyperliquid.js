@@ -4333,7 +4333,7 @@ export default class hyperliquid extends Exchange {
         // unified account is active", a unified account has to move balances with sendAsset instead
         let transferMethod = undefined;
         let query = params;
-        [transferMethod, query] = this.handleOptionAndParams(query, 'transfer', 'method');
+        [transferMethod, query] = this.handleOptionStringAndParams(query, 'transfer', 'method');
         let masterAddress = undefined;
         masterAddress = this.safeString(this.handlePublicAddress('transfer', query), 0);
         query = this.safeDict(this.handlePublicAddress('transfer', query), 1, {});

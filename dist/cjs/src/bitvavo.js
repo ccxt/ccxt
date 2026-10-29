@@ -1155,7 +1155,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1196,7 +1196,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

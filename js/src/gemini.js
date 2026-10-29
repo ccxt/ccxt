@@ -1289,7 +1289,7 @@ export default class gemini extends Exchange {
         //
         return this.parseTrades(response, market, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -1379,7 +1379,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privatePostV1Balances(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseOrder(order, market = undefined) {
         //

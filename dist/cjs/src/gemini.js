@@ -1288,7 +1288,7 @@ class gemini extends gemini$1["default"] {
         //
         return this.parseTrades(response, market, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -1378,7 +1378,7 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privatePostV1Balances(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseOrder(order, market = undefined) {
         //

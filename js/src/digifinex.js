@@ -826,7 +826,7 @@ export default class digifinex extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // spot and margin
         //
@@ -941,7 +941,7 @@ export default class digifinex extends Exchange {
             balanceRequest = 'data';
         }
         const balances = this.safeList(response, balanceRequest, []);
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
     /**
      * @method

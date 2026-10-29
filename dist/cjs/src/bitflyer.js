@@ -421,7 +421,7 @@ class bitflyer extends bitflyer$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -468,7 +468,7 @@ class bitflyer extends bitflyer$1["default"] {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

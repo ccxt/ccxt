@@ -684,9 +684,9 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        return this.parseBalance(result);
+        return this.parseBalanceList(result);
     }
-    parseBalance(balance) {
+    parseBalanceList(balance) {
         //
         //     {
         //         "ticker": "AVAX",

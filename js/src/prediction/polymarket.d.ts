@@ -241,7 +241,7 @@ export default class polymarket extends Exchange {
      * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name polymarket#fetchPositions

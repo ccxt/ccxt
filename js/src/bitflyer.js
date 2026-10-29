@@ -422,7 +422,7 @@ export default class bitflyer extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -469,7 +469,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

@@ -1252,7 +1252,7 @@ class ndax extends ndax$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1326,7 +1326,7 @@ class ndax extends ndax$1["default"] {
         //         },
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseLedgerEntryType(type) {
         const types = {

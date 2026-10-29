@@ -139,7 +139,7 @@ export default class xt extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name xt#createMarketBuyOrderWithCost

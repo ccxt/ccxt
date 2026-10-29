@@ -1731,9 +1731,9 @@ export default class toobit extends Exchange {
             //    }
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,

@@ -17,7 +17,7 @@ declare abstract class Exchange extends _Exchange {
     publicGetWrappedAssetsWrappedAssetIdConversionRate(params?: {}): Promise<Dict>;
     privateGetAddressBook(params?: {}): Promise<List>;
     privateGetAddressBookCounterparty(params?: {}): Promise<List>;
-    privateGetAccounts(params?: {}): Promise<Dict>;
+    privateGetAccounts(params?: {}): Promise<List>;
     privateGetAccountsId(params?: {}): Promise<Dict>;
     privateGetAccountsIdHolds(params?: {}): Promise<List>;
     privateGetAccountsIdLedger(params?: {}): Promise<List>;

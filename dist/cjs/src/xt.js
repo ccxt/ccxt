@@ -2517,9 +2517,9 @@ class xt extends xt$1["default"] {
             const data = this.safeDict(response, 'result', {});
             balances = this.safeList(data, 'assets', []);
         }
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // spot
         //

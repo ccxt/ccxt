@@ -2593,9 +2593,9 @@ export default class bydfi extends Exchange {
             response = await this.privateGetV1FapiAccountBalance(this.extend(request, paramsWallet));
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,

@@ -120,7 +120,7 @@ export default class bittrade extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(currency: Dict): CurrencyInterface;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bittrade#fetchBalance

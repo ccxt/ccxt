@@ -1495,9 +1495,9 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i, {});

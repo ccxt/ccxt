@@ -57,7 +57,7 @@ export default class deribit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(balance: any): Balances;
+    parseBalance(balance: Dict): Balances;
     /**
      * @method
      * @name deribit#fetchBalance

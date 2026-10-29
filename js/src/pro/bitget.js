@@ -288,7 +288,7 @@ export default class bitget extends bitgetRest {
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + this.safeString(ticker, 'symbol', '');
         client.resolve(ticker, messageHash);
     }
     parseWsTicker(message, market = undefined) {
@@ -483,7 +483,7 @@ export default class bitget extends bitgetRest {
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
-        const messageHash = 'bidask:' + symbol;
+        const messageHash = 'bidask:' + this.safeString(ticker, 'symbol', '');
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
@@ -2409,7 +2409,7 @@ export default class bitget extends bitgetRest {
             }
             const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol', '');
             const symbolSpecificMessageHash = 'myTrades:' + symbol;
             client.resolve(stored, symbolSpecificMessageHash);
         }

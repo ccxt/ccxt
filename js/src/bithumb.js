@@ -632,7 +632,7 @@ export default class bithumb extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // generation 1
         //
@@ -736,7 +736,7 @@ export default class bithumb extends Exchange {
             //     }
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

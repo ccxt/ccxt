@@ -1419,7 +1419,7 @@ class bitstamp extends bitstamp$1["default"] {
         const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limitResolved);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const finalResponse = response; // java req
         const result = {
             'info': finalResponse,
@@ -1465,7 +1465,7 @@ class bitstamp extends bitstamp$1["default"] {
         //         ...
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

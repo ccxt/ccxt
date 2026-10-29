@@ -2480,7 +2480,7 @@ class bullish extends bullish$1["default"] {
             //         }, ...
             //     ]
             //
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }
     }
     parseBalanceForSingleCurrency(response, code) {
@@ -2491,7 +2491,7 @@ class bullish extends bullish$1["default"] {
         result[code] = account;
         return this.safeBalance(result);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
         };

@@ -1317,7 +1317,7 @@ export default class hitbtc extends hitbtcRest {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        const balance = this.parseBalance(params);
+        const balance = this.parseBalanceList(params);
         if (this.balance === undefined) {
             this.balance = {};
         }

@@ -202,7 +202,7 @@ export default class binance extends binanceRest {
     getPrivateWsUrl(type: Str, listenKey: Str): string;
     getStockWsUrl(streamType?: Str): string;
     getStockTickerFromSymbol(symbol: Str): Str;
-    getStockUnifiedSymbol(stockSymbol: Str, quote?: Str): Str;
+    getStockUnifiedSymbol(stockSymbol: Str, quote?: string): Str;
     /**
      * @method
      * @name binance#watchStockMarketStream

@@ -21,7 +21,7 @@ export default class upbit extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name upbit#fetchBalance

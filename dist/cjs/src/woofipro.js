@@ -2679,7 +2679,7 @@ class woofipro extends woofipro$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {

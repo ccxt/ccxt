@@ -2481,7 +2481,7 @@ export default class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }
     }
     parseBalanceForSingleCurrency(response, code) {
@@ -2492,7 +2492,7 @@ export default class bullish extends Exchange {
         result[code] = account;
         return this.safeBalance(result);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
         };

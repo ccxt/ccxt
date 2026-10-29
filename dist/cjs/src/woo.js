@@ -2826,7 +2826,7 @@ class woo extends woo$1["default"] {
         //         "timestamp": 1673323746259
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     parseBalance(response) {

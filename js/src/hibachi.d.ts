@@ -19,7 +19,7 @@ export default class hibachi extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     hardcodedCurrencies(): Currencies;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name hibachi#fetchBalance

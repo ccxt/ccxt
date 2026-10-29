@@ -6,7 +6,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSi
  */
 export default class paymium extends Exchange {
     describe(): Dict;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name paymium#fetchBalance

@@ -1253,7 +1253,7 @@ export default class ndax extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1327,7 +1327,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseLedgerEntryType(type) {
         const types = {

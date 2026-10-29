@@ -968,7 +968,7 @@ class bitopro extends bitopro$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         //     [{
         //         "currency":"twd",
@@ -1025,7 +1025,7 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1263,7 +1263,7 @@ class bitopro extends bitopro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['uppercaseId'];
+        const id = this.safeString(market, 'uppercaseId');
         const request = {};
         if (id !== undefined) {
             request[id] = ids;

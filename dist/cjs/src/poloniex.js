@@ -2654,7 +2654,7 @@ class poloniex extends poloniex$1["default"] {
         //
         return this.parseTrades(trades);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -2749,7 +2749,7 @@ class poloniex extends poloniex$1["default"] {
             //    }
             //
             const data = this.safeDict(responseRaw, 'data', {});
-            return this.parseBalance(data);
+            return this.parseBalanceList(data);
         }
         const request = {
             'accountType': 'SPOT',
@@ -2771,7 +2771,7 @@ class poloniex extends poloniex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

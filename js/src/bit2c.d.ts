@@ -6,7 +6,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, Orde
  */
 export default class bit2c extends Exchange {
     describe(): Dict;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bit2c#fetchBalance

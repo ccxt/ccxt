@@ -2592,9 +2592,9 @@ class bydfi extends bydfi$1["default"] {
             response = await this.privateGetV1FapiAccountBalance(this.extend(request, paramsWallet));
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,

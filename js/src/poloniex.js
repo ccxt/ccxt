@@ -2655,7 +2655,7 @@ export default class poloniex extends Exchange {
         //
         return this.parseTrades(trades);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -2750,7 +2750,7 @@ export default class poloniex extends Exchange {
             //    }
             //
             const data = this.safeDict(responseRaw, 'data', {});
-            return this.parseBalance(data);
+            return this.parseBalanceList(data);
         }
         const request = {
             'accountType': 'SPOT',
@@ -2772,7 +2772,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

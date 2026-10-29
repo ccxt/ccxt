@@ -342,7 +342,7 @@ export default class dydx extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     nonce(): int;
     getWalletAddress(): string;
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;

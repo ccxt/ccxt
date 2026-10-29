@@ -2447,7 +2447,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'subaccount');
+        const data = this.safeDict(response, 'subaccount', {});
         return this.parseBalance(data);
     }
     parseBalance(response) {

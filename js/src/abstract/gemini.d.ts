@@ -60,7 +60,7 @@ declare abstract class Exchange extends _Exchange {
     privatePostV1ClearingStatus(params?: {}): Promise<Dict>;
     privatePostV1ClearingCancel(params?: {}): Promise<Dict>;
     privatePostV1ClearingConfirm(params?: {}): Promise<Dict>;
-    privatePostV1Balances(params?: {}): Promise<Dict>;
+    privatePostV1Balances(params?: {}): Promise<List>;
     privatePostV1BalancesStaking(params?: {}): Promise<List>;
     privatePostV1NotionalbalancesCurrency(params?: {}): Promise<List>;
     privatePostV1Transfers(params?: {}): Promise<List>;

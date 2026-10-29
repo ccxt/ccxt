@@ -16,7 +16,7 @@ export default class btcturk extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(entry: Dict): Market;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name btcturk#fetchBalance

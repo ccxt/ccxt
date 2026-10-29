@@ -602,7 +602,7 @@ export default class btcmarkets extends Exchange {
         //
         return this.parse8601(this.safeString(response, 'timestamp'));
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -630,7 +630,7 @@ export default class btcmarkets extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccountsMeBalances(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

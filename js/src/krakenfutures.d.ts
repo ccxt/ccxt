@@ -302,7 +302,7 @@ export default class krakenfutures extends Exchange {
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name krakenfutures#fetchFundingRates

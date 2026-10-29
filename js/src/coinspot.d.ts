@@ -6,7 +6,7 @@ import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, Order
  */
 export default class coinspot extends Exchange {
     describe(): Dict;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name coinspot#fetchBalance

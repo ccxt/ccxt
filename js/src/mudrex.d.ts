@@ -79,7 +79,7 @@ export default class mudrex extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name mudrex#fetchLeverage

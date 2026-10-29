@@ -71,7 +71,7 @@ export default class cryptomus extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(balance: any): Balances;
+    parseBalanceList(balance: Dict[]): Balances;
     /**
      * @method
      * @name cryptomus#createOrder

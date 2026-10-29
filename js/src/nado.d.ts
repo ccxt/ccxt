@@ -462,7 +462,7 @@ export default class nado extends Exchange {
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parsePosition(position: Dict, market?: Market): Position;
     isArchiveOrderClosed(order: Dict): boolean;

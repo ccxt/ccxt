@@ -39,7 +39,7 @@ export default class coinbaseexchange extends Exchange {
      */
     fetchAccounts(params?: Dict): Promise<Account[]>;
     parseAccount(account: Dict): Account;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name coinbaseexchange#fetchBalance

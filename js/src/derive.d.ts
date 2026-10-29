@@ -400,7 +400,7 @@ export default class derive extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name derive#transfer

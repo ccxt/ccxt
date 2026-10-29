@@ -1,5 +1,5 @@
 import xtRest from '../xt.js';
-import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, NullableDict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class xt extends xtRest {
@@ -14,7 +14,7 @@ export default class xt extends xtRest {
      * @returns {string} listen key / access token
      */
     getListenKey(isContract: boolean): Promise<Str>;
-    getCacheIndex(orderbook: any, cache: any): number;
+    getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @ignore

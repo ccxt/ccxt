@@ -290,7 +290,7 @@ export default class opinion extends Exchange {
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name opinion#fetchPositions

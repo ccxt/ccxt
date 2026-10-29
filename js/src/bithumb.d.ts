@@ -20,7 +20,7 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name bithumb#fetchBalance

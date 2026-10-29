@@ -595,7 +595,7 @@ class upbit extends upbit$1["default"] {
             'info': market,
         });
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -640,7 +640,7 @@ class upbit extends upbit$1["default"] {
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

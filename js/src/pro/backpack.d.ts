@@ -1,5 +1,5 @@
 import backpackRest from '../backpack.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, NullableDict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class backpack extends backpackRest {
@@ -301,7 +301,7 @@ export default class backpack extends backpackRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
-    getCacheIndex(orderbook: any, cache: any): number;
+    getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     /**
      * @method
      * @name backpack#watchOrders

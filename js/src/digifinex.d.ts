@@ -30,7 +30,7 @@ export default class digifinex extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchMarketsV2(params?: Dict): Promise<Market[]>;
     fetchMarketsV1(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name digifinex#fetchBalance

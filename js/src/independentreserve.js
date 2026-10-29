@@ -411,7 +411,7 @@ export default class independentreserve extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         const accounts = this.toArray(response);
         for (let i = 0; i < accounts.length; i++) {
@@ -439,7 +439,7 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privatePostGetAccounts(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

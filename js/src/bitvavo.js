@@ -1156,7 +1156,7 @@ export default class bitvavo extends Exchange {
         //
         return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1197,7 +1197,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

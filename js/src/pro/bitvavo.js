@@ -1552,7 +1552,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const messageHash = this.safeString(message, 'requestId');
         const response = this.safeList(message, 'response', []);
-        const balance = this.parseBalance(response);
+        const balance = this.parseBalanceList(response);
         client.resolve(balance, messageHash);
     }
     handleSingleOrder(client, message) {

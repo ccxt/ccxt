@@ -246,7 +246,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name poloniex#fetchBalance

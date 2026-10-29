@@ -235,7 +235,7 @@ export default class kucoin extends kucoinRest {
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleUtaOrderBook(client: Client, message: Dict): void;
-    getCacheIndex(orderbook: any, cache: any): number;
+    getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
@@ -333,7 +333,7 @@ export default class kucoin extends kucoinRest {
     loadPositionSnapshot(client: Client, messageHash: string, symbol: string): Promise<void>;
     handlePosition(client: Client, message: Dict): void;
     handleUtaPosition(client: Client, message: Dict): void;
-    parseWsUtaPosition(position: Dict, market?: Market): Position;
+    parseWsUtaPosition(position: Dict, market?: Market): Dict;
     /**
      * @method
      * @name kucoin#watchFundingRate

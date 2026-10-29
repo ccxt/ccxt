@@ -2078,9 +2078,9 @@ class weex extends weex$1["default"] {
                 response = await this.contractPrivateGetCapiV3AccountBalance(paramsMarketType);
             }
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
         };

@@ -314,19 +314,15 @@ export default class binance extends binanceRest {
         const base = this.safeString2(market, 'base', 'id');
         return (base === undefined) ? undefined : base.toLowerCase();
     }
-    getStockUnifiedSymbol(stockSymbol, quote = undefined) {
+    getStockUnifiedSymbol(stockSymbol, quote = 'USDC') {
         if (stockSymbol === undefined) {
             return undefined;
-        }
-        let safeQuote = quote;
-        if (quote === undefined) {
-            safeQuote = 'USDC';
         }
         const parsed = this.safeSymbol(stockSymbol, undefined, '/', 'spot');
         if ((parsed !== undefined) && (parsed.indexOf('/') >= 0)) {
             return parsed;
         }
-        return stockSymbol + '/' + safeQuote;
+        return stockSymbol + '/' + quote;
     }
     /**
      * @method

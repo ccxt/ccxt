@@ -96,7 +96,7 @@ export default class onetrading extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name onetrading#fetchBalance

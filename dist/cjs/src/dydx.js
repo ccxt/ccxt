@@ -2446,7 +2446,7 @@ class dydx extends dydx$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'subaccount');
+        const data = this.safeDict(response, 'subaccount', {});
         return this.parseBalance(data);
     }
     parseBalance(response) {

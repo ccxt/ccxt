@@ -970,7 +970,7 @@ export default class bitopro extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         //     [{
         //         "currency":"twd",
@@ -1027,7 +1027,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1265,7 +1265,7 @@ export default class bitopro extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['uppercaseId'];
+        const id = this.safeString(market, 'uppercaseId');
         const request = {};
         if (id !== undefined) {
             request[id] = ids;

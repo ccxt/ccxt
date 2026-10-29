@@ -783,7 +783,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'info': account,
         };
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         const rawBalances = this.toArray(response);
         for (let i = 0; i < rawBalances.length; i++) {
@@ -813,7 +813,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccounts(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

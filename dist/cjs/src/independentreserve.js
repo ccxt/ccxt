@@ -410,7 +410,7 @@ class independentreserve extends independentreserve$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         const accounts = this.toArray(response);
         for (let i = 0; i < accounts.length; i++) {
@@ -438,7 +438,7 @@ class independentreserve extends independentreserve$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privatePostGetAccounts(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method

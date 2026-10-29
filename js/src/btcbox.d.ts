@@ -15,7 +15,7 @@ export default class btcbox extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name btcbox#fetchBalance
