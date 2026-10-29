@@ -326233,7 +326233,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeList(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(this.safeDict(data, 0), 'position_balances', []);
         const result = {
             'info': response
         };
