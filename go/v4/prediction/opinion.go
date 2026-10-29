@@ -1931,9 +1931,6 @@ func (this *Opinion) LoadTradeMarketAsync(marketId any) <-chan ccxt.AsyncResult[
 func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInterface], marketId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.IsEqual(marketId, nil) {
-		panic(ccxt.ArgumentsRequired(this.Id + " loadTradeMarket() requires a marketId"))
-	}
 	var cacheKey string = "tradeMarketsById"
 	var cached any = this.SafeDict(this.Options, cacheKey, map[string]any{})
 	var idStr string = ccxt.ToString(marketId)

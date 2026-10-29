@@ -694,7 +694,7 @@ func (this *Deepcoin) ParseMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var isLinear any = nil
 	if swap {
 		isLinear = (quoteId == nil || *quoteId != "USD")
@@ -705,7 +705,10 @@ func (this *Deepcoin) ParseMarket(market any) map[string]any {
 			return baseId
 		}()
 		settle = this.SafeCurrencyCode(settleId)
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle == nil {
+			return nil
+		}
+		symbol = *base + "/" + *quote + ":" + *settle
 	}
 	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
 	var maxLeverage *string = this.SafeString(market, "lever", "1")
@@ -922,11 +925,11 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes68119 []any = r1.Value
-		if retRes68119 == nil {
+		var retRes68419 []any = r1.Value
+		if retRes68419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68419)}
 		}
 		return nil
 	}
@@ -1395,11 +1398,11 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes102419 []any = r1.Value
-		if retRes102419 == nil {
+		var retRes102719 []any = r1.Value
+		if retRes102719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes102419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes102719)}
 		}
 		return nil
 	}
@@ -1479,11 +1482,11 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes107119 []any = r1.Value
-		if retRes107119 == nil {
+		var retRes107419 []any = r1.Value
+		if retRes107419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107119)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107419)}
 		}
 		return nil
 	}
@@ -2637,11 +2640,11 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes197419 []any = r1.Value
-		if retRes197419 == nil {
+		var retRes197719 []any = r1.Value
+		if retRes197719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197719)}
 		}
 		return nil
 	}
@@ -2802,11 +2805,11 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes209715 []any = OrdersToList(r.Value)
-	if retRes209715 == nil {
+	var retRes210015 []any = OrdersToList(r.Value)
+	if retRes210015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes209715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes210015)}
 	}
 	return nil
 }
@@ -2851,11 +2854,11 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes211615 []any = OrdersToList(r.Value)
-	if retRes211615 == nil {
+	var retRes211915 []any = OrdersToList(r.Value)
+	if retRes211915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211915)}
 	}
 	return nil
 }
@@ -4045,11 +4048,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes298419 []any = r1.Value
-		if retRes298419 == nil {
+		var retRes298719 []any = r1.Value
+		if retRes298719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298719)}
 		}
 		return nil
 	}
@@ -4165,11 +4168,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes306015 []any = TradesToList(r1.Value)
-	if retRes306015 == nil {
+	var retRes306315 []any = TradesToList(r1.Value)
+	if retRes306315 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306015)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306315)}
 	}
 	return nil
 }

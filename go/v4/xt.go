@@ -7860,8 +7860,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 	var signedBody any = nil
 	if signed {
 		this.CheckRequiredCredentials()
-		var defaultRecvWindow *string = this.SafeString(this.Options, "recvWindow", "5000")
-		var recvWindow *string = this.SafeString(query, "recvWindow", defaultRecvWindow)
+		var recvWindow *string = this.SafeString(query, "recvWindow", this.SafeString(this.Options, "recvWindow", "5000"))
 		var timestamp *string = this.NumberToString(this.Nonce())
 		if (payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch") {
 			var id string = "CCXT"
@@ -7875,11 +7874,12 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 		if (method == "PUT") && (endpoint == "spot") {
 			isUndefinedBody = false
 		}
+		var jsonBody string = this.Json(query)
 		signedBody = func() any {
 			if isUndefinedBody {
 				return nil
 			}
-			return this.Json(query)
+			return jsonBody
 		}()
 		var payloadString any = ""
 		if (endpoint == "spot") || (endpoint == "user") {
@@ -7892,7 +7892,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 					payloadString = spotPrefix + "#" + method + "#" + payload
 				}
 			} else {
-				payloadString = Add(spotPrefix+"#"+method+"#"+payload+"#", signedBody)
+				payloadString = spotPrefix + "#" + method + "#" + payload + "#" + jsonBody
 			}
 			headersValue["xt-validate-algorithms"] = "HmacSHA256"
 			headersValue["xt-validate-recvwindow"] = recvWindow
@@ -7906,7 +7906,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 					payloadString = futurePrefix + "#" + payload
 				}
 			} else {
-				payloadString = Add(futurePrefix+"#"+payload+"#", signedBody)
+				payloadString = futurePrefix + "#" + payload + "#" + jsonBody
 			}
 		}
 		headersValue["xt-validate-appkey"] = this.ApiKey

@@ -4564,7 +4564,8 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var feeInfo map[string]any = SafeMapTyped(response, currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
 			var currency map[string]any = this.Currency(code)
-			depositWithdrawFees[*code] = this.ParseDepositWithdrawFee(feeInfo, currency)
+			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
+			var parsedFee map[string]any = this.SafeDictMap(depositWithdrawFees, code, map[string]any{})
 			var childChains []any = SafeListTyped(feeInfo, "childChains")
 			var chainsLength int = len(childChains)
 			if chainsLength > 0 {
@@ -4592,13 +4593,11 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 							},
 						}
 					}
-					AddElementToObject(GetValue(depositWithdrawFees, code), "networks", this.Extend(this.SafeDict(func() any {
-						if code == nil {
-							return nil
-						}
-						return depositWithdrawFees[*code]
-					}(), "networks", map[string]any{}), networkObject))
+					parsedFee["networks"] = this.Extend(this.SafeDict(parsedFee, "networks", map[string]any{}), networkObject)
 				}
+			}
+			if code != nil {
+				depositWithdrawFees[*code] = parsedFee
 			}
 		}
 	}

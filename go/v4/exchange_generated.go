@@ -586,20 +586,20 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 		usedProxies = append(usedProxies, "proxyUrl")
 		proxyUrl = this.ProxyUrl
 	}
-	if !IsEqual(this.Proxy_url, nil) {
+	if this.Proxy_url != nil {
 		usedProxies = append(usedProxies, "proxy_url")
 		proxyUrl = this.Proxy_url
 	}
-	if !IsEqual(this.ProxyUrlCallback, nil) {
+	if this.ProxyUrlCallback != nil {
 		usedProxies = append(usedProxies, "proxyUrlCallback")
 		proxyUrl = this.CallDynamically("proxyUrlCallback", url, method, headers, body)
 	}
-	if !IsEqual(this.Proxy_url_callback, nil) {
+	if this.Proxy_url_callback != nil {
 		usedProxies = append(usedProxies, "proxy_url_callback")
 		proxyUrl = this.CallDynamically("proxy_url_callback", url, method, headers, body)
 	}
 	// backwards-compatibility
-	if !IsEqual(this.Proxy, nil) {
+	if this.Proxy != nil {
 		usedProxies = append(usedProxies, "proxy")
 		if IsFunction(this.Proxy) {
 			proxyUrl = this.CallDynamically("proxy", url, method, headers, body)
@@ -815,7 +815,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 	_ = key
 	var fromStart bool = GetArgBool(optionalArgs, 2, false)
 	_ = fromStart
-	if this.ValueIsDefined(limit) {
+	if limit != nil {
 		var arrayLength int = GetArrayLength(array)
 		if arrayLength > 0 {
 			var ascending bool = true
@@ -847,7 +847,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 	return this.ToArray(array)
 }
 func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []any {
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -858,7 +858,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []a
 	if IsEqual(array, nil) {
 		return []any{}
 	}
-	var sinceIsDefined bool = this.ValueIsDefined(since)
+	var sinceIsDefined bool = (since != nil)
 	var parsedArray []any = this.ToArray(array)
 	var result []any = parsedArray
 	if sinceIsDefined {
@@ -866,7 +866,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []a
 		for i := 0; i < len(parsedArray); i++ {
 			var entry any = DerefScalar(parsedArray[i])
 			var value *int64 = this.SafeInteger(entry, key)
-			if (value != nil) && (value == nil || *value != 0) && (IsGreaterThanOrEqual(value, since)) {
+			if (value != nil) && (value == nil || *value != 0) && (since == nil || *value >= *since) {
 				result = append(result, entry)
 			}
 		}
@@ -882,7 +882,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []a
 func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optionalArgs ...any) []any {
 	value := GetArg(optionalArgs, 0, nil)
 	_ = value
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -891,7 +891,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
 	var valueIsDefined bool = this.ValueIsDefined(value)
-	var sinceIsDefined bool = this.ValueIsDefined(since)
+	var sinceIsDefined bool = (since != nil)
 	var parsedArray []any = this.ToArray(array)
 	var result []any = parsedArray
 	// single-pass filter for both symbol and since
@@ -904,7 +904,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
 			var firstCondition bool = !valueIsDefined || entryFiledEqualValue
 			var entryKeyValue *int64 = this.SafeInteger(entry, key)
-			var entryKeyGESince bool = (entryKeyValue != nil) && (entryKeyValue == nil || *entryKeyValue != 0) && (since != nil) && (IsGreaterThanOrEqual(entryKeyValue, since))
+			var entryKeyGESince bool = (entryKeyValue != nil) && (entryKeyValue == nil || *entryKeyValue != 0) && (since != nil) && (*entryKeyValue >= *since)
 			var secondCondition bool = !sinceIsDefined || entryKeyGESince
 			if firstCondition && secondCondition {
 				result = append(result, entry)
@@ -2623,13 +2623,16 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 		freeBalance[code] = this.ParseNumber(free)
 		usedBalance[code] = this.ParseNumber(used)
 		totalBalance[code] = this.ParseNumber(total)
-		AddElementToObject(GetValue(balance, code), "free", freeBalance[code])
-		AddElementToObject(GetValue(balance, code), "used", usedBalance[code])
-		AddElementToObject(GetValue(balance, code), "total", totalBalance[code])
+		var entry map[string]any = map[string]any{
+			"free":  freeBalance[code],
+			"used":  usedBalance[code],
+			"total": totalBalance[code],
+		}
 		if debt != nil {
 			debtBalance[code] = this.ParseNumber(debt)
-			AddElementToObject(GetValue(balance, code), "debt", debtBalance[code])
+			entry["debt"] = debtBalance[code]
 		}
+		AddElementToObject(balance, code, this.Extend(balances[code], entry))
 	}
 	AddElementToObject(balance, "free", freeBalance)
 	AddElementToObject(balance, "used", usedBalance)
@@ -5677,11 +5680,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705515 map[string]any = r.Value
-	if retRes705515 == nil {
+	var retRes705815 map[string]any = r.Value
+	if retRes705815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705515}
+		ch <- AsyncResult[map[string]any]{Value: retRes705815}
 	}
 	return nil
 }
@@ -11546,12 +11549,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11167, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046715 []any = listRecv11167
-	if retRes1046715 == nil {
+	listRecv11170, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047015 []any = listRecv11170
+	if retRes1047015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047015)}
 	}
 	return nil
 }

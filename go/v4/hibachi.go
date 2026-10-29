@@ -775,13 +775,13 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		"symbol": market["id"],
 	}
 	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
-
 	r1 := <-promiseAll(rawPromises)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
-	var pricesResponse any = GetValue(promises, 0)
+	var pricesResponsestatsResponseVariable []any = ListTyped(r1.Value)
+	pricesResponse := pricesResponsestatsResponseVariable[0]
+	statsResponse := pricesResponsestatsResponseVariable[1]
 	// {
 	//     "askPrice": "3514.650296",
 	//     "bidPrice": "3513.596112",
@@ -794,7 +794,6 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//     "symbol": "ETH/USDT-P",
 	//     "tradePrice": "2372.746570"
 	// }
-	var statsResponse any = GetValue(promises, 1)
 	// {
 	//     "high24h": "3819.507827",
 	//     "low24h": "3754.474162",
@@ -1947,11 +1946,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1855 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1855.Err != nil {
-		panic(listEp1855.Err)
+	listEp1854 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1854.Err != nil {
+		panic(listEp1854.Err)
 	}
-	var response []any = listEp1855.Value
+	var response []any = listEp1854.Value
 
 	// [
 	//     {

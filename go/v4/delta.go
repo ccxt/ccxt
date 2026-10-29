@@ -5145,7 +5145,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
 	if apiName == "public" {
 		if !this.IsEmpty(query) {
@@ -5158,7 +5158,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
 		}
-		var auth any = method + timestamp + requestPath
+		var auth string = method + timestamp + requestPath
 		if method == "GET" {
 			if !this.IsEmpty(query) {
 				var queryString string = "?" + this.Urlencode(query)
@@ -5166,15 +5166,16 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 				url += queryString
 			}
 		} else {
-			requestBody = this.Json(query)
-			auth = Add(auth, requestBody)
+			jsonText := this.Json(query)
+			requestBody = &jsonText
+			auth = method + timestamp + requestPath + *requestBody
 			privateHeaders["Content-Type"] = "application/json"
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		privateHeaders["signature"] = signature
 		requestHeaders = privateHeaders
 	}
-	var bodyResult any = requestBody
+	var bodyResult *string = requestBody
 	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,

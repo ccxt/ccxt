@@ -383,7 +383,7 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 		var tokenExpiry int64 = tokenTimestamp + 90
 		if (currentToken == nil) || (tokenExpiry < seconds) {
 			// we should generate new token
-			var token any = this.CreateAuthToken(seconds, nil, nil, this.IsEddsaApiKey())
+			var token any = this.CreateAuthToken(seconds, "", nil, this.IsEddsaApiKey())
 			this.Options["wsToken"] = token
 			this.Options["wsTokenTimestamp"] = seconds
 		}

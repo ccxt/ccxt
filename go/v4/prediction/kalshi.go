@@ -1412,12 +1412,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			tickers = append(tickers, ticker)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-		var grouped any = func() any {
-			if ticker == nil {
-				return nil
-			}
-			return outcomesByTicker[*ticker]
-		}()
+		var grouped any = this.SafeList(outcomesByTicker, ticker, []any{})
 		ccxt.AppendToArray(&grouped, outcomeObj)
 		ccxt.AddElementToObject(outcomesByTicker, ticker, grouped)
 	}

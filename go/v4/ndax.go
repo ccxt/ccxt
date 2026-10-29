@@ -3601,23 +3601,38 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) map[string]any {
 	} else if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var sessionToken *string = this.SafeString(this.Options, "sessionToken")
+		var isPost bool = (method == "POST")
 		if sessionToken == nil {
 			var nonce string = strconv.FormatInt(this.Nonce(), 10)
 			var auth string = nonce + this.Uid + this.ApiKey
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+			if isPost {
+				headersSigned = map[string]any{
+					"Nonce":        nonce,
+					"APIKey":       this.ApiKey,
+					"Signature":    signature,
+					"UserId":       this.Uid,
+					"Content-Type": "application/json",
+				}
+			} else {
+				headersSigned = map[string]any{
+					"Nonce":     nonce,
+					"APIKey":    this.ApiKey,
+					"Signature": signature,
+					"UserId":    this.Uid,
+				}
+			}
+		} else if isPost {
 			headersSigned = map[string]any{
-				"Nonce":     nonce,
-				"APIKey":    this.ApiKey,
-				"Signature": signature,
-				"UserId":    this.Uid,
+				"APToken":      sessionToken,
+				"Content-Type": "application/json",
 			}
 		} else {
 			headersSigned = map[string]any{
 				"APToken": sessionToken,
 			}
 		}
-		if method == "POST" {
-			AddElementToObject(headersSigned, "Content-Type", "application/json")
+		if isPost {
 			jsonText := this.Json(query)
 			bodySigned = &jsonText
 		} else {

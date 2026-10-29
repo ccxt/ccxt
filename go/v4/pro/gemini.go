@@ -537,9 +537,9 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
@@ -566,17 +566,18 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		var delta any = changes[i]
 		var price *float64 = this.SafeNumber(delta, 1)
 		var size *float64 = this.SafeNumber(delta, 2)
-		var side string = func() string {
-			if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
-				return "bids"
-			}
-			return "asks"
-		}()
-		var bookside any = ccxt.GetValue(orderbook, side)
-		bookside.(ccxt.IOrderBookSide).Store(price, size)
+		if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
+			var bids any = orderbook.GetBids()
+			bids.(ccxt.IOrderBookSide).Store(price, size)
+		} else {
+			var asks any = orderbook.GetAsks()
+			asks.(ccxt.IOrderBookSide).Store(price, size)
+		}
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

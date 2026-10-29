@@ -7083,18 +7083,16 @@ func (this *Coinbase) IsEddsaApiKey() bool {
 	// using the size might be fragile, so we add an option to force v2 cloud api key if needed
 	return (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || strings.HasSuffix(this.Secret, "=")
 }
-func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) string {
+func (this *Coinbase) CreateAuthToken(seconds any, url string, optionalArgs ...any) string {
 	// v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
 	// v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
 	var method *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = method
-	url := GetArg(optionalArgs, 1, nil)
-	_ = url
-	var useEddsa bool = GetArgBool(optionalArgs, 2, false)
+	var useEddsa bool = GetArgBool(optionalArgs, 1, false)
 	_ = useEddsa
 	var uri any = nil
-	if url != nil {
-		uri = Add(Add(method, " "), Replace(url, "https://", ""))
+	if url != "" {
+		uri = Add(Add(method, " "), strings.Replace(url, "https://", "", 1))
 		var quesPos int = GetIndexOf(uri, "?")
 		// Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
 		// Also it's not possible that the question mark is first character, only check > 0 here.
@@ -7233,7 +7231,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 				//     'uri': uri,
 				//     'iat': seconds,
 				// };
-				var token string = this.CreateAuthToken(seconds, method, url, isV2CloudAPiKey)
+				var token string = this.CreateAuthToken(seconds, url, method, isV2CloudAPiKey)
 				// const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
 				authorizationString = "Bearer " + token
 			} else {

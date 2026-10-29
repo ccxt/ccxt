@@ -1699,12 +1699,13 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				//         }
 				//     }
 				//
-				subscription = this.SafeDict(response, "result")
+				subscription = this.Extend(this.SafeDict(response, "result"), map[string]any{
+					"start": now,
+				})
 				var token *string = this.SafeString(subscription, "token")
 				if token == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty token"))
 				}
-				ccxt.AddElementToObject(subscription, "start", now)
 				client.(ccxt.ClientInterface).SubscriptionSet(authenticated, subscription)
 				// settle the flight and wake every waiter - resolve () also
 				// clears the registry entry, so the next refresh re-leads
@@ -1992,8 +1993,8 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes144615 := r.Value
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144615)}
+	retRes144515 := r.Value
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144515)}
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {
