@@ -2012,7 +2012,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 's');
         $marketType = $this->safe_string($market, 'type');
-        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
+        $hasSpotKeys = ($this->safe_string($ticker, 'cv') !== null) || ($this->safe_string($ticker, 'aq') !== null);
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2363,7 +2363,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketType = $this->safe_string($market, 'type');
-        $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
+        $hasSpotKeys = ($this->safe_bool($trade, 'b') !== null) || ($this->safe_string($trade, 'bizType') !== null) || ($this->safe_string($trade, 'oi') !== null);
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -4412,7 +4412,7 @@ class xt extends Exchange {
         //         "id": 950898
         //     }
         //
-        $type = (is_array($transaction) && array_key_exists('fromAddr' ?? '', $transaction)) ? 'deposit' : 'withdraw';
+        $type = ($this->safe_string($transaction, 'fromAddr') !== null) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');

@@ -1471,7 +1471,10 @@ class tokocrypto extends Exchange {
         $price = $this->safe_string($params, 'price');
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
-        $limitValue = ($limit === null) ? $defaultLimit : min($limit, $maxLimit);
+        $limitValue = $defaultLimit;
+        if ($limit !== null) {
+            $limitValue = min($limit, $maxLimit);
+        }
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitValue,
@@ -1850,9 +1853,9 @@ class tokocrypto extends Exchange {
         $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'stopPrice' ) : array();
-        $paramsRequest = $this->omit($paramsPostOnly, $this->array_concat(array( 'clientId', 'clientOrderId', 'timeInForce' ), $triggerKeys));
+        $paramsRequest = $this->omit($paramsPostOnly, array( 'clientId', 'clientOrderId', 'timeInForce' ));
         if ($triggerPrice !== null) {
+            $paramsRequest = $this->omit($paramsRequest, array( 'triggerPrice', 'stopPrice' ));
             if ($postOnly) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }

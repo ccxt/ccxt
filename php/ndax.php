@@ -2544,16 +2544,17 @@ class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        $id = null;
+        $id = $this->safe_string($transaction, 'DepositId');
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = null;
-        if (is_array($transaction) && array_key_exists('DepositId' ?? '', $transaction)) {
-            $id = $this->safe_string($transaction, 'DepositId');
+        if ($id !== null) {
             $type = 'deposit';
-        } elseif (is_array($transaction) && array_key_exists('WithdrawId' ?? '', $transaction)) {
+        } else {
             $id = $this->safe_string($transaction, 'WithdrawId');
-            $type = 'withdrawal';
+            if ($id !== null) {
+                $type = 'withdrawal';
+            }
         }
         $templateForm = $this->parse_json($this->safe_value_2($transaction, 'TemplateForm', 'DepositInfo'));
         $updated = $this->safe_integer($transaction, 'LastUpdateTimeStamp');
