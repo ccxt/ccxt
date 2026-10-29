@@ -481,6 +481,7 @@ class MarketInterface(TypedDict):
     option: Bool
     index: Bool
     stock: Bool
+    equity: Bool
     prediction: Bool
     contract: Bool
     settle: Str

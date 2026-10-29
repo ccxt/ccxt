@@ -234,6 +234,7 @@ type MarketInterface struct {
 	Option          *bool
 	Index           *bool
 	Stock           *bool
+	Equity          *bool
 	Contract        *bool
 	Settle          *string
 	SettleId        *string
@@ -318,6 +319,7 @@ func NewMarketInterface(data any) MarketInterface {
 		Option:          SafeBoolTyped(m, "option"),
 		Index:           SafeBoolTyped(m, "index"),
 		Stock:           SafeBoolTyped(m, "stock"),
+		Equity:          SafeBoolTyped(m, "equity"),
 		Contract:        SafeBoolTyped(m, "contract"),
 		Settle:          SafeStringTyped(m, "settle"),
 		SettleId:        SafeStringTyped(m, "settleId"),

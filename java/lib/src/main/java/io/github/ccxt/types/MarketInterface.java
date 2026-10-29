@@ -27,6 +27,7 @@ public final class MarketInterface extends TypedMap {
     public Boolean option;
     public Boolean index;
     public Boolean stock;
+    public Boolean equity;
     public Boolean prediction;
     public Boolean contract;
     public String settle;
@@ -84,6 +85,7 @@ public final class MarketInterface extends TypedMap {
         this.option = TypeHelper.safeBool(data, "option");
         this.index = TypeHelper.safeBool(data, "index");
         this.stock = TypeHelper.safeBool(data, "stock");
+        this.equity = TypeHelper.safeBool(data, "equity");
         this.prediction = TypeHelper.safeBool(data, "prediction");
         this.contract = TypeHelper.safeBool(data, "contract");
         this.settle = TypeHelper.safeString(data, "settle");
