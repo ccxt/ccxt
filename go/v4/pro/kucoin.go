@@ -100,12 +100,12 @@ func (this *Kucoin) Describe() map[string]any {
 		},
 	})
 }
-func (this *Kucoin) NegotiateAsync(privateChannel any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Kucoin) NegotiateAsync(privateChannel bool, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.negotiateBody(ch, privateChannel, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[*string], privateChannel any, optionalArgs ...any) any {
+func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[*string], privateChannel bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isFuturesMethod bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -113,7 +113,7 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[*string], privateChan
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var connectId string = "public"
-	if ccxt.EvalTruthy(privateChannel) {
+	if privateChannel {
 		connectId = "private"
 	}
 	if isFuturesMethod == true {

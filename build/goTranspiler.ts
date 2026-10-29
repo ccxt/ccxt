@@ -30,6 +30,7 @@ import { gp14ParamGoType, gp14SelfTest } from './hx10w9-GP14.js';
 import { gp28Stores, hx10w10Gp28Check, hx10w10Gp28Wired } from './hx10w10-GP28.js';  // hx10 wave-10 GP28: trades/orderbooks map-field stores
 import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
 import { og02IdBookPass, og02IdBookCheck } from './hx10w6-OG02.js';
+import { installHx11w8AsyncBool } from './hx11w8-async-bool.js';
 import { hx11w8NonceInt64, hx11w8NonceInt64Check, hx11w8NonceLocals, hx11w8NonceLocalsCheck } from './hx11w8-nonce-int64.js';  // hx11 w8 m172: Nonce() is int64 end to end  // hx10 wave-6 OG02: id/nonce counters + last-response fields owned by the request book
 import { hx10w4OG01Pass, hx10w4OG01Check } from './hx10w4-OG01.js';
 import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
@@ -6167,6 +6168,7 @@ class NewTranspiler {
         installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
+        installHx11w8AsyncBool (this.transpiler.goTranspiler);
         installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
     }
 

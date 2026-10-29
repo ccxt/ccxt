@@ -185,12 +185,12 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-func (this *Poloniex) SubscribeAsync(name any, messageHash any, isPrivate any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Poloniex) SubscribeAsync(name any, messageHash any, isPrivate bool, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, name, messageHash, isPrivate, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, messageHash any, isPrivate any, optionalArgs ...any) any {
+func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, messageHash any, isPrivate bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
