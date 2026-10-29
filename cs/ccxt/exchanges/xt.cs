@@ -2445,7 +2445,7 @@ public partial class xt : Exchange
         //
         string? marketId = this.safeString(ticker, "s");
         string? marketType = this.safeString(market, "type");
-        bool hasSpotKeys = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("cv"))) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("aq")));
+        bool hasSpotKeys = ((this.safeString(ticker, "cv") != null)) || ((this.safeString(ticker, "aq") != null));
         if ((marketType == null))
         {
             marketType = hasSpotKeys ? "spot" : "contract";
@@ -2830,7 +2830,7 @@ public partial class xt : Exchange
         //
         string? marketId = this.safeString2(trade, "s", "symbol");
         string? marketType = this.safeString(market, "type");
-        bool hasSpotKeys = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("b"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("bizType"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("oi")));
+        bool hasSpotKeys = (!(this.safeBool(trade, "b") == null)) || ((this.safeString(trade, "bizType") != null)) || ((this.safeString(trade, "oi") != null));
         if ((marketType == null))
         {
             marketType = hasSpotKeys ? "spot" : "contract";
@@ -5187,7 +5187,7 @@ public partial class xt : Exchange
         //         "id": 950898
         //     }
         //
-        string type = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("fromAddr"))) ? "deposit" : "withdraw";
+        string type = ((this.safeString(transaction, "fromAddr") != null)) ? "deposit" : "withdraw";
         Int64? timestamp = this.safeInteger(transaction, "createdTime");
         string? address = this.safeString(transaction, "address");
         string? memo = this.safeString(transaction, "memo");

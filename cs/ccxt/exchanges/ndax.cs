@@ -2844,18 +2844,20 @@ public partial class ndax : Exchange
         //         "NotionalProductId": 0
         //     }
         //
-        string? id = null;
+        string? id = this.safeString(transaction, "DepositId");
         string? currencyId = this.safeString(transaction, "ProductId");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? type = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("DepositId")))
+        if ((id != null))
         {
-            id = this.safeString(transaction, "DepositId");
             type = "deposit";
-        } else if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("WithdrawId")))
+        } else
         {
             id = this.safeString(transaction, "WithdrawId");
-            type = "withdrawal";
+            if ((id != null))
+            {
+                type = "withdrawal";
+            }
         }
         object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
         Int64? updated = this.safeInteger(transaction, "LastUpdateTimeStamp");

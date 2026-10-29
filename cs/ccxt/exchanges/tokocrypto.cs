@@ -1593,7 +1593,11 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
-        object limitValue = ((limit == null)) ? defaultLimit : Math.Min(limit.Value, maxLimit);
+        object limitValue = defaultLimit;
+        if ((limit != null))
+        {
+            limitValue = Math.Min(limit.Value, maxLimit);
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -2001,10 +2005,10 @@ public partial class tokocrypto : Exchange
         string initialUppercaseType = typeResolved.ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        List<object> triggerKeys = ((triggerPrice != null)) ? new List<object>() {"triggerPrice", "stopPrice"} : new List<object>() {};
-        object paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new List<object>() {"clientId", "clientOrderId", "timeInForce"}, triggerKeys));
+        object paramsRequest = this.omit(paramsPostOnly, new List<object>() {"clientId", "clientOrderId", "timeInForce"});
         if ((triggerPrice != null))
         {
+            paramsRequest = this.omit(paramsRequest, new List<object>() {"triggerPrice", "stopPrice"});
             if (postOnly)
             {
                 throw new InvalidOrder ((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
