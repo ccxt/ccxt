@@ -2180,7 +2180,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 		execTypes = execTypeOption
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawTrade any = ccxt.GetValue(data, i)
+		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = nil
 		if spot && !executionFast {
 			parsed = this.ParseWsTrade(rawTrade)

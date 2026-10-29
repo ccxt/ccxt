@@ -1919,16 +1919,12 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		"currency": currency["id"],
 	}
 	if typeVar != nil {
-		var requestType *string = nil
 		if typeVar != nil && *typeVar == "spot" {
-			requestType = SafeStringPtr("spot")
+			request["kind"] = "spot"
 		} else if (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "contract") {
-			requestType = SafeStringPtr("future")
+			request["kind"] = "future"
 		} else if typeVar != nil && *typeVar == "option" {
-			requestType = SafeStringPtr("option")
-		}
-		if requestType != nil {
-			request["kind"] = requestType
+			request["kind"] = "option"
 		}
 	}
 
@@ -2025,11 +2021,11 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes150419 []any = r1.Value
-		if retRes150419 == nil {
+		var retRes150019 []any = r1.Value
+		if retRes150019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes150419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes150019)}
 		}
 		return nil
 	}
@@ -3728,13 +3724,12 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(contract, market)
-	var side *string = this.SafeString(position, "direction")
-	side = SafeStringPtr(func() string {
-		if side != nil && *side == "buy" {
+	var side string = func() string {
+		if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
 			return "long"
 		}
 		return "short"
-	}())
+	}()
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")
@@ -4479,11 +4474,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332919 []any = r1.Value
-		if retRes332919 == nil {
+		var retRes332419 []any = r1.Value
+		if retRes332419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332419)}
 		}
 		return nil
 	}
@@ -4652,11 +4647,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes345119 []any = r1.Value
-		if retRes345119 == nil {
+		var retRes344619 []any = r1.Value
+		if retRes344619 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes345119)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344619)}
 		}
 		return nil
 	}

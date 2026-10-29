@@ -1296,10 +1296,10 @@ func (this *Hollaex) ParseBalance(response any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var currenciesById any = this.Currencies_by_id()
-	if IsEqual(currenciesById, nil) {
+	if this.Currencies_by_id() == nil {
 		panic(ExchangeError(this.Id + " currencies not loaded"))
 	}
+	var currenciesById any = this.Currencies_by_id()
 	var currencyIds []string = ObjectKeys(currenciesById)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId *string = this.SafeString(currencyIds, i, "")

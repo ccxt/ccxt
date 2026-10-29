@@ -271,24 +271,22 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		maxTopicsResolved = this.ParseToInt(maxTopics)
 	}
 	var pageLimitOption *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 100)
-	var pageLimit any = func() any {
-		if pageLimitOption != nil && *pageLimitOption > 100 {
-			return 100
-		}
-		return pageLimitOption
-	}()
+	var pageLimit int64 = this.ParseToInt(100)
+	if pageLimitOption == nil || *pageLimitOption < 100 {
+		pageLimit = this.ParseToInt(pageLimitOption)
+	}
 	var collected []any = []any{}
 	var offset any = 0
 	for true {
 		var collectedLength int = len(collected)
 		var remaining int64 = maxTopicsResolved - int64(collectedLength)
-		var reqLimit any = func() any {
-			if ccxt.IsLessThan(remaining, pageLimit) {
+		var reqLimit int64 = func() int64 {
+			if remaining < pageLimit {
 				return remaining
 			}
 			return pageLimit
 		}()
-		if ccxt.IsLessThanOrEqual(reqLimit, 0) {
+		if reqLimit <= 0 {
 			break
 		}
 		var request map[string]any = map[string]any{
@@ -339,7 +337,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 			collected = append(collected, pageTopics[i])
 		}
 		var hasMore *bool = this.SafeBool(response, "hasMore", false)
-		if (!(hasMore != nil && *hasMore)) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
+		if (!(hasMore != nil && *hasMore)) || (int64(pageTopicsLength) < reqLimit) {
 			break
 		}
 		offset = this.Sum(offset, pageTopicsLength)
@@ -628,11 +626,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 		}
 		request["topK"] = limitResolved
 
-		listEp612 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
-		if listEp612.Err != nil {
-			panic(listEp612.Err)
+		listEp610 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
+		if listEp610.Err != nil {
+			panic(listEp610.Err)
 		}
-		var response []any = listEp612.Value
+		var response []any = listEp610.Value
 		//
 		//     [
 		//         {
@@ -668,11 +666,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes48215 []any = ccxt.MapSliceToList(r.Value)
-	if retRes48215 == nil {
+	var retRes48515 []any = ccxt.MapSliceToList(r.Value)
+	if retRes48515 == nil {
 		ch <- ccxt.AsyncResult[[]map[string]any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(retRes48215)}
+		ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(retRes48515)}
 	}
 	return nil
 }
@@ -1414,11 +1412,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes106319 []any = r.Value
-		if retRes106319 == nil {
+		var retRes106619 []any = r.Value
+		if retRes106619 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes106319)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes106619)}
 		}
 		return nil
 	}
@@ -1542,11 +1540,11 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes114619 []any = r.Value
-		if retRes114619 == nil {
+		var retRes114919 []any = r.Value
+		if retRes114919 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes114619)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes114919)}
 		}
 		return nil
 	}
@@ -1922,11 +1920,11 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes141219 []any = r.Value
-		if retRes141219 == nil {
+		var retRes141519 []any = r.Value
+		if retRes141519 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes141219)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes141519)}
 		}
 		return nil
 	}
@@ -2362,7 +2360,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	}
 	var quoteId *string = this.SafeString(quote, "quoteId")
 	var orderRequest map[string]any = this.Extend(commonRequest, map[string]any{
-		"walletId":    ccxt.GetValue(wallet, "walletId"),
+		"walletId":    this.SafeString(wallet, "walletId"),
 		"quoteId":     quoteId,
 		"timeInForce": timeInForce,
 		"accountType": accountType,
@@ -2507,7 +2505,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	}
 	var request map[string]any = map[string]any{
 		"walletAddress": this.SafeString(wallet, "walletAddress"),
-		"walletId":      ccxt.GetValue(wallet, "walletId"),
+		"walletId":      this.SafeString(wallet, "walletId"),
 	}
 	// flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
 	for i := 0; i < ccxt.GetArrayLength(ids); i++ {

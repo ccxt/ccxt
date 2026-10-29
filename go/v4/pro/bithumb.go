@@ -703,11 +703,6 @@ func (this *Bithumb) HandleBookDelta(orderbook any, delta any) {
 	var orderbookSide any = ccxt.GetValue(orderbook, side)
 	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Bithumb) HandleBookDeltas(orderbook any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleBookDelta(orderbook, ccxt.GetValue(deltas, i))
-	}
-}
 
 /**
  * @method
