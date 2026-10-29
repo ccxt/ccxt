@@ -10701,7 +10701,7 @@ export function hx4C17NativeHelperCalls (content: string): string {
         'rawencode', 'numberToString', 'iso8601', 'ymdhms', 'yyyymmdd', 'uuid', 'json', 'hmac', 'encode', 'decode',
         'stringToBase64', 'binaryToBase64', 'decimalToPrecision', 'safeString', 'safeString2', 'safeStringN',
         'safeStringLower', 'safeStringUpper', 'safeStringLower2', 'safeStringUpper2', 'amountToPrecision',
-        'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision' ];
+        'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision', 'uuid5' ];
     const boolCalls = [ 'inArray', 'isEmpty' ];
     const nullableBoolCalls = [ 'safeBool', 'safeBool2', 'safeBoolN' ];
     const preciseString = [ 'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringNeg', 'stringAbs', 'stringMin', 'stringMax' ];
@@ -11105,6 +11105,7 @@ export function hx4C17SelfTest (): string[] {
     };
     check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
     check ('binaryToBase16 box accumulates natively', 'object h = this.binaryToBase16(a);\nobject d = add(add(h, \"00\"), this.intToBase16(a));\nd = add(d, \"01\");', 'd = (d + \"01\");');
+    check ('uuid5 string result left', 'string? q = this.uuid5(c, "x");\nobject d = add(this.uuid5(c, "y"), "-");', '(this.uuid5(c, "y") + "-")');
     check ('implodeHostname box keeps helper', 'object u = this.implodeHostname(a);\nobject d = add(u, \"/x\");', 'add(u, \"/x\")');
     check ('string? chain', 'object q = add(add(c, "-"), a);', '((c + "-") + a)');
     check ('object param left keeps helper', 'object q = add(a, "x");', 'add(a, "x")');
