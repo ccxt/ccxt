@@ -1338,9 +1338,9 @@ export default class polymarket extends Exchange {
             if (!(bucketKey in buckets)) {
                 buckets[bucketKey] = [ snappedMs, price, price, price, price, vol ];
             } else {
-                const candle = buckets[bucketKey] as OHLCV;
-                candle[2] = Math.max (candle[2] as number, price); // high
-                candle[3] = Math.min (candle[3] as number, price); // low
+                const candle = this.safeList (buckets, bucketKey, []);
+                candle[2] = Math.max (candle[2], price); // high
+                candle[3] = Math.min (candle[3], price); // low
                 candle[4] = price;                                  // close (last tick wins)
                 if (vol !== undefined) {
                     const prevVol = candle[5];
