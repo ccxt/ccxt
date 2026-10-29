@@ -2303,7 +2303,7 @@ export default class bitget extends Exchange {
                 continue;
             }
             const parsedMarket = this.parseMarket (market);
-            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
+            if ((parsedMarket !== undefined) && (parsedMarket['spot'] === true)) {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict (spotInstruments, marketId);
                 if (instrument !== undefined) {
@@ -3656,7 +3656,7 @@ export default class bitget extends Exchange {
         const isStock = market['stock'];
         const paramsStock = this.omit (paramsProductType, 'stock');
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchOrderBook', false);
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const isStockOrUta = (isStockSpot || (uta === true));
         if (isStockSpot) {
             if (limit !== undefined) {
@@ -3880,7 +3880,7 @@ export default class bitget extends Exchange {
         const isStock = market['stock'];
         const paramsStock = this.omit (paramsProductType, 'stock');
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchTicker', false);
-        const isStockOrUta = ((isStock && market['spot']) || (uta === true));
+        const isStockOrUta = ((isStock && (market['spot'] === true)) || (uta === true));
         if (isStockOrUta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, paramsUTA));
@@ -4421,7 +4421,7 @@ export default class bitget extends Exchange {
         [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         const market = this.market (symbol);
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         paramsPaginate = this.omit (paramsPaginate, 'stock');
         if (paginate) {
             if (isStockSpot) {
@@ -4884,7 +4884,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const paramsStock = this.omit (paramsUTA, 'stock');
         let marketType: Str = undefined;
         let timeframes: NullableDict = undefined;
@@ -5822,7 +5822,7 @@ export default class bitget extends Exchange {
         const marginParams = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = marginParams[0];
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const paramsStock = this.omit (params, 'stock');
         const triggerPrice = this.safeNumber2 (paramsStock, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeNumber (paramsStock, 'stopLossPrice');
@@ -6707,7 +6707,7 @@ export default class bitget extends Exchange {
         let paramsMarginMode = undefined;
         [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         paramsMarginMode = this.omit (paramsMarginMode, 'stock');
         const request: Dict = {};
         const trailing = this.safeBool (paramsMarginMode, 'trailing');
