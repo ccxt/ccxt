@@ -8319,7 +8319,7 @@ function j28CompareSelfTest (): string[] {
 // is io.github.ccxt.ws.WsOrderBook (a synchronized Map) or a List<String> read at a `for (var i` counter.
 export function nativeJavaJ29Containers (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (content)) return content;
-    const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook$/;
+    const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
     const LIST_STRING = /^(?:java\.util\.)?List<String>$/;
     const lines = content.split ('\n');
     const starts: number[] = [];
@@ -8385,6 +8385,7 @@ function j29ContainersSelfTest (): string[] {
         [ 'book String put', 'Object client', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        String side = "bids";\n        Helpers.addElementToObject(orderbook, side, x);', '        orderbook.put(side, x);' ],
         [ 'book String read', 'Object client', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        String side = "bids";\n        Object b = Helpers.GetValue(orderbook, side);', '(orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side))' ],
         [ 'List<String> counter read', 'Object client', '        List<String> keys = this.sort(raw);\n        for (var i = 0; i < keys.size(); i++)\n        {\n            Object key = Helpers.GetValue(keys, i);\n        }', '(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))' ],
+        [ 'counted book put', 'Object client', '        io.github.ccxt.ws.WsOrderBook.CountedOrderBook ob = this.countedOrderBook(null);\n        Helpers.addElementToObject(ob, "symbol", symbol);', '        ob.put("symbol", symbol);' ],
         // negatives: Object receiver, Object key, mixed declarations, Object index, value-position put
         [ 'Object receiver', 'Object orderbook', '        Helpers.addElementToObject(orderbook, "cache", x);', undefined ],
         [ 'Object key', 'Object side', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        Object b = Helpers.GetValue(orderbook, side);\n        Helpers.addElementToObject(orderbook, side, b);', undefined ],
