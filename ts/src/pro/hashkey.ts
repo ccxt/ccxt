@@ -773,7 +773,16 @@ export default class hashkey extends hashkeyRest {
                 this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
         }
+        // reset the cached balance in place: the spawned snapshot must be
+        // authoritative again on a (re)subscription, while references held
+        // by consumers keep receiving updates; deltas that arrive while the
+        // snapshot is in flight land after this point and still win the merge
         this.balance[type] = this.safeDict (this.balance, type, {});
+        const cachedKeys = Object.keys (this.balance[type]);
+        for (let i = 0; i < cachedKeys.length; i++) {
+            const key = cachedKeys[i];
+            delete this.balance[type][key];
+        }
         // without this comment, transpilation breaks for some reason...
     }
 
