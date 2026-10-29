@@ -9149,6 +9149,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
                 rustContent = this.x46Incr(rustContent); // hx5 X46
+                rustContent = this.x47IntIndex(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
                 rustContent = nativeGetValue(rustContent); // hx10 R01
@@ -9904,6 +9905,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
         finalFile = this.x46Incr(finalFile); // hx5 X46
+        finalFile = this.x47IntIndex(finalFile);
         // Last of all: native get_value on a pinned receiver (hx10 R01).
         finalFile = nativeGetValue(finalFile);
         finalFile = r02NativeInserts(finalFile); // hx10 R02
@@ -13182,6 +13184,44 @@ impl std::ops::DerefMut for ${coreName} {
             if (hits.length !== 1) continue;
             const text = `while { if !${flag} { if let Value::Int(n) = &mut ${v} { *n ${sign}= 1; } }`;
             rewrites.push({ start: m.index, end: m.index + whole.length, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = '', at = 0;
+        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
+        return out + content.slice(at);
+    }
+
+    // A `for (let i = N; i < x.length; i++)` counter that only indexes arrays is always
+    // Value::Int (x46Incr proof), so the Int arm of the index match is the only live one.
+    // Retype it to i64 and print a closure-free bounds-checked slice read.
+    x47IntIndex(content: string): string {
+        const declRe = /let mut (\w+): Value = Value::Int\((\d+)\);(\s*)let mut (__for_first_\d+): bool = true;\s*while \{ if !\4 \{ if let Value::Int\(n\) = &mut \1 \{ \*n \+= 1; \} \} \4 = false; \1\.as_f64\(\)\.unwrap_or\(f64::NAN\) < \(\((self\.\w+|\w+)\.len\(\) as i64\) as f64\) \} \{\n/g;
+        const masked = this.maskStringsAndComments(content);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const [whole, v, init, , flag, recv] = m;
+            const bodyStart = m.index + whole.length;
+            let depth = 1, k = bodyStart;
+            for (; k < masked.length && depth > 0; k++) {
+                if (masked[k] === '{') depth++;
+                else if (masked[k] === '}') depth--;
+            }
+            if (depth !== 0) continue;
+            const body = content.slice(bodyStart, k);
+            const esc = v.replace(/[$]/g, '\\$');
+            const readRe = new RegExp(`\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| match &${esc} \\{ Value::Int\\(__n\\) => __arr\\.get\\(\\*__n as usize\\), Value::Str\\(__s\\) => __s\\.parse::<usize>\\(\\)\\.ok\\(\\)\\.and_then\\(\\|__n\\| __arr\\.get\\(__n\\)\\), _ => None \\}\\)`, 'g');
+            const reads = (body.match(readRe) || []).length;
+            const useRe = new RegExp(`(?<![\\w.])${esc}(?![\\w])`, 'g');
+            const uses = (this.maskStringsAndComments(body).match(useRe) || []).length;
+            if (reads === 0 || uses !== reads) continue;
+            const newBody = body.replace(readRe, `.as_array().map(Vec::as_slice).unwrap_or(&[]).get(${v} as usize)`);
+            const head = whole
+                .replace(`let mut ${v}: Value = Value::Int(${init});`, `let mut ${v}: i64 = ${init};`)
+                .replace(`if let Value::Int(n) = &mut ${v} { *n += 1; }`, `${v} += 1;`)
+                .replace(`${v}.as_f64().unwrap_or(f64::NAN) < ((${recv}.len() as i64) as f64)`, `${v} < (${recv}.len() as i64)`);
+            rewrites.push({ start: m.index, end: bodyStart + body.length, text: head + newBody });
+            declRe.lastIndex = bodyStart + body.length;
         }
         if (rewrites.length === 0) return content;
         let out = '', at = 0;
