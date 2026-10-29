@@ -3405,7 +3405,7 @@ public partial class limitless : PredictionExchange
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             List<object> requestedTags = this.safeList(parameters, "tags", new List<object>() {});
-            List<object> listRaw = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsByTags(requestedTags, parameters));
+            List<Dictionary<string, object>> listRaw = await this.FetchRawMarketsByTags(requestedTags, parameters);
             int listRawLength = (listRaw?.Count ?? 0);
             for (int i = 0; i < listRawLength; i++)
             {
@@ -3599,7 +3599,7 @@ public partial class limitless : PredictionExchange
         List<object> allRaw = new List<object>() {};
         for (int ci = 0; ci < categoryIdsLength; ci++)
         {
-            List<object> categoryMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null)));
+            List<Dictionary<string, object>> categoryMarkets = await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null));
             int categoryMarketsLength = (categoryMarkets?.Count ?? 0);
             for (int mi = 0; mi < categoryMarketsLength; mi++)
             {

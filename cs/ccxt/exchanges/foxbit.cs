@@ -2281,11 +2281,11 @@ public partial class foxbit : Exchange
             }
             for (int i = 0; i < paramKeys.Count; i++)
             {
-                object key = paramKeys[i];
+                string key = ((string)paramKeys[i]);
                 string? value = this.safeString(paramsOmitted, key);
                 if ((value != null))
                 {
-                    signatureQuery = signatureQuery + (add(add(key, "="), value));
+                    signatureQuery = signatureQuery + ((key + "=") + value);
                 }
                 if (i < lastKeyIndex)
                 {

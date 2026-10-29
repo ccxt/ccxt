@@ -203,7 +203,7 @@ public partial class binance : PredictionExchange
         }
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
         IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit"}));
-        List<object> rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(maxMarkets, rest));
+        List<Dictionary<string, object>> rawTopics = await this.FetchRawTopics(maxMarkets, rest);
         List<object> parsedEvents = new List<object>() {};
         List<object> flatMarkets = new List<object>() {};
         int rawTopicsLength = (rawTopics?.Count ?? 0);

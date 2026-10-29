@@ -259,11 +259,11 @@ public partial class btcbox : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promise1 = this.publicGetTickers();
-        object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
-        var response1response2Variable = await promiseAll(new List<object>() {promise1, promise2});
-        var response1 = ((IList<object>) response1response2Variable)[0];
-        var response2 = ((IList<object>) response1response2Variable)[1];
+        Task<Dictionary<string, object>> promise1 = this.publicGetTickers();
+        Task<object> promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
+        await Task.WhenAll(promise1, promise2);
+        var response1 = await promise1;
+        var response2 = await promise2;
         //
         IDictionary<string, object> result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);

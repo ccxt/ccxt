@@ -1998,9 +1998,9 @@ public partial class htx : ccxt.htx
         List<object> marginModes = new List<object>(positionsByMarginMode.Keys);
         for (int i = 0; i < marginModes.Count; i++)
         {
-            object marginMode = marginModes[i];
+            string marginMode = ((string)marginModes[i]);
             List<object> marginModePositions = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
-            List<object> messageHashes = this.findMessageHashes(client, add(marginMode, ":positions::"));
+            List<object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
             for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
             {
                 object messageHash = messageHashes[j];
@@ -2013,7 +2013,7 @@ public partial class htx : ccxt.htx
                     client.resolve(positions, messageHash);
                 }
             }
-            client.resolve(marginModePositions, add(marginMode, ":positions"));
+            client.resolve(marginModePositions, (marginMode + ":positions"));
         }
     }
 

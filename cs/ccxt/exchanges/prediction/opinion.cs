@@ -285,7 +285,7 @@ public partial class opinion : PredictionExchange
                 return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
         }
-        return ccxt.BaseExchange.ToDict(await base.FetchOutcome(outcomeSymbol));
+        return await base.FetchOutcome(outcomeSymbol);
     }
 
     /**

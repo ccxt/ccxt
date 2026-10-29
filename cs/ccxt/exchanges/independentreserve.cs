@@ -1358,9 +1358,9 @@ public partial class independentreserve : Exchange
             List<object> keys = new List<object>(paramsDict.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                object key = keys[i];
+                string key = ((string)keys[i]);
                 string? value = this.safeString(paramsDict, key, "");
-                auth.Add(add(add(key, "="), value));
+                auth.Add(((key + "=") + value));
             }
             string message = String.Join(",", auth.ToArray());
             string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);

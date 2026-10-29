@@ -1594,14 +1594,14 @@ public partial class coinbase : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < baseIds.Count; i++)
         {
-            object baseId = baseIds[i];
+            string baseId = ((string)baseIds[i]);
             string? bs = this.safeCurrencyCode(baseId);
             if ((bs == null))
             {
                 continue;
             }
             string type = "crypto";
-            if ((dataById != null && baseId is string inOpKey0 && dataById.ContainsKey(inOpKey0)))
+            if (((baseId != null) && (dataById?.ContainsKey(baseId) == true)))
             {
                 type = "fiat";
             }
@@ -1618,7 +1618,7 @@ public partial class coinbase : Exchange
                         continue;
                     }
                     result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
-                        { "id", add(add(baseId, "-"), quoteId) },
+                        { "id", ((baseId + "-") + quoteId) },
                         { "symbol", ((bs + "/") + quote) },
                         { "base", bs },
                         { "quote", quote },
@@ -2399,11 +2399,11 @@ public partial class coinbase : Exchange
         string delimiter = "-";
         for (int i = 0; i < baseIds.Count; i++)
         {
-            object baseId = baseIds[i];
-            object marketId = add(add(baseId, delimiter), quoteId);
+            string baseId = ((string)baseIds[i]);
+            string marketId = ((baseId + delimiter) + quoteId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = this.safeString(market, "symbol", "");
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker((rates != null && baseId != null && rates.ContainsKey((string)baseId) ? rates[(string)baseId] : null), market));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker((baseId != null && rates.ContainsKey(baseId) ? rates[baseId] : null), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

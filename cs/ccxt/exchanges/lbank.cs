@@ -3197,7 +3197,7 @@ public partial class lbank : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToDict(this.parseDepositWithdrawFees(data, codes, "coin"));
+        return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(object codes = null, object parameters = null)

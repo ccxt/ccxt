@@ -561,7 +561,7 @@ public partial class kalshi : PredictionExchange
         // free-text fallback: the base derives a search query from the handle's words, resolves it
         // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
         // on a genuine miss
-        return ccxt.BaseExchange.ToDict(await base.FetchOutcome(outcomeSymbol));
+        return await base.FetchOutcome(outcomeSymbol);
     }
 
     /**

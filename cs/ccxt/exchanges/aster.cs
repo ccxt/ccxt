@@ -5069,12 +5069,12 @@ public partial class aster : Exchange
         List<object> keys = new List<object>(values.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object key = keys[i];
-            object value = (values != null && key != null && values.ContainsKey((string)key) ? values[(string)key] : null);
+            string key = ((string)keys[i]);
+            object value = (values != null && key != null && values.ContainsKey(key) ? values[key] : null);
             bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || this.isDictionary(value);
             string valueJsonified = isObj ? this.json(value) : value.ToString();
             string encoded = this.encodeURIComponent(valueJsonified);
-            encodedString = encodedString + (add(add(add(key, "="), encoded), "&"));
+            encodedString = encodedString + (((key + "=") + encoded) + "&");
         }
         return ((string?)((object)(((encodedString == null) ? null : encodedString.Substring(0, Math.Max(encodedString.Length - 1, 0))))));
     }

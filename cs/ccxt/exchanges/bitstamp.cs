@@ -1368,7 +1368,7 @@ public partial class bitstamp : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
+        List<Dictionary<string, object>> response = await this.FetchMarketsFromCache(parameters);
         //
         //     [
         //         {
