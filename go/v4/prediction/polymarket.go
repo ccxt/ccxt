@@ -1443,9 +1443,9 @@ func (this *Polymarket) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		panic(r1.Err)
 	}
 	var midpointResponsebookResponselastTradeResponseVariable []any = ccxt.ListTyped(r1.Value)
-	midpointResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 0)
-	bookResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 1)
-	lastTradeResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 2)
+	midpointResponse := midpointResponsebookResponselastTradeResponseVariable[0]
+	bookResponse := midpointResponsebookResponselastTradeResponseVariable[1]
+	lastTradeResponse := midpointResponsebookResponselastTradeResponseVariable[2]
 	var response map[string]any = map[string]any{
 		"midpoint":  midpointResponse,
 		"book":      bookResponse,
@@ -1559,9 +1559,9 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			panic(r1.Err)
 		}
 		var responses []any = ccxt.ListTyped(r1.Value)
-		var booksResponse any = ccxt.GetValue(responses, 0)
-		var midpoints any = ccxt.GetValue(responses, 1)
-		var lastTradesResponse any = ccxt.GetValue(responses, 2)
+		var booksResponse any = responses[0]
+		var midpoints any = responses[1]
+		var lastTradesResponse any = responses[2]
 		var booksIsArray bool = ccxt.IsArray(booksResponse)
 		var books any = func() any {
 			if booksIsArray {
@@ -2754,12 +2754,12 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Polymarket) FetchOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Polymarket) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the request only needs the order id; the outcome is a labelling hint, so resolve it from

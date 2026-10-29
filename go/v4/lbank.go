@@ -2432,12 +2432,12 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lbank) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2473,12 +2473,12 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
-func (this *Lbank) FetchOrderSupplementAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lbank) FetchOrderSupplementAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderSupplementBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderSupplementBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderSupplementBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2532,12 +2532,12 @@ func (this *Lbank) fetchOrderSupplementBody(ch chan AsyncResult[Order], id any, 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
 }
-func (this *Lbank) FetchOrderDefaultAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lbank) FetchOrderDefaultAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderDefaultBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderDefaultBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderDefaultBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// Id can be a list of ids delimited by a comma

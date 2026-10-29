@@ -5177,12 +5177,12 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
  * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Htx) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Htx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8759,12 +8759,12 @@ func (this *Htx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(indexedAddresses, selectedNetworkCode))}
 	return nil
 }
-func (this *Htx) FetchWithdrawAddressesAsync(code any, optionalArgs ...any) <-chan AsyncResult[[]DepositAddress] {
+func (this *Htx) FetchWithdrawAddressesAsync(code string, optionalArgs ...any) <-chan AsyncResult[[]DepositAddress] {
 	ch := make(chan AsyncResult[[]DepositAddress], 1)
 	go this.fetchWithdrawAddressesBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchWithdrawAddressesBody(ch chan AsyncResult[[]DepositAddress], code any, optionalArgs ...any) any {
+func (this *Htx) fetchWithdrawAddressesBody(ch chan AsyncResult[[]DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	note := GetArg(optionalArgs, 0, nil)

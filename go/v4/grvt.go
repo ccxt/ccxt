@@ -2671,7 +2671,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
+	var result1 map[string]any = SafeMapTyped(responses[0], "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options["userMainAccountId"] = DerefScalar(mainAccountId)
 	if accountIsUndefined {
@@ -3902,12 +3902,12 @@ func (this *Grvt) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {string} [params.clientOrderId] client order id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Grvt) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Grvt) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Grvt) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Grvt) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

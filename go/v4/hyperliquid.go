@@ -4489,12 +4489,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4525,7 +4525,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id any, opti
 		params2 = this.Omit(params2, "clientOrderId")
 		request["oid"] = clientOrderId
 	} else {
-		var isClientOrderId bool = (GetLength(id) >= 34)
+		var isClientOrderId bool = (len(id) >= 34)
 		request["oid"] = func() any {
 			if isClientOrderId {
 				return id

@@ -3719,7 +3719,6 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 	_ = startRegex
 	endRegex := GetArg(optionalArgs, 1, nil)
 	_ = endRegex
-	var errorMessage any = ""
 	var options any = this.SafeValue(this.Options, method, map[string]any{})
 	var muteOnFailure *bool = this.SafeBool(options, "webApiMuteFailure", true)
 
@@ -3732,7 +3731,9 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 					}
 					ret_ = func(this *BaseExchange) any {
 						// catch block:
-						errorMessage = Add(Add(this.Id+" ", method), "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")
+						if !(muteOnFailure != nil && *muteOnFailure) {
+							panic(BadResponse(Add(Add(this.Id+" ", method), "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")))
+						}
 						return nil
 					}(this)
 				}
@@ -3745,9 +3746,8 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 			}
 			var maxRetries int64 = *this.SafeInteger(options, "webApiRetries", 10)
 			var response any = nil
-			var retry any = 0
 			var shouldBreak bool = false
-			for int64(retry.(int)) < maxRetries {
+			for retry := 0; int64(retry) < maxRetries; retry++ {
 
 				{
 					func(this *BaseExchange) (ret_ any) {
@@ -3758,8 +3758,7 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 								}
 								ret_ = func(this *BaseExchange) any {
 									// catch block:
-									retry = Add(retry, 1)
-									if IsEqual(retry, maxRetries) {
+									if int64(retry+1) >= maxRetries {
 										panic(e)
 									}
 									return nil
@@ -3831,12 +3830,8 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 		}
 
 	}
-	if muteOnFailure != nil && *muteOnFailure {
 
-		return nil
-	} else {
-		panic(BadResponse(errorMessage))
-	}
+	return nil
 }
 func (this *BaseExchange) MarketIds(optionalArgs ...any) any {
 	/**
@@ -5677,11 +5672,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705815 map[string]any = r.Value
-	if retRes705815 == nil {
+	var retRes705315 map[string]any = r.Value
+	if retRes705315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705815}
+		ch <- AsyncResult[map[string]any]{Value: retRes705315}
 	}
 	return nil
 }
@@ -10968,12 +10963,12 @@ func (this *Exchange) watchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = params
 	panic(NotSupported(this.Id + " watchTickers() is not supported yet"))
 }
-func (this *Exchange) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Exchange) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Exchange) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11053,7 +11048,7 @@ func (this *Exchange) fetchUnifiedOrderBody(ch chan AsyncResult[Order], order an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.DerivedExchange.(IFetchOrder).FetchOrderAsync(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
+	r := <-this.DerivedExchange.(IFetchOrder).FetchOrderAsync(*this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -11546,12 +11541,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11170, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047015 []any = listRecv11170
-	if retRes1047015 == nil {
+	listRecv11165, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1046515 []any = listRecv11165
+	if retRes1046515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046515)}
 	}
 	return nil
 }

@@ -3861,12 +3861,12 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Phemex) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3926,7 +3926,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			if clientOrderId != nil {
 				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with id " + id + " not found"))
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
@@ -3937,7 +3937,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			if clientOrderId != nil {
 				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with id " + id + " not found"))
 			}
 		}
 		order = this.SafeDict(rows, 0, map[string]any{})

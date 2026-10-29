@@ -1943,12 +1943,12 @@ func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Whitebit) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -2007,7 +2007,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 				for i := 0; i < len(orders); i++ {
 					var order any = DerefScalar(orders[i])
 					var orderId *string = this.SafeString(order, "orderId", "")
-					if IsEqual(orderId, id) {
+					if orderId != nil && *orderId == id {
 						var marketId *string = this.SafeString(order, "market")
 						var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 
@@ -2059,7 +2059,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 					for j := 0; j < len(marketOrders); j++ {
 						var order any = marketOrders[j]
 						var orderId *string = this.SafeString(order, "id", "")
-						if IsEqual(orderId, id) {
+						if orderId != nil && *orderId == id {
 
 							ch <- AsyncResult[Order]{Value: this.ParseOrder(order, marketNew)}
 							chSent = true
@@ -2075,7 +2075,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 
 		}
 	}
-	panic(OrderNotFound(Add(this.Id+" fetchOrder() order not found: ", id)))
+	panic(OrderNotFound(this.Id + " fetchOrder() order not found: " + id))
 }
 
 /**

@@ -3375,12 +3375,12 @@ func (this *Gate) ParseFundingInterval(interval *string) *string {
 	}
 	return this.SafeString(intervals, interval, interval)
 }
-func (this *Gate) FetchNetworkDepositAddressAsync(code any, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+func (this *Gate) FetchNetworkDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
 	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchNetworkDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddress], code any, optionalArgs ...any) any {
+func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7419,7 +7419,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":   order,
 	}, market)
 }
-func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) []any {
+func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) []any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7480,12 +7480,12 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) []any {
  * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Gate) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Gate) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

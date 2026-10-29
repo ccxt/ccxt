@@ -2360,7 +2360,7 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(promises); i++ {
-		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
+		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
 			var position any = positions[ii]
 			cache.(ccxt.Appender).Append(position)

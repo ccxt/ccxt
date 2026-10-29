@@ -1254,12 +1254,12 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var messageHash string = "fundingRate:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Blofin) WatchMultipleWrapperAsync(isPublic any, channelName any, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName any, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMultipleWrapperBody(ch, isPublic, channelName, callerMethodName, optionalArgs...)
 	return ch
 }
-func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic any, channelName any, callerMethodName any, optionalArgs ...any) any {
+func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic bool, channelName any, callerMethodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// underlier method for all watch-multiple symbols

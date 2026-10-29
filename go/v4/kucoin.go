@@ -2712,8 +2712,8 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var data map[string]any = SafeMapTyped(GetValue(responses, 0), "data")
-	var contractData map[string]any = SafeMapTyped(GetValue(responses, 1), "data")
+	var data map[string]any = SafeMapTyped(responses[0], "data")
+	var contractData map[string]any = SafeMapTyped(responses[1], "data")
 	var spotData []any = SafeListTypedDefault(data, "list", []any{})
 	var contractSymbolsData []any = SafeListTypedDefault(contractData, "list", []any{})
 	var symbolsData []any = this.ArrayConcat(spotData, contractSymbolsData)
@@ -8130,12 +8130,12 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8150,7 +8150,7 @@ func (this *Kucoin) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 		}
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
-	if (IsEqual(id, nil)) && (clientOrderId == nil) {
+	if (false) && (clientOrderId == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or a clientOrderId parameter"))
 	}
 
@@ -8228,12 +8228,12 @@ func (this *Kucoin) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
  * @param {object} [params.marginMode] 'cross' or 'isolated'
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchSpotOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) FetchSpotOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchSpotOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchSpotOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) fetchSpotOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8316,7 +8316,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan AsyncResult[Order], id any, optio
 		// a special case for undefined ids
 		// otherwise a wrong endpoint for all orders will be triggered
 		// https://github.com/ccxt/ccxt/issues/7234
-		if IsEqual(id, nil) {
+		if false {
 			panic(InvalidOrder(this.Id + " fetchOrder() requires an order id"))
 		}
 		request["orderId"] = id
@@ -8379,12 +8379,12 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan AsyncResult[Order], id any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchContractOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) FetchContractOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchContractOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchContractOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) fetchContractOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8410,7 +8410,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan AsyncResult[Order], id any, o
 		}
 		response = r1.Value
 	} else {
-		if IsEqual(id, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an order id argument or clientOrderId in params"))
 		}
 		request["orderId"] = id
@@ -8489,12 +8489,12 @@ func (this *Kucoin) fetchContractOrderBody(ch chan AsyncResult[Order], id any, o
  * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchUtaOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) FetchUtaOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchUtaOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8515,7 +8515,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id any, option
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
 	} else {
-		if IsEqual(id, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or clientOrderId parameter"))
 		}
 		request["orderId"] = id
@@ -12868,12 +12868,12 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan AsyncResult[map[string]
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Kucoin) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+func (this *Kucoin) FetchBorrowRateHistoryAsync(code string, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
 	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.fetchBorrowRateHistoryBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]any], code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

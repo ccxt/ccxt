@@ -2801,12 +2801,12 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Polymarket) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2841,13 +2841,13 @@ func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id any, optio
 	for i := 0; i < len(response); i++ {
 		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var rowId *string = this.SafeString(row, "order_id")
-		if IsEqual(rowId, id) {
+		if rowId != nil && *rowId == id {
 
 			ch <- AsyncResult[Order]{Value: this.ParseOrder(row, market)}
 			return nil
 		}
 	}
-	panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find the order ", id)))
+	panic(OrderNotFound(this.Id + " fetchOrder() could not find the order " + id))
 }
 
 /**

@@ -3542,12 +3542,12 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
  * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Weex) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Weex) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3568,14 +3568,14 @@ func (this *Weex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var request map[string]any = map[string]any{}
-	if (IsEqual(id, nil)) && !isSpot {
+	if (false) && !isSpot {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument for non-spot markets"))
 	}
 	var clientOrderId *string = this.SafeString(paramsMarketType, "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "clientOrderId")
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
-	} else if IsEqual(id, nil) {
+	} else if false {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument or clientOrderId parameter for spot markets"))
 	} else {
 		request["orderId"] = id

@@ -4769,12 +4769,12 @@ func (this *Coinbase) editOrderBody(ch chan AsyncResult[Order], id string, symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbase) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbase) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinbase) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6079,12 +6079,12 @@ func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @param {string} [params.accountId] the id of the account to deposit into
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbase) DepositAsync(code any, amount any, id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Coinbase) DepositAsync(code string, amount any, id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.depositBody(ch, code, amount, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code any, amount any, id any, optionalArgs ...any) any {
+func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code string, amount any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6101,12 +6101,12 @@ func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code any, am
 	var request map[string]any = map[string]any{
 		"account_id":     accountId,
 		"amount":         this.NumberToString(amount),
-		"currency":       ToUpper(code),
+		"currency":       strings.ToUpper(code),
 		"payment_method": id,
 		"commit":         true,
 	}
 	if accountId == nil {
-		if IsEqual(code, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
@@ -6116,7 +6116,7 @@ func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code any, am
 		}
 		foundAccountId := r1.Value
 		if foundAccountId == nil {
-			panic(ExchangeError(Add(this.Id+" deposit() could not find account id for ", code)))
+			panic(ExchangeError(this.Id + " deposit() could not find account id for " + code))
 		}
 		request["account_id"] = foundAccountId
 	}

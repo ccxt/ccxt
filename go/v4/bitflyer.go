@@ -1270,12 +1270,12 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitflyer) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1301,7 +1301,7 @@ func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 		ch <- AsyncResult[Order]{Value: OrderFromMap(found)}
 		return nil
 	}
-	panic(OrderNotFound(Add(this.Id+" No order found with id ", id)))
+	panic(OrderNotFound(this.Id + " No order found with id " + id))
 }
 
 /**

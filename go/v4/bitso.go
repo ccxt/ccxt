@@ -1811,12 +1811,12 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitso) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitso) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1845,7 +1845,7 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(payload[0])}
 		return nil
 	}
-	panic(OrderNotFound(Add(Add(this.Id+": The order ", id), " not found.")))
+	panic(OrderNotFound(this.Id + ": The order " + id + " not found."))
 }
 
 /**

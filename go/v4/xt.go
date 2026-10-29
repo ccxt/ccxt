@@ -1459,8 +1459,8 @@ func (this *Xt) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optiona
 		panic(r1.Err)
 	}
 	var promises []any = ListTyped(r1.Value)
-	var spotMarkets any = GetValue(promises, 0)
-	var swapAndFutureMarkets any = GetValue(promises, 1)
+	var spotMarkets any = promises[0]
+	var swapAndFutureMarkets any = promises[1]
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, swapAndFutureMarkets))}
 	return nil
@@ -3742,12 +3742,12 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol any, 
  * @param {bool} [params.trailing] if the order is a trailing order or not
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *Xt) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Xt) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Xt) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

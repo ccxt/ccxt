@@ -425,8 +425,8 @@ func (this *Cex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var dataCurrencies []any = SafeListTyped(GetValue(responses, 0), "data")
-	var dataNetworks map[string]any = this.SafeDictMap(GetValue(responses, 1), "data", map[string]any{})
+	var dataCurrencies []any = SafeListTyped(responses[0], "data")
+	var dataNetworks map[string]any = this.SafeDictMap(responses[1], "data", map[string]any{})
 	var currenciesIndexed map[string]any = this.IndexBy(dataCurrencies, "currency")
 	var data map[string]any = this.DeepExtend(currenciesIndexed, dataNetworks)
 

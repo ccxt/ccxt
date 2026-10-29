@@ -492,10 +492,13 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var dataDict map[string]any = ccxt.SafeMapTyped(message, "data")
+	var rawOrders any = this.SafeList(message, "data", []any{})
+	if dataDict != nil {
+		rawOrders = []any{dataDict}
+	}
 	// usually the first message is an empty array
-	var dataLength int = ccxt.GetArrayLength(data)
-	if dataLength == 0 {
+	if ccxt.GetArrayLength(rawOrders) == 0 {
 		return
 	}
 	if this.Orders == nil {
@@ -503,12 +506,6 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored any = this.Orders
-	var rawOrders any = nil
-	if !ccxt.IsArray(data) {
-		rawOrders = []any{data}
-	} else {
-		rawOrders = data
-	}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
 		var order any = this.SafeValue(rawOrders, i)
@@ -584,7 +581,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "topic")
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var keys []string = nil
 	if data != nil {
 		keys = make([]string, 0, len(data))
@@ -593,7 +590,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var timestamp *int64 = this.SafeTimestamp(message, "time")
-	ccxt.AddElementToObject(this.Balance, "info", this.SafeDict(message, "data", map[string]any{}))
+	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	for i := 0; i < len(keys); i++ {

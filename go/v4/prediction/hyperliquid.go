@@ -1285,7 +1285,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	}
 	var results []any = ccxt.ListTyped(r2.Value)
 	var response map[string]any = ccxt.SafeMapTyped(results, 0)
-	var midsResponse any = ccxt.GetValue(results, 1)
+	var midsResponse any = results[1]
 	var balances []any = ccxt.SafeListTyped(response, "balances")
 	var allMids any = map[string]any{}
 	if (!ccxt.IsString(midsResponse)) && !ccxt.IsArray(midsResponse) {
@@ -2042,12 +2042,12 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
  * @param {string} [params.clientOrderId] fetch by client order id instead
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Hyperliquid) FetchOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2067,7 +2067,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		paramsValue = this.Omit(paramsAddress, "clientOrderId")
 		request["oid"] = clientOrderId
 	} else {
-		var isCloid bool = (ccxt.GetLength(id) >= 34)
+		var isCloid bool = (len(id) >= 34)
 		request["oid"] = func() any {
 			if isCloid {
 				return id
@@ -2096,7 +2096,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		var outcomeObj map[string]any = this.Outcome(outcome)
 		var expected *string = this.SafeString(outcomeObj, "outcome")
 		if this.SafeString(parsed, "outcome") != expected && (this.SafeString(parsed, "outcome") == nil || expected == nil || *this.SafeString(parsed, "outcome") != *expected) {
-			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOrder() order ", id), " is not in outcome "), expected)))
+			panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" fetchOrder() order "+id+" is not in outcome ", expected)))
 		}
 	}
 

@@ -830,7 +830,7 @@ func (this *Gemini) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 		var promisesResult []any = ListTyped(r.Value)
 
-		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(GetValue(promisesResult, 0), GetValue(promisesResult, 1)))}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(promisesResult[0], promisesResult[1]))}
 		return nil
 	}
 
@@ -1078,7 +1078,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		}
 		var responses []any = ListTyped(r1.Value)
 		for i := 0; i < len(responses); i++ {
-			var parsed any = this.ParseMarket(GetValue(responses, i))
+			var parsed any = this.ParseMarket(responses[i])
 			if !IsEqual(parsed, nil) {
 				result = append(result, parsed)
 			}
@@ -2125,12 +2125,12 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Gemini) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Gemini) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
