@@ -573,13 +573,13 @@ export default class pacifica extends pacificaRest {
         if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook (snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset (snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -967,6 +967,7 @@ export default class pacifica extends pacificaRest {
         const marketId = this.safeString (first, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -978,7 +979,6 @@ export default class pacifica extends pacificaRest {
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve (trades, messageHash);
     }
 
@@ -1177,6 +1177,7 @@ export default class pacifica extends pacificaRest {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1189,7 +1190,6 @@ export default class pacifica extends pacificaRest {
         }
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (ohlcv, messageHash);
     }
 
