@@ -3137,10 +3137,10 @@ func (this *Bitstamp) ParseFundingRateHistory(contract any, optionalArgs ...any)
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 0.001)
+	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 1000)
 	return map[string]any{
 		"info":        contract,
-		"symbol":      nil,
+		"symbol":      this.SafeSymbol(nil, market),
 		"fundingRate": this.SafeNumber(contract, "funding_rate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
