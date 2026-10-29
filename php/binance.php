@@ -3990,31 +3990,31 @@ class binance extends Exchange {
         if ($isPortfolioMargin) {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $this->safe_dict($response, $i);
-                $account = $this->account();
+                $accountPapi = $this->account();
                 $currencyId = $this->safe_string($entry, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 if ($type === 'linear') {
-                    $account['free'] = $this->safe_string($entry, 'umWalletBalance');
-                    $account['used'] = $this->safe_string($entry, 'umUnrealizedPNL');
+                    $accountPapi['free'] = $this->safe_string($entry, 'umWalletBalance');
+                    $accountPapi['used'] = $this->safe_string($entry, 'umUnrealizedPNL');
                 } elseif ($type === 'inverse') {
-                    $account['free'] = $this->safe_string($entry, 'cmWalletBalance');
-                    $account['used'] = $this->safe_string($entry, 'cmUnrealizedPNL');
+                    $accountPapi['free'] = $this->safe_string($entry, 'cmWalletBalance');
+                    $accountPapi['used'] = $this->safe_string($entry, 'cmUnrealizedPNL');
                 } elseif ($cross) {
                     $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
                     $interest = $this->safe_string($entry, 'crossMarginInterest');
-                    $account['debt'] = Precise::string_add($borrowed, $interest);
-                    $account['free'] = $this->safe_string($entry, 'crossMarginFree');
-                    $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
-                    $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
+                    $accountPapi['debt'] = Precise::string_add($borrowed, $interest);
+                    $accountPapi['free'] = $this->safe_string($entry, 'crossMarginFree');
+                    $accountPapi['used'] = $this->safe_string($entry, 'crossMarginLocked');
+                    $accountPapi['total'] = $this->safe_string($entry, 'crossMarginAsset');
                 } else {
                     $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
                     $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
                     $totalUsed = Precise::string_add($usedLinear, $usedInverse);
                     $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
-                    $account['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
+                    $accountPapi['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
                 }
                 if ($code !== null) {
-                    $result[$code] = $account;
+                    $result[$code] = $accountPapi;
                 }
             }
         } elseif (!$isolated && (($type === 'spot') || $cross)) {
@@ -4024,16 +4024,16 @@ class binance extends Exchange {
                 $balance = $this->safe_dict($balances, $i);
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'free');
-                $account['used'] = $this->safe_string($balance, 'locked');
+                $accountSpot = $this->account();
+                $accountSpot['free'] = $this->safe_string($balance, 'free');
+                $accountSpot['used'] = $this->safe_string($balance, 'locked');
                 if ($cross) {
                     $debt = $this->safe_string($balance, 'borrowed');
                     $interest = $this->safe_string($balance, 'interest');
-                    $account['debt'] = Precise::string_add($debt, $interest);
+                    $accountSpot['debt'] = Precise::string_add($debt, $interest);
                 }
                 if ($code !== null) {
-                    $result[$code] = $account;
+                    $result[$code] = $accountSpot;
                 }
             }
         } elseif ($isolated) {
@@ -4057,27 +4057,27 @@ class binance extends Exchange {
                 $entry = $this->safe_dict($positionAmountVos, $i);
                 $currencyId = $this->safe_string($entry, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
+                $accountSavings = $this->account();
                 $usedAndTotal = $this->safe_string($entry, 'amount');
-                $account['total'] = $usedAndTotal;
-                $account['used'] = $usedAndTotal;
+                $accountSavings['total'] = $usedAndTotal;
+                $accountSavings['used'] = $usedAndTotal;
                 if ($code !== null) {
-                    $result[$code] = $account;
+                    $result[$code] = $accountSavings;
                 }
             }
         } elseif ($type === 'funding') {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $this->safe_dict($response, $i);
-                $account = $this->account();
+                $accountFunding = $this->account();
                 $currencyId = $this->safe_string($entry, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account['free'] = $this->safe_string($entry, 'free');
+                $accountFunding['free'] = $this->safe_string($entry, 'free');
                 $frozen = $this->safe_string($entry, 'freeze');
                 $withdrawing = $this->safe_string($entry, 'withdrawing');
                 $locked = $this->safe_string($entry, 'locked');
-                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
+                $accountFunding['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 if ($code !== null) {
-                    $result[$code] = $account;
+                    $result[$code] = $accountFunding;
                 }
             }
         } else {
@@ -4094,12 +4094,12 @@ class binance extends Exchange {
                 }
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'availableBalance');
-                $account['used'] = $this->safe_string($balance, 'initialMargin');
-                $account['total'] = $this->safe_string_2($balance, 'marginBalance', 'balance');
+                $accountFutures = $this->account();
+                $accountFutures['free'] = $this->safe_string($balance, 'availableBalance');
+                $accountFutures['used'] = $this->safe_string($balance, 'initialMargin');
+                $accountFutures['total'] = $this->safe_string_2($balance, 'marginBalance', 'balance');
                 if ($code !== null) {
-                    $result[$code] = $account;
+                    $result[$code] = $accountFutures;
                 }
             }
         }

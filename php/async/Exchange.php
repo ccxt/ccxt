@@ -3258,7 +3258,6 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     private function do_fetch_web_endpoint(string $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
-        $errorMessage = '';
         $options = $this->safe_value($this->options, $method, array());
         $muteOnFailure = $this->safe_bool($options, 'webApiMuteFailure', true);
         try {
@@ -3268,16 +3267,14 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             $maxRetries = $this->safe_integer($options, 'webApiRetries', 10);
             $response = null;
-            $retry = 0;
             $shouldBreak = false;
-            while ($retry < $maxRetries) {
+            for ($retry = 0; $retry < $maxRetries; $retry++) {
                 try {
                     $response = Async\await($this->$endpointMethod(array()));
                     $shouldBreak = true;
                     break;
                 } catch (Exception $e) {
-                    $retry = $retry + 1;
-                    if ($retry === $maxRetries) {
+                    if ($retry + 1 >= $maxRetries) {
                         throw $e;
                     }
                 }
@@ -3311,13 +3308,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 return $content;
             }
         } catch (Exception $e) {
-            $errorMessage = $this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
+            if (!$muteOnFailure) {
+                throw new BadResponse($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.');
+            }
         }
-        if ($muteOnFailure) {
-            return null;
-        } else {
-            throw new BadResponse($errorMessage);
-        }
+        return null;
     }
 
     public function market_ids(?array $symbols = null) {
@@ -7964,7 +7959,7 @@ class Exchange extends BaseExchange {
     }
 
     private function do_fetch_unified_order(mixed $order, $params = array()) {
-        return Async\await($this->fetchOrder($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params));
+        return Async\await($this->fetchOrder($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {

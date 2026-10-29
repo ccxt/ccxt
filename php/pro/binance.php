@@ -819,10 +819,12 @@ class binance extends \ccxt\async\binance {
         }
         $subParams = array();
         $messageHashes = array();
+        $subscribeHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $messageHashes[] = 'orderbook::' . $symbol;
+            $subscribeHashes[] = 'orderbook::' . $symbol;
             $subscriptionHash = $this->safe_string($market, 'lowercaseId', '') . '@' . $name;
             if ($watchOrderBookRate === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() watchOrderBookRate is required');
@@ -847,7 +849,7 @@ class binance extends \ccxt\async\binance {
             'type' => $type,
             'params' => $paramsRpi,
         );
-        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsRpi), $messageHashes, $subscription));
+        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsRpi), $subscribeHashes, $subscription));
         return $orderbook->limit();
     }
 
@@ -1343,6 +1345,7 @@ class binance extends \ccxt\async\binance {
             $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $messageHashes = array();
+        $subscribeHashes = array();
         $subParams = array();
         if ($isOption === true) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
@@ -1352,6 +1355,7 @@ class binance extends \ccxt\async\binance {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
                 $messageHashes[] = 'trade::' . $symbol;
+                $subscribeHashes[] = 'trade::' . $symbol;
                 $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
                 $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
                 $underlying = $baseIdLower . '' . $quoteIdLower;
@@ -1365,6 +1369,7 @@ class binance extends \ccxt\async\binance {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
                 $messageHashes[] = 'trade::' . $symbol;
+                $subscribeHashes[] = 'trade::' . $symbol;
                 $rawHash = $this->safe_string($market, 'lowercaseId', '') . '@' . $name;
                 $subParams[] = $rawHash;
             }
@@ -1381,7 +1386,7 @@ class binance extends \ccxt\async\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscribe));
+        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $subscribeHashes, $subscribe));
         $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
@@ -1835,6 +1840,7 @@ class binance extends \ccxt\async\binance {
         $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
         $rawHashes = array();
         $messageHashes = array();
+        $subscribeHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $symAndTf = $symbolsAndTimeframes[$i];
             $symbolString = $this->safe_string($symAndTf, 0, '');
@@ -1857,6 +1863,7 @@ class binance extends \ccxt\async\binance {
             }
             $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
             $messageHashes[] = 'ohlcv::' . $this->safe_string($market, 'symbol', '') . '::' . $timeframeString;
+            $subscribeHashes[] = 'ohlcv::' . $this->safe_string($market, 'symbol', '') . '::' . $timeframeString;
         }
         $url = $this->get_ws_url($wsUrlType, $this->get_future_ws_category($klineType)) . '/' . $this->stream($wsUrlType, 'multipleOHLCV');
         $requestId = $this->request_id($url);
@@ -1869,7 +1876,7 @@ class binance extends \ccxt\async\binance {
             'id' => $requestId,
         );
         $paramsOmitted = $this->omit($paramsTimezone, 'callerMethodName');
-        $res = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes, $subscribe));
+        $res = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $subscribeHashes, $subscribe));
         list($symbol, $timeframe, $candles) = $res;
         $limitResolved = $limit;
         if ($this->newUpdates) {

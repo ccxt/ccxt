@@ -1355,13 +1355,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1725,7 +1719,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function edit_order_request(?string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()): array {
+    public function edit_order_request(?string $id, string $symbol, ?float $amount, ?float $price = null, $params = array()): array {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;

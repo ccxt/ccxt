@@ -391,10 +391,13 @@ class hollaex extends \ccxt\async\hollaex {
         //       }
         //
         $channel = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data', array());
+        $dataDict = $this->safe_dict($message, 'data');
+        $rawOrders = $this->safe_list($message, 'data', array());
+        if ($dataDict !== null) {
+            $rawOrders = array( $dataDict );
+        }
         // usually the first message is an empty array
-        $dataLength = count($data);
-        if ($dataLength === 0) {
+        if (strlen($rawOrders) === 0) {
             return;
         }
         if ($this->orders === null) {
@@ -402,12 +405,6 @@ class hollaex extends \ccxt\async\hollaex {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
-        $rawOrders = null;
-        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-            $rawOrders = array( $data );
-        } else {
-            $rawOrders = $data;
-        }
         $marketIds = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->safe_value($rawOrders, $i);
@@ -470,7 +467,7 @@ class hollaex extends \ccxt\async\hollaex {
         $data = $this->safe_dict($message, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         $timestamp = $this->safe_timestamp($message, 'time');
-        $this->balance['info'] = $this->safe_dict($message, 'data', array());
+        $this->balance['info'] = $data;
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($keys); $i++) {

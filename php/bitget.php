@@ -4081,7 +4081,7 @@ class bitget extends Exchange {
             }
             if ($isStock) {
                 $request['category'] = 'SPOT';
-            } elseif (!(is_array($request) && array_key_exists('category' ?? '', $request))) {
+            } else {
                 $request['category'] = $productType;
             }
             $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $paramsUTA));

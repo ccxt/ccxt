@@ -3393,7 +3393,8 @@ class okx extends Exchange {
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($orderParams, 'tgtCcy', $defaultTgtCcy);
-        if (($contract !== true) && (!$margin)) {
+        // conditional sell orders must not carry tgtCcy
+        if (($contract !== true) && (!$margin) && ($trigger || (!$conditional) || ($side !== 'sell'))) {
             $request['tgtCcy'] = $tgtCcy;
         }
         if ($isMarketOrder || $marketIOC) {
@@ -3544,10 +3545,7 @@ class okx extends Exchange {
             if ($twoWayCondition) {
                 $request['ordType'] = 'oco';
             }
-            if ($side === 'sell') {
-                $request = $this->omit($request, 'tgtCcy');
-            }
-            if ($this->safe_string($request, 'tdMode') === 'cash') {
+            if (($spot === true) && (!$margin)) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 $request['tdMode'] = $marginMode;
