@@ -689,7 +689,7 @@ const JAVA_PARSE_LIST_TYPE = 'java.util.List<Object>';
 const PARSE_MAP_LOCAL_NAMES = new Set ([
     'parseOrder', 'parseOrderBook', 'parseTicker', 'parseTrade', 'parsePosition',
     'parseTradingFee', 'parseFundingRate', 'parseMarginLoan', 'parseTransaction',
-    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance', 'parseBalanceList',
+    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance', 'parseBalanceList', 'parseBalanceList',
     'parseWsOrder', 'parseWsTicker', 'parseWsPosition',
 ]);
 
