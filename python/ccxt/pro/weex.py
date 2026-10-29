@@ -133,8 +133,8 @@ class weex(ccxt.async_support.weex):
         self.check_required_credentials()
         if (self.clients is not None) and (url in self.clients):
             return
-        timestamp = self.nonce()
-        payload = self.number_to_string(timestamp) + '/v3/ws/private'
+        timestamp = str(self.nonce())
+        payload = timestamp + '/v3/ws/private'
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
         originalHeaders = self.safe_dict(self.options['ws']['options'], 'headers')
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
@@ -146,7 +146,7 @@ class weex(ccxt.async_support.weex):
                         'ACCESS-KEY': self.apiKey,
                         'ACCESS-SIGN': signature,
                         'ACCESS-PASSPHRASE': self.password,
-                        'ACCESS-TIMESTAMP': self.number_to_string(timestamp),
+                        'ACCESS-TIMESTAMP': timestamp,
                     },
                 },
             },
@@ -1620,7 +1620,7 @@ class weex(ccxt.async_support.weex):
         if url.find('contract') >= 0:
             accountType = 'swap'
         messageHash = accountType + ':balance'
-        if self.balance[accountType] is None:
+        if not (accountType in self.balance):
             self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
         balanceUpdates = self.safe_list(message, 'd', [])

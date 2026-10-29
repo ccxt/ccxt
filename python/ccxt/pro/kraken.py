@@ -1153,13 +1153,12 @@ class kraken(ccxt.async_support.kraken):
                 #         }
                 #     }
                 #
-                subscription = self.safe_dict(response, 'result')
+                subscription = self.extend(self.safe_dict(response, 'result'), {'start': now})
                 token = self.safe_string(subscription, 'token')
                 if token is None:
                     # reject instead of caching an empty credential, so
                     # waiters retry rather than proceed unauthenticated
                     raise AuthenticationError(self.id + ' authenticate() received an empty token')
-                subscription['start'] = now
                 client.subscriptions[authenticated] = subscription
                 # settle the flight and wake every waiter - resolve () also
                 # clears the registry entry, so the next refresh re-leads

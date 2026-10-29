@@ -4069,7 +4069,7 @@ class delta(Exchange, ImplicitAPI):
                     url += queryString
             else:
                 requestBody = self.json(query)
-                auth += requestBody
+                auth = method + timestamp + requestPath + requestBody
                 privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             privateHeaders['signature'] = signature

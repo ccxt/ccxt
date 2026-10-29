@@ -3433,7 +3433,7 @@ class BaseExchange(object):
         return result
 
     def filter_by_limit(self, array: list[object], limit: Int = None, key: IndexType = 'timestamp', fromStart: bool = False):
-        if self.value_is_defined(limit):
+        if limit is not None and limit is not None:
             arrayLength = len(array)
             if arrayLength > 0:
                 ascending = True
@@ -3455,7 +3455,7 @@ class BaseExchange(object):
     def filter_by_since_limit(self, array: list[object] | None, since: Int = None, limit: Int = None, key: IndexType = 'timestamp', tail=False):
         if array is None:
             return []
-        sinceIsDefined = self.value_is_defined(since)
+        sinceIsDefined = since is not None and since is not None
         parsedArray = self.to_array(array)
         result = parsedArray
         if sinceIsDefined:
@@ -3474,7 +3474,7 @@ class BaseExchange(object):
 
     def filter_by_value_since_limit(self, array: list[object], field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
         valueIsDefined = self.value_is_defined(value)
-        sinceIsDefined = self.value_is_defined(since)
+        sinceIsDefined = since is not None and since is not None
         parsedArray = self.to_array(array)
         result = parsedArray
         # single-pass filter for both symbol and since
@@ -4407,12 +4407,15 @@ class BaseExchange(object):
             freeBalance[code] = self.parse_number(free)
             usedBalance[code] = self.parse_number(used)
             totalBalance[code] = self.parse_number(total)
-            balance[code]['free'] = freeBalance[code]
-            balance[code]['used'] = usedBalance[code]
-            balance[code]['total'] = totalBalance[code]
+            entry = {
+                'free': freeBalance[code],
+                'used': usedBalance[code],
+                'total': totalBalance[code],
+            }
             if debt is not None:
                 debtBalance[code] = self.parse_number(debt)
-                balance[code]['debt'] = debtBalance[code]
+                entry['debt'] = debtBalance[code]
+            balance[code] = self.extend(balances[code], entry)
         balance['free'] = freeBalance
         balance['used'] = usedBalance
         balance['total'] = totalBalance

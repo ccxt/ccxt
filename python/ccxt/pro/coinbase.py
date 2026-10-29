@@ -257,7 +257,7 @@ class coinbase(ccxt.async_support.coinbase):
             tokenExpiry = tokenTimestamp + 90
             if currentToken is None or tokenExpiry < seconds:
                 # we should generate new token
-                token = self.create_auth_token(seconds, None, None, self.isEddsaApiKey())
+                token = self.create_auth_token(seconds, '', None, self.isEddsaApiKey())
                 self.options['wsToken'] = token
                 self.options['wsTokenTimestamp'] = seconds
             subscribe['jwt'] = self.safe_string(self.options, 'wsToken')

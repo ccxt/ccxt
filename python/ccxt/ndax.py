@@ -2608,22 +2608,36 @@ class ndax(Exchange, ImplicitAPI):
         elif apiName == 'private':
             self.check_required_credentials()
             sessionToken = self.safe_string(self.options, 'sessionToken')
+            isPost = (method == 'POST')
             if sessionToken is None:
                 nonce = str(self.nonce())
                 auth = nonce + self.uid + self.apiKey
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                if isPost:
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': self.apiKey,
+                        'Signature': signature,
+                        'UserId': self.uid,
+                        'Content-Type': 'application/json',
+                    }
+                else:
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': self.apiKey,
+                        'Signature': signature,
+                        'UserId': self.uid,
+                    }
+            elif isPost:
                 headersSigned = {
-                    'Nonce': nonce,
-                    'APIKey': self.apiKey,
-                    'Signature': signature,
-                    'UserId': self.uid,
+                    'APToken': sessionToken,
+                    'Content-Type': 'application/json',
                 }
             else:
                 headersSigned = {
                     'APToken': sessionToken,
                 }
-            if method == 'POST':
-                headersSigned['Content-Type'] = 'application/json'
+            if isPost:
                 bodySigned = self.json(query)
             else:
                 if len(query) > 0:

@@ -1228,15 +1228,13 @@ class opinion(PredictionExchange, ImplicitAPI):
                 trade['tokenId'] = self.safe_string(info, 'yesTokenId') if isYes else self.safe_string(info, 'noTokenId')
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
-    async def load_trade_market(self, marketId: Int) -> Market:
+    async def load_trade_market(self, marketId: int) -> Market:
         """
  @ignore
         fetches and caches a single market by its numeric marketId, and indexes its outcomes
         :param int marketId: the numeric market id
         :returns dict: the parsed market
         """
-        if marketId is None:
-            raise ArgumentsRequired(self.id + ' loadTradeMarket() requires a marketId')
         cacheKey = 'tradeMarketsById'
         cached = self.safe_dict(self.options, cacheKey, {})
         idStr = str(marketId)

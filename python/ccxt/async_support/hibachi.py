@@ -639,8 +639,7 @@ class hibachi(Exchange, ImplicitAPI):
             self.publicGetMarketDataPrices(self.extend(request, params)),
             self.publicGetMarketDataStats(self.extend(request, params)),
         ]
-        promises = await asyncio.gather(*rawPromises)
-        pricesResponse = promises[0]
+        pricesResponse, statsResponse = await asyncio.gather(*rawPromises)
         # {
         #     "askPrice": "3514.650296",
         #     "bidPrice": "3513.596112",
@@ -653,7 +652,6 @@ class hibachi(Exchange, ImplicitAPI):
         #     "symbol": "ETH/USDT-P",
         #     "tradePrice": "2372.746570"
         # }
-        statsResponse = promises[1]
         # {
         #     "high24h": "3819.507827",
         #     "low24h": "3754.474162",

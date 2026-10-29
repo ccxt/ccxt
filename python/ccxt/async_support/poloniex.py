@@ -3260,6 +3260,7 @@ class poloniex(Exchange, ImplicitAPI):
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 currency = self.currency(code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, currency)
+                parsedFee = self.safe_dict(depositWithdrawFees, code, {})
                 childChains = self.safe_list(feeInfo, 'childChains', [])
                 chainsLength = len(childChains)
                 if chainsLength > 0:
@@ -3281,7 +3282,8 @@ class poloniex(Exchange, ImplicitAPI):
                                     'percentage': None,
                                 },
                             }
-                        depositWithdrawFees[code]['networks'] = self.extend(self.safe_dict(depositWithdrawFees[code], 'networks', {}), networkObject)
+                        parsedFee['networks'] = self.extend(self.safe_dict(parsedFee, 'networks', {}), networkObject)
+                depositWithdrawFees[code] = parsedFee
         return depositWithdrawFees
 
     def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:

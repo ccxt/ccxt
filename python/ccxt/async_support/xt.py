@@ -5545,8 +5545,7 @@ class xt(Exchange, ImplicitAPI):
         signedBody = None
         if signed:
             self.check_required_credentials()
-            defaultRecvWindow = self.safe_string(self.options, 'recvWindow', '5000')
-            recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
+            recvWindow = self.safe_string(query, 'recvWindow', self.safe_string(self.options, 'recvWindow', '5000'))
             timestamp = self.number_to_string(self.nonce())
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 id = 'CCXT'
@@ -5557,7 +5556,8 @@ class xt(Exchange, ImplicitAPI):
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))
             if (method == 'PUT') and (endpoint == 'spot'):
                 isUndefinedBody = False
-            signedBody = None if isUndefinedBody else self.json(query)
+            jsonBody = self.json(query)
+            signedBody = None if isUndefinedBody else jsonBody
             payloadString = ''
             if (endpoint == 'spot') or (endpoint == 'user'):
                 spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
@@ -5568,7 +5568,7 @@ class xt(Exchange, ImplicitAPI):
                     else:
                         payloadString = spotPrefix + '#' + method + '#' + payload
                 else:
-                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + signedBody
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + jsonBody
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
@@ -5580,7 +5580,7 @@ class xt(Exchange, ImplicitAPI):
                     else:
                         payloadString = futurePrefix + '#' + payload
                 else:
-                    payloadString = futurePrefix + '#' + payload + '#' + signedBody
+                    payloadString = futurePrefix + '#' + payload + '#' + jsonBody
             headersValue['xt-validate-appkey'] = self.apiKey
             headersValue['xt-validate-timestamp'] = timestamp
             headersValue['xt-validate-signature'] = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256)

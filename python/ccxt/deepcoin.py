@@ -525,6 +525,8 @@ class deepcoin(Exchange, ImplicitAPI):
             isLinear = (quoteId != 'USD')
             settleId = quoteId if isLinear else baseId
             settle = self.safe_currency_code(settleId)
+            if settle is None:
+                return None
             symbol = base + '/' + quote + ':' + settle
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         maxLeverage = self.safe_string(market, 'lever', '1')

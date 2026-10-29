@@ -4920,11 +4920,11 @@ class coinbase(Exchange, ImplicitAPI):
         # using the size might be fragile, so we add an option to force v2 cloud api key if needed
         return len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
 
-    def create_auth_token(self, seconds: int, method: Str = None, url: Str = None, useEddsa=False) -> str:
+    def create_auth_token(self, seconds: int, url: str, method: Str = None, useEddsa=False) -> str:
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
-        if url is not None:
+        if url != '':
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
             # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
@@ -5032,7 +5032,7 @@ class coinbase(Exchange, ImplicitAPI):
                     #     'uri': uri,
                     #     'iat': seconds,
                     # };
-                    token = self.create_auth_token(seconds, method, url, isV2CloudAPiKey)
+                    token = self.create_auth_token(seconds, url, method, isV2CloudAPiKey)
                     # const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token
                 else:

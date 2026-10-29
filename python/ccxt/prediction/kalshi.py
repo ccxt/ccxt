@@ -939,7 +939,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 outcomesByTicker[ticker] = []
                 tickers.append(ticker)
             # reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            grouped = outcomesByTicker[ticker]
+            grouped = self.safe_list(outcomesByTicker, ticker, [])
             grouped.append(outcomeObj)
             outcomesByTicker[ticker] = grouped
         chunkSize = self.safe_integer(self.options, 'fetchTickersBatchSize', 100)

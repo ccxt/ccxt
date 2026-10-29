@@ -418,9 +418,12 @@ class gemini(ccxt.async_support.gemini):
             delta = changes[i]
             price = self.safe_number(delta, 1)
             size = self.safe_number(delta, 2)
-            side = 'bids' if (self.safe_string(delta, 0) == 'buy') else 'asks'
-            bookside = orderbook[side]
-            bookside.store(price, size)
+            if self.safe_string(delta, 0) == 'buy':
+                bids = orderbook['bids']
+                bids.store(price, size)
+            else:
+                asks = orderbook['asks']
+                asks.store(price, size)
         orderbook['symbol'] = symbol
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
