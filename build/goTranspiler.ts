@@ -95,6 +95,11 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
     'editOrder': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
     'transfer': [ 0, 3 ], 'setMarginMode': [ 0 ],
+    // required `code: string` currency-code params (every declaration in ts/src is a required string)
+    'fetchBorrowRateHistory': [ 0 ], 'fetchVolatilityHistory': [ 0 ], 'futuresTransfer': [ 0 ], 'createGiftCode': [ 0 ],
+    'transferIn': [ 0 ], 'transferOut': [ 0 ], 'fetchDepositMethods': [ 0 ], 'fetchNetworkDepositAddress': [ 0 ],
+    'convertCurrencyNetwork': [ 0 ], 'transferBetweenMainAndSubAccount': [ 0 ], 'transferBetweenSubAccounts': [ 0 ],
+    'deposit': [ 0, 2 ], 'fetchWithdrawAddresses': [ 0 ],
 };
 
 // hx10w9 GP13: the slice mirror of the string table below. These six ws methods take their
