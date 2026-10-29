@@ -79,6 +79,10 @@ function gb10PlainValue (body: string, value: string): boolean {
     if (/^(?:ccxt\.)?map\[string\]any\{/.test (text) || /^this\.(?:Extend|DeepExtend|IndexBy|CreateSafeDictionary)\(/.test (text)) {
         return true;
     }
+    // hx11 w8: a literal-default SafeDict/SafeDictMap/SafeList read answers the decoded container or the default, never nil
+    if (/^this\.Safe(?:DictMap|Dict|List)\([^\n]*, (?:map\[string\]any|\[\]any)\{\}\)$/.test (text)) {
+        return true;
+    }
     // date/time strings: a plain Go string
     if (/^this\.(?:Iso8601|Milliseconds|Seconds|Microseconds)\(/.test (text)) {
         return true;
@@ -97,7 +101,8 @@ function gb10PlainValue (body: string, value: string): boolean {
         return false;
     }
     // a container local needs a never-nil init; a container parameter is the caller's frame
-    return (decl.init === '') || (GB10_NEVER_NIL_INIT.test (decl.init) && (!decl.init.startsWith ('this.Account(') || gb10NeverRebound (body, text)));
+    const defaultedDict = /^this\.SafeDictMap\([^\n]*, map\[string\]any\{\}\)$/.test (decl.init);  // hx11 w8
+    return (decl.init === '') || ((GB10_NEVER_NIL_INIT.test (decl.init) || defaultedDict) && (!(decl.init.startsWith ('this.Account(') || defaultedDict) || gb10NeverRebound (body, text)));
 }
 
 // the key as Go prints it: a string literal, a `string`, or a `*string` from SafeString with a literal
@@ -272,6 +277,11 @@ export function hx10w9GB10Check (): string[] {
         ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\tcode = nil\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: rebound key');
         ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\taccount = nil\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: rebound Account() value');
         ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account any = this.Account()\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: boxed Account() value');
+        const dictLocal = run ('\tvar data map[string]any = this.SafeDictMap(message, "data", map[string]any{})\n\tccxt.AddElementToObject(this.Balance, "info", data)\n');
+        ok (dictLocal.includes ('this.Balance["info"] = data'), 'hx11 w8: a literal-default SafeDictMap local writes natively: ' + dictLocal);
+        ok (run ('\tvar data map[string]any = this.SafeDictMap(message, "data", map[string]any{})\n\tdata = nil\n\tccxt.AddElementToObject(this.Balance, "info", data)\n').includes ('AddElementToObject('), 'hx11 w8: a rebound SafeDictMap local keeps the helper');
+        ok (run ('\tccxt.AddElementToObject(this.Balance, "info", this.SafeList(message, "data", []any{}))\n').includes ('this.Balance["info"] = this.SafeList(message, "data", []any{})'), 'hx11 w8: a literal-default SafeList call writes natively');
+        ok (run ('\tccxt.AddElementToObject(this.Balance, "info", this.SafeList(message, "data"))\n').includes ('AddElementToObject('), 'hx11 w8: a no-default SafeList call keeps the helper');
         const userPath = 'package ccxt\n\nfunc (this *X) watchBalanceBody(ch chan any, message map[string]any) {\n\tccxt.AddElementToObject(this.Balance, "info", message)\n}\n';
         ok (hx10w9GB10BalanceWrites (userPath).includes ('AddElementToObject('), 'keeps the helper: user-path body');
         const boxedField = 'package ccxt\n\nfunc (this *X) G(p any) {\n\tthis.Balance = p\n}\nfunc (this *X) H(message map[string]any) {\n\tccxt.AddElementToObject(this.Balance, "info", message)\n}\n';
