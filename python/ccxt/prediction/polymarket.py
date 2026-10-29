@@ -1241,7 +1241,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if not (bucketKey in buckets):
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol]
             else:
-                candle = buckets[bucketKey]
+                candle = self.safe_list(buckets, bucketKey, [])
                 candle[2] = max(candle[2], price)  # high
                 candle[3] = min(candle[3], price)  # low
                 candle[4] = price                                  # close (last tick wins)

@@ -417,8 +417,12 @@ class binance(PredictionExchange, ImplicitAPI):
         seen = {}
         collected = []
         queriesLength = len(queries)
-        limitValue = 20 if (limit is None) else limit
-        limitResolved = 50 if (limitValue > 50) else limitValue
+        limitValue = self.parse_to_int(20)
+        if limit is not None:
+            limitValue = self.parse_to_int(limit)
+        limitResolved = limitValue
+        if limitValue > 50:
+            limitResolved = self.parse_to_int(50)
         for qi in range(0, queriesLength):
             request = {
                 'query': queries[qi],

@@ -3841,7 +3841,7 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def handle_trigger_prices(self, params: dict) -> list:
+    def check_trigger_prices(self, params: dict):
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
@@ -3849,7 +3849,6 @@ class kucoin(Exchange, ImplicitAPI):
         isTakeProfit = takeProfitPrice is not None
         if (isStopLoss and isTakeProfit) or ((triggerPrice is not None) and (stopLossPrice is not None)) or ((triggerPrice is not None) and isTakeProfit):
             raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
-        return [triggerPrice, stopLossPrice, takeProfitPrice]
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -3943,7 +3942,10 @@ class kucoin(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'test')
         hf, paramsHf = self.handle_hf_and_params(paramsOmitted)
         useSync, paramsSync = self.handle_option_bool_and_params(paramsHf, 'createOrder', 'sync', False)
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsSync)
+        self.check_trigger_prices(paramsSync)
+        triggerPrice = self.safe_number_2(paramsSync, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(paramsSync, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(paramsSync, 'takeProfitPrice')
         tradeType = self.safe_string(paramsSync, 'tradeType')  # keep it for backward compatibility
         isTriggerOrder = (triggerPrice is not None) or (stopLossPrice is not None) or (takeProfitPrice is not None)
         marginMode = self.handle_margin_mode_and_params('createOrder', paramsSync)[0]
@@ -4017,7 +4019,10 @@ class kucoin(Exchange, ImplicitAPI):
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
         tradeType = self.safe_string(paramsOmitted, 'tradeType')  # keep it for backward compatibility
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        self.check_trigger_prices(paramsOmitted)
+        triggerPrice = self.safe_number_2(paramsOmitted, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(paramsOmitted, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(paramsOmitted, 'takeProfitPrice')
         isTriggerOrder = (triggerPrice is not None) or (stopLossPrice is not None) or (takeProfitPrice is not None)
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
         paramsOmitted = self.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
@@ -4150,7 +4155,10 @@ class kucoin(Exchange, ImplicitAPI):
             sizeString = self.amount_to_precision(symbol, amount)
             if sizeString is not None:
                 request['size'] = int(sizeString)
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        self.check_trigger_prices(paramsOmitted)
+        triggerPrice = self.safe_number_2(paramsOmitted, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(paramsOmitted, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(paramsOmitted, 'takeProfitPrice')
         stopLoss = self.safe_dict(paramsOmitted, 'stopLoss')
         takeProfit = self.safe_dict(paramsOmitted, 'takeProfit')
         hasStopLoss = stopLoss is not None
@@ -4379,7 +4387,10 @@ class kucoin(Exchange, ImplicitAPI):
                         positionSide = 'SHORT' if (positionSide == 'LONG') else 'LONG'
                     request['positionSide'] = positionSide
         # handling with conditional orders
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsOmitted)
+        self.check_trigger_prices(paramsOmitted)
+        triggerPrice = self.safe_number_2(paramsOmitted, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(paramsOmitted, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(paramsOmitted, 'takeProfitPrice')
         stopLoss = self.safe_dict(paramsOmitted, 'stopLoss')
         takeProfit = self.safe_dict(paramsOmitted, 'takeProfit')
         hasStopLoss = stopLoss is not None

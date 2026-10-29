@@ -774,16 +774,19 @@ class blofin(ccxt.async_support.blofin):
             await self.load_markets()
         callerMethodNameOption, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', callerMethodName)
         isOHLCV = (channelName == 'candle')
-        symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.market(symbols[0])
+        symbols = []
+        if isOHLCV:
+            symbols = self.market_symbols(self.get_list_from_object_values(symbolsArray, 0), None, False, True)
+        else:
+            symbols = self.market_symbols(symbolsArray, None, False, True)
+        firstMarket = self.market(self.safe_string(symbols, 0))
         marketType, paramsMarketType = self.handle_market_type_and_params(callerMethodNameOption, firstMarket, paramsCallerMethodName)
         if marketType != 'swap':
             raise NotSupported(self.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+            market = self.market(self.safe_string(symbols, i))
             channel = channelName
             if isOHLCV:
                 tfArray = symbolsArray[i]

@@ -8163,7 +8163,7 @@ class okx(Exchange, ImplicitAPI):
             request['begin'] = since
         if limit is not None:
             request['limit'] = limit
-        method, paramsMethod = self.handle_option_and_params(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive')
+        method, paramsMethod = self.handle_option_string_and_params(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive')
         until = self.safe_integer(paramsMethod, 'until')
         if until is not None:
             request['end'] = until

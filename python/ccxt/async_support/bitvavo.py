@@ -1472,7 +1472,7 @@ class bitvavo(Exchange, ImplicitAPI):
             else:
                 cost = self.safe_number(paramsOmitted, 'cost')
             if cost is not None:
-                precision = self.currency(market['quote'])['precision']
+                precision = self.safe_number(self.currency(market['quote']), 'precision')
                 request['amountQuote'] = self.decimal_to_precision(cost, TRUNCATE, precision, self.precisionMode)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)

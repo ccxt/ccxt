@@ -4615,12 +4615,6 @@ class gate(Exchange, ImplicitAPI):
                         'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
                         # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
                     }
-                if reduceOnly is not None:
-                    request['initial']['reduce_only'] = reduceOnly
-                if timeInForce is not None:
-                    request['initial']['tif'] = timeInForce
-                if clientOrderId is not None:
-                    request['initial']['text'] = clientOrderId
             else:
                 # spot conditional order
                 options = self.safe_dict(self.options, 'createOrder', {})
