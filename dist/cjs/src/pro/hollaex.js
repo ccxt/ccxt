@@ -365,10 +365,13 @@ class hollaex extends hollaex$1["default"] {
         //       }
         //
         const channel = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data', {});
+        const dataDict = this.safeDict(message, 'data');
+        let rawOrders = this.safeList(message, 'data', []);
+        if (dataDict !== undefined) {
+            rawOrders = [dataDict];
+        }
         // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
+        if (rawOrders.length === 0) {
             return;
         }
         if (this.orders === undefined) {
@@ -376,13 +379,6 @@ class hollaex extends hollaex$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const stored = this.orders;
-        let rawOrders = undefined;
-        if (!Array.isArray(data)) {
-            rawOrders = [data];
-        }
-        else {
-            rawOrders = data;
-        }
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.safeValue(rawOrders, i);
@@ -439,7 +435,7 @@ class hollaex extends hollaex$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const keys = Object.keys(data);
         const timestamp = this.safeTimestamp(message, 'time');
-        this.balance['info'] = this.safeDict(message, 'data', {});
+        this.balance['info'] = data;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < keys.length; i++) {

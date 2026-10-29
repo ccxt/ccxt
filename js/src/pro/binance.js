@@ -781,10 +781,12 @@ export default class binance extends binanceRest {
         }
         const subParams = [];
         const messageHashes = [];
+        const subscribeHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             messageHashes.push('orderbook::' + symbol);
+            subscribeHashes.push('orderbook::' + symbol);
             const subscriptionHash = this.safeString(market, 'lowercaseId', '') + '@' + name;
             if (watchOrderBookRate === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
@@ -809,7 +811,7 @@ export default class binance extends binanceRest {
             'type': type,
             'params': paramsRpi,
         };
-        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, paramsRpi), messageHashes, subscription);
+        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, paramsRpi), subscribeHashes, subscription);
         return orderbook.limit();
     }
     /**
@@ -1286,6 +1288,7 @@ export default class binance extends binanceRest {
             type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const messageHashes = [];
+        const subscribeHashes = [];
         const subParams = [];
         if (isOption === true) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
@@ -1295,6 +1298,7 @@ export default class binance extends binanceRest {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 messageHashes.push('trade::' + symbol);
+                subscribeHashes.push('trade::' + symbol);
                 const baseIdLower = this.safeStringLower(market, 'baseId', '');
                 const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
                 const underlying = baseIdLower + '' + quoteIdLower;
@@ -1309,6 +1313,7 @@ export default class binance extends binanceRest {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 messageHashes.push('trade::' + symbol);
+                subscribeHashes.push('trade::' + symbol);
                 const rawHash = this.safeString(market, 'lowercaseId', '') + '@' + name;
                 subParams.push(rawHash);
             }
@@ -1325,7 +1330,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
+        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), subscribeHashes, subscribe);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -1759,6 +1764,7 @@ export default class binance extends binanceRest {
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq(timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
+        const subscribeHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
             const symbolString = this.safeString(symAndTf, 0, '');
@@ -1781,6 +1787,7 @@ export default class binance extends binanceRest {
             }
             rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push('ohlcv::' + this.safeString(market, 'symbol', '') + '::' + timeframeString);
+            subscribeHashes.push('ohlcv::' + this.safeString(market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + '/' + this.stream(wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId(url);
@@ -1793,7 +1800,7 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const paramsOmitted = this.omit(paramsTimezone, 'callerMethodName');
-        const res = await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes, subscribe);
+        const res = await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), subscribeHashes, subscribe);
         const [symbol, timeframe, candles] = res;
         let limitResolved = limit;
         if (this.newUpdates) {

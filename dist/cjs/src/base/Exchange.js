@@ -4994,7 +4994,6 @@ class BaseExchange {
         return result;
     }
     async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
-        let errorMessage = '';
         const options = this.safeValue(this.options, method, {});
         const muteOnFailure = this.safeBool(options, 'webApiMuteFailure', true);
         try {
@@ -5004,17 +5003,15 @@ class BaseExchange {
             }
             const maxRetries = this.safeInteger(options, 'webApiRetries', 10);
             let response = undefined;
-            let retry = 0;
             let shouldBreak = false;
-            while (retry < maxRetries) {
+            for (let retry = 0; retry < maxRetries; retry++) {
                 try {
                     response = await this[endpointMethod]({});
                     shouldBreak = true;
                     break;
                 }
                 catch (e) {
-                    retry = retry + 1;
-                    if (retry === maxRetries) {
+                    if (retry + 1 >= maxRetries) {
                         throw e;
                     }
                 }
@@ -5051,14 +5048,11 @@ class BaseExchange {
             }
         }
         catch (e) {
-            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
+            if (!muteOnFailure) {
+                throw new errors.BadResponse(this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.');
+            }
         }
-        if (muteOnFailure) {
-            return undefined;
-        }
-        else {
-            throw new errors.BadResponse(errorMessage);
-        }
+        return undefined;
     }
     marketIds(symbols = undefined) {
         /**
@@ -9372,7 +9366,7 @@ class Exchange extends BaseExchange {
         return this.safeString(order, 'status');
     }
     async fetchUnifiedOrder(order, params = {}) {
-        return await this.fetchOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.fetchOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');

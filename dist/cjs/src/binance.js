@@ -4003,34 +4003,34 @@ class binance extends binance$1["default"] {
         if (isPortfolioMargin) {
             for (let i = 0; i < response.length; i++) {
                 const entry = this.safeDict(response, i);
-                const account = this.account();
+                const accountPapi = this.account();
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 if (type === 'linear') {
-                    account['free'] = this.safeString(entry, 'umWalletBalance');
-                    account['used'] = this.safeString(entry, 'umUnrealizedPNL');
+                    accountPapi['free'] = this.safeString(entry, 'umWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'umUnrealizedPNL');
                 }
                 else if (type === 'inverse') {
-                    account['free'] = this.safeString(entry, 'cmWalletBalance');
-                    account['used'] = this.safeString(entry, 'cmUnrealizedPNL');
+                    accountPapi['free'] = this.safeString(entry, 'cmWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'cmUnrealizedPNL');
                 }
                 else if (cross) {
                     const borrowed = this.safeString(entry, 'crossMarginBorrowed');
                     const interest = this.safeString(entry, 'crossMarginInterest');
-                    account['debt'] = Precise["default"].stringAdd(borrowed, interest);
-                    account['free'] = this.safeString(entry, 'crossMarginFree');
-                    account['used'] = this.safeString(entry, 'crossMarginLocked');
-                    account['total'] = this.safeString(entry, 'crossMarginAsset');
+                    accountPapi['debt'] = Precise["default"].stringAdd(borrowed, interest);
+                    accountPapi['free'] = this.safeString(entry, 'crossMarginFree');
+                    accountPapi['used'] = this.safeString(entry, 'crossMarginLocked');
+                    accountPapi['total'] = this.safeString(entry, 'crossMarginAsset');
                 }
                 else {
                     const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
                     const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
                     const totalUsed = Precise["default"].stringAdd(usedLinear, usedInverse);
                     const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
-                    account['total'] = Precise["default"].stringAdd(totalUsed, totalWalletBalance);
+                    accountPapi['total'] = Precise["default"].stringAdd(totalUsed, totalWalletBalance);
                 }
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountPapi;
                 }
             }
         }
@@ -4041,16 +4041,16 @@ class binance extends binance$1["default"] {
                 const balance = this.safeDict(balances, i);
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(balance, 'free');
-                account['used'] = this.safeString(balance, 'locked');
+                const accountSpot = this.account();
+                accountSpot['free'] = this.safeString(balance, 'free');
+                accountSpot['used'] = this.safeString(balance, 'locked');
                 if (cross) {
                     const debt = this.safeString(balance, 'borrowed');
                     const interest = this.safeString(balance, 'interest');
-                    account['debt'] = Precise["default"].stringAdd(debt, interest);
+                    accountSpot['debt'] = Precise["default"].stringAdd(debt, interest);
                 }
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountSpot;
                 }
             }
         }
@@ -4076,28 +4076,28 @@ class binance extends binance$1["default"] {
                 const entry = this.safeDict(positionAmountVos, i);
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
+                const accountSavings = this.account();
                 const usedAndTotal = this.safeString(entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
+                accountSavings['total'] = usedAndTotal;
+                accountSavings['used'] = usedAndTotal;
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountSavings;
                 }
             }
         }
         else if (type === 'funding') {
             for (let i = 0; i < response.length; i++) {
                 const entry = this.safeDict(response, i);
-                const account = this.account();
+                const accountFunding = this.account();
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                account['free'] = this.safeString(entry, 'free');
+                accountFunding['free'] = this.safeString(entry, 'free');
                 const frozen = this.safeString(entry, 'freeze');
                 const withdrawing = this.safeString(entry, 'withdrawing');
                 const locked = this.safeString(entry, 'locked');
-                account['used'] = Precise["default"].stringAdd(frozen, Precise["default"].stringAdd(locked, withdrawing));
+                accountFunding['used'] = Precise["default"].stringAdd(frozen, Precise["default"].stringAdd(locked, withdrawing));
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountFunding;
                 }
             }
         }
@@ -4115,12 +4115,12 @@ class binance extends binance$1["default"] {
                 }
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(balance, 'availableBalance');
-                account['used'] = this.safeString(balance, 'initialMargin');
-                account['total'] = this.safeString2(balance, 'marginBalance', 'balance');
+                const accountFutures = this.account();
+                accountFutures['free'] = this.safeString(balance, 'availableBalance');
+                accountFutures['used'] = this.safeString(balance, 'initialMargin');
+                accountFutures['total'] = this.safeString2(balance, 'marginBalance', 'balance');
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountFutures;
                 }
             }
         }

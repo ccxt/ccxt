@@ -181325,7 +181325,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return result;
     }
     async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
-        let errorMessage = '';
         const options = this.safeValue(this.options, method, {});
         const muteOnFailure = this.safeBool(options, 'webApiMuteFailure', true);
         try {
@@ -181335,16 +181334,14 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             }
             const maxRetries = this.safeInteger(options, 'webApiRetries', 10);
             let response = undefined;
-            let retry = 0;
             let shouldBreak = false;
-            while(retry < maxRetries){
+            for(let retry = 0; retry < maxRetries; retry++){
                 try {
                     response = await this[endpointMethod]({});
                     shouldBreak = true;
                     break;
                 } catch (e) {
-                    retry = retry + 1;
-                    if (retry === maxRetries) {
+                    if (retry + 1 >= maxRetries) {
                         throw e;
                     }
                 }
@@ -181378,13 +181375,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 return content;
             }
         } catch (e) {
-            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
+            if (!muteOnFailure) {
+                throw new _errors_js__rspack_import_2.BadResponse(this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.');
+            }
         }
-        if (muteOnFailure) {
-            return undefined;
-        } else {
-            throw new _errors_js__rspack_import_2.BadResponse(errorMessage);
-        }
+        return undefined;
     }
     marketIds(symbols = undefined) {
         /**
@@ -186104,7 +186099,7 @@ class Exchange extends BaseExchange {
         return this.safeString(order, 'status');
     }
     async fetchUnifiedOrder(order, params = {}) {
-        return await this.fetchOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.fetchOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() is not supported yet');
@@ -206097,31 +206092,31 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (isPortfolioMargin) {
             for(let i = 0; i < response.length; i++){
                 const entry = this.safeDict(response, i);
-                const account = this.account();
+                const accountPapi = this.account();
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 if (type === 'linear') {
-                    account['free'] = this.safeString(entry, 'umWalletBalance');
-                    account['used'] = this.safeString(entry, 'umUnrealizedPNL');
+                    accountPapi['free'] = this.safeString(entry, 'umWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'umUnrealizedPNL');
                 } else if (type === 'inverse') {
-                    account['free'] = this.safeString(entry, 'cmWalletBalance');
-                    account['used'] = this.safeString(entry, 'cmUnrealizedPNL');
+                    accountPapi['free'] = this.safeString(entry, 'cmWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'cmUnrealizedPNL');
                 } else if (cross) {
                     const borrowed = this.safeString(entry, 'crossMarginBorrowed');
                     const interest = this.safeString(entry, 'crossMarginInterest');
-                    account['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(borrowed, interest);
-                    account['free'] = this.safeString(entry, 'crossMarginFree');
-                    account['used'] = this.safeString(entry, 'crossMarginLocked');
-                    account['total'] = this.safeString(entry, 'crossMarginAsset');
+                    accountPapi['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(borrowed, interest);
+                    accountPapi['free'] = this.safeString(entry, 'crossMarginFree');
+                    accountPapi['used'] = this.safeString(entry, 'crossMarginLocked');
+                    accountPapi['total'] = this.safeString(entry, 'crossMarginAsset');
                 } else {
                     const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
                     const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
                     const totalUsed = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(usedLinear, usedInverse);
                     const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
-                    account['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(totalUsed, totalWalletBalance);
+                    accountPapi['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(totalUsed, totalWalletBalance);
                 }
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountPapi;
                 }
             }
         } else if (!isolated && (type === 'spot' || cross)) {
@@ -206131,16 +206126,16 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 const balance = this.safeDict(balances, i);
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(balance, 'free');
-                account['used'] = this.safeString(balance, 'locked');
+                const accountSpot = this.account();
+                accountSpot['free'] = this.safeString(balance, 'free');
+                accountSpot['used'] = this.safeString(balance, 'locked');
                 if (cross) {
                     const debt = this.safeString(balance, 'borrowed');
                     const interest = this.safeString(balance, 'interest');
-                    account['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(debt, interest);
+                    accountSpot['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(debt, interest);
                 }
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountSpot;
                 }
             }
         } else if (isolated) {
@@ -206164,27 +206159,27 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 const entry = this.safeDict(positionAmountVos, i);
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
+                const accountSavings = this.account();
                 const usedAndTotal = this.safeString(entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
+                accountSavings['total'] = usedAndTotal;
+                accountSavings['used'] = usedAndTotal;
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountSavings;
                 }
             }
         } else if (type === 'funding') {
             for(let i = 0; i < response.length; i++){
                 const entry = this.safeDict(response, i);
-                const account = this.account();
+                const accountFunding = this.account();
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                account['free'] = this.safeString(entry, 'free');
+                accountFunding['free'] = this.safeString(entry, 'free');
                 const frozen = this.safeString(entry, 'freeze');
                 const withdrawing = this.safeString(entry, 'withdrawing');
                 const locked = this.safeString(entry, 'locked');
-                account['used'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(frozen, _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(locked, withdrawing));
+                accountFunding['used'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(frozen, _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(locked, withdrawing));
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountFunding;
                 }
             }
         } else {
@@ -206201,12 +206196,12 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 }
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(balance, 'availableBalance');
-                account['used'] = this.safeString(balance, 'initialMargin');
-                account['total'] = this.safeString2(balance, 'marginBalance', 'balance');
+                const accountFutures = this.account();
+                accountFutures['free'] = this.safeString(balance, 'availableBalance');
+                accountFutures['used'] = this.safeString(balance, 'initialMargin');
+                accountFutures['total'] = this.safeString2(balance, 'marginBalance', 'balance');
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = accountFutures;
                 }
             }
         }
@@ -241965,7 +241960,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             }
             if (isStock) {
                 request['category'] = 'SPOT';
-            } else if (!('category' in request)) {
+            } else {
                 request['category'] = productType;
             }
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
@@ -326346,12 +326341,6 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' requires a side argument');
-        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -464855,7 +464844,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
         const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
         const conditional = stopLossPrice !== undefined || takeProfitPrice !== undefined || type === 'conditional';
-        let request = {
+        const request = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
@@ -464980,7 +464969,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const marketIOC = isMarketOrder && ioc || type === 'optimal_limit_ioc';
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(orderParams, 'tgtCcy', defaultTgtCcy);
-        if (contract !== true && !margin) {
+        // conditional sell orders must not carry tgtCcy
+        if (contract !== true && !margin && (trigger || !conditional || side !== 'sell')) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
@@ -465152,10 +465142,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
-            if (side === 'sell') {
-                request = this.omit(request, 'tgtCcy');
-            }
-            if (this.safeString(request, 'tdMode') === 'cash') {
+            if (spot === true && !margin) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode;
@@ -531849,10 +531836,12 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         }
         const subParams = [];
         const messageHashes = [];
+        const subscribeHashes = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             messageHashes.push('orderbook::' + symbol);
+            subscribeHashes.push('orderbook::' + symbol);
             const subscriptionHash = this.safeString(market, 'lowercaseId', '') + '@' + name;
             if (watchOrderBookRate === undefined) {
                 throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
@@ -531877,7 +531866,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'type': type,
             'params': paramsRpi
         };
-        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, paramsRpi), messageHashes, subscription);
+        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, paramsRpi), subscribeHashes, subscription);
         return orderbook.limit();
     }
     /**
@@ -532346,6 +532335,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             type = firstMarket['linear'] === true ? 'linear' : 'inverse';
         }
         const messageHashes = [];
+        const subscribeHashes = [];
         const subParams = [];
         if (isOption === true) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
@@ -532355,6 +532345,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 messageHashes.push('trade::' + symbol);
+                subscribeHashes.push('trade::' + symbol);
                 const baseIdLower = this.safeStringLower(market, 'baseId', '');
                 const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
                 const underlying = baseIdLower + '' + quoteIdLower;
@@ -532368,6 +532359,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 messageHashes.push('trade::' + symbol);
+                subscribeHashes.push('trade::' + symbol);
                 const rawHash = this.safeString(market, 'lowercaseId', '') + '@' + name;
                 subParams.push(rawHash);
             }
@@ -532384,7 +532376,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const subscribe = {
             'id': requestId
         };
-        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
+        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), subscribeHashes, subscribe);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -532819,6 +532811,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const isUtc8 = timezone !== undefined && (timezone === '+08:00' || _base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
+        const subscribeHashes = [];
         for(let i = 0; i < symbolsAndTimeframes.length; i++){
             const symAndTf = symbolsAndTimeframes[i];
             const symbolString = this.safeString(symAndTf, 0, '');
@@ -532841,6 +532834,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             }
             rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push('ohlcv::' + this.safeString(market, 'symbol', '') + '::' + timeframeString);
+            subscribeHashes.push('ohlcv::' + this.safeString(market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + '/' + this.stream(wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId(url);
@@ -532853,7 +532847,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'id': requestId
         };
         const paramsOmitted = this.omit(paramsTimezone, 'callerMethodName');
-        const res = await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes, subscribe);
+        const res = await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), subscribeHashes, subscribe);
         const [symbol, timeframe, candles] = res;
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -576931,10 +576925,15 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
         //       }
         //
         const channel = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data', {});
+        const dataDict = this.safeDict(message, 'data');
+        let rawOrders = this.safeList(message, 'data', []);
+        if (dataDict !== undefined) {
+            rawOrders = [
+                dataDict
+            ];
+        }
         // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
+        if (rawOrders.length === 0) {
             return;
         }
         if (this.orders === undefined) {
@@ -576942,14 +576941,6 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
             this.orders = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheBySymbolById */.Pt(limit);
         }
         const stored = this.orders;
-        let rawOrders = undefined;
-        if (!Array.isArray(data)) {
-            rawOrders = [
-                data
-            ];
-        } else {
-            rawOrders = data;
-        }
         const marketIds = {};
         for(let i = 0; i < rawOrders.length; i++){
             const order = this.safeValue(rawOrders, i);
@@ -577005,7 +576996,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeDict(message, 'data', {});
         const keys = Object.keys(data);
         const timestamp = this.safeTimestamp(message, 'time');
-        this.balance['info'] = this.safeDict(message, 'data', {});
+        this.balance['info'] = data;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
         for(let i = 0; i < keys.length; i++){

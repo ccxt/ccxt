@@ -4100,7 +4100,7 @@ class bitget extends bitget$1["default"] {
             if (isStock) {
                 request['category'] = 'SPOT';
             }
-            else if (!('category' in request)) {
+            else {
                 request['category'] = productType;
             }
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));

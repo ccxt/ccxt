@@ -1356,12 +1356,6 @@ export default class cryptocom extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === undefined) {
-            throw new ArgumentsRequired(this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' requires a side argument');
-        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
