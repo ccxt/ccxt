@@ -618,6 +618,7 @@ build the request payload for cancelling multiple orders
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No |  |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, (default is false) |
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersrequest)

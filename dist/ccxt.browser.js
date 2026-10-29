@@ -403195,6 +403195,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
      * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (this.safeBool(params, 'twap', false)) {
@@ -403218,6 +403219,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrders(ids, symbol = undefined, params = {}) {
         this.checkRequiredCredentials();
@@ -403330,12 +403332,15 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
+         * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */ const market = this.market(symbol);
         let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const fast = this.safeBool(params, 'fast', false);
         let params2 = this.omit(params, [
             'clientOrderId',
-            'client_id'
+            'client_id',
+            'fast'
         ]);
         const nonce = this.incrementingNonce();
         const request = {
@@ -403371,6 +403376,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             }
         }
         cancelAction['cancels'] = cancelReq;
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -403393,6 +403402,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrdersForSymbols(orders, params = {}) {
         this.checkRequiredCredentials();
@@ -403434,6 +403444,11 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
+        const fast = this.safeBool(params, 'fast', false);
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         const vaultAddressOption = this.handleOptionStringAndParams2(params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
