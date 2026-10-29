@@ -180,24 +180,23 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Long timestamp = this.nonce();
-        String payload = (this.numberToString(timestamp) + "/v3/ws/private");
+        String timestamp = String.valueOf(this.nonce());
+        String payload = (timestamp + "/v3/ws/private");
         String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
         Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(Helpers.GetValue(this.options.get("ws"), "options"), "headers", (Object) null);
         String userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
-        Map<String, Object> extendedOptions = new HashMap<String, Object>() {{
-            put( "ws", new HashMap<String, Object>() {{
-                put( "options", new HashMap<String, Object>() {{
-                    put( "headers", new HashMap<String, Object>() {{
-                        put( "User-Agent", userAgent );
-                        put( "ACCESS-KEY", Weex.this.apiKey );
-                        put( "ACCESS-SIGN", signature );
-                        put( "ACCESS-PASSPHRASE", Weex.this.password );
-                        put( "ACCESS-TIMESTAMP", Weex.this.numberToString(timestamp) );
-                    }} );
-                }} );
-            }} );
-        }};
+        Map<String, Object> extendedOptions = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("User-Agent", userAgent);
+        mapLiteral3.put("ACCESS-KEY", this.apiKey);
+        mapLiteral3.put("ACCESS-SIGN", signature);
+        mapLiteral3.put("ACCESS-PASSPHRASE", this.password);
+        mapLiteral3.put("ACCESS-TIMESTAMP", timestamp);
+        mapLiteral2.put("headers", mapLiteral3);
+        mapLiteral1.put("options", mapLiteral2);
+        extendedOptions.put("ws", mapLiteral1);
         this.extendExchangeOptions((Map<String, Object>) (extendedOptions));
         // instantiate client
         this.client(url);
@@ -432,30 +431,30 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             symbol = market.get("symbol");
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("high", this.safeString(ticker, "h"));
-        mapLiteral1.put("low", this.safeString(ticker, "l"));
-        mapLiteral1.put("bid", this.safeString(ticker, "b"));
-        mapLiteral1.put("bidVolume", this.safeString(ticker, "B"));
-        mapLiteral1.put("ask", this.safeString(ticker, "a"));
-        mapLiteral1.put("askVolume", this.safeString(ticker, "A"));
-        mapLiteral1.put("vwap", this.safeString(ticker, "w"));
-        mapLiteral1.put("open", this.safeString(ticker, "o"));
-        mapLiteral1.put("close", close);
-        mapLiteral1.put("last", close);
-        mapLiteral1.put("previousClose", this.safeString(ticker, "x"));
-        mapLiteral1.put("change", this.safeString(ticker, "p"));
-        mapLiteral1.put("percentage", Precise.stringMul(this.safeString(ticker, "P"), "100"));
-        mapLiteral1.put("average", this.safeString(ticker, "w"));
-        mapLiteral1.put("baseVolume", this.safeString(ticker, "v"));
-        mapLiteral1.put("quoteVolume", this.safeString(ticker, "q"));
-        mapLiteral1.put("markPrice", this.safeString(ticker, "m"));
-        mapLiteral1.put("indexPrice", this.safeString(ticker, "i"));
-        mapLiteral1.put("info", ticker);
-        return this.safeTicker(mapLiteral1, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("high", this.safeString(ticker, "h"));
+        mapLiteral4.put("low", this.safeString(ticker, "l"));
+        mapLiteral4.put("bid", this.safeString(ticker, "b"));
+        mapLiteral4.put("bidVolume", this.safeString(ticker, "B"));
+        mapLiteral4.put("ask", this.safeString(ticker, "a"));
+        mapLiteral4.put("askVolume", this.safeString(ticker, "A"));
+        mapLiteral4.put("vwap", this.safeString(ticker, "w"));
+        mapLiteral4.put("open", this.safeString(ticker, "o"));
+        mapLiteral4.put("close", close);
+        mapLiteral4.put("last", close);
+        mapLiteral4.put("previousClose", this.safeString(ticker, "x"));
+        mapLiteral4.put("change", this.safeString(ticker, "p"));
+        mapLiteral4.put("percentage", Precise.stringMul(this.safeString(ticker, "P"), "100"));
+        mapLiteral4.put("average", this.safeString(ticker, "w"));
+        mapLiteral4.put("baseVolume", this.safeString(ticker, "v"));
+        mapLiteral4.put("quoteVolume", this.safeString(ticker, "q"));
+        mapLiteral4.put("markPrice", this.safeString(ticker, "m"));
+        mapLiteral4.put("indexPrice", this.safeString(ticker, "i"));
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, market);
     }
 
     /**
@@ -679,21 +678,21 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("id", this.safeString(trade, "t"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("order", null);
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", this.safeString(trade, "p"));
-        mapLiteral2.put("amount", this.safeString(trade, "q"));
-        mapLiteral2.put("cost", this.safeString(trade, "v"));
-        mapLiteral2.put("fee", null);
-        return this.safeTrade(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("id", this.safeString(trade, "t"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("order", null);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", this.safeString(trade, "p"));
+        mapLiteral5.put("amount", this.safeString(trade, "q"));
+        mapLiteral5.put("cost", this.safeString(trade, "v"));
+        mapLiteral5.put("fee", null);
+        return this.safeTrade(mapLiteral5, market);
     }
 
     /**
@@ -1324,16 +1323,16 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             symbol = market.get("symbol");
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("ask", this.safeString(message, "a"));
-        mapLiteral3.put("askVolume", this.safeString(message, "A"));
-        mapLiteral3.put("bid", this.safeString(message, "b"));
-        mapLiteral3.put("bidVolume", this.safeString(message, "B"));
-        mapLiteral3.put("info", message);
-        return this.safeTicker(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("ask", this.safeString(message, "a"));
+        mapLiteral6.put("askVolume", this.safeString(message, "A"));
+        mapLiteral6.put("bid", this.safeString(message, "b"));
+        mapLiteral6.put("bidVolume", this.safeString(message, "B"));
+        mapLiteral6.put("info", message);
+        return this.safeTicker(mapLiteral6, market);
     }
 
     /**
@@ -1567,21 +1566,21 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", trade);
-        mapLiteral4.put("id", this.safeString(trade, "id"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("order", this.safeString(trade, "orderId"));
-        mapLiteral4.put("type", this.safeString(trade, "type"));
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("takerOrMaker", this.safeStringLower(trade, "direction"));
-        mapLiteral4.put("price", null);
-        mapLiteral4.put("amount", this.safeString(trade, "fillSize"));
-        mapLiteral4.put("cost", this.safeString(trade, "fillValue"));
-        mapLiteral4.put("fee", fee);
-        return this.safeTrade(mapLiteral4, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("id", this.safeString(trade, "id"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("order", this.safeString(trade, "orderId"));
+        mapLiteral7.put("type", this.safeString(trade, "type"));
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", this.safeStringLower(trade, "direction"));
+        mapLiteral7.put("price", null);
+        mapLiteral7.put("amount", this.safeString(trade, "fillSize"));
+        mapLiteral7.put("cost", this.safeString(trade, "fillValue"));
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, (Map<String, Object>) null);
     }
 
     /**
@@ -1896,33 +1895,33 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             stopLossPrice = triggerPrice;
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", this.safeString(order, "id"));
-        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", this.parseOrderType((String) (rawType)));
-        mapLiteral5.put("timeInForce", this.safeString(order, "timeInForce"));
-        mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("amount", this.safeString(order, "size"));
-        mapLiteral5.put("price", this.safeString(order, "price"));
-        mapLiteral5.put("triggerPrice", triggerPrice);
-        mapLiteral5.put("cost", this.safeString(order, "cumFillValue"));
-        mapLiteral5.put("filled", this.safeString(order, "cumFillSize"));
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("fee", fee);
-        mapLiteral5.put("status", this.parseOrderStatus((String) (rawStatus)));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("lastUpdateTimestamp", this.safeInteger(order, "updatedTime"));
-        mapLiteral5.put("average", null);
-        mapLiteral5.put("trades", null);
-        mapLiteral5.put("stopLossPrice", stopLossPrice);
-        mapLiteral5.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketValue);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", this.safeString(order, "id"));
+        mapLiteral8.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral8.put("symbol", marketResolved.get("symbol"));
+        mapLiteral8.put("type", this.parseOrderType((String) (rawType)));
+        mapLiteral8.put("timeInForce", this.safeString(order, "timeInForce"));
+        mapLiteral8.put("postOnly", null);
+        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("amount", this.safeString(order, "size"));
+        mapLiteral8.put("price", this.safeString(order, "price"));
+        mapLiteral8.put("triggerPrice", triggerPrice);
+        mapLiteral8.put("cost", this.safeString(order, "cumFillValue"));
+        mapLiteral8.put("filled", this.safeString(order, "cumFillSize"));
+        mapLiteral8.put("remaining", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("fee", fee);
+        mapLiteral8.put("status", this.parseOrderStatus((String) (rawStatus)));
+        mapLiteral8.put("lastTradeTimestamp", null);
+        mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(order, "updatedTime"));
+        mapLiteral8.put("average", null);
+        mapLiteral8.put("trades", null);
+        mapLiteral8.put("stopLossPrice", stopLossPrice);
+        mapLiteral8.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral8.put("info", order);
+        return this.safeOrder(mapLiteral8, marketValue);
     }
 
     /**
@@ -2078,7 +2077,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             accountType = "swap";
         }
         String messageHash = (accountType + ":balance");
-        if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
+        if (!(((Map<?, ?>)this.balance).containsKey(accountType)))
         {
             this.balance.put(accountType, new HashMap<String, Object>() {{}});
         }

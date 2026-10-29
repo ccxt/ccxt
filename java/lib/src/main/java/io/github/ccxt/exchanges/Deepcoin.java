@@ -718,6 +718,10 @@ public class Deepcoin extends DeepcoinApi
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+            if (java.util.Objects.equals(settle, null))
+            {
+                return null;
+            }
             symbol = ((((base + "/") + quote) + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});

@@ -3202,30 +3202,52 @@ public class Ndax extends NdaxApi
         {
             this.checkRequiredCredentials(true);
             String sessionToken = this.safeString(this.options, "sessionToken");
+            Boolean isPost = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
             if (java.util.Objects.equals(sessionToken, null))
             {
                 String nonce = String.valueOf(this.nonce());
                 String auth = ((nonce + this.uid) + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                if (Boolean.TRUE.equals(isPost))
                 {
-                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
-                    hx4NewMap3.put("Nonce", nonce);
-                    hx4NewMap3.put("APIKey", this.apiKey);
-                    hx4NewMap3.put("Signature", signature);
-                    hx4NewMap3.put("UserId", this.uid);
-                    headersSigned = hx4NewMap3;
+                    {
+                        HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
+                        hx4NewMap3.put("Nonce", nonce);
+                        hx4NewMap3.put("APIKey", this.apiKey);
+                        hx4NewMap3.put("Signature", signature);
+                        hx4NewMap3.put("UserId", this.uid);
+                        hx4NewMap3.put("Content-Type", "application/json");
+                        headersSigned = hx4NewMap3;
+                    }
+                } else
+                {
+                    {
+                        HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
+                        hx4NewMap4.put("Nonce", nonce);
+                        hx4NewMap4.put("APIKey", this.apiKey);
+                        hx4NewMap4.put("Signature", signature);
+                        hx4NewMap4.put("UserId", this.uid);
+                        headersSigned = hx4NewMap4;
+                    }
+                }
+            } else if (Boolean.TRUE.equals(isPost))
+            {
+                {
+                    HashMap<String, Object> hx4NewMap5 = new HashMap<String, Object>();
+                    hx4NewMap5.put("APToken", sessionToken);
+                    hx4NewMap5.put("Content-Type", "application/json");
+                    headersSigned = hx4NewMap5;
                 }
             } else
             {
                 {
-                    HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
-                    hx4NewMap4.put("APToken", sessionToken);
-                    headersSigned = hx4NewMap4;
+                    HashMap<String, Object> hx4NewMap6 = new HashMap<String, Object>();
+                    hx4NewMap6.put("APToken", sessionToken);
+                    headersSigned = hx4NewMap6;
                 }
             }
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
+            if (Boolean.TRUE.equals(isPost))
             {
-                headersSigned.put("Content-Type", "application/json");
                 bodySigned = this.json(query);
             } else
             {

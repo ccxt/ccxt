@@ -1466,13 +1466,14 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     //         }
                     //     }
                     //
-                    subscription = this.safeDict(response, "result", (Object) null);
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("start", now);
+                    subscription = this.extend(this.safeDict(response, "result", (Object) null), mapLiteral2);
                     String token = this.safeString(subscription, "token");
                     if (java.util.Objects.equals(token, null))
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty token")) ;
                     }
-                    Helpers.addElementToObject(subscription, "start", now);
                     client.subscriptions.put(authenticated, subscription);
                     // settle the flight and wake every waiter - resolve () also
                     // clears the registry entry, so the next refresh re-leads
@@ -1665,21 +1666,21 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             takerOrMaker = "taker";
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("id", this.safeString(trade, "exec_id"));
-        mapLiteral2.put("order", this.safeString(trade, "order_id"));
-        mapLiteral2.put("timestamp", this.parse8601(datetime));
-        mapLiteral2.put("datetime", datetime);
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("type", this.safeString(trade, "order_type"));
-        mapLiteral2.put("side", this.safeString(trade, "side"));
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", this.safeNumber(trade, "last_price", (Object) null));
-        mapLiteral2.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
-        mapLiteral2.put("cost", this.safeNumber(trade, "cost", (Object) null));
-        mapLiteral2.put("fee", fee);
-        return new Trade(mapLiteral2);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", this.safeString(trade, "exec_id"));
+        mapLiteral3.put("order", this.safeString(trade, "order_id"));
+        mapLiteral3.put("timestamp", this.parse8601(datetime));
+        mapLiteral3.put("datetime", datetime);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", this.safeString(trade, "order_type"));
+        mapLiteral3.put("side", this.safeString(trade, "side"));
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", this.safeNumber(trade, "last_price", (Object) null));
+        mapLiteral3.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
+        mapLiteral3.put("cost", this.safeNumber(trade, "cost", (Object) null));
+        mapLiteral3.put("fee", fee);
+        return new Trade(mapLiteral3);
     }
 
     /**
@@ -1886,10 +1887,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("channel", channelName);
-            mapLiteral3.put("symbol", symbolsNormalized);
-            request.put("params", mapLiteral3);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("channel", channelName);
+            mapLiteral4.put("symbol", symbolsNormalized);
+            request.put("params", mapLiteral4);
             request.put("req_id", this.requestId());
             request.put("params", this.deepExtend(request.get("params"), parameters));
             String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicV2");

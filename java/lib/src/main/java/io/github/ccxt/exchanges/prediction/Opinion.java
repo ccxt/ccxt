@@ -1630,10 +1630,6 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(marketId, null))
-            {
-                throw new ArgumentsRequired((this.id + " loadTradeMarket() requires a marketId")) ;
-            }
             String cacheKey = "tradeMarketsById";
             Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, cacheKey, new HashMap<String, Object>() {{}});
             String idStr = String.valueOf(marketId);
@@ -1642,9 +1638,9 @@ public class Opinion extends OpinionApi
             {
                 return existing;
             }
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("marketId", marketId);
-            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(mapLiteral7)).join();
+            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(new HashMap<String, Object>() {{
+                put( "marketId", marketId );
+            }})).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> market = this.parseOpinionMarket((Map<String, Object>) (data), (String) null);
@@ -2286,17 +2282,17 @@ public class Opinion extends OpinionApi
             return;
         }
         Double last = this.safeNumber(message, "price", (Object) null);
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("outcome", sym);
-        mapLiteral8.put("outcomeId", tokenId);
-        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral8.put("timestamp", null);
-        mapLiteral8.put("datetime", null);
-        mapLiteral8.put("close", last);
-        mapLiteral8.put("last", last);
-        mapLiteral8.put("info", message);
-        Object ticker = this.safePredictionTicker(mapLiteral8, outcomeObj);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("outcome", sym);
+        mapLiteral7.put("outcomeId", tokenId);
+        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral7.put("timestamp", null);
+        mapLiteral7.put("datetime", null);
+        mapLiteral7.put("close", last);
+        mapLiteral7.put("last", last);
+        mapLiteral7.put("info", message);
+        Object ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
         this.tickers.put(sym, ((Object)ticker));
         client.resolve(ticker, ("ticker::" + sym));
     }
@@ -2349,24 +2345,24 @@ public class Opinion extends OpinionApi
         {
             return;
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("id", null);
-        mapLiteral9.put("info", message);
-        mapLiteral9.put("timestamp", null);
-        mapLiteral9.put("datetime", null);
-        mapLiteral9.put("outcome", sym);
-        mapLiteral9.put("outcomeId", tokenId);
-        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral9.put("order", null);
-        mapLiteral9.put("type", null);
-        mapLiteral9.put("side", this.safeStringLower(message, "side"));
-        mapLiteral9.put("takerOrMaker", "taker");
-        mapLiteral9.put("price", this.safeNumber(message, "price", (Object) null));
-        mapLiteral9.put("amount", this.safeNumber(message, "shares", (Object) null));
-        mapLiteral9.put("cost", this.safeNumber(message, "amount", (Object) null));
-        mapLiteral9.put("fee", null);
-        Object trade = this.safePredictionTrade(mapLiteral9, outcomeObj);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("info", message);
+        mapLiteral8.put("timestamp", null);
+        mapLiteral8.put("datetime", null);
+        mapLiteral8.put("outcome", sym);
+        mapLiteral8.put("outcomeId", tokenId);
+        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral8.put("order", null);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("side", this.safeStringLower(message, "side"));
+        mapLiteral8.put("takerOrMaker", "taker");
+        mapLiteral8.put("price", this.safeNumber(message, "price", (Object) null));
+        mapLiteral8.put("amount", this.safeNumber(message, "shares", (Object) null));
+        mapLiteral8.put("cost", this.safeNumber(message, "amount", (Object) null));
+        mapLiteral8.put("fee", null);
+        Object trade = this.safePredictionTrade(mapLiteral8, outcomeObj);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -2488,27 +2484,27 @@ public class Opinion extends OpinionApi
         {
             type = "market";
         }
-        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-        mapLiteral10.put("id", this.safeString(message, "orderId"));
-        mapLiteral10.put("clientOrderId", null);
-        mapLiteral10.put("info", message);
-        mapLiteral10.put("timestamp", timestamp);
-        mapLiteral10.put("datetime", this.iso8601(timestamp));
-        mapLiteral10.put("lastTradeTimestamp", null);
-        mapLiteral10.put("status", this.parseWsOrderStatus(this.safeInteger(message, "status")));
-        mapLiteral10.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral10.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral10.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral10.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral10.put("type", type);
-        mapLiteral10.put("side", side);
-        mapLiteral10.put("price", this.safeNumber(message, "price", (Object) null));
-        mapLiteral10.put("amount", this.safeNumber(message, "shares", (Object) null));
-        mapLiteral10.put("cost", this.safeNumber(message, "filledAmount", (Object) null));
-        mapLiteral10.put("filled", this.safeNumber(message, "filledShares", (Object) null));
-        mapLiteral10.put("fee", null);
-        mapLiteral10.put("trades", new ArrayList<Object>(Arrays.asList()));
-        Object order = this.safePredictionOrder(mapLiteral10, outcomeObj);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", this.safeString(message, "orderId"));
+        mapLiteral9.put("clientOrderId", null);
+        mapLiteral9.put("info", message);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", null);
+        mapLiteral9.put("status", this.parseWsOrderStatus(this.safeInteger(message, "status")));
+        mapLiteral9.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", this.safeNumber(message, "price", (Object) null));
+        mapLiteral9.put("amount", this.safeNumber(message, "shares", (Object) null));
+        mapLiteral9.put("cost", this.safeNumber(message, "filledAmount", (Object) null));
+        mapLiteral9.put("filled", this.safeNumber(message, "filledShares", (Object) null));
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("trades", new ArrayList<Object>(Arrays.asList()));
+        Object order = this.safePredictionOrder(mapLiteral9, outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

@@ -772,8 +772,9 @@ public class Hibachi extends HibachiApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
-            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object pricesResponse = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            var pricesResponsestatsResponseVariable = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            var pricesResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(0);
+            var statsResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(1);
             // {
             //     "askPrice": "3514.650296",
             //     "bidPrice": "3513.596112",
@@ -786,7 +787,6 @@ public class Hibachi extends HibachiApi
             //     "symbol": "ETH/USDT-P",
             //     "tradePrice": "2372.746570"
             // }
-            Object statsResponse = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             // {
             //     "high24h": "3819.507827",
             //     "low24h": "3754.474162",

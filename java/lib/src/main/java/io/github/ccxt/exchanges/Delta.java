@@ -4631,7 +4631,7 @@ public class Delta extends DeltaApi
             } else
             {
                 requestBody = this.json(query);
-                auth = (auth + requestBody);
+                auth = (((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath) + requestBody);
                 privateHeaders.put("Content-Type", "application/json");
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

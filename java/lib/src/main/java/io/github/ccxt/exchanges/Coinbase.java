@@ -6102,14 +6102,14 @@ public class Coinbase extends CoinbaseApi
         return (this.secret.length() == 88) || Boolean.TRUE.equals(this.safeBool(this.options, "v2CloudAPiKey", false)) || (this.secret.endsWith("="));
     }
 
-    public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
+    public String createAuthToken(Object seconds, String url, String method, Object useEddsa)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         Object uri = null;
-        if (!java.util.Objects.equals(url, null))
+        if (!java.util.Objects.equals(url, ""))
         {
-            uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
+            uri = ((method + " ") + (url == null ? null : ((String)url).replaceFirst("https://", "")));
             Object quesPos = ((String)uri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
@@ -6268,7 +6268,7 @@ public class Coinbase extends CoinbaseApi
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    String token = this.createAuthToken(seconds, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), url, isV2CloudAPiKey);
+                    String token = this.createAuthToken(seconds, url, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256(), false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = ("Bearer " + token);
                 } else

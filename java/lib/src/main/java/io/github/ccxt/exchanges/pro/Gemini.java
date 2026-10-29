@@ -524,9 +524,15 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
             Double price = this.safeNumber(delta, 1, (Object) null);
             Double size = this.safeNumber(delta, 2, (Object) null);
-            String side = (((java.util.Objects.equals(this.safeString(delta, 0), "buy")))) ? "bids" : "asks";
-            io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
-            bookside.store(price, size);
+            if (java.util.Objects.equals(this.safeString(delta, 0), "buy"))
+            {
+                io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+                bids.store(price, size);
+            } else
+            {
+                io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+                asks.store(price, size);
+            }
         }
         orderbook.put("symbol", symbol);
         this.orderbooks.put(symbol, orderbook);

@@ -4056,6 +4056,7 @@ public class Poloniex extends PoloniexApi
             {
                 Map<String, Object> currency = this.currency(code);
                 depositWithdrawFees.put(code, this.parseDepositWithdrawFee(feeInfo, currency));
+                Map<String, Object> parsedFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, new HashMap<String, Object>() {{}});
                 List<Object> childChains = (List<Object>) this.safeList(feeInfo, "childChains", new ArrayList<Object>(Arrays.asList()));
                 Integer chainsLength = ((List<?>)childChains).size();
                 if ((chainsLength != null && chainsLength > 0))
@@ -4081,9 +4082,10 @@ public class Poloniex extends PoloniexApi
     }});
                             networkObject.put(networkCode, mapLiteral8);
                         }
-                        Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks", this.extend(this.safeDict((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks", new HashMap<String, Object>() {{}}), networkObject));
+                        parsedFee.put("networks", this.extend(this.safeDict(parsedFee, "networks", new HashMap<String, Object>() {{}}), networkObject));
                     }
                 }
+                depositWithdrawFees.put(code, parsedFee);
             }
         }
         return depositWithdrawFees;

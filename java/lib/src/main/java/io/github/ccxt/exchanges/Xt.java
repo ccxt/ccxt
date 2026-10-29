@@ -7048,8 +7048,7 @@ public class Xt extends XtApi
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials(true);
-            String defaultRecvWindow = this.safeString(this.options, "recvWindow", "5000");
-            String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
+            String recvWindow = this.safeString(query, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             String timestamp = this.numberToString(this.nonce());
             if ((java.util.Objects.equals(payload, "/v4/order")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-plan")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-profit")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create-batch")))
             {
@@ -7067,7 +7066,8 @@ public class Xt extends XtApi
             {
                 isUndefinedBody = false;
             }
-            signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : this.json(query);
+            String jsonBody = this.json(query);
+            signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : jsonBody;
             String payloadString = "";
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
@@ -7084,7 +7084,7 @@ public class Xt extends XtApi
                     }
                 } else
                 {
-                    payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + signedBody);
+                    payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + jsonBody);
                 }
                 headersValue.put("xt-validate-algorithms", "HmacSHA256");
                 headersValue.put("xt-validate-recvwindow", recvWindow);
@@ -7103,7 +7103,7 @@ public class Xt extends XtApi
                     }
                 } else
                 {
-                    payloadString = ((((futurePrefix + "#") + payload) + "#") + signedBody);
+                    payloadString = ((((futurePrefix + "#") + payload) + "#") + jsonBody);
                 }
             }
             headersValue.put("xt-validate-appkey", this.apiKey);

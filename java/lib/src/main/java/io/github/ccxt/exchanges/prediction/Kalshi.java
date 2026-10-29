@@ -1301,7 +1301,7 @@ public class Kalshi extends KalshiApi
                     tickers.add(ticker);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                Object grouped = (outcomesByTicker == null || ticker == null ? null : outcomesByTicker.get(ticker));
+                List<Object> grouped = (List<Object>) this.safeList(outcomesByTicker, ticker, new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)grouped).add(outcomeObj);
                 outcomesByTicker.put(ticker, grouped);
             }
