@@ -1271,8 +1271,9 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate ();
         const subscriptionHash = 'executions';
         let messageHash = name;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        if (symbolResolved !== undefined) {
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
             messageHash = name + ':' + symbolResolved;
         }
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
