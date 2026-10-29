@@ -5109,7 +5109,8 @@ export class RustTranspilerBuilder {
         }
         const tail = inner.slice(lastSemi + 1).trim();
         const tl = this.stripOuterParens(tail);
-        return tl === '' || tl.startsWith('Value::Bool(') || tl === 'Value::Null';
+        // Trailing standalone `Value::Null` after statements/blocks (unreachable fallthrough of an if/else that returns).
+        return tl === '' || tl.startsWith('Value::Bool(') || tl === 'Value::Null' || /(?:^|[;}]\s*)Value::Null$/.test(tl);
     }
 
     /** Emitted signature index for the D-32 call fold: method names whose Rust
