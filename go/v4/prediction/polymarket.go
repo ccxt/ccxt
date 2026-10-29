@@ -4774,7 +4774,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var outcomeResolved *string = outcome
 	if outcomeResolved != nil {
 
@@ -4784,7 +4784,8 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 		var outcomeObj map[string]any = ccxt.StructResultMap(r1.Value, ccxt.PredictionOutcomeToMap)
 		outcomeResolved = this.SafeString(outcomeObj, "outcome")
-		messageHash = ccxt.Add("orders::", outcomeResolved)
+		var outcomeName *string = this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "orders::" + *outcomeName
 	}
 
 	r2 := <-this.SubscribeUserChannelAsync(messageHash, params)
@@ -4833,7 +4834,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var outcomeResolved *string = outcome
 	if outcomeResolved != nil {
 
@@ -4843,7 +4844,8 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 		var outcomeObj map[string]any = ccxt.StructResultMap(r1.Value, ccxt.PredictionOutcomeToMap)
 		outcomeResolved = this.SafeString(outcomeObj, "outcome")
-		messageHash = ccxt.Add("myTrades::", outcomeResolved)
+		var outcomeName *string = this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "myTrades::" + *outcomeName
 	}
 
 	r2 := <-this.SubscribeUserChannelAsync(messageHash, params)
@@ -4859,12 +4861,12 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) SubscribeUserChannelAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.ArrayCacheInterface] {
+func (this *Polymarket) SubscribeUserChannelAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.ArrayCacheInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.ArrayCacheInterface], 1)
 	go this.subscribeUserChannelBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.ArrayCacheInterface], messageHash any, optionalArgs ...any) any {
+func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.ArrayCacheInterface], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the user channel authenticates inside the subscribe frame, not via HMAC headers

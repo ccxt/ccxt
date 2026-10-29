@@ -1086,7 +1086,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var filters map[string]any = SafeMapTyped(market, "filters")
 	var priceFilter map[string]any = SafeMapTyped(filters, "price")
 	var maxPrice *float64 = this.SafeNumber(priceFilter, "maxPrice")
@@ -1154,7 +1154,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		inverse = false
 		settleId = this.SafeString(market, "quoteSymbol")
 		settle = this.SafeCurrencyCode(settleId)
-		symbol = Add(*base+"/"+*quote+":", settle)
+		symbol = *base + "/" + *quote + ":" + *quote // settle is the quote currency
 		contractSize = 1
 	} else {
 		return nil

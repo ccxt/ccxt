@@ -1618,8 +1618,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -1658,8 +1657,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any
 	if symbol != nil {

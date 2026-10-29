@@ -161,7 +161,7 @@ func (this *Bitget) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "ticker:" + *symbolValue
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTicker", "uta", false)
 	instTypeparamsValueVariable := this.GetInstType("watchTicker", market, uta, paramsUta)
@@ -663,7 +663,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash string
@@ -851,7 +851,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var symbolOhlcvs map[string]any
 	if symbol != nil {
 		symbolOhlcvs = this.Ohlcvs[*symbol]
@@ -1616,7 +1616,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -3744,7 +3744,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "unsubscribe:trade:" + *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + *symbol
 	if _, ok := this.Trades[*symbol]; ok {
@@ -3819,7 +3819,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash any = nil
 	var subMessageHash any = nil
 	if isUta == true {

@@ -1169,7 +1169,7 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		} else {
 			subType = "inverse"
 		}
-		marketId = market["lowercaseId"]
+		marketId = this.SafeString(market, "lowercaseId", "*")
 	} else {
 		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
 			typeVar = *derefPtr
@@ -1375,7 +1375,7 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		} else {
 			typeVar = nil
 		}
-		suffix = market["lowercaseId"]
+		suffix = this.SafeString(market, "lowercaseId", "*")
 		if market["linear"] == true {
 			subType = "linear"
 		} else {
