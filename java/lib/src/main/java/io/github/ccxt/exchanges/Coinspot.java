@@ -1171,7 +1171,11 @@ public class Coinspot extends CoinspotApi
         String requestBody = null;
         Integer apiLength = ((List<?>)api).size();
         Boolean isVersionedApi = (apiLength != null && apiLength > 1);
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object accessType = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (Boolean.TRUE.equals(isVersionedApi))
+        {
+            accessType = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        }
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String fullPath = endpoint;
         if (Boolean.TRUE.equals(isVersionedApi))

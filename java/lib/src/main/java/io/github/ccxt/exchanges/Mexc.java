@@ -4655,11 +4655,13 @@ public class Mexc extends MexcApi
         //         "tradeEnabled": true
         //     }
         //
+        Boolean isMarginType = java.util.Objects.equals(marketType, "margin");
+        Boolean isSwapType = java.util.Objects.equals(marketType, "swap");
         List<Object> wallet = null;
-        if (java.util.Objects.equals(marketType, "margin"))
+        if (Boolean.TRUE.equals(isMarginType))
         {
             wallet = (List<Object>) this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
-        } else if (java.util.Objects.equals(marketType, "swap"))
+        } else if (Boolean.TRUE.equals(isSwapType))
         {
             wallet = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         } else
@@ -4669,7 +4671,7 @@ public class Mexc extends MexcApi
         Object result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        if (java.util.Objects.equals(marketType, "margin"))
+        if (Boolean.TRUE.equals(isMarginType))
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
@@ -4688,7 +4690,7 @@ public class Mexc extends MexcApi
                 }
             }
             return this.safeBalance(result);
-        } else if (java.util.Objects.equals(marketType, "swap"))
+        } else if (Boolean.TRUE.equals(isSwapType))
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {

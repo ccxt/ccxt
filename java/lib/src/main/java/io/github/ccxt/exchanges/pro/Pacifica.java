@@ -708,6 +708,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             snapshot.put("nonce", nonce);
         }
+        String messageHash = ("orderbook:" + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
@@ -715,7 +716,6 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.reset(snapshot);
-        String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -1182,6 +1182,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String marketId = this.safeString(first, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
+        String messageHash = ("trade:" + symbol);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1195,7 +1196,6 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
             trades.append(trade);
         }
-        String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
@@ -1425,6 +1425,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             return;
         }
+        String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
@@ -1439,7 +1440,6 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) ohlcv).append(parsed);
-        String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }
 
