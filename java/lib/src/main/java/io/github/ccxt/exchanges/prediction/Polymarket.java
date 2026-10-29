@@ -4190,7 +4190,8 @@ public class Polymarket extends PolymarketApi
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
-                messageHash = ("orders::" + outcomeResolved);
+                String outcomeName = this.safeString(outcomeObj, "outcome", "");
+                messageHash = ("orders::" + outcomeName);
             }
             List<Object> orders = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -4226,7 +4227,8 @@ public class Polymarket extends PolymarketApi
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
-                messageHash = ("myTrades::" + outcomeResolved);
+                String outcomeName = this.safeString(outcomeObj, "outcome", "");
+                messageHash = ("myTrades::" + outcomeName);
             }
             List<Object> trades = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;

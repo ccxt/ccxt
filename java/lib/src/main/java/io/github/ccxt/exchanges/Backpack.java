@@ -1159,7 +1159,7 @@ public class Backpack extends BackpackApi
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-            symbol = ((((base + "/") + quote) + ":") + settle);
+            symbol = ((((base + "/") + quote) + ":") + quote); // settle is the quote currency
             contractSize = 1;
         } else
         {

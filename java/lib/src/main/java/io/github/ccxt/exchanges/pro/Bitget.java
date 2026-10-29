@@ -171,7 +171,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             String messageHash = ("ticker:" + symbolValue);
             Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTicker", "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
@@ -628,7 +628,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", (Object) null);
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = null;
@@ -809,7 +809,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         this.ohlcvs.put(symbol, symbolOhlcvs);
         String channel = this.safeString2(arg, "channel", "topic", "");
@@ -1492,7 +1492,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -3521,12 +3521,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String instId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("unsubscribe:trade:" + this.safeString(market, "symbol", ""));
         String subMessageHash = ("trade:" + symbol);
         if (((Map<?, ?>)this.trades).containsKey(symbol))
         {
-            ((Map<String,Object>)this.trades).remove(symbol);
+            ((Map<String,Object>)this.trades).remove((String)symbol);
         }
         if (client.subscriptions.containsKey(subMessageHash))
         {
@@ -3612,7 +3612,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", (Object) null);
         String timeframe = this.findTimeframe(interval, timeframes);
         Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = null;
         String subMessageHash = null;
         if (Boolean.TRUE.equals(isUta))
