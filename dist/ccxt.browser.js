@@ -324610,7 +324610,10 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         let requestBody = undefined;
         const apiLength = api.length;
         const isVersionedApi = apiLength > 1;
-        const accessType = isVersionedApi ? api[1] : api[0];
+        let accessType = api[0];
+        if (isVersionedApi) {
+            accessType = api[1];
+        }
         const endpoint = '/' + this.implodeParams(path, params);
         let fullPath = endpoint;
         if (isVersionedApi) {
@@ -446638,10 +446641,12 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //         "tradeEnabled": true
         //     }
         //
+        const isMarginType = marketType === 'margin';
+        const isSwapType = marketType === 'swap';
         let wallet;
-        if (marketType === 'margin') {
+        if (isMarginType) {
             wallet = this.safeList(response, 'assets', []);
-        } else if (marketType === 'swap') {
+        } else if (isSwapType) {
             wallet = this.safeList(response, 'data', []);
         } else {
             wallet = this.safeList(response, 'balances', []);
@@ -446649,7 +446654,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         let result = {
             'info': response
         };
-        if (marketType === 'margin') {
+        if (isMarginType) {
             for(let i = 0; i < wallet.length; i++){
                 const entry = this.safeDict(wallet, i);
                 const base = this.safeDict(entry, 'baseAsset', {});
@@ -446664,7 +446669,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 }
             }
             return this.safeBalance(result);
-        } else if (marketType === 'swap') {
+        } else if (isSwapType) {
             for(let i = 0; i < wallet.length; i++){
                 const entry = this.safeDict(wallet, i);
                 const currencyId = this.safeString(entry, 'currency');
@@ -604997,13 +605002,13 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         if (nonce !== undefined && nonce !== 0) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook(snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset(snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     /**
@@ -605375,6 +605380,7 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(first, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCache */.I3(limit);
@@ -605386,7 +605392,6 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
             const trade = this.parseWsTrade(data);
             trades.append(trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve(trades, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
@@ -605582,6 +605587,7 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -605594,7 +605600,6 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve(ohlcv, messageHash);
     }
     /**

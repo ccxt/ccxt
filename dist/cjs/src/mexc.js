@@ -4057,18 +4057,20 @@ class mexc extends mexc$1["default"] {
         //         "tradeEnabled": true
         //     }
         //
+        const isMarginType = marketType === 'margin';
+        const isSwapType = marketType === 'swap';
         let wallet;
-        if (marketType === 'margin') {
+        if (isMarginType) {
             wallet = this.safeList(response, 'assets', []);
         }
-        else if (marketType === 'swap') {
+        else if (isSwapType) {
             wallet = this.safeList(response, 'data', []);
         }
         else {
             wallet = this.safeList(response, 'balances', []);
         }
         let result = { 'info': response };
-        if (marketType === 'margin') {
+        if (isMarginType) {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = this.safeDict(wallet, i);
                 const base = this.safeDict(entry, 'baseAsset', {});
@@ -4084,7 +4086,7 @@ class mexc extends mexc$1["default"] {
             }
             return this.safeBalance(result);
         }
-        else if (marketType === 'swap') {
+        else if (isSwapType) {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = this.safeDict(wallet, i);
                 const currencyId = this.safeString(entry, 'currency');

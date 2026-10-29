@@ -758,7 +758,10 @@ class coinspot extends coinspot$1["default"] {
         let requestBody = undefined;
         const apiLength = api.length;
         const isVersionedApi = apiLength > 1;
-        const accessType = isVersionedApi ? api[1] : api[0];
+        let accessType = api[0];
+        if (isVersionedApi) {
+            accessType = api[1];
+        }
         const endpoint = '/' + this.implodeParams(path, params);
         let fullPath = endpoint;
         if (isVersionedApi) {

@@ -568,13 +568,13 @@ class pacifica extends pacifica$1["default"] {
         if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook(snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset(snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     /**
@@ -951,6 +951,7 @@ class pacifica extends pacifica$1["default"] {
         const marketId = this.safeString(first, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);
@@ -962,7 +963,6 @@ class pacifica extends pacifica$1["default"] {
             const trade = this.parseWsTrade(data);
             trades.append(trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve(trades, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
@@ -1160,6 +1160,7 @@ class pacifica extends pacifica$1["default"] {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1172,7 +1173,6 @@ class pacifica extends pacifica$1["default"] {
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve(ohlcv, messageHash);
     }
     /**
