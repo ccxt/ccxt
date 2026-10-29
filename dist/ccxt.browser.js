@@ -460475,16 +460475,17 @@ class ndax extends _abstract_ndax_js__rspack_import_0/* ["default"] */.A {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = undefined;
+        let id = this.safeString(transaction, 'DepositId');
         const currencyId = this.safeString(transaction, 'ProductId');
         const code = this.safeCurrencyCode(currencyId, currency);
         let type = undefined;
-        if ('DepositId' in transaction) {
-            id = this.safeString(transaction, 'DepositId');
+        if (id !== undefined) {
             type = 'deposit';
-        } else if ('WithdrawId' in transaction) {
+        } else {
             id = this.safeString(transaction, 'WithdrawId');
-            type = 'withdrawal';
+            if (id !== undefined) {
+                type = 'withdrawal';
+            }
         }
         const templateForm = this.parseJson(this.safeValue2(transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger(transaction, 'LastUpdateTimeStamp');
@@ -629171,7 +629172,10 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
             'price',
             'until'
         ]);
-        const limitValue = limit === undefined ? defaultLimit : Math.min(limit, maxLimit);
+        let limitValue = defaultLimit;
+        if (limit !== undefined) {
+            limitValue = Math.min(limit, maxLimit);
+        }
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitValue
@@ -629546,16 +629550,16 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const triggerKeys = triggerPrice !== undefined ? [
-            'triggerPrice',
-            'stopPrice'
-        ] : [];
-        let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat([
+        let paramsRequest = this.omit(paramsPostOnly, [
             'clientId',
             'clientOrderId',
             'timeInForce'
-        ], triggerKeys));
+        ]);
         if (triggerPrice !== undefined) {
+            paramsRequest = this.omit(paramsRequest, [
+                'triggerPrice',
+                'stopPrice'
+            ]);
             if (postOnly) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
@@ -657579,7 +657583,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //
         const marketId = this.safeString(ticker, 's');
         let marketType = this.safeString(market, 'type');
-        const hasSpotKeys = 'cv' in ticker || 'aq' in ticker;
+        const hasSpotKeys = this.safeString(ticker, 'cv') !== undefined || this.safeString(ticker, 'aq') !== undefined;
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
@@ -657925,7 +657929,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //
         const marketId = this.safeString2(trade, 's', 'symbol');
         let marketType = this.safeString(market, 'type');
-        const hasSpotKeys = 'b' in trade || 'bizType' in trade || 'oi' in trade;
+        const hasSpotKeys = this.safeBool(trade, 'b') !== undefined || this.safeString(trade, 'bizType') !== undefined || this.safeString(trade, 'oi') !== undefined;
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
@@ -659980,7 +659984,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //         "id": 950898
         //     }
         //
-        const type = 'fromAddr' in transaction ? 'deposit' : 'withdraw';
+        const type = this.safeString(transaction, 'fromAddr') !== undefined ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger(transaction, 'createdTime');
         const address = this.safeString(transaction, 'address');
         const memo = this.safeString(transaction, 'memo');

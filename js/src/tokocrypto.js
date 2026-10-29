@@ -1474,7 +1474,10 @@ export default class tokocrypto extends Exchange {
         const price = this.safeString(params, 'price');
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, ['price', 'until']);
-        const limitValue = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
+        let limitValue = defaultLimit;
+        if (limit !== undefined) {
+            limitValue = Math.min(limit, maxLimit);
+        }
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitValue,
@@ -1851,9 +1854,9 @@ export default class tokocrypto extends Exchange {
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const triggerKeys = (triggerPrice !== undefined) ? ['triggerPrice', 'stopPrice'] : [];
-        let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys));
+        let paramsRequest = this.omit(paramsPostOnly, ['clientId', 'clientOrderId', 'timeInForce']);
         if (triggerPrice !== undefined) {
+            paramsRequest = this.omit(paramsRequest, ['triggerPrice', 'stopPrice']);
             if (postOnly) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }

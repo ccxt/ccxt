@@ -2528,17 +2528,18 @@ export default class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = undefined;
+        let id = this.safeString(transaction, 'DepositId');
         const currencyId = this.safeString(transaction, 'ProductId');
         const code = this.safeCurrencyCode(currencyId, currency);
         let type = undefined;
-        if ('DepositId' in transaction) {
-            id = this.safeString(transaction, 'DepositId');
+        if (id !== undefined) {
             type = 'deposit';
         }
-        else if ('WithdrawId' in transaction) {
+        else {
             id = this.safeString(transaction, 'WithdrawId');
-            type = 'withdrawal';
+            if (id !== undefined) {
+                type = 'withdrawal';
+            }
         }
         const templateForm = this.parseJson(this.safeValue2(transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger(transaction, 'LastUpdateTimeStamp');
