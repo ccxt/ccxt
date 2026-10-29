@@ -2985,18 +2985,20 @@ public class Ndax extends NdaxApi
         //         "NotionalProductId": 0
         //     }
         //
-        String id = null;
+        String id = this.safeString(transaction, "DepositId");
         String currencyId = this.safeString(transaction, "ProductId");
         String code = this.safeCurrencyCode(currencyId, currency);
         String type = null;
-        if (transaction.containsKey("DepositId"))
+        if (!java.util.Objects.equals(id, null))
         {
-            id = this.safeString(transaction, "DepositId");
             type = "deposit";
-        } else if (transaction.containsKey("WithdrawId"))
+        } else
         {
             id = this.safeString(transaction, "WithdrawId");
-            type = "withdrawal";
+            if (!java.util.Objects.equals(id, null))
+            {
+                type = "withdrawal";
+            }
         }
         Object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
         Long updated = this.safeInteger(transaction, "LastUpdateTimeStamp");

@@ -2523,7 +2523,7 @@ public class Xt extends XtApi
         //
         String marketId = this.safeString(ticker, "s");
         String marketType = this.safeString(market, "type");
-        Boolean hasSpotKeys = (((Map<?, ?>)ticker).containsKey("cv")) || (((Map<?, ?>)ticker).containsKey("aq"));
+        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeString(ticker, "cv"), null)) || (!java.util.Objects.equals(this.safeString(ticker, "aq"), null));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -2916,7 +2916,7 @@ public class Xt extends XtApi
         //
         String marketId = this.safeString2(trade, "s", "symbol");
         String marketType = this.safeString(market, "type");
-        Boolean hasSpotKeys = (((Map<?, ?>)trade).containsKey("b")) || (((Map<?, ?>)trade).containsKey("bizType")) || (((Map<?, ?>)trade).containsKey("oi"));
+        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeBool(trade, "b", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(trade, "bizType"), null)) || (!java.util.Objects.equals(this.safeString(trade, "oi"), null));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -5348,7 +5348,7 @@ public class Xt extends XtApi
         //         "id": 950898
         //     }
         //
-        String type = (((transaction.containsKey("fromAddr")))) ? "deposit" : "withdraw";
+        String type = (((!java.util.Objects.equals(this.safeString(transaction, "fromAddr"), null)))) ? "deposit" : "withdraw";
         Long timestamp = this.safeInteger(transaction, "createdTime");
         String address = this.safeString(transaction, "address");
         String memo = this.safeString(transaction, "memo");

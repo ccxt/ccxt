@@ -1649,11 +1649,14 @@ public class Tokocrypto extends TokocryptoApi
             String price = this.safeString(parameters, "price");
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
-            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Math.min(limit, maxLimit);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "interval", Tokocrypto.this.safeString(Tokocrypto.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-                put( "limit", limitValue );
-            }};
+            Long limitValue = defaultLimit;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                limitValue = Math.min(limit, maxLimit);
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("limit", limitValue);
             if (java.util.Objects.equals(price, "index"))
             {
                 request.put("pair", market.get("id")); // Index price takes this argument instead of symbol
@@ -2065,10 +2068,10 @@ public class Tokocrypto extends TokocryptoApi
             String initialUppercaseType = typeResolved.toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-            List<Object> triggerKeys = (((!java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")), triggerKeys));
+            Map<String, Object> paramsRequest = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
+                paramsRequest = this.omit(paramsRequest, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     throw new InvalidOrder((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
