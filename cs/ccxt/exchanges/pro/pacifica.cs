@@ -635,6 +635,7 @@ public partial class pacifica : ccxt.pacifica
         {
             snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
         }
+        string messageHash = ("orderbook:" + symbol);
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
@@ -642,7 +643,6 @@ public partial class pacifica : ccxt.pacifica
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-        string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -1081,6 +1081,7 @@ public partial class pacifica : ccxt.pacifica
         string? marketId = this.safeString(first, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("trade:" + symbol);
         if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1094,7 +1095,6 @@ public partial class pacifica : ccxt.pacifica
             ccxt.Trade trade = this.parseWsTrade(data);
             trades.append(ccxt.BaseExchange.FromTrade(trade));
         }
-        string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
     }
 
@@ -1320,6 +1320,7 @@ public partial class pacifica : ccxt.pacifica
         {
             return;
         }
+        string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
@@ -1334,7 +1335,6 @@ public partial class pacifica : ccxt.pacifica
         }
         IList<object> parsed = this.parseOHLCV(data);
         ccxt.pro.BaseCache.appendTo(ohlcv, parsed);
-        string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }
 

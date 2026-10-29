@@ -1112,7 +1112,11 @@ public partial class coinspot : Exchange
         string? requestBody = null;
         int apiLength = api?.Count ?? 0;
         bool isVersionedApi = apiLength > 1;
-        object accessType = isVersionedApi ? (api != null && 1 < api.Count ? api[1] : null) : (api != null && 0 < api.Count ? api[0] : null);
+        object accessType = (api != null && 0 < api.Count ? api[0] : null);
+        if (isVersionedApi)
+        {
+            accessType = (api != null && 1 < api.Count ? api[1] : null);
+        }
         string endpoint = ("/" + this.implodeParams(path, parameters));
         string fullPath = endpoint;
         if (isVersionedApi)

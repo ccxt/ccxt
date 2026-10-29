@@ -4471,11 +4471,13 @@ public partial class mexc : Exchange
         //         "tradeEnabled": true
         //     }
         //
+        bool isMarginType = (marketType == "margin");
+        bool isSwapType = (marketType == "swap");
         List<object> wallet = null;
-        if ((marketType == "margin"))
+        if (isMarginType)
         {
             wallet = this.safeList(response, "assets", new List<object>() {});
-        } else if ((marketType == "swap"))
+        } else if (isSwapType)
         {
             wallet = this.safeList(response, "data", new List<object>() {});
         } else
@@ -4485,7 +4487,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        if ((marketType == "margin"))
+        if (isMarginType)
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
@@ -4504,7 +4506,7 @@ public partial class mexc : Exchange
                 }
             }
             return this.safeBalance(result);
-        } else if ((marketType == "swap"))
+        } else if (isSwapType)
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
