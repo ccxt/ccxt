@@ -3004,7 +3004,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcomeResolved is not None:
             outcomeObj = await self.load_outcome(outcomeResolved)
             outcomeResolved = self.safe_string(outcomeObj, 'outcome')
-            messageHash = 'orders::' + outcomeResolved
+            outcomeName = self.safe_string(outcomeObj, 'outcome', '')
+            messageHash = 'orders::' + outcomeName
         orders = await self.subscribe_user_channel(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -3029,7 +3030,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcomeResolved is not None:
             outcomeObj = await self.load_outcome(outcomeResolved)
             outcomeResolved = self.safe_string(outcomeObj, 'outcome')
-            messageHash = 'myTrades::' + outcomeResolved
+            outcomeName = self.safe_string(outcomeObj, 'outcome', '')
+            messageHash = 'myTrades::' + outcomeName
         trades = await self.subscribe_user_channel(messageHash, params)
         limitResolved = limit
         if self.newUpdates:

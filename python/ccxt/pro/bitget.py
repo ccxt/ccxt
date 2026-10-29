@@ -140,7 +140,7 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'ticker:' + symbolValue
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchTicker', 'uta', False)
         instType, paramsValue = self.get_inst_type('watchTicker', market, uta, paramsUta)
@@ -511,7 +511,7 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
         messageHash = None
@@ -654,7 +654,7 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
         self.ohlcvs[symbol] = symbolOhlcvs
         channel = self.safe_string_2(arg, 'channel', 'topic', '')
@@ -1150,7 +1150,7 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -2771,7 +2771,7 @@ class bitget(ccxt.async_support.bitget):
             type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'unsubscribe:trade:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'trade:' + symbol
         if symbol in self.trades:
@@ -2835,7 +2835,7 @@ class bitget(ccxt.async_support.bitget):
         timeframes = self.safe_dict(self.options, 'timeframes')
         timeframe = self.find_timeframe(interval, timeframes)
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = None
         subMessageHash = None
         if isUta:

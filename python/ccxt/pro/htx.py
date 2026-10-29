@@ -829,7 +829,7 @@ class htx(ccxt.async_support.htx):
                 subType = 'linear'
             else:
                 subType = 'inverse'
-            marketId = market['lowercaseId']
+            marketId = self.safe_string(market, 'lowercaseId', '*')
         else:
             type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
@@ -951,7 +951,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             type = self.safe_string(market, 'type')
-            suffix = market['lowercaseId']
+            suffix = self.safe_string(market, 'lowercaseId', '*')
             if market['linear'] is True:
                 subType = 'linear'
             else:

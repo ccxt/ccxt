@@ -1169,8 +1169,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #    }
         #
         marketId = self.safe_string(message, 'product_id')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         messageHash = self.get_message_hash('orderbook', None, symbol)
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
@@ -1201,8 +1200,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #    }
         #
         marketId = self.safe_string(message, 'product_id')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         messageHash = self.get_message_hash('orderbook', None, symbol)
         orderbook = self.orderbooks[symbol]
         side = self.safe_string(message, 'side')
