@@ -5165,9 +5165,11 @@ export class RustTranspilerBuilder {
         const boolBoxed = new Set<string>();
         for (const name of candidates) {
             if (name === undefined || boolBoxed.has(name)) continue;
-            const bodies = own.has(name)
+            let bodies = own.has(name)
                 ? this.rustFnBodies(content, name)
                 : base.src.flatMap(src => this.rustFnBodies(src, name));
+            // `self.parent.m(..)` in pro files: m lives in the exchange files; every definition must agree.
+            if (bodies.length === 0 && !own.has(name)) bodies = this.rustExchangeSrcs().flatMap(src => this.rustFnBodies(src, name));
             if (bodies.length === 0) continue;
             if (bodies.every(b => this.rustBodyReturnsBoolNullOnly(b))) boolBoxed.add(name);
         }
@@ -5179,7 +5181,7 @@ export class RustTranspilerBuilder {
      *  the whole argument, so a logical/compare text is never mistaken for it. */
     private rustCalledMethodName(inner: string): string | undefined {
         const s = this.stripOuterParens(inner.trim());
-        const m = /^(?:self\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
+        const m = /^(?:self\.(?:parent\.)?)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
         if (m === null) return undefined;
         const open = m[0].length - 1;
         if (this.closeParenAt(s, open) !== s.length - 1) return undefined;
@@ -5272,6 +5274,15 @@ export class RustTranspilerBuilder {
         }
         if (!changed) return content;
         return out + content.slice(at);
+    }
+
+    private _rustExchangeSrcs: string[] | null = null;
+    private rustExchangeSrcs(): string[] {
+        if (this._rustExchangeSrcs === null) {
+            const dir = `${RUST_BASE}/exchanges`;
+            this._rustExchangeSrcs = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.rs')).map(f => fs.readFileSync(`${dir}/${f}`, 'utf8')) : [];
+        }
+        return this._rustExchangeSrcs;
     }
 
     private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
