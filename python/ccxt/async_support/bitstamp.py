@@ -1370,7 +1370,7 @@ class bitstamp(Exchange, ImplicitAPI):
         ohlc = self.safe_list(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limitResolved)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         finalResponse = response  # java req
         result = {
             'info': finalResponse,
@@ -1413,7 +1413,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """

@@ -2427,9 +2427,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             data = self.safe_dict(response, 'result', {})
             balances = self.safe_list(data, 'assets', [])
-        return self.parse_balance(balances)
+        return self.parse_balance_list(balances)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         #
         # spot
         #

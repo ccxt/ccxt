@@ -2463,7 +2463,7 @@ class nado(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         #     {
         #         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",

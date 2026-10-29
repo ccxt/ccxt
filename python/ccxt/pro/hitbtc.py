@@ -1242,7 +1242,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         # in that window invisible to the consumer forever (same class as
         # issue #26773); the free/used/total aggregates are rebuilt from the
         # merged currencies by safeBalance
-        balance = self.parse_balance(params)
+        balance = self.parseBalanceList(params)
         if self.balance is None:
             self.balance = {}
         reserved = ['free', 'used', 'total']

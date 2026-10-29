@@ -1673,7 +1673,7 @@ class zebpay(Exchange, ImplicitAPI):
             }))
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
             'timestamp': None,

@@ -1053,7 +1053,7 @@ class deribit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, balance: object) -> Balances:
+    def parse_balance(self, balance: dict) -> Balances:
         result = {
             'info': balance,
         }

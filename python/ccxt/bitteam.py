@@ -2080,7 +2080,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         #     {
         #         "ok": true,

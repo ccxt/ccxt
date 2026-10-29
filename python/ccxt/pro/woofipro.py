@@ -142,7 +142,7 @@ class woofipro(ccxt.async_support.woofipro):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         topic = self.safe_string(message, 'topic')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -486,7 +486,7 @@ class woofipro(ccxt.async_support.woofipro):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(self.extend(data, {'timestamp': timestamp}), market)
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)

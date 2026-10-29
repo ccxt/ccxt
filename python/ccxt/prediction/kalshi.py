@@ -1407,7 +1407,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         """
  @ignore
         parses a kalshi balance response(cents) into a unified balances object with a USD entry

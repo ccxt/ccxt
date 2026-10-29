@@ -1636,7 +1636,7 @@ class kucoin(ccxt.async_support.kucoin):
         self.handle_book_delta(book, data)
         client.resolve(book, messageHash)
 
-    def get_cache_index(self, orderbook: object, cache: object) -> float:
+    def get_cache_index(self, orderbook: dict, cache: list[object]) -> float:
         firstDelta = self.safe_dict(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDeltaStart = self.safe_integer_n(firstDelta, ['sequenceStart', 'sequence', 'O'])
@@ -2923,7 +2923,7 @@ class kucoin(ccxt.async_support.kucoin):
         client.resolve(self.positions, messageHash)
         client.resolve(self.positions, symbolMessageHash)
 
-    def parse_ws_uta_position(self, position: dict, market: Market = None) -> Position:
+    def parse_ws_uta_position(self, position: dict, market: Market = None) -> dict:
         #
         #     {
         #         "pi": "30000000000084845",

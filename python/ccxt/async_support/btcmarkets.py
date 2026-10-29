@@ -592,7 +592,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i)
@@ -617,7 +617,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.privateGetAccountsMeBalances(params)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #

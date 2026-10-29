@@ -2342,10 +2342,10 @@ class dydx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'subaccount')
+        data = self.safe_dict(response, 'subaccount', {})
         return self.parse_balance(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         account = self.account()
         account['free'] = self.safe_string(response, 'freeCollateral')
         result = {

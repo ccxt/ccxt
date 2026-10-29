@@ -641,7 +641,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, sinceResolved, limitResolved)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
             'timestamp': None,

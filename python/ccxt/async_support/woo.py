@@ -2694,10 +2694,10 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1673323746259
         #     }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
         }

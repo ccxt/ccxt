@@ -451,7 +451,7 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())

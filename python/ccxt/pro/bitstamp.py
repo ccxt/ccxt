@@ -191,7 +191,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
-    def get_cache_index(self, orderbook: object, deltas: object) -> float:
+    def get_cache_index(self, orderbook: dict, deltas: list[object]) -> float:
         # we will consider it a fail
         firstElement = self.safe_dict(deltas, 0)
         firstElementNonce = self.safe_integer(firstElement, 'microtimestamp')

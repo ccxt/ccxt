@@ -144,7 +144,7 @@ class xt(ccxt.async_support.xt):
             await future
         return client.subscriptions['token']
 
-    def get_cache_index(self, orderbook: object, cache: object) -> float:
+    def get_cache_index(self, orderbook: dict, cache: list[object]) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_dict(cache, 0)

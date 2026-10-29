@@ -627,7 +627,7 @@ class bullish(ccxt.async_support.bullish):
         messageType = self.safe_string(message, 'type')
         if messageType == 'snapshot':
             data = self.safe_list(message, 'data', [])
-            parsed = self.parse_balance(data)
+            parsed = self.parseBalanceList(data)
             parsedKeys = list(parsed.keys())
             for i in range(0, len(parsedKeys)):
                 parsedKey = parsedKeys[i]

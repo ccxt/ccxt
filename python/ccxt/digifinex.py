@@ -831,7 +831,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         #
         # spot and margin
         #
@@ -938,7 +938,7 @@ class digifinex(Exchange, ImplicitAPI):
         if not isMargin and marketType == 'swap':
             balanceRequest = 'data'
         balances = self.safe_list(response, balanceRequest, [])
-        return self.parse_balance(balances)
+        return self.parse_balance_list(balances)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

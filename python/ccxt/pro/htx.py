@@ -816,7 +816,6 @@ class htx(ccxt.async_support.htx):
         if self.markets is None:
             await self.load_markets()
         type = None
-        marketId = '*'  # wildcard
         market = None
         messageHash = None
         channel = None
@@ -829,7 +828,6 @@ class htx(ccxt.async_support.htx):
                 subType = 'linear'
             else:
                 subType = 'inverse'
-            marketId = self.safe_string(market, 'lowercaseId', '*')
         else:
             type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
@@ -845,7 +843,7 @@ class htx(ccxt.async_support.htx):
             mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0')
             mode = self.safe_string(paramsRequest, 'mode', mode)
             paramsRequest = self.omit(paramsRequest, 'mode')
-            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
+            messageHash = 'trade.clearing' + '#' + self.safe_string(market, 'lowercaseId', '*') + '#' + mode
             channel = messageHash
         elif isV5Linear:
             channelAndMessageHashAndParams = self.get_v5_linear_channel_and_message_hash('trade', market, paramsRequest)
@@ -947,11 +945,9 @@ class htx(ccxt.async_support.htx):
         type = None
         subType = None
         market = None
-        suffix = '*'  # wildcard
         if symbol is not None:
             market = self.market(symbol)
             type = self.safe_string(market, 'type')
-            suffix = self.safe_string(market, 'lowercaseId', '*')
             if market['linear'] is True:
                 subType = 'linear'
             else:
@@ -970,7 +966,7 @@ class htx(ccxt.async_support.htx):
         messageHash = None
         channel = None
         if type == 'spot':
-            messageHash = 'orders' + '#' + suffix
+            messageHash = 'orders' + '#' + self.safe_string(market, 'lowercaseId', '*')
             channel = messageHash
         elif isV5Linear:
             channelAndMessageHashAndParams = self.get_v5_linear_channel_and_message_hash('orders', market, paramsRequest)

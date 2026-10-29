@@ -1459,7 +1459,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         messageHash = self.safe_string(message, 'requestId')
         response = self.safe_list(message, 'response', [])
-        balance = self.parse_balance(response)
+        balance = self.parseBalanceList(response)
         client.resolve(balance, messageHash)
 
     def handle_single_order(self, client: Client, message: dict):

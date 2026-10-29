@@ -552,7 +552,7 @@ class mudrex(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchBalance() returned empty response')
         return self.parse_balance(self.extend(response, {'currency': currency}))
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'data', {})
         currency = self.safe_string(response, 'currency', 'USDT')
         result = {

@@ -1228,7 +1228,7 @@ class blofin(Exchange, ImplicitAPI):
         else:
             return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # "data" similar for REST & WS
         #

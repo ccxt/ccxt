@@ -654,7 +654,7 @@ class bitso(Exchange, ImplicitAPI):
             'type': self.safe_string(rawCurrency, 'type'),
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         payload = self.safe_dict(response, 'payload', {})
         balances = self.safe_list(payload, 'balances', [])
         result = {

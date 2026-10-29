@@ -3356,7 +3356,7 @@ class okx(Exchange, ImplicitAPI):
                 request['slTriggerPxType'] = slTriggerPxType
         # unified stp
         selfTradePrevention = None
-        selfTradePrevention, orderParams = self.handle_option_and_params(orderParams, 'createOrder', 'selfTradePrevention')
+        selfTradePrevention, orderParams = self.handle_option_string_and_params(orderParams, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             stpModes = {
                 'EXPIRE_MAKER': 'cancel_maker',

@@ -1981,7 +1981,7 @@ class backpack(Exchange, ImplicitAPI):
             return self.parse_balance(balances)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         #     {
         #         "USDC": {

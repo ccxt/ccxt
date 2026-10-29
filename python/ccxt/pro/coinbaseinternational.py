@@ -244,7 +244,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     def handle_balance(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
-        parsed = self.parse_balance(data)
+        parsed = self.parseBalanceList(data)
         self.balance = self.deep_extend(self.balance, parsed)
         client.resolve(self.balance, 'balance')
 
@@ -1620,7 +1620,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         balance = {'info': result}
         summariesLength = len(summaries)
         for i in range(0, summariesLength):
-            balance = self.deep_extend(balance, self.parse_balance(summaries[i]))
+            balance = self.deep_extend(balance, self.parseBalanceList(summaries[i]))
         return self.safe_balance(balance)
 
     async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:

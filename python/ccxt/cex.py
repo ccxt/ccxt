@@ -967,7 +967,7 @@ class cex(Exchange, ImplicitAPI):
             accountBalance = self.safe_dict(response, 'data', {})
         return self.parse_balance(accountBalance)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
         }

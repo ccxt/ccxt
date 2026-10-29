@@ -515,7 +515,7 @@ class mercado(Exchange, ImplicitAPI):
             response = self.publicGetCoinTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'response_data', {})
         balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}

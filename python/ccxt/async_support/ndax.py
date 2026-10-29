@@ -1221,7 +1221,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1291,7 +1291,7 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {

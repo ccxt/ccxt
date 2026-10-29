@@ -4051,7 +4051,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         # unified account is active", a unified account has to move balances with sendAsset instead
         transferMethod = None
         query = params
-        transferMethod, query = self.handle_option_and_params(query, 'transfer', 'method')
+        transferMethod, query = self.handle_option_string_and_params(query, 'transfer', 'method')
         masterAddress = None
         masterAddress = self.safe_string(self.handle_public_address('transfer', query), 0)
         query = self.safe_dict(self.handle_public_address('transfer', query), 1, {})

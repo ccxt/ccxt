@@ -1680,9 +1680,9 @@ class toobit(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,

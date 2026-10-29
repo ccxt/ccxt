@@ -674,9 +674,9 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        return self.parse_balance(result)
+        return self.parse_balance_list(result)
 
-    def parse_balance(self, balance: object) -> Balances:
+    def parse_balance_list(self, balance: list[dict]) -> Balances:
         #
         #     {
         #         "ticker": "AVAX",

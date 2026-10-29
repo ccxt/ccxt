@@ -1342,7 +1342,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {
             'info': response,

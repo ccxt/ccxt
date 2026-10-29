@@ -2558,7 +2558,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -2647,7 +2647,7 @@ class poloniex(Exchange, ImplicitAPI):
             #    }
             #
             data = self.safe_dict(responseRaw, 'data', {})
-            return self.parse_balance(data)
+            return self.parse_balance_list(data)
         request = {
             'accountType': 'SPOT',
         }
@@ -2668,7 +2668,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """

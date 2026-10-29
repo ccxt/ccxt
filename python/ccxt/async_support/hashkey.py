@@ -1810,7 +1810,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
 
-    def parse_balance(self, balance: object) -> Balances:
+    def parse_balance(self, balance: dict) -> Balances:
         #
         #     {
         #         "balances": [

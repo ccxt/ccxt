@@ -1211,7 +1211,7 @@ class onetrading(Exchange, ImplicitAPI):
             'info': tradeValue,
         }, market)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):

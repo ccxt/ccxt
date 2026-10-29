@@ -48,7 +48,7 @@ class ImplicitAPI:
     private_get_getuserreporttickets = privateGetGetUserReportTickets = Entry[_List]('GetUserReportTickets', ['private'], 'GET', {'cost': 1})
     private_get_getuserreportwriterresultrecords = privateGetGetUserReportWriterResultRecords = Entry[_List]('GetUserReportWriterResultRecords', ['private'], 'GET', {'cost': 1})
     private_get_getaccountinfo = privateGetGetAccountInfo = Entry[_Dict]('GetAccountInfo', ['private'], 'GET', {'cost': 1})
-    private_get_getaccountpositions = privateGetGetAccountPositions = Entry[_Dict]('GetAccountPositions', ['private'], 'GET', {'cost': 1})
+    private_get_getaccountpositions = privateGetGetAccountPositions = Entry[_List]('GetAccountPositions', ['private'], 'GET', {'cost': 1})
     private_get_getallaccountconfigs = privateGetGetAllAccountConfigs = Entry[_List]('GetAllAccountConfigs', ['private'], 'GET', {'cost': 1})
     private_get_gettreasuryproductsforaccount = privateGetGetTreasuryProductsForAccount = Entry[_List]('GetTreasuryProductsForAccount', ['private'], 'GET', {'cost': 1})
     private_get_getaccounttrades = privateGetGetAccountTrades = Entry[_List]('GetAccountTrades', ['private'], 'GET', {'cost': 1})

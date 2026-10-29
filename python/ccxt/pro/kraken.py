@@ -1178,8 +1178,9 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         subscriptionHash = 'executions'
         messageHash = name
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash = name + ':' + symbolResolved
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()

@@ -946,7 +946,7 @@ class bitopro(Exchange, ImplicitAPI):
             copyFrom = self.safe_value(result, resultLength - 1)
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         #
         #     [{
         #         "currency":"twd",
@@ -1000,7 +1000,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_balance(balances)
+        return self.parse_balance_list(balances)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -1221,7 +1221,7 @@ class bitopro(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        id = market['uppercaseId']
+        id = self.safe_string(market, 'uppercaseId')
         request = {}
         if id is not None:
             request[id] = ids

@@ -2476,9 +2476,9 @@ class bydfi(Exchange, ImplicitAPI):
             #     }
             response = await self.privateGetV1FapiAccountBalance(self.extend(request, paramsWallet))
         data = self.safe_list(response, 'data', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
             'timestamp': None,

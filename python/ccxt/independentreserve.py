@@ -405,7 +405,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         accounts = self.to_array(response)
         for i in range(0, len(accounts)):
@@ -428,7 +428,7 @@ class independentreserve(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.privatePostGetAccounts(params)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

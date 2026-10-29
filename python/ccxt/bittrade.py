@@ -1169,7 +1169,7 @@ class bittrade(Exchange, ImplicitAPI):
             'info': currency,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'data', {})
         balances = self.safe_list(data, 'list', [])
         result = {'info': response}

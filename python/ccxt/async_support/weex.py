@@ -2001,9 +2001,9 @@ class weex(Exchange, ImplicitAPI):
                 response = await self.contractPrivateGetCapiV3SimBalance(paramsMarketType)
             else:
                 response = await self.contractPrivateGetCapiV3AccountBalance(paramsMarketType)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
         }

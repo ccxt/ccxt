@@ -1121,7 +1121,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             entry = self.safe_dict(response, i)
@@ -1149,7 +1149,7 @@ class hitbtc(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['type'])
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         account = None if (type is None) else self.safe_string(accountsByType, type, type)
-        response: dict
+        response: List
         if account == 'wallet':
             response = await self.privateGetWalletBalance(paramsOmitted)
         elif account == 'spot':
@@ -1170,7 +1170,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       ...
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """

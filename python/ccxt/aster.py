@@ -1995,7 +1995,7 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets_and_sign_in()
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
         response = None
-        data = None
+        data = []
         if marketType == 'swap':
             data = self.fapiPrivateGetV3Balance(paramsMarketType)
             #
@@ -2024,9 +2024,9 @@ class aster(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         rows = self.to_array(response)
         for i in range(0, len(rows)):

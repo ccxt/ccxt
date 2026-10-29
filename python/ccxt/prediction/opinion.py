@@ -1307,7 +1307,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             rawBalance['symbol'] = self.safe_string(quoteToken, 'symbol', 'USDT')
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         """
  @ignore
         parses an opinion user-balance response into a unified balances object

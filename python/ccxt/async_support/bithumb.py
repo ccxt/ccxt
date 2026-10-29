@@ -626,7 +626,7 @@ class bithumb(Exchange, ImplicitAPI):
                     result.append(entry)
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         #
         # generation 1
         #
@@ -722,7 +722,7 @@ class bithumb(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

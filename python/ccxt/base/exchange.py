@@ -3274,7 +3274,7 @@ class BaseExchange(object):
             bidAsk = self.parse_order_book_bid_ask(self.safe_value(deltas, i), priceKey, amountKey, countOrIdKey)
             bookSide.storeArray(bidAsk)
 
-    def get_cache_index(self, orderbook: object, deltas: object):
+    def get_cache_index(self, orderbook: dict, deltas: list[object]):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1
 
@@ -6233,7 +6233,7 @@ class BaseExchange(object):
     def fetch_balance_ws(self, params: dict = {}):
         raise NotSupported(self.id + ' fetchBalanceWs() is not supported yet')
 
-    def parse_balance(self, response: object):
+    def parse_balance(self, response: dict):
         raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
     def watch_balance(self, params: dict = {}):

@@ -2306,9 +2306,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})

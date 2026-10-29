@@ -1216,7 +1216,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(ohlcvs, market, timeframe, sinceResolved, limitResolved)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # spotPrivatePostUserInfo
         #

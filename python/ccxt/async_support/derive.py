@@ -3174,7 +3174,7 @@ class derive(Exchange, ImplicitAPI):
             subaccountResponse = await self.privatePostGetSubaccount(self.extend(subaccountRequest, subaccountParams))
             # the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             subaccountResult = self.safe_dict(subaccountResponse, 'result', {})
-            return self.parse_balance([subaccountResult])
+            return self.parse_balance_list([subaccountResult])
         deriveWalletAddress, paramsDeriveWalletAddress = self.handle_derive_wallet_address('fetchBalance', params)
         request = {
             'wallet': deriveWalletAddress,
@@ -3429,9 +3429,9 @@ class derive(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result')
-        return self.parse_balance(result)
+        return self.parse_balance_list(result)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
         }

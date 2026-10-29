@@ -590,7 +590,7 @@ class upbit(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -632,7 +632,7 @@ class upbit(Exchange, ImplicitAPI):
         #         "avg_krw_buy_price": "250000",
         #                  "modified":  false    }   ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """

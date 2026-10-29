@@ -677,7 +677,7 @@ class gate(ccxt.async_support.gate):
                 client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
-    def get_cache_index(self, orderBook: object, cache: object) -> float:
+    def get_cache_index(self, orderBook: dict, cache: list[object]) -> float:
         nonce = self.safe_integer(orderBook, 'nonce')
         firstDelta = self.safe_dict(cache, 0)
         firstDeltaStart = self.safe_integer(firstDelta, 'U')

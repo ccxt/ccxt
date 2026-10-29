@@ -328,7 +328,7 @@ class zaif(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'return', {})
         deposit = self.safe_dict(balances, 'deposit')
         result = {

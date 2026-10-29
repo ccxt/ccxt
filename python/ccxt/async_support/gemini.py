@@ -1238,7 +1238,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i)
@@ -1323,7 +1323,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.privatePostV1Balances(params)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #

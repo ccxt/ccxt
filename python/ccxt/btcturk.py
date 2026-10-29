@@ -388,7 +388,7 @@ class btcturk(Exchange, ImplicitAPI):
             'info': entry,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_list(response, 'data', [])
         result = {
             'info': response,

@@ -2401,7 +2401,7 @@ class bullish(Exchange, ImplicitAPI):
             #         }, ...
             #     ]
             #
-            return self.parse_balance(response)
+            return self.parse_balance_list(response)
 
     def parse_balance_for_single_currency(self, response: dict, code: Str) -> Balances:
         result = {'info': response}
@@ -2411,7 +2411,7 @@ class bullish(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
         }

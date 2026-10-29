@@ -3562,7 +3562,7 @@ class bitget(Exchange, ImplicitAPI):
         isStock = market['stock']
         paramsStock = self.omit(paramsProductType, 'stock')
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchOrderBook', False)
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         isStockOrUta = (isStockSpot or (uta is True))
         if isStockSpot:
             if limit is not None:
@@ -3778,7 +3778,7 @@ class bitget(Exchange, ImplicitAPI):
         isStock = market['stock']
         paramsStock = self.omit(paramsProductType, 'stock')
         uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchTicker', False)
-        isStockOrUta = ((isStock and market['spot']) or (uta is True))
+        isStockOrUta = ((isStock and (market['spot'] is True)) or (uta is True))
         if isStockOrUta:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, paramsUTA))
@@ -4300,7 +4300,7 @@ class bitget(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         market = self.market(symbol)
         isStock = market['stock']
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         paramsPaginate = self.omit(paramsPaginate, 'stock')
         if paginate:
             if isStockSpot:
@@ -4728,7 +4728,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         isStock = market['stock']
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         paramsStock = self.omit(paramsUTA, 'stock')
         marketType = None
         timeframes = None
@@ -5057,7 +5057,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
     def parse_uta_balance(self, balance: list[dict], response: dict | None = None) -> Balances:
         info = response if (response is not None) else balance
@@ -5098,7 +5098,7 @@ class bitget(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, balance: object) -> Balances:
+    def parse_balance_list(self, balance: list[dict]) -> Balances:
         result = {'info': balance}
         #
         # spot
@@ -5608,7 +5608,7 @@ class bitget(Exchange, ImplicitAPI):
         marginParams = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = marginParams[0]
         isStock = market['stock']
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         paramsStock = self.omit(params, 'stock')
         triggerPrice = self.safe_number_2(paramsStock, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_number(paramsStock, 'stopLossPrice')
@@ -6370,7 +6370,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelOrder', params)
         isStock = market['stock']
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         paramsMarginMode = self.omit(paramsMarginMode, 'stock')
         request = {}
         trailing = self.safe_bool(paramsMarginMode, 'trailing')

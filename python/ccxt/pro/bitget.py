@@ -278,7 +278,7 @@ class bitget(ccxt.async_support.bitget):
         symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.tickers[symbol] = ticker
-        messageHash = 'ticker:' + symbol
+        messageHash = 'ticker:' + self.safe_string(ticker, 'symbol', '')
         client.resolve(ticker, messageHash)
 
     def parse_ws_ticker(self, message: dict, market: Market = None) -> Ticker:
@@ -465,7 +465,7 @@ class bitget(ccxt.async_support.bitget):
         symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
-        messageHash = 'bidask:' + symbol
+        messageHash = 'bidask:' + self.safe_string(ticker, 'symbol', '')
         client.resolve(ticker, messageHash)
 
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
@@ -2242,7 +2242,7 @@ class bitget(ccxt.async_support.bitget):
                 market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             symbolSpecificMessageHash = 'myTrades:' + symbol
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)

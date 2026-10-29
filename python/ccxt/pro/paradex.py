@@ -277,7 +277,7 @@ class paradex(ccxt.async_support.paradex):
         marketId = self.safe_string(data, 'market')
         market = self.safe_market(marketId)
         timestamp = self.safe_integer(data, 'last_updated_at')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         # levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go

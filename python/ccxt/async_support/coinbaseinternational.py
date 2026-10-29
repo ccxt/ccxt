@@ -1501,11 +1501,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             # Account summaries are arrays; retain the gateway info shape without dropping balances.
             summaries = self.safe_list(result, 'summaries')
             if summaries is not None:
-                return self.parse_balance(summaries)
-            return self.parse_balance(self.safe_dict(result, 'summaries', []))
-        return self.parse_balance(result)
+                return self.parse_balance_list(summaries)
+            return self.parse_balance_list(self.safe_dict(result, 'summaries', []))
+        return self.parse_balance_list(result)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
         }

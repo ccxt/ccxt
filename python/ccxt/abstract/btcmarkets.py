@@ -28,7 +28,7 @@ class ImplicitAPI:
     private_get_assets = privateGetAssets = Entry[_List]('assets', ['private'], 'GET', {'cost': 1})
     private_get_accounts_me_trading_fees = privateGetAccountsMeTradingFees = Entry[_Dict]('accounts/me/trading-fees', ['private'], 'GET', {'cost': 1})
     private_get_accounts_me_withdrawal_limits = privateGetAccountsMeWithdrawalLimits = Entry[_List]('accounts/me/withdrawal-limits', ['private'], 'GET', {'cost': 1})
-    private_get_accounts_me_balances = privateGetAccountsMeBalances = Entry[_Dict]('accounts/me/balances', ['private'], 'GET', {'cost': 1})
+    private_get_accounts_me_balances = privateGetAccountsMeBalances = Entry[_List]('accounts/me/balances', ['private'], 'GET', {'cost': 1})
     private_get_accounts_me_transactions = privateGetAccountsMeTransactions = Entry[_List]('accounts/me/transactions', ['private'], 'GET', {'cost': 1})
     private_get_reports_id = privateGetReportsId = Entry[_Dict]('reports/{id}', ['private'], 'GET', {'cost': 1})
     private_post_orders = privatePostOrders = Entry[_Dict]('orders', ['private'], 'POST', {'cost': 1})

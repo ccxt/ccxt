@@ -305,16 +305,13 @@ class binance(ccxt.async_support.binance):
         base = self.safe_string_2(market, 'base', 'id')
         return None if (base is None) else base.lower()
 
-    def get_stock_unified_symbol(self, stockSymbol: Str, quote: Str = None) -> Str:
+    def get_stock_unified_symbol(self, stockSymbol: Str, quote: str = 'USDC') -> Str:
         if stockSymbol is None:
             return None
-        safeQuote = quote
-        if quote is None:
-            safeQuote = 'USDC'
         parsed = self.safe_symbol(stockSymbol, None, '/', 'spot')
         if (parsed is not None) and (parsed.find('/') >= 0):
             return parsed
-        return stockSymbol + '/' + safeQuote
+        return stockSymbol + '/' + quote
 
     async def watch_stock_market_stream(self, streams: list[str], messageHashes: list[str], params: dict = {}):
         """

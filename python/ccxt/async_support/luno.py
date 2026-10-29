@@ -692,7 +692,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,

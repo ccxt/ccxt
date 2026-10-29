@@ -334,7 +334,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         return self.safe_integer(data, 'time')
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # {
         #     "totalEquityValue": "100.000000",

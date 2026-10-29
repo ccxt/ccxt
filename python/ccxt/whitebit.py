@@ -2239,7 +2239,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balanceKeys = list(response.keys())
         result = {}
         for i in range(0, len(balanceKeys)):

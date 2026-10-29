@@ -59,7 +59,7 @@ class coinbase(ccxt.async_support.coinbase):
             },
         })
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Str = None, params: dict = {}):
+    async def subscribe(self, name: str, isPrivate: bool = False, symbol: Str = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -94,7 +94,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def un_subscribe(self, topic: str, name: str, isPrivate: bool, symbol: Str = None):
+    async def un_subscribe(self, topic: str, name: str, isPrivate: bool = False, symbol: Str = None):
         """
  @ignore
         unSubscribes to a websocket channel
@@ -143,7 +143,7 @@ class coinbase(ccxt.async_support.coinbase):
         self.options['unSubscription'] = None
         return res
 
-    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
+    async def subscribe_multiple(self, name: str, isPrivate: bool = False, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -177,7 +177,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
-    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
+    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool = False, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         unsubscribes to a websocket channel
