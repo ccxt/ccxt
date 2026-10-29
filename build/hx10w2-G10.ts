@@ -379,29 +379,39 @@ function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
     return maskedBody.every (line => !/\bok\b/.test (line) || /^\s*(?:\} else )?if (?:\w+|_), ok := [^;]+; .*\{$/.test (line));
 }
 
-// `if !(InOp(this.F, k)) {` whose whole block is one `if k != nil {` (a nil key skips both) swaps the two
-// headers: the nil guard goes outside and the lookup inside it is the native comma-ok
-function hx10G10SwapNilGuard (body: string[], maskedBody: string[], decls: Map<string, Decl>, index: number): boolean {
+// `if !(InOp(this.F, k)) {` whose whole block is pure `var x = this.Safe*(..)` reads and one `if k != nil {` (a nil
+// key skips the lot) swaps the two headers: the nil guard goes outside and the lookup inside it is the
+// native comma-ok. Returns the line of the printed lookup (0 when the block does not qualify).
+const HX10_G10_PURE_DECL = /^var \w+ [^=]+ = (?:this\.(?:Safe\w+|OrderBook|IndexedOrderBook|CountedOrderBook)\(|ccxt\.Safe\w+\()[^\n]*$/;
+
+function hx10G10SwapNilGuard (body: string[], maskedBody: string[], decls: Map<string, Decl>, index: number): number {
     const head = new RegExp ('^(\\t*)if !\\((?:ccxt\\.)?InOp\\((this\\.(?:' + FIELD + ')), (\\w+)\\)\\) \\{$').exec (maskedBody[index]);
     if ((head === null) || (index + 1 >= body.length)) {
-        return false;
+        return 0;
     }
     const [ , indent, receiver, key ] = head;
-    if ((hx10G10DeclsAt (body, maskedBody, decls, index).get (key)?.type !== '*string') || (maskedBody[index + 1] !== indent + '\tif ' + key + ' != nil {')) {
-        return false;
+    if (hx10G10DeclsAt (body, maskedBody, decls, index).get (key)?.type !== '*string') {
+        return 0;
     }
-    let close = index + 2;
+    let guard = index + 1;
+    while ((guard < body.length) && maskedBody[guard].startsWith (indent + '\t') && HX10_G10_PURE_DECL.test (maskedBody[guard].substring (indent.length + 1)) && !body[guard].endsWith ('{')) {
+        guard++;
+    }
+    if ((guard + 1 >= body.length) || (maskedBody[guard] !== indent + '\tif ' + key + ' != nil {')) {
+        return 0;
+    }
+    let close = guard + 1;
     while ((close < body.length) && (maskedBody[close] !== indent + '\t}') && (maskedBody[close] !== indent + '}')) {
         close++;
     }
     if ((close + 1 >= body.length) || (maskedBody[close] !== indent + '\t}') || (maskedBody[close + 1] !== indent + '}') || !hx10G10OkIsIfLocal (maskedBody)) {
-        return false;
+        return 0;
     }
     body[index] = indent + 'if ' + key + ' != nil {';
-    body[index + 1] = indent + '\tif _, ok := ' + receiver + '[*' + key + ']; !ok {';
+    body[guard] = indent + '\tif _, ok := ' + receiver + '[*' + key + ']; !ok {';
     maskedBody[index] = body[index];
-    maskedBody[index + 1] = body[index + 1];
-    return true;
+    maskedBody[guard] = body[guard];
+    return guard;
 }
 
 function hx10G10Rewrite (content: string): string {
@@ -620,6 +630,8 @@ export function hx10G10SelfTest (): string[] {
     const swap = (inner: string) => f ('', '\tvar symbol *string = ccxt.SafeStringPtr(m[\"symbol\"])\n\tif !(ccxt.InOp(this.Orderbooks, symbol)) {\n' + inner + '\t}\n');
     ok (swap ('\t\tif symbol != nil {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Orderbooks[*symbol]; !ok {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n\t}') >= 0, 'a nil-guard-only lookup block swaps headers');
     ok (swap ('\t\tccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())\n').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Orderbooks[*symbol]; !ok {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n\t}') >= 0, 'the guard the write rewrite prints swaps too');
+    ok (swap ('\t\tvar limit *int64 = this.SafeInteger(m, \"depth\")\n\t\tif symbol != nil {\n\t\t\tthis.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)\n\t\t}\n').indexOf ('\tif symbol != nil {\n\t\tvar limit *int64 = this.SafeInteger(m, \"depth\")\n\t\tif _, ok := this.Orderbooks[*symbol]; !ok {') >= 0, 'pure Safe* reads ahead of the guard swap too');
+    ok (swap ('\t\tvar limit *int64 = this.Next(m)\n\t\tif symbol != nil {\n\t\t\tx()\n\t\t}\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a non-pure declaration keeps InOp');
     ok (swap ('\t\tif symbol != nil {\n\t\t\tx()\n\t\t}\n\t\ty()\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a block with a sibling statement keeps InOp');
     // the printer's *sync.Map arms
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
@@ -655,9 +667,10 @@ export function hx10G10Pass (content: string): string {
         const maskedBody = masked.slice (k, end + 1);
         const decls = hx10G10Decls (body, body[0]);
         for (let i = 1; i < body.length; i++) {
-            if (hx10G10SwapNilGuard (body, maskedBody, decls, i)) {
+            const guard = hx10G10SwapNilGuard (body, maskedBody, decls, i);
+            if (guard > 0) {
                 lines[k + i] = body[i];
-                lines[k + i + 1] = body[i + 1];
+                lines[k + guard] = body[guard];
             }
         }
         k = end + 1;
