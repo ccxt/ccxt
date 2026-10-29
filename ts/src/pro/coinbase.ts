@@ -68,7 +68,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol: Str = undefined, params: Dict = {}) {
+    async subscribe (name: string, isPrivate: boolean = false, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -106,7 +106,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean = false, symbol: Str = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -159,7 +159,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribeMultiple (name: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async subscribeMultiple (name: string, isPrivate: boolean = false, symbols: Strings = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -197,7 +197,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean = false, symbols: Strings = undefined, params: Dict = {}) {
         if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
