@@ -1643,7 +1643,7 @@ impl BackpackCore {
             inverse = Value::Bool(false);
             settleId = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()); // settle is the quote currency
             contractSize = Value::Int(1);
         }  else {
             return Value::Null;

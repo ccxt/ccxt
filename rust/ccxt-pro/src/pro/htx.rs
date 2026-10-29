@@ -1376,7 +1376,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 subType = Value::Str("inverse".into());
             }
-            marketId = market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null);
+            marketId = self.safe_string_k(market.clone(), "lowercaseId", &[Value::Str("*".into())]);
         }  else {
             type_var = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
             type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
@@ -1546,7 +1546,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             type_var = self.safe_string_k(market.clone(), "type", &[]);
-            suffix = market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null);
+            suffix = self.safe_string_k(market.clone(), "lowercaseId", &[Value::Str("*".into())]);
             if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 subType = Value::Str("linear".into());
             }  else {

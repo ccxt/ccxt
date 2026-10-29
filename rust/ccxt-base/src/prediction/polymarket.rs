@@ -4926,8 +4926,9 @@ if _try_result.is_err() {
         let mut outcomeResolved: Value = outcome;
         if (outcomeResolved != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
-            outcomeResolved = self.safe_string_k(outcomeObj, "outcome", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str("orders::".into()), outcomeResolved).into());
+            outcomeResolved = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
+            let outcomeName: String = self.safe_string_k_opt(outcomeObj, "outcome", &[Value::Str("".into())]).unwrap_or_default();
+            messageHash = Value::Str(format!("{}{}", Value::Str("orders::".into()), outcomeName).into());
         }
         let mut orders: Value = self.subscribe_user_channel(messageHash, &[params]).await;
         let mut limitResolved: Value = limit;
@@ -4963,8 +4964,9 @@ if _try_result.is_err() {
         let mut outcomeResolved: Value = outcome;
         if (outcomeResolved != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
-            outcomeResolved = self.safe_string_k(outcomeObj, "outcome", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcomeResolved).into());
+            outcomeResolved = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
+            let outcomeName: String = self.safe_string_k_opt(outcomeObj, "outcome", &[Value::Str("".into())]).unwrap_or_default();
+            messageHash = Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcomeName).into());
         }
         let mut trades: Value = self.subscribe_user_channel(messageHash, &[params]).await;
         let mut limitResolved: Value = limit;
