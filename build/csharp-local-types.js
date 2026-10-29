@@ -11417,6 +11417,17 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         cast = 'string';
         safe = true;
     }
+    // hx11 w8 any-local-add-operand: `const key = keys[i]` over `keys = Object.keys (x)` /
+    // `.split (...)` inside the `for (i < keys.length)` that bounds it. Every element of those
+    // lists is a non-null string box and the loop bound keeps the read in range, so the
+    // declaration is the non-null `string` behind the identity `(string)` cast and its `+`
+    // reads bind add(string, *) (retried only after `string?` was rejected)
+    if (!safe && csharpType === 'string?' && boundedKeysElementInitializer (csharp, declaration.initializer)
+        && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
@@ -13812,6 +13823,49 @@ function signApiParameterRead (csharp, receiver) {
     return param?.kind === ts.SyntaxKind.Parameter && method?.kind === ts.SyntaxKind.MethodDeclaration
         && [ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) && method.parameters.indexOf (param) === 1
         && String (param.type?.getText () ?? '').replace (/\s+/g, '') === 'string[]';
+}
+
+// `keys[i]` where `keys` is a once-bound local whose only write is `Object.keys (...)` or
+// `.split (...)` (elements are never null) and the read sits in the body of a
+// `for (...; i < keys.length; ...)` that neither moves `i` nor `keys` (csharpIndexIsLoopBounded)
+function boundedKeysElementInitializer (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier
+            || node.argumentExpression?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpIndexIsLoopBounded !== 'function') {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = indexScope (csharp, scope).identifiers.get (node.expression.text) ?? [];
+    let declaration;
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+            bindings++;
+            declaration = parent;
+        }
+        if (parent && n !== node.expression && n.parent?.kind !== ts.SyntaxKind.VariableDeclaration && receiverUseIsWrite (n)) {
+            return false;
+        }
+    }
+    if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () > node.getStart ()) {
+        return false;
+    }
+    let init = declaration.initializer;
+    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        init = init.expression;
+    }
+    if (init?.kind !== ts.SyntaxKind.CallExpression || init.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return false;
+    }
+    const callee = init.expression;
+    const objectKeys = callee.name?.text === 'keys' && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.text === 'Object';
+    if (!objectKeys && callee.name?.text !== 'split') {
+        return false;
+    }
+    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true;
 }
 
 function signApiElementInitializer (csharp, node) {
