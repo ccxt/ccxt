@@ -1411,13 +1411,13 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public List<Object> parseCancelOrders(Object data)
+    public List<Object> parseCancelOrders(Map<String, Object> data)
     {
-        List<Object> dataKeys = ((List<Object>) switch ((Object)(data)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> dataKeys = new ArrayList<String>(data.keySet());
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)dataKeys).size(); i++)
         {
-            Object marketId = (dataKeys == null || i < 0 || i >= dataKeys.size() ? null : dataKeys.get(i));
+            String marketId = (dataKeys == null || i < 0 || i >= dataKeys.size() ? null : dataKeys.get(i));
             List<Object> orderIds = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)orderIds).size(); j++)
             {
@@ -1472,8 +1472,8 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.parseCancelOrders(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseCancelOrders((Map<String, Object>) (data));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1518,7 +1518,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseCancelOrders(data);
+            return this.parseCancelOrders((Map<String, Object>) (data));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

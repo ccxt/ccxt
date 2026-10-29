@@ -89,7 +89,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribe(String name, Object isPrivate, Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(String name, Object isPrivate, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -101,12 +101,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Map<String, Object> market = null;
             String messageHash = name;
             List<String> productIds = new ArrayList<String>(Arrays.asList());
-            if ((symbol instanceof List))
-            {
-                List<String> symbols = this.marketSymbols(symbol, (Object) null, true, false, false);
-                productIds = this.marketIds(symbols);
-                messageHash = ((name + "::") + String.join(",", (List<String>)symbols));
-            } else if (!java.util.Objects.equals(symbol, null))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
                 messageHash = ((name + "::") + symbol);
@@ -137,7 +132,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> unSubscribe(String topic, String name, Object isPrivate, Object symbol)
+    public CompletableFuture<Object> unSubscribe(String topic, String name, Object isPrivate, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -155,13 +150,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String watchMessageHash = name;
             String unWatchMessageHash = ("unsubscribe:" + name);
             List<String> productIds = new ArrayList<String>(Arrays.asList());
-            if ((symbol instanceof List))
-            {
-                List<String> symbols = this.marketSymbols(symbol, (Object) null, true, false, false);
-                productIds = this.marketIds(symbols);
-                watchMessageHash = ((name + "::") + String.join(",", (List<String>)symbols));
-                unWatchMessageHash = ((("unsubscribe:" + name) + "::") + String.join(",", (List<String>)symbols));
-            } else if (!java.util.Objects.equals(symbol, null))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
                 watchMessageHash = ((name + "::") + symbol);

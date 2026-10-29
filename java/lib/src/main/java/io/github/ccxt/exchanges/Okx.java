@@ -3218,10 +3218,7 @@ public class Okx extends OkxApi
             Boolean isFullBook = (java.util.Objects.equals(method, "publicGetMarketBooksFull"));
             Boolean largeLimit = ((java.util.Objects.equals(limit, null)) && Boolean.TRUE.equals(isFullBook)) || ((!java.util.Objects.equals(limit, null)) && ((limit > 400)));
             Object limitResolved = (((Boolean.TRUE.equals(rpi) && Boolean.TRUE.equals(largeLimit)))) ? 400 : requestedLimit;
-            if (!java.util.Objects.equals(limitResolved, null))
-            {
-                request.put("sz", limitResolved); // max 400
-            }
+            request.put("sz", limitResolved); // max 400
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(rpi))
             {

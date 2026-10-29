@@ -226,6 +226,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        if (java.util.Objects.equals(symbol, null))
+        {
+            return;
+        }
         Map<String, Object> market = this.market(symbol);
         List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
