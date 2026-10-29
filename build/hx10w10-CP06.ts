@@ -266,6 +266,69 @@ export function cp06Int64ValueExpression (expr: string, content: string, methodL
 }
 
 /**
+ * `ToStringValue(string?)` is the identity: the helper returns a `string` as is and nulls
+ * anything else, so a string-typed operand needs no conversion.
+ */
+export function cp06StringValueExpression (expr: string, content: string, methodLines: string[]): string {
+    const def = cp06DefinitionIndex ().get ('ToStringValue')
+    if ((def === undefined) || (def.ret !== 'string') || (def.params.trim () !== 'object value')) {
+        return ''
+    }
+    if (!/^\{[^]*?if \(value is string s\) \{ return s; \}[^]*?return null; \}$/.test (def.body)) {
+        return ''
+    }
+    const value = expr.trim ()
+    let types: string[] = []
+    if (CP06_IDENTIFIER.test (value)) {
+        if (cp06IsParameter (value, methodLines)) {
+            return ''
+        }
+        const bind = new RegExp ('^\\s*(?:foreach\\s*\\(\\s*)?([\\w<>,.?\\[\\]]+)\\s+' + value + '\\s*(?:=[^=]|;|\\bin\\b)')
+        for (const line of methodLines) {
+            const local = bind.exec (line)
+            if ((local !== null) && !/^(?:return|await|else|throw)$/.test (local[1])) {
+                types.push (local[1])
+            }
+        }
+    } else {
+        const call = /^this\.([A-Za-z_]\w*)\(/.exec (value)
+        if ((call === null) || (cp06MatchingParen (value, call[0].length - 1) !== value.length - 1)) {
+            return ''
+        }
+        const declared = new Set<string> (cp06BaseReturnIndex ().get (call[1]) ?? [])
+        for (const line of content.split ('\n')) {
+            const match = CP06_SIGNATURE.exec (line)
+            if ((match !== null) && (match[2] === call[1])) {
+                declared.add (cp06NormalizeType (match[1]))
+            }
+        }
+        types = Array.from (declared)
+    }
+    if ((types.length !== 1) || (types[0] !== 'string' && types[0] !== 'string?')) {
+        return ''
+    }
+    return value
+}
+
+// index of the `)` closing the `(` at `open`, skipping string literals; -1 when unbalanced
+function cp06MatchingParen (text: string, open: number): number {
+    let depth = 0
+    let inString = false
+    for (let i = open; i < text.length; i++) {
+        const ch = text[i]
+        if (inString) {
+            if (ch === '\\') { i++ } else if (ch === '"') { inString = false }
+            continue
+        }
+        if (ch === '"') { inString = true } else if (ch === '(') { depth++ } else if (ch === ')') {
+            depth--
+            if (depth === 0) { return i }
+        }
+    }
+    return -1
+}
+
+/**
  * The native expression a funnel wrapper collapses to, or '' when the site keeps the helper.
  */
 export function cp06NativeCoreReturn (wrapper: string, expr: string, content: string, methodLines: string[]): string {
@@ -277,6 +340,9 @@ export function cp06NativeCoreReturn (wrapper: string, expr: string, content: st
     }
     if (wrapper === 'ccxt.BaseExchange.ToInt64Value') {
         return cp06Int64ValueExpression (expr, content, methodLines)
+    }
+    if (wrapper === 'ccxt.BaseExchange.ToStringValue') {
+        return cp06StringValueExpression (expr, content, methodLines)
     }
     return ''
 }
@@ -324,5 +390,17 @@ export function cp06SnippetChecks (): string[] {
     printf ('int64-literal', cp06Int64ValueExpression ('null', '', body), '')
     printf ('native-from', cp06NativeCoreReturn ('ccxt.BaseExchange.FromDict', ' await this.FetchWallet(parameters) ', body, body), 'await this.FetchWallet(parameters)')
     printf ('native-other', cp06NativeCoreReturn ('ccxt.BaseExchange.ToOHLCVDict', 'payload', body, body), '')
+    const strBody = [
+        'public async virtual Task<string> FetchAccountIdByType(object type, object parameters = null)',
+        '{',
+        '    string? accountId = this.safeString(parameters, "id");',
+        '    object boxed = this.safeString(parameters, "id");',
+        '}',
+    ]
+    printf ('string-local', cp06StringValueExpression ('accountId', '', strBody), 'accountId')
+    printf ('string-object-local', cp06StringValueExpression ('boxed', '', strBody), '')
+    printf ('string-param', cp06StringValueExpression ('type', '', strBody), '')
+    printf ('string-safestring', cp06StringValueExpression ('this.safeString(account, "id")', '', strBody), 'this.safeString(account, "id")')
+    printf ('string-call-tail', cp06StringValueExpression ('this.safeString(a, "id") + "x"', '', strBody), '')
     return problems
 }
