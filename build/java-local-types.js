@@ -18712,10 +18712,10 @@ export function installJ17StringReturns (transpiler) {
     };
 }
 
-// hx4 J20: setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
+// hx4 J20 (+ hx11 w8 Opinion.parseWsOrderStatus, an Int param): setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
 // a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
 // literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
-const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object (\w+)[,)]/;
+const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object (\w+)[,)]/;
 
 function j20Rewrite (line, p) {
     const v = `((Number) ${p}).doubleValue()`;
@@ -18735,7 +18735,7 @@ function j20Rewrite (line, p) {
 }
 
 export function nativeJavaJ20ParamCompare (content) {
-    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object /.test (content)) return content;
+    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {

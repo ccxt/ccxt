@@ -2419,23 +2419,23 @@ public class Opinion extends OpinionApi
     public String parseWsOrderStatus(Object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if (Helpers.isEqual(status, 1))
+        if ((status != null && ((Number) status).doubleValue() == 1))
         {
             return "open";
         }
-        if (Helpers.isEqual(status, 2))
+        if ((status != null && ((Number) status).doubleValue() == 2))
         {
             return "closed";
         }
-        if (Helpers.isEqual(status, 3))
+        if ((status != null && ((Number) status).doubleValue() == 3))
         {
             return "canceled";
         }
-        if (Helpers.isEqual(status, 4))
+        if ((status != null && ((Number) status).doubleValue() == 4))
         {
             return "expired";
         }
-        if (Helpers.isEqual(status, 5))
+        if ((status != null && ((Number) status).doubleValue() == 5))
         {
             return "rejected";
         }
