@@ -1386,15 +1386,12 @@ class deribit(Exchange, ImplicitAPI):
             'currency': currency['id'],
         }
         if type is not None:
-            requestType = None
             if type == 'spot':
-                requestType = 'spot'
+                request['kind'] = 'spot'
             elif type == 'future' or (type == 'contract'):
-                requestType = 'future'
+                request['kind'] = 'future'
             elif type == 'option':
-                requestType = 'option'
-            if requestType is not None:
-                request['kind'] = requestType
+                request['kind'] = 'option'
         response = self.publicGetGetBookSummaryByCurrency(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2659,8 +2656,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         contract = self.safe_string(position, 'instrument_name')
         marketResolved = self.safe_market(contract, market)
-        side = self.safe_string(position, 'direction')
-        side = 'long' if (side == 'buy') else 'short'
+        side = 'long' if (self.safe_string(position, 'direction') == 'buy') else 'short'
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')

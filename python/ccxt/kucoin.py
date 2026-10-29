@@ -2879,14 +2879,12 @@ class kucoin(Exchange, ImplicitAPI):
             'info': ticker,
         }, marketResolved)
 
-    def type_to_trade_type(self, type: Str) -> Str:
+    def type_to_trade_type(self, type: str) -> Str:
         tradeTypes = {
             'spot': 'SPOT',
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         }
-        if type is None:
-            return None
         return self.safe_string(tradeTypes, type, type)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:

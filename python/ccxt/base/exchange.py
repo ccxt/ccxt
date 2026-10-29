@@ -3262,7 +3262,7 @@ class BaseExchange(object):
     def handle_delta(self, bookside: object, delta: object):
         raise NotSupported(self.id + ' handleDelta not supported yet')
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_book_delta(orderbook, self.safe_value(deltas, i))
 

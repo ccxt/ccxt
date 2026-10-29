@@ -1423,7 +1423,7 @@ class bybit(ccxt.async_support.bybit):
         else:
             execTypes = execTypeOption
         for i in range(0, len(data)):
-            rawTrade = data[i]
+            rawTrade = self.safe_dict(data, i, {})
             parsed = None
             if spot and not executionFast:
                 parsed = self.parse_ws_trade(rawTrade)

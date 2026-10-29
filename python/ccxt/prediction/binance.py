@@ -209,7 +209,9 @@ class binance(PredictionExchange, ImplicitAPI):
         if maxTopics is not None:
             maxTopicsResolved = self.parse_to_int(maxTopics)
         pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        pageLimit = 100 if (pageLimitOption > 100) else pageLimitOption
+        pageLimit = self.parse_to_int(100)
+        if pageLimitOption < 100:
+            pageLimit = self.parse_to_int(pageLimitOption)
         collected = []
         offset = 0
         while(True):
@@ -1627,7 +1629,7 @@ class binance(PredictionExchange, ImplicitAPI):
         quote = await self.fetch_quote(quoteRequest, paramsOmitted)
         quoteId = self.safe_string(quote, 'quoteId')
         orderRequest = self.extend(commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': self.safe_string(wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
@@ -1705,7 +1707,7 @@ class binance(PredictionExchange, ImplicitAPI):
         wallet = await self.fetch_wallet('cancelOrders', params)
         request = {
             'walletAddress': self.safe_string(wallet, 'walletAddress'),
-            'walletId': wallet['walletId'],
+            'walletId': self.safe_string(wallet, 'walletId'),
         }
         # flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for i in range(0, len(ids)):

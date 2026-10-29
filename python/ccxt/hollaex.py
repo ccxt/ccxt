@@ -983,9 +983,9 @@ class hollaex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        currenciesById = self.currencies_by_id
-        if currenciesById is None:
+        if self.currencies_by_id is None:
             raise ExchangeError(self.id + ' currencies not loaded')
+        currenciesById = self.currencies_by_id
         currencyIds = list(currenciesById.keys())
         for i in range(0, len(currencyIds)):
             currencyId = self.safe_string(currencyIds, i, '')

@@ -503,10 +503,6 @@ class bithumb(ccxt.async_support.bithumb):
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
-        for i in range(0, len(deltas)):
-            self.handle_book_delta(orderbook, deltas[i])
-
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
