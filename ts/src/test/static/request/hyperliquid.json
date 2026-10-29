@@ -821,6 +821,105 @@
                     "SOL/USDC:USDC"
                 ],
                 "output": { "nonce": 1709652626969, "action": { "type": "cancel", "cancels": [ { "a": 5, "o": 6927265353 }, { "a": 5, "o": 6927351467 } ] }, "signature": { "r": "0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f", "s": "0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040", "v": 27 } }
+            },
+            {
+                "description": "cancel orders with the fast flag, f is only added when true",
+                "method": "cancelOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [
+                        "6927265353",
+                        "6927351467"
+                    ],
+                    "SOL/USDC:USDC",
+                    {
+                        "fast": true
+                    }
+                ],
+                "output": {
+                    "nonce": 1709652626969,
+                    "action": {
+                        "type": "cancel",
+                        "cancels": [
+                            {
+                                "a": 5,
+                                "o": 6927265353
+                            },
+                            {
+                                "a": 5,
+                                "o": 6927351467
+                            }
+                        ],
+                        "f": true
+                    },
+                    "signature": {
+                    "r": "0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f",
+                    "s": "0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040",
+                    "v": 27
+                }
+                }
+            },
+            {
+                "description": "cancel orders by clientOrderId with the fast flag",
+                "method": "cancelOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [],
+                    "SOL/USDC:USDC",
+                    {
+                        "clientOrderId": "0x1234567890abcdef1234567890abcded",
+                        "fast": true
+                    }
+                ],
+                "output": {
+                    "nonce": 1709652626969,
+                    "action": {
+                        "type": "cancelByCloid",
+                        "cancels": [
+                            {
+                                "asset": 5,
+                                "cloid": "0x1234567890abcdef1234567890abcded"
+                            }
+                        ],
+                        "f": true
+                    },
+                    "signature": {
+                    "r": "0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f",
+                    "s": "0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040",
+                    "v": 27
+                }
+                }
+            },
+            {
+                "description": "cancel orders with fast false, f must be omitted",
+                "method": "cancelOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [
+                        "6927265353"
+                    ],
+                    "SOL/USDC:USDC",
+                    {
+                        "fast": false
+                    }
+                ],
+                "output": {
+                    "nonce": 1709652626969,
+                    "action": {
+                        "type": "cancel",
+                        "cancels": [
+                            {
+                                "a": 5,
+                                "o": 6927265353
+                            }
+                        ]
+                    },
+                    "signature": {
+                    "r": "0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f",
+                    "s": "0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040",
+                    "v": 27
+                }
+                }
             }
         ],
         "fetchBalance": [
@@ -1657,6 +1756,48 @@
                     ]
                 ],
                 "output": { "nonce": 1713523049140, "action": { "type": "cancelByCloid", "cancels": [ { "asset": 5, "cloid": "0x1234567890abcdef1234567890abcded" } ] }, "signature": { "r": "0xa271d3d3d5dc27f6bfa2b63770c3bcb0f8610e832d0c7b2a4b7cff7f94f5301d", "s": "0x7986c12c100b8ac2ab8f63ac4a04d36f17e2c97b9341ad7519713ac5d5cf27f", "v": 27 } }
+            },
+            {
+                "description": "cancel orders for symbols with the fast flag",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [
+                        {
+                            "id": "7556739260",
+                            "symbol": "SOL/USDC:USDC"
+                        },
+                        {
+                            "id": "7556435631",
+                            "symbol": "ADA/USDC:USDC"
+                        }
+                    ],
+                    {
+                        "fast": true
+                    }
+                ],
+                "output": {
+                    "nonce": 1709652626969,
+                    "action": {
+                        "type": "cancel",
+                        "cancels": [
+                            {
+                                "a": 5,
+                                "o": 7556739260
+                            },
+                            {
+                                "a": 65,
+                                "o": 7556435631
+                            }
+                        ],
+                        "f": true
+                    },
+                    "signature": {
+                    "r": "0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f",
+                    "s": "0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040",
+                    "v": 27
+                }
+                }
             }
         ],
         "fetchTradingFee": [
