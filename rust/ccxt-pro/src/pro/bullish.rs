@@ -489,6 +489,9 @@ impl BullishCore {
 }) });
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        if (symbol == Value::Null) {
+            return;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);

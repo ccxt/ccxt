@@ -1211,10 +1211,7 @@ impl RevolutxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = Value::Null;
-        if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
-        }
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

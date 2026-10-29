@@ -341,11 +341,7 @@ impl CoinbaseCore {
         let mut market: Value = Value::Null;
         let mut messageHash: Value = name.clone();
         let mut productIds: Value = Value::from(vec![]);
-        if (matches!(&symbol, Value::Arr(_))) {
-            let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
-            productIds = self.market_ids(&[symbols.clone()]);
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
-        }  else if (symbol != Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
             productIds = Value::from(vec![self.safe_string_k(market, "id", &[])]);
@@ -391,12 +387,7 @@ impl CoinbaseCore {
         let mut watchMessageHash: Value = name.clone();
         let mut unWatchMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into());
         let mut productIds: Value = Value::from(vec![]);
-        if (matches!(&symbol, Value::Arr(_))) {
-            let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
-            productIds = self.market_ids(&[symbols.clone()]);
-            watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
-            unWatchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
-        }  else if (symbol != Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
             unWatchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol).into());

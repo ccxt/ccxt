@@ -4625,9 +4625,7 @@ impl OkxCore {
         let mut isFullBook: bool = method.as_str() == Some("publicGetMarketBooksFull");
         let mut largeLimit: bool = ((limit == Value::Null) && isFullBook) || ((limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((400i64) as f64)));
         let mut limitResolved: Value = (if (rpi.as_bool() == Some(true) && largeLimit) { Value::Int(400) } else { requestedLimit });
-        if (limitResolved != Value::Null) {
-            request.insert("sz".into(), limitResolved); // max 400
-        }
+        request.insert("sz".into(), limitResolved); // max 400
         let mut response: Value = Value::Null;
         if rpi.as_bool() == Some(true) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsMethod.clone()]);
