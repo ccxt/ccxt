@@ -2280,6 +2280,7 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
     const n = goAccessEscape (name);
     const call = new RegExp ('(?<![\\w.])' + n + '(?:\\.\\(ccxt\\.OrderBookInterface\\))?\\.(?:GetAsks|GetBids|Reset|GetCache|Limit)\\(');
     const write = new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*(?:=(?!=)|:=)|&\\s*' + n + '\\b');
+    const asserted = new RegExp ('^\\s*(?:var ' + n + ' (?:ccxt\\.)?OrderBookInterface = |' + n + ' = )[^\\n]*\\.\\((?:ccxt\\.)?OrderBookInterface\\)$');
     for (let j = k - 1; j >= 0; j--) {
         if (/^func /.test (masked[j])) {
             return false;
@@ -2290,6 +2291,9 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
         const ind = /^\t*/.exec (masked[j])[0].length;
         if (ind < indent) {
             return false;  // the block holding any earlier line closed or opened above line k
+        }
+        if ((ind === indent) && asserted.test (masked[j])) {
+            return true;  // a single-value interface assertion panics on nil: the book is already non-nil here
         }
         if (/^\s*(?:\w+:|goto\b)/.test (masked[j]) || write.test (masked[j])) {
             return false;
@@ -2378,6 +2382,10 @@ function goOrderBookSetterCheck (): string[] {
     r = goOrderBookSetterPass (body (decl, side, write));
     if (r.includes ('.SetTimestamp(')) {
         problems.push ('orderbook setter: an any-typed book must keep the helper: ' + r);
+    }
+    r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
+    if (!r.includes ('orderbook.SetTimestamp(ts)')) {
+        problems.push ('orderbook setter: a book from a single-value assertion is non-nil: ' + r);
     }
     return problems;
 }
@@ -3579,7 +3587,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = nativeDerefOnlyListReads (content);
     content = g04BookSides (content);  // hx10w6 G04: the book reads that pass left on a proven receiver
     content = nativeOrderBookSideReads (content);
-    content = goOrderBookSetterPass (content);  // after the side reads: the book local is typed and GetAsks/GetBids prove it non-nil
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
     content = hx11TernaryInt64Closure (content);  // hx11 printer-go-ternary-closure-int64
@@ -3629,6 +3636,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w10GP27Pass (content);  // hx10 w10 GP27: the resolved map/list coercion becomes a typed watch receive
     content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
     content = g04NativeBookReads (content);  // hx11 w8: the guarded cache read unboxes with a native assertion
+    content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = hx11w8TickerReadPass (content);  // hx11 w8: TickerMapFromMap(snapshot) sends read the typed cache
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     return goGofmtSplicedText (content);
