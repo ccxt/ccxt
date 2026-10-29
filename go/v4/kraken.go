@@ -781,27 +781,21 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var makerFees []any = SafeListTyped(market, "fees_maker")
 		var firstMakerFee []any = SafeListTyped(makerFees, 0)
 		var firstMakerFeeRate *string = this.SafeString(firstMakerFee, 1)
-		var maker any = nil
+		var maker *float64 = nil
 		if firstMakerFeeRate != nil {
 			maker = this.ParseNumber(Precise.StringDiv(firstMakerFeeRate, "100"))
 		}
 		var takerFees []any = SafeListTyped(market, "fees")
 		var firstTakerFee []any = SafeListTyped(takerFees, 0)
 		var firstTakerFeeRate *string = this.SafeString(firstTakerFee, 1)
-		var taker any = nil
+		var taker *float64 = nil
 		if firstTakerFeeRate != nil {
 			taker = this.ParseNumber(Precise.StringDiv(firstTakerFeeRate, "100"))
 		}
 		var leverageBuy []any = SafeListTyped(market, "leverage_buy")
 		var leverageBuyLength int = len(leverageBuy)
-		var precisionPrice *float64
-		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals"))).(float64); isNum {
-			precisionPrice = &derefNum
-		}
-		var precisionAmount *float64
-		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals"))).(float64); isNum {
-			precisionAmount = &derefNum
-		}
+		var precisionPrice *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals")))
+		var precisionAmount *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals")))
 		var spot bool = true
 		// fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
 		if spot && (func() bool {

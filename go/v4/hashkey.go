@@ -3011,19 +3011,13 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var amountString *string = this.SafeString(item, "change")
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
-		amount = &derefNum
-	}
+	var amount *float64 = this.ParseNumber(amountString)
 	var direction string = "in"
 	if strings.Index(*amountString, "-") >= 0 {
 		direction = "out"
 	}
 	var afterString *string = this.SafeString(item, "total")
-	var after *float64
-	if derefNum, isNum := this.ParseNumber(afterString).(float64); isNum {
-		after = &derefNum
-	}
+	var after *float64 = this.ParseNumber(afterString)
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,

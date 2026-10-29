@@ -866,15 +866,9 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
 		var fee *float64 = func() *float64 {
 			if base != nil && *base == "OMG" {
-				if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
-					return &derefNum
-				}
-				return nil
+				return this.ParseNumber("0")
 			}
-			if derefNum, isNum := this.ParseNumber("0.002").(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber("0.002")
 		}()
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))
@@ -1696,7 +1690,7 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 	var state *string = this.SafeString(currency, "state")
 	var active bool = (visible != nil && *visible) && (depositEnabled != nil && *depositEnabled == true) && (withdrawEnabled != nil && *withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled == nil || *countryDisabled != true)
 	var name *string = this.SafeString(currency, "display-name")
-	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision"))))
+	var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,

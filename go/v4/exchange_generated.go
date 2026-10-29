@@ -2898,9 +2898,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
 	}
-	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString2(orderDict, "triggerPrice", "stopPrice")))
-	var takeProfitPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(orderDict, "takeProfitPrice")))
-	var stopLossPrice *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(orderDict, "stopLossPrice")))
+	var triggerPrice *float64 = this.ParseNumber(this.SafeString2(orderDict, "triggerPrice", "stopPrice"))
+	var takeProfitPrice *float64 = this.ParseNumber(this.SafeString(orderDict, "takeProfitPrice"))
+	var stopLossPrice *float64 = this.ParseNumber(this.SafeString(orderDict, "stopLossPrice"))
 	return OrderFromMap(this.Extend(orderDict, map[string]any{
 		"id":                  this.SafeString(orderDict, "id"),
 		"clientOrderId":       this.SafeString(orderDict, "clientOrderId"),
@@ -3421,10 +3421,7 @@ func (this *BaseExchange) SafeTicker(ticker map[string]any, optionalArgs ...any)
 	}
 	// timestamp and symbol operations don't belong in safeTicker
 	// they should be done in the derived classes
-	var closeParsed *float64
-	if derefNum, isNum := this.ParseNumber(this.OmitZero(close)).(float64); isNum {
-		closeParsed = &derefNum
-	}
+	var closeParsed *float64 = this.ParseNumber(this.OmitZero(close))
 	return TickerFromMap(this.Extend(ticker, map[string]any{
 		"bid":           this.ParseNumber(this.OmitZero(this.SafeString(ticker, "bid"))),
 		"bidVolume":     this.SafeNumber(ticker, "bidVolume"),

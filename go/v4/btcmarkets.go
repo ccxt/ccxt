@@ -726,10 +726,7 @@ func (this *Btcmarkets) ParseMarket(market any) map[string]any {
 	}
 	var symbol string = *base + "/" + *quote
 	var fees any = this.SafeDict(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
-	var pricePrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals"))).(float64); isNum {
-		pricePrecision = &derefNum
-	}
+	var pricePrecision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals")))
 	var minAmount *float64 = this.SafeNumber(market, "minOrderAmount")
 	var maxAmount *float64 = this.SafeNumber(market, "maxOrderAmount")
 	var status *string = this.SafeString(market, "status")

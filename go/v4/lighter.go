@@ -1870,19 +1870,13 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			if amountDecimals == nil {
 				return nil
 			}
-			if derefNum, isNum := this.ParseNumber(this.ParsePrecision(amountDecimals)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(this.ParsePrecision(amountDecimals))
 		}()
 		var pricePrecision *float64 = func() *float64 {
 			if priceDecimals == nil {
 				return nil
 			}
-			if derefNum, isNum := this.ParseNumber(this.ParsePrecision(priceDecimals)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(this.ParsePrecision(priceDecimals))
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
 		result = append(result, map[string]any{
@@ -3356,10 +3350,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
 		var typeAsInteger *int64 = this.SafeInteger(order, "order_type")
 		typeVar = this.ParseOrderTypeInteger(typeAsInteger)
 	}
-	var triggerPrice *float64
-	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price"))).(float64); isNum {
-		triggerPrice = &derefNum
-	}
+	var triggerPrice *float64 = this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price")))
 	var stopLossPrice *float64 = nil
 	var takeProfitPrice *float64 = nil
 	if typeVar != nil {

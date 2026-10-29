@@ -917,7 +917,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var settle *string = nil
 		var symbol any = *base + "/" + *quote
 		var typeVar string = "spot"
-		var contractSize any = nil
+		var contractSize *float64 = nil
 		var linear any = nil
 		var inverse any = nil
 		if contract {
@@ -937,14 +937,8 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 		var lotString *string = this.SafeString(market, "quantity_increment")
 		var stepString *string = this.SafeString(market, "tick_size")
-		var lot *float64
-		if derefNum, isNum := this.ParseNumber(lotString).(float64); isNum {
-			lot = &derefNum
-		}
-		var step *float64
-		if derefNum, isNum := this.ParseNumber(stepString).(float64); isNum {
-			step = &derefNum
-		}
+		var lot *float64 = this.ParseNumber(lotString)
+		var step *float64 = this.ParseNumber(stepString)
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -4724,10 +4718,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModificatio
 	//         "positions": null
 	//     }
 	//
-	var parsedAmount *float64
-	if derefNum, isNum := this.ParseNumber(amountValue).(float64); isNum {
-		parsedAmount = &derefNum
-	}
+	var parsedAmount *float64 = this.ParseNumber(amountValue)
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": parsedAmount,

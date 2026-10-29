@@ -631,14 +631,8 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
 		var takerString *string = this.SafeString(flatRate, "taker")
 		var makerString *string = this.SafeString(flatRate, "maker")
-		var taker *float64
-		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(takerString, "100")).(float64); isNum {
-			taker = &derefNum
-		}
-		var maker *float64
-		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(makerString, "100")).(float64); isNum {
-			maker = &derefNum
-		}
+		var taker *float64 = this.ParseNumber(Precise.StringDiv(takerString, "100"))
+		var maker *float64 = this.ParseNumber(Precise.StringDiv(makerString, "100"))
 		var feeTiers []any = SafeListTyped(fees, "structure")
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
@@ -2392,10 +2386,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 		var currencyId string = withdrawalKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
-			var withdrawFee *float64
-			if derefNum, isNum := this.ParseNumber(withdrawalResponse[currencyId]).(float64); isNum {
-				withdrawFee = &derefNum
-			}
+			var withdrawFee *float64 = this.ParseNumber(withdrawalResponse[currencyId])
 			var resultValue map[string]any = SafeMapTyped(result, code)
 			if resultValue == nil {
 				result[*code] = this.DepositWithdrawFee(map[string]any{})

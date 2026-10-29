@@ -695,10 +695,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 		if ccxt.Precise.StringEq(sizeString, "0") {
 			continue
 		}
-		var size *float64
-		if derefNum, isNum := this.ParseNumber(sizeString).(float64); isNum {
-			size = &derefNum
-		}
+		var size *float64 = this.ParseNumber(sizeString)
 		if rawSide != nil && *rawSide == "bid" {
 			ccxt.AddElementToObject(currentBidAsk, "bid", price)
 			ccxt.AddElementToObject(currentBidAsk, "bidVolume", size)

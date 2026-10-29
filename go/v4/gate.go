@@ -2292,10 +2292,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		var takerPercent *string = this.SafeString(market, "fee")
 		var makerPercent *string = this.SafeString(market, "maker_fee_rate", takerPercent)
-		var amountPrecision *float64
-		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision"))).(float64); isNum {
-			amountPrecision = &derefNum
-		}
+		var amountPrecision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision")))
 		var tradeStatus *string = this.SafeString(market, "trade_status")
 		var marginStatus *int64 = this.SafeInteger(market, "status", 1) // 0 disabled, 1 enabled
 		var leverage *float64 = this.SafeNumber(market, "leverage")
@@ -2584,17 +2581,11 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 		contractSize = SafeStringPtr("1") // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
 	}
 	var status *string = this.SafeString(market, "status", "trading") // or "suspend"
-	var amountPrecision *float64
-	if derefNum, isNum := this.ParseNumber("1").(float64); isNum {
-		amountPrecision = &derefNum
-	}
+	var amountPrecision *float64 = this.ParseNumber("1")
 	var enableDecimal *bool = this.SafeBool(market, "enable_decimal", false)
 	var orderSizeMin *string = this.SafeString(market, "order_size_min")
 	var swap bool = (marketType == "swap")
-	var minAmount *float64
-	if derefNum, isNum := this.ParseNumber(orderSizeMin).(float64); isNum {
-		minAmount = &derefNum
-	}
+	var minAmount *float64 = this.ParseNumber(orderSizeMin)
 	if swap && (enableDecimal != nil && *enableDecimal) && (orderSizeMin != nil) && (minAmount != nil) && Precise.StringGt(orderSizeMin, "0") {
 		amountPrecision = minAmount
 	}
@@ -7290,10 +7281,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 	var remainingString *string = this.SafeString(order, "left")
 	var cost *string = this.SafeString(order, "filled_total")
 	var triggerPrice *float64 = this.SafeNumber(trigger, "price")
-	var average any
-	if derefPtr := this.SafeNumber2(order, "avg_deal_price", "fill_price"); derefPtr != nil {
-		average = *derefPtr
-	}
+	var average *float64 = this.SafeNumber2(order, "avg_deal_price", "fill_price")
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		remainingString = amount
 		cost = SafeStringPtr("0")
@@ -10883,10 +10871,7 @@ func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	}
 	var balanceString *string = this.SafeString(item, "balance")
 	var changeString *string = this.SafeString(item, "change")
-	var before *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringSub(balanceString, changeString)).(float64); isNum {
-		before = &derefNum
-	}
+	var before *float64 = this.ParseNumber(Precise.StringSub(balanceString, changeString))
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),

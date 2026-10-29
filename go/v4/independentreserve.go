@@ -1094,18 +1094,9 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) Trade
 	var orderId *string = this.SafeString(trade, "OrderGuid")
 	var priceString *string = this.SafeString2(trade, "Price", "SecondaryCurrencyTradePrice")
 	var amountString *string = this.SafeString2(trade, "VolumeTraded", "PrimaryCurrencyAmount")
-	var price *float64
-	if derefNum, isNum := this.ParseNumber(priceString).(float64); isNum {
-		price = &derefNum
-	}
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
-		amount = &derefNum
-	}
-	var cost *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringMul(priceString, amountString)).(float64); isNum {
-		cost = &derefNum
-	}
+	var price *float64 = this.ParseNumber(priceString)
+	var amount *float64 = this.ParseNumber(amountString)
+	var cost *float64 = this.ParseNumber(Precise.StringMul(priceString, amountString))
 	var baseId *string = this.SafeString(trade, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(trade, "SecondaryCurrencyCode")
 	var marketId any = nil

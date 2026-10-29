@@ -840,15 +840,9 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *int64 = this.SafeInteger(rawTopic, "endDate")
 	var feeRateBps *string = this.SafeString(rawTopic, "feeRateBps", "200")
-	var feeRate *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")).(float64); isNum {
-		feeRate = &derefNum
-	}
+	var feeRate *float64 = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimalPrecision)).(float64); isNum {
-		pricePrecision = &derefNum
-	}
+	var pricePrecision *float64 = this.ParseNumber(this.ParsePrecision(decimalPrecision))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1054,17 +1048,9 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[str
 	var last *float64 = nil
 	if lastString != nil {
 		if isMirrored {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", lastString)).(float64); isNum {
-				last = &derefNum
-			} else {
-				last = nil
-			}
+			last = this.ParseNumber(ccxt.Precise.StringSub("1", lastString))
 		} else {
-			if derefNum, isNum := this.ParseNumber(lastString).(float64); isNum {
-				last = &derefNum
-			} else {
-				last = nil
-			}
+			last = this.ParseNumber(lastString)
 		}
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -1845,7 +1831,7 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		outcomeObjResolved = this.SafeOutcome(outcomeName)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createdTime")
-	var totalCost *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(position, "totalCost")))
+	var totalCost *float64 = this.ParseNumber(this.SafeString(position, "totalCost"))
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          this.SafeInteger(position, "positionId"),
 		"outcome":                     this.SafeString(outcomeObjResolved, "outcome"),

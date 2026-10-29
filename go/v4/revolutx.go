@@ -602,11 +602,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var percentage *float64 = nil
 	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -955,17 +951,11 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var symbol *string = this.SafeSymbol(tradeSymbol, market, "/")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "quantity")
-	var price *float64
-	if derefNum, isNum := this.ParseNumber(priceString).(float64); isNum {
-		price = &derefNum
-	}
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
-		amount = &derefNum
-	}
+	var price *float64 = this.ParseNumber(priceString)
+	var amount *float64 = this.ParseNumber(amountString)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var cost any = nil
+	var cost *float64 = nil
 	if (priceString != nil) && (amountString != nil) {
 		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))
 	}
@@ -1743,14 +1733,8 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 	var orderId *string = this.SafeString(trade, "oid")
 	var priceString *string = this.SafeString(trade, "p")
 	var amountString *string = this.SafeString(trade, "q")
-	var price *float64
-	if derefNum, isNum := this.ParseNumber(priceString).(float64); isNum {
-		price = &derefNum
-	}
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
-		amount = &derefNum
-	}
+	var price *float64 = this.ParseNumber(priceString)
+	var amount *float64 = this.ParseNumber(amountString)
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
@@ -1760,7 +1744,7 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 		}
 		return "taker"
 	}()
-	var cost any = nil
+	var cost *float64 = nil
 	if (priceString != nil) && (amountString != nil) {
 		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))
 	}

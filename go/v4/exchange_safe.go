@@ -772,7 +772,7 @@ func (this *BaseExchange) SafeNumber(obj any, key any, defaultValue ...any) *flo
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString(obj, key)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumber2(obj any, key1 any, key2 any, defaultValue ...any) *float64 {
@@ -781,7 +781,7 @@ func (this *BaseExchange) SafeNumber2(obj any, key1 any, key2 any, defaultValue 
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString2(obj, key1, key2)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumberN(obj any, keys any, defaultValue ...any) *float64 {
@@ -790,7 +790,7 @@ func (this *BaseExchange) SafeNumberN(obj any, keys any, defaultValue ...any) *f
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeStringN(obj, keys)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...any) *float64 {
@@ -799,11 +799,11 @@ func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...a
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString(obj, key)
-	var final any = this.ParseNumber(this.OmitZero(value))
-	if derefScalar(final) == nil {
+	var final *float64 = this.ParseNumber(this.OmitZero(value))
+	if final == nil {
 		return toFloat64Ptr(defVal)
 	}
-	return toFloat64Ptr(final)
+	return final
 }
 
 func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *int64 {

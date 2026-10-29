@@ -753,7 +753,7 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	var numericId *int64 = this.SafeInteger(currency, "id")
 	var code *string = this.SafeCurrencyCode(id)
 	var active *bool = this.SafeBool(currency, "active", false)
-	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision"))))
+	var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
 	var txLimits map[string]any = SafeMapTyped(currency, "txLimits")
 	var minWithdraw *string = this.SafeString(txLimits, "minWithdraw")
 	var maxWithdraw *string = this.SafeString(txLimits, "maxWithdraw")
@@ -765,7 +765,7 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	// if only one blockChain
 	if (blockChain != nil) && (blockChain == nil || *blockChain != "") {
 		fee = this.ParseNumber(withdrawCommissionFixed)
-		feesByNetworkId[*blockChain] = fee
+		AddElementToObject(feesByNetworkId, blockChain, fee)
 	} else {
 		feesByNetworkId = this.Extend(withdrawCommissionFixed, map[string]any{})
 	}
@@ -780,10 +780,7 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 		}
 	}
 	var networks map[string]any = map[string]any{}
-	var networkPrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))).(float64); isNum {
-		networkPrecision = &derefNum
-	}
+	var networkPrecision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = networkIds[j]

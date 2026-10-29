@@ -1377,18 +1377,10 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		var fillAmountRaw *string = this.SafeString(matchOutcome, "fillAmount")
 		var remainingRaw *string = this.SafeString(matchOutcome, "remainingAmount")
 		if fillAmountRaw != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6)).(float64); isNum {
-				filled = &derefNum
-			} else {
-				filled = nil
-			}
+			filled = this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6))
 		}
 		if remainingRaw != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6)).(float64); isNum {
-				remaining = &derefNum
-			} else {
-				remaining = nil
-			}
+			remaining = this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6))
 		}
 		var state *string = this.SafeStringUpper(matchOutcome, "state")
 		if (state != nil && *state == "RESTED") || (state != nil && *state == "PARTIAL_FILL_RESTED") {
@@ -1715,28 +1707,16 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) map[stri
 	var percentageOdds *string = this.SafeString(order, "percentageOdds")
 	var price *float64 = func() *float64 {
 		if percentageOdds != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom))
 		}
 		return nil
 	}()
 	var totalBetSize *string = this.SafeString(order, "totalBetSize", "0")
 	var remainingSize *string = this.SafeString(order, "remainingSize", totalBetSize)
 	var filledRaw *string = ccxt.Precise.StringSub(totalBetSize, remainingSize)
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6)).(float64); isNum {
-		amount = &derefNum
-	}
-	var filled *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6)).(float64); isNum {
-		filled = &derefNum
-	}
-	var remaining *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6)).(float64); isNum {
-		remaining = &derefNum
-	}
+	var amount *float64 = this.ParseNumber(ccxt.Precise.StringDiv(totalBetSize, usdcDecimals, 6))
+	var filled *float64 = this.ParseNumber(ccxt.Precise.StringDiv(filledRaw, usdcDecimals, 6))
+	var remaining *float64 = this.ParseNumber(ccxt.Precise.StringDiv(remainingSize, usdcDecimals, 6))
 	var orderStatus *string = this.SafeStringUpper(order, "status")
 	var inactiveReason *string = this.SafeStringUpper(order, "inactiveReason")
 	var status string = "open"
@@ -2117,18 +2097,12 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var fillOdds *string = this.SafeString(fill, "fillOdds")
 	var price *float64 = func() *float64 {
 		if fillOdds != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(fillOdds, oneDenom))
 		}
 		return nil
 	}()
 	var fillAmount *string = this.SafeString(fill, "fillAmount", "0")
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6)).(float64); isNum {
-		amount = &derefNum
-	}
+	var amount *float64 = this.ParseNumber(ccxt.Precise.StringDiv(fillAmount, usdcDecimals, 6))
 	var timestamp *int64 = this.Parse8601(this.SafeString(fill, "createdAt"))
 	// isMaker: true when the account's order was the resting one - absent on older rows
 	var isMaker *bool = this.SafeBool(fill, "isMaker")
@@ -2349,10 +2323,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	}
 	var entryPrice *float64 = func() *float64 {
 		if ownOdds != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom))
 		}
 		return nil
 	}()
@@ -2870,19 +2841,13 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	var oppositePercentage *string = this.SafeString(oppositeOdds, "percentageOdds")
 	var bid *float64 = func() *float64 {
 		if ownPercentage != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(ownPercentage, oneDenom))
 		}
 		return nil
 	}()
 	var ask *float64 = func() *float64 {
 		if oppositePercentage != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom))).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(oppositePercentage, oneDenom)))
 		}
 		return nil
 	}()
@@ -2896,11 +2861,7 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	}()
 	var average *float64 = nil
 	if (bid != nil) && (ask != nil) {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")).(float64); isNum {
-			average = &derefNum
-		} else {
-			average = nil
-		}
+		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":     this.SafeString(outcomeObj, "outcome"),
@@ -3024,14 +2985,8 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[st
 		var level map[string]any = ccxt.SafeMapTyped(ownLevels, i)
 		var percentageOdds *string = this.SafeString(level, "percentageOdds")
 		var size *string = this.SafeString(level, "size", "0")
-		var price *float64
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)).(float64); isNum {
-			price = &derefNum
-		}
-		var amount *float64
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6)).(float64); isNum {
-			amount = &derefNum
-		}
+		var price *float64 = this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom))
+		var amount *float64 = this.ParseNumber(ccxt.Precise.StringDiv(size, usdcDecimals, 6))
 		bids = append(bids, []any{price, amount})
 	}
 	var asks []any = []any{}
@@ -3042,16 +2997,10 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[st
 		var size *string = this.SafeString(level, "size", "0")
 		// the opposite side's resting stake mirrors into this outcome's ask - the price is the
 		// complement, and the takeable amount follows the remaining-taker-space formula
-		var price *float64
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom))).(float64); isNum {
-			price = &derefNum
-		}
+		var price *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
 		var ratio *string = ccxt.Precise.StringDiv(oneDenom, percentageOdds, 12)
 		var remainingTaker *string = ccxt.Precise.StringSub(ccxt.Precise.StringMul(size, ratio), size)
-		var amount *float64
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6)).(float64); isNum {
-			amount = &derefNum
-		}
+		var amount *float64 = this.ParseNumber(ccxt.Precise.StringDiv(remainingTaker, usdcDecimals, 6))
 		asks = append(asks, []any{price, amount})
 	}
 	return map[string]any{
@@ -3704,18 +3653,12 @@ func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 	var odds *string = this.SafeString(trade, "weightedAverageOdds")
 	var price *float64 = func() *float64 {
 		if odds != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom)).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(odds, oneDenom))
 		}
 		return nil
 	}()
 	var stake *string = this.SafeString(trade, "totalStake", "0")
-	var amount *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6)).(float64); isNum {
-		amount = &derefNum
-	}
+	var amount *float64 = this.ParseNumber(ccxt.Precise.StringDiv(stake, usdcDecimals, 6))
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "betTime"))
 	return this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(trade, "tradeId"),

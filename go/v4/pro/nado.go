@@ -2500,11 +2500,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		var absoluteAmount *string = ccxt.Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteAmount != nil) && !ccxt.Precise.StringEquals(absoluteAmount, "0") {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount)).(float64); isNum {
-				entryPrice = &derefNum
-			} else {
-				entryPrice = nil
-			}
+			entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount))
 		}
 	}
 	return ccxt.PositionToMap(this.SafePosition(map[string]any{

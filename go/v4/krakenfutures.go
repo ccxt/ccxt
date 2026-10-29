@@ -594,10 +594,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var settle *string = nil
 		var settleId *string = nil
 		var cvtp *string = this.SafeString(market, "contractValueTradePrecision")
-		var amountPrecision *float64
-		if derefNum, isNum := this.ParseNumber(this.IntegerPrecisionToAmount(cvtp)).(float64); isNum {
-			amountPrecision = &derefNum
-		}
+		var amountPrecision *float64 = this.ParseNumber(this.IntegerPrecisionToAmount(cvtp))
 		var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
 		var contract bool = (swap || future || index)
 		var swapOrFutures bool = (swap || future)
@@ -1643,7 +1640,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, s
 		request["reduceOnly"] = true
 	}
 	request["orderType"] = typeValue
-	var priceValue *float64 = Float64PtrTyped(this.ParseNumber(price)) // some callers pass null instead of undefined, normalize it
+	var priceValue *float64 = this.ParseNumber(price) // some callers pass null instead of undefined, normalize it
 	var isLimitOrder bool = (typeValue != nil && *typeValue == "lmt") || (typeValue != nil && *typeValue == "post") || (typeValue != nil && *typeValue == "ioc")
 	var limitPriceParam *string = this.SafeString(paramsPostOnly, "limitPrice") // the venue's own field name, forwarded as-is by this.extend below
 	if isLimitOrder && (priceValue == nil) && (limitPriceParam == nil) {

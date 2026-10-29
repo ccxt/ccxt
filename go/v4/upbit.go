@@ -636,10 +636,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 	var state *string = this.SafeString(marketInfo, "state")
 	var bidFee *string = this.SafeString(response, "bid_fee")
 	var askFee *string = this.SafeString(response, "ask_fee")
-	var fee *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringMax(bidFee, askFee)).(float64); isNum {
-		fee = &derefNum
-	}
+	var fee *float64 = this.ParseNumber(Precise.StringMax(bidFee, askFee))
 
 	ch <- AsyncResult[MarketInterface]{Value: MarketInterfaceFromMap(this.SafeMarketStructure(map[string]any{
 		"id":             marketId,

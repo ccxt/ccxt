@@ -3819,10 +3819,7 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEnt
 		}())
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var feeCost *float64
-	if derefNum, isNum := this.ParseNumber(this.SafeString(item, "fee")).(float64); isNum {
-		feeCost = &derefNum
-	}
+	var feeCost *float64 = this.ParseNumber(this.SafeString(item, "fee"))
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3921,10 +3918,7 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) Tr
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
 	}
-	var feeCost *float64
-	if derefNum, isNum := this.ParseNumber(this.SafeString(transaction, "fee")).(float64); isNum {
-		feeCost = &derefNum
-	}
+	var feeCost *float64 = this.ParseNumber(this.SafeString(transaction, "fee"))
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{

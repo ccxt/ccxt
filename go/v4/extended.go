@@ -735,7 +735,7 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	var symbol string = *base + "/" + *quote
 	var isSpot bool = false
 	var typeVar *string = this.SafeStringLower(market, "type")
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	var linear any = nil
 	var inverse any = nil
 	// SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
@@ -2793,10 +2793,7 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 		if amountString == nil {
 			return nil
 		}
-		if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountString)).(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber(Precise.StringAbs(amountString))
 	}()
 	var accountId *string = this.SafeString(transfer, "accountId")
 	var counterpartyAccountId *string = this.SafeString(transfer, "counterpartyAccountId")
@@ -2892,10 +2889,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		if amountString == nil {
 			return nil
 		}
-		if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountString)).(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber(Precise.StringAbs(amountString))
 	}()
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")

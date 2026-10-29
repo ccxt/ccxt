@@ -1774,18 +1774,14 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 	var maxCost *float64 = nil
 	var minPrice *float64 = nil
 	var maxPrice *float64 = nil
-	var amountPrecision any = nil
+	var amountPrecision *float64 = nil
 	for i := 0; i < len(filters); i++ {
 		var entry map[string]any = SafeMapTyped(filters, i)
 		var filter *string = this.SafeString(entry, "filter")
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
 			maxAmount = this.SafeNumber(entry, "max")
-			if derefPtr := this.SafeNumber(entry, "tickSize"); derefPtr != nil {
-				amountPrecision = *derefPtr
-			} else {
-				amountPrecision = nil
-			}
+			amountPrecision = this.SafeNumber(entry, "tickSize")
 		}
 		if filter != nil && *filter == "QUOTE_QTY" {
 			minCost = this.SafeNumber(entry, "min")

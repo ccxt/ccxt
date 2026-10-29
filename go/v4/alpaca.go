@@ -2758,7 +2758,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var addressTo *string = nil
 	var addressFrom *string = nil
 	var typeVar *string = nil
-	var amount any = nil
+	var amount *float64 = nil
 	var code any = nil
 	var status *string = nil
 	var comment *string = nil

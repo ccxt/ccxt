@@ -2633,11 +2633,7 @@ func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Positio
 	var roe *string = this.SafeString(position, "return_on_equity")
 	var percentage *float64 = nil
 	if roe != nil {
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(roe, "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		percentage = this.ParseNumber(Precise.StringMul(roe, "100"))
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,

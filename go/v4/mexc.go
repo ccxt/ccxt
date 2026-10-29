@@ -6213,10 +6213,7 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
 	}
 	for Precise.StringLt(floor, maxVol) {
 		var cap *string = Precise.StringAdd(floor, riskIncrVol)
-		var maxLev *float64
-		if derefNum, isNum := this.ParseNumber(Precise.StringDiv("1", initialMarginRate)).(float64); isNum {
-			maxLev = &derefNum
-		}
+		var maxLev *float64 = this.ParseNumber(Precise.StringDiv("1", initialMarginRate))
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
@@ -7049,10 +7046,7 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
 		}
 	}
 	var leverage *float64 = this.SafeNumber(position, "leverage")
-	var liquidationPrice *float64
-	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidatePrice"))).(float64); isNum {
-		liquidationPrice = &derefNum
-	}
+	var liquidationPrice *float64 = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidatePrice")))
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

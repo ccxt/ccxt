@@ -859,7 +859,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	var priceRanges []any = ccxt.SafeListTyped(raw, "price_ranges")
 	var firstRange map[string]any = ccxt.SafeMapTyped(priceRanges, 0)
 	var stepDollars *string = this.SafeString(firstRange, "step")
-	var pricePrecision any = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
+	var pricePrecision *float64 = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
 	if stepDollars != nil {
 		pricePrecision = this.ParseNumber(stepDollars)
 	}
@@ -1319,27 +1319,15 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	// can't be negative, so drop it rather than emit an invalid volume
 	var bidVolume *float64 = nil
 	if (bidSizeString != nil) && ccxt.Precise.StringGe(bidSizeString, "0") {
-		if derefNum, isNum := this.ParseNumber(bidSizeString).(float64); isNum {
-			bidVolume = &derefNum
-		} else {
-			bidVolume = nil
-		}
+		bidVolume = this.ParseNumber(bidSizeString)
 	}
 	var askVolume *float64 = nil
 	if (askSizeString != nil) && ccxt.Precise.StringGe(askSizeString, "0") {
-		if derefNum, isNum := this.ParseNumber(askSizeString).(float64); isNum {
-			askVolume = &derefNum
-		} else {
-			askVolume = nil
-		}
+		askVolume = this.ParseNumber(askSizeString)
 	}
 	var average *float64 = nil
 	if (bid != nil) && (ask != nil) {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")).(float64); isNum {
-			average = &derefNum
-		} else {
-			average = nil
-		}
+		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,
@@ -1540,10 +1528,7 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 			var yesPrice *float64 = this.SafeNumber(rawYes[ai], 0)
 			var price *float64 = func() *float64 {
 				if yesPrice != nil {
-					if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(yesPrice))).(float64); isNum {
-						return &derefNum
-					}
-					return nil
+					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(yesPrice)))
 				}
 				return nil
 			}()
@@ -1559,10 +1544,7 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 			var noPrice *float64 = this.SafeNumber(rawNo[ai], 0)
 			var price *float64 = func() *float64 {
 				if noPrice != nil {
-					if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(noPrice))).(float64); isNum {
-						return &derefNum
-					}
-					return nil
+					return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(noPrice)))
 				}
 				return nil
 			}()
@@ -2389,11 +2371,7 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 			}
 			return "short"
 		}())
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts))).(float64); isNum {
-			contractsValue = &derefNum
-		} else {
-			contractsValue = nil
-		}
+		contractsValue = this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts)))
 	}
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          nil,
@@ -2798,10 +2776,7 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	}
 	var yesPrice *float64 = func() *float64 {
 		if isNo && (price != nil) {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price))).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price)))
 		}
 		return price
 	}()

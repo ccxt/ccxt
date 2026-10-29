@@ -1276,15 +1276,9 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *string = this.SafeString(rawTopic, "endsAt")
 	var feeRateBps *string = this.SafeString(rawMarket, "feeRateBps", "200") // todo check
-	var feeRate *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")).(float64); isNum {
-		feeRate = &derefNum
-	}
+	var feeRate *float64 = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimalPrecision)).(float64); isNum {
-		pricePrecision = &derefNum
-	}
+	var pricePrecision *float64 = this.ParseNumber(this.ParsePrecision(decimalPrecision))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1473,27 +1467,15 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predict
 		for i := 0; i < len(bids); i++ {
 			var bid []any = ccxt.SafeListTyped(bids, i)
 			var bidPrice *string = this.SafeString(bid, 0)
-			var bidSize *float64
-			if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
-				bidSize = &derefNum
-			}
-			var complementPrice *float64
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)).(float64); isNum {
-				complementPrice = &derefNum
-			}
+			var bidSize *float64 = this.ParseNumber(this.SafeString(bid, 1))
+			var complementPrice *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice))
 			noAsks = append(noAsks, []any{complementPrice, bidSize})
 		}
 		for i := 0; i < len(asks); i++ {
 			var ask []any = ccxt.SafeListTyped(asks, i)
 			var askPrice *string = this.SafeString(ask, 0)
-			var askSize *float64
-			if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
-				askSize = &derefNum
-			}
-			var complementPrice *float64
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)).(float64); isNum {
-				complementPrice = &derefNum
-			}
+			var askSize *float64 = this.ParseNumber(this.SafeString(ask, 1))
+			var complementPrice *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", askPrice))
 			noBids = append(noBids, []any{complementPrice, askSize})
 		}
 		var noOrderbook map[string]any = map[string]any{
@@ -4302,10 +4284,7 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < bidsLength; i++ {
 		var bid []any = ccxt.SafeListTyped(rawBids, i)
 		var bidPrice *string = this.SafeString(bid, 0)
-		var bidSize *float64
-		if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
-			bidSize = &derefNum
-		}
+		var bidSize *float64 = this.ParseNumber(this.SafeString(bid, 1))
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
 		// a bid for yes at p is an offer of no at 1 - p
 		noAsks = append(noAsks, []any{this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)), bidSize})
@@ -4314,10 +4293,7 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < asksLength; i++ {
 		var ask []any = ccxt.SafeListTyped(rawAsks, i)
 		var askPrice *string = this.SafeString(ask, 0)
-		var askSize *float64
-		if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
-			askSize = &derefNum
-		}
+		var askSize *float64 = this.ParseNumber(this.SafeString(ask, 1))
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
 		noBids = append(noBids, []any{this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)), askSize})
 	}

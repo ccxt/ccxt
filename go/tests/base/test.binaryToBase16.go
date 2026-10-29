@@ -11,7 +11,7 @@ func TestBinaryToBase16() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	assert(ccxt.IsEqual(exchange.ParseNumber(nil), nil), "GO_WORKAROUND")
+	assert((exchange.ParseNumber(nil) == nil), "GO_WORKAROUND")
 	// @SKIP_START_GO
 	// Test 1: simple known bytes
 	// 'ff' => [255]

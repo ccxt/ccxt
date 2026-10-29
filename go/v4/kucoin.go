@@ -2558,10 +2558,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan AsyncResult[[]MarketInterfa
 		if limitAmountMax == nil {
 			limitAmountMax = this.SafeNumber(market, "baseMaxSize")
 		}
-		var limitPriceMax any
-		if derefPtr := this.SafeNumber(market, "maxPrice"); derefPtr != nil {
-			limitPriceMax = *derefPtr
-		}
+		var limitPriceMax *float64 = this.SafeNumber(market, "maxPrice")
 		if limitPriceMax == nil {
 			var baseMinSizeString *string = this.SafeString(market, "baseMinSize")
 			var quoteMaxSizeString *string = this.SafeString(market, "quoteMaxSize")
@@ -3009,10 +3006,7 @@ func (this *Kucoin) ParseCurrency(currency any) map[string]any {
 	}
 	// kucoin has determined 'fiat' currencies with below logic
 	var rawPrecision *string = this.SafeString(entry, "precision")
-	var precision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(rawPrecision)).(float64); isNum {
-		precision = &derefNum
-	}
+	var precision *float64 = this.ParseNumber(this.ParsePrecision(rawPrecision))
 	var isFiat bool = (chainsLength == 0)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,

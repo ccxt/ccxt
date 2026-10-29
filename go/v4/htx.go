@@ -2829,11 +2829,11 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				minCost = contractSize
 			}
 		}
-		var pricePrecision any = nil
-		var amountPrecision any = nil
-		var costPrecision any = nil
-		var maker any = nil
-		var taker any = nil
+		var pricePrecision *float64 = nil
+		var amountPrecision *float64 = nil
+		var costPrecision *float64 = nil
+		var maker *float64 = nil
+		var taker *float64 = nil
 		var active bool
 		if spot {
 			pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "price-precision")))
@@ -2844,11 +2844,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 			var state *string = this.SafeString(market, "state")
 			active = (state != nil && *state == "online")
 		} else {
-			if derefPtr := this.SafeNumber(market, "price_tick"); derefPtr != nil {
-				pricePrecision = *derefPtr
-			} else {
-				pricePrecision = nil
-			}
+			pricePrecision = this.SafeNumber(market, "price_tick")
 			amountPrecision = this.ParseNumber("1") // other markets have step size of 1 contract
 			maker = this.ParseNumber("0.0002")
 			taker = this.ParseNumber("0.0005")
@@ -9182,7 +9178,7 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	if amountPrecision == nil {
 		amountPrecision = "0"
 	}
-	var amountValue any = this.ParseNumber(amountPrecision)
+	var amountValue *float64 = this.ParseNumber(amountPrecision)
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
 	var paramsFee any = paramsNetwork
@@ -10721,11 +10717,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) Position {
 	if maintenanceMarginLinear == nil {
 		maintenanceMarginPercentage = Precise.StringDiv(adjustmentFactor, leverage)
 		maintenanceMargin = Precise.StringMul(maintenanceMarginPercentage, notional)
-		if derefNum, isNum := this.ParseNumber(maintenanceMarginPercentage).(float64); isNum {
-			maintenanceMarginPercentageResult = &derefNum
-		} else {
-			maintenanceMarginPercentageResult = nil
-		}
+		maintenanceMarginPercentageResult = this.ParseNumber(maintenanceMarginPercentage)
 	} else {
 		maintenanceMargin = maintenanceMarginLinear
 	}

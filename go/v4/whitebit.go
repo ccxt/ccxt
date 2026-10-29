@@ -826,10 +826,7 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
 	var margin bool = (isCollateral != nil && *isCollateral == true) && !swap
 	var contract bool = false
-	var amountPrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec"))).(float64); isNum {
-		amountPrecision = &derefNum
-	}
+	var amountPrecision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec")))
 	var linear any = nil
 	var inverse any = nil
 	if swap {

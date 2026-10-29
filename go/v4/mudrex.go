@@ -1682,7 +1682,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) Position {
 	var quantityString *string = this.SafeString(position, "quantity")
 	var entryPriceString *string = this.SafeString(position, "entry_price")
 	var contractSizeString *string = this.SafeString(marketResolved, "contractSize", "1")
-	var notional any = nil
+	var notional *float64 = nil
 	if (quantityString != nil) && (entryPriceString != nil) {
 		notional = this.ParseNumber(Precise.StringMul(Precise.StringMul(quantityString, entryPriceString), contractSizeString))
 	}

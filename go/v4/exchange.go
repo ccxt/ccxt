@@ -733,18 +733,20 @@ func (this *BaseExchange) Json(object any) string {
 	return string(jsonBytes)
 }
 
-func (this *BaseExchange) ParseNumber(v any, a ...any) any {
+// ParseNumber answers the number a string/number box carries: nil when v is absent or empty
+// or not numeric, else a pointer to it. The optional default is converted the same way.
+func (this *BaseExchange) ParseNumber(v any, a ...any) *float64 {
 	v = derefScalar(v)
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {
-			return a[0]
+			return toFloat64Ptr(a[0])
 		}
 		return nil
 	}
 	f, err := ToSafeFloat(v)
 	if err == nil {
-		return f
+		return &f
 	}
 	return nil
 }

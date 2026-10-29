@@ -663,8 +663,8 @@ func (this *Luno) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		// ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
 		var unverifiedQuotes []any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
 		var stablecoins []any = []any{"USDT", "USDC"}
-		var taker any = nil
-		var maker any = nil
+		var taker *float64 = nil
+		var maker *float64 = nil
 		if this.InArray(quote, fiats) {
 			if this.InArray(base, stablecoins) {
 				taker = this.ParseNumber("0.002")

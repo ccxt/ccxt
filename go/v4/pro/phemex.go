@@ -117,42 +117,18 @@ func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) 
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var lastString any = this.FromEp(this.SafeString(ticker, "close"), marketValue)
-	var last *float64
-	if derefNum, isNum := this.ParseNumber(lastString).(float64); isNum {
-		last = &derefNum
-	}
-	var quoteVolume *float64
-	if derefNum, isNum := this.ParseNumber(this.FromEv(this.SafeString(ticker, "turnover"), marketValue)).(float64); isNum {
-		quoteVolume = &derefNum
-	}
-	var baseVolume *float64
-	if derefNum, isNum := this.ParseNumber(this.FromEv(this.SafeString(ticker, "volume"), marketValue)).(float64); isNum {
-		baseVolume = &derefNum
-	}
+	var last *float64 = this.ParseNumber(lastString)
+	var quoteVolume *float64 = this.ParseNumber(this.FromEv(this.SafeString(ticker, "turnover"), marketValue))
+	var baseVolume *float64 = this.ParseNumber(this.FromEv(this.SafeString(ticker, "volume"), marketValue))
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
-	var open *float64
-	if derefNum, isNum := this.ParseNumber(openString).(float64); isNum {
-		open = &derefNum
-	}
+	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub(lastString, openString)).(float64); isNum {
-			change = &derefNum
-		} else {
-			change = nil
-		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2")).(float64); isNum {
-			average = &derefNum
-		} else {
-			average = nil
-		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
+		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
+		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
 	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -203,42 +179,18 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var marketValue map[string]any = marketResolved
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var lastString any = this.FromEp(this.SafeString(ticker, 4), marketValue)
-	var last *float64
-	if derefNum, isNum := this.ParseNumber(lastString).(float64); isNum {
-		last = &derefNum
-	}
-	var quoteVolume *float64
-	if derefNum, isNum := this.ParseNumber(this.FromEv(this.SafeString(ticker, 6), marketValue)).(float64); isNum {
-		quoteVolume = &derefNum
-	}
-	var baseVolume *float64
-	if derefNum, isNum := this.ParseNumber(this.FromEv(this.SafeString(ticker, 5), marketValue)).(float64); isNum {
-		baseVolume = &derefNum
-	}
+	var last *float64 = this.ParseNumber(lastString)
+	var quoteVolume *float64 = this.ParseNumber(this.FromEv(this.SafeString(ticker, 6), marketValue))
+	var baseVolume *float64 = this.ParseNumber(this.FromEv(this.SafeString(ticker, 5), marketValue))
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
-	var open *float64
-	if derefNum, isNum := this.ParseNumber(openString).(float64); isNum {
-		open = &derefNum
-	}
+	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub(lastString, openString)).(float64); isNum {
-			change = &derefNum
-		} else {
-			change = nil
-		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2")).(float64); isNum {
-			average = &derefNum
-		} else {
-			average = nil
-		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
+		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
+		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
 	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,

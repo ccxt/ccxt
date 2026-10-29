@@ -1079,10 +1079,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol *string, typeVar *stri
 		}
 		return *makerFee
 	}()
-	var feeRate *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue))).(float64); isNum {
-		feeRate = &derefNum
-	}
+	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue)))
 	var sideInternal string = ""
 	if side != nil && *side == "sell" {
 		sideInternal = "ASK"
@@ -1277,10 +1274,7 @@ func (this *Hibachi) EditOrderRequest(nonce any, id *string, symbol any, typeVar
 		}
 		return *makerFee
 	}()
-	var feeRate *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue))).(float64); isNum {
-		feeRate = &derefNum
-	}
+	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue)))
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -2483,11 +2477,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 		} else {
 			direction = "in"
 		}
-		if derefNum, isNum := this.ParseNumber(amountStr).(float64); isNum {
-			amount = &derefNum
-		} else {
-			amount = nil
-		}
+		amount = this.ParseNumber(amountStr)
 		fee = map[string]any{
 			"currency": "USDT",
 			"cost":     this.SafeNumber(item, "fee"),

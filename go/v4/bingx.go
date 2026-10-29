@@ -1379,10 +1379,7 @@ func (this *Bingx) ParseCurrency(rawCurrency any) map[string]any {
 				"max": nil,
 			},
 		}
-		var precision *float64
-		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision"))).(float64); isNum {
-			precision = &derefNum
-		}
+		var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision")))
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
 				"info":      rawNetwork,
@@ -1567,17 +1564,11 @@ func (this *Bingx) ParseMarket(market any) map[string]any {
 		checkIsLinear = false
 	}
 	var settle *string = this.SafeCurrencyCode(currency)
-	var pricePrecision any
-	if derefPtr := this.SafeNumber(market, "tickSize"); derefPtr != nil {
-		pricePrecision = *derefPtr
-	}
+	var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
 	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var quantityPrecision any
-	if derefPtr := this.SafeNumber(market, "stepSize"); derefPtr != nil {
-		quantityPrecision = *derefPtr
-	}
+	var quantityPrecision *float64 = this.SafeNumber(market, "stepSize")
 	if quantityPrecision == nil {
 		quantityPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}

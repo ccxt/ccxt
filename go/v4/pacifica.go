@@ -964,7 +964,7 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	var typeVar string = "spot"
 	var linear any = nil
 	var inverse any = nil
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	var minLeverage any = nil
 	var maxLeverage *int64 = nil
 	var crossMargin any = nil
@@ -2334,14 +2334,8 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		orderParams["timestamp"] = timestamp
 		var amount *string = this.SafeString(order, "amount")
-		var amountNumber *float64
-		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
-			amountNumber = &derefNum
-		}
-		var priceNumber *float64
-		if derefNum, isNum := this.ParseNumber(price).(float64); isNum {
-			priceNumber = &derefNum
-		}
+		var amountNumber *float64 = this.ParseNumber(amount)
+		var priceNumber *float64 = this.ParseNumber(price)
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
@@ -5229,10 +5223,7 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path stri
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var cost *string = this.SafeString(config, "cost", "1")
-	var costNumber *float64
-	if derefNum, isNum := this.ParseNumber(cost).(float64); isNum {
-		costNumber = &derefNum
-	}
+	var costNumber *float64 = this.ParseNumber(cost)
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
 	if costNumber != nil && *costNumber > 1 {
 		if !IsEqual(this.HandleOption(method, "apiKey"), nil) {

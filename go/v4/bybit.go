@@ -2460,8 +2460,8 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var optionType *string = this.SafeString(optionParts, 3)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
-	var amountPrecision any = nil
-	var pricePrecision any = nil
+	var amountPrecision *float64 = nil
+	var pricePrecision *float64 = nil
 	// hard coded amount and price precisions from fetchOptionMarkets
 	if baseName != nil && *baseName == "BTC" {
 		amountPrecision = this.ParseNumber("0.01")
@@ -2986,14 +2986,8 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var markets []any = SafeListTyped(responseResult, "list")
 	var result []any = []any{}
-	var takerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
-		takerFee = &derefNum
-	}
-	var makerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.001").(float64); isNum {
-		makerFee = &derefNum
-	}
+	var takerFee *float64 = this.ParseNumber("0.001")
+	var makerFee *float64 = this.ParseNumber("0.001")
 	for i := 0; i < len(markets); i++ {
 		var market any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
@@ -3245,10 +3239,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 			if inverse {
 				return this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
 			}
-			if derefNum, isNum := this.ParseNumber("1").(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber("1")
 		}()
 		var parsedMarket map[string]any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
@@ -12121,10 +12112,7 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 		var tier map[string]any = SafeMapTyped(info, i)
 		var marketId *string = this.SafeString(tier, "symbol")
 		var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
-		var minNotional *float64
-		if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
-			minNotional = &derefNum
-		}
+		var minNotional *float64 = this.ParseNumber("0")
 		if i != 0 {
 			minNotional = this.SafeNumber(GetValue(info, i-1), "riskLimitValue")
 		}

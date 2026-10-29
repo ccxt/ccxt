@@ -2488,19 +2488,13 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 		if (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0) {
 			return takerFeeRate
 		}
-		if derefNum, isNum := this.ParseNumber("0.06").(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber("0.06")
 	}()
 	var maker *float64 = func() *float64 {
 		if (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0) {
 			return makerFeeRate
 		}
-		if derefNum, isNum := this.ParseNumber("0.04").(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber("0.04")
 	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
@@ -7026,15 +7020,9 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) []any {
 		var position map[string]any = MapTyped(spotPositions[i])
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
-		var availableBalance *float64
-		if derefNum, isNum := this.ParseNumber(availableBalanceStr).(float64); isNum {
-			availableBalance = &derefNum
-		}
+		var availableBalance *float64 = this.ParseNumber(availableBalanceStr)
 		var totalBalanceFiatStr *string = this.SafeString(position, "total_balance_fiat", "0")
-		var totalBalanceFiat *float64
-		if derefNum, isNum := this.ParseNumber(totalBalanceFiatStr).(float64); isNum {
-			totalBalanceFiat = &derefNum
-		}
+		var totalBalanceFiat *float64 = this.ParseNumber(totalBalanceFiatStr)
 		var holdAmount any = 0
 		if (totalBalanceFiat != nil) && (availableBalance != nil) && (*totalBalanceFiat > *availableBalance) {
 			holdAmount = (*totalBalanceFiat - *availableBalance)

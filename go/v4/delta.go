@@ -1092,7 +1092,7 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		var expiryDatetime *string = this.SafeString(market, "settlement_time")
 		var expiry *int64 = this.Parse8601(expiryDatetime)
 		var contractSize *float64 = this.SafeNumber(market, "contract_value")
-		var amountPrecision any = nil
+		var amountPrecision *float64 = nil
 		if spot {
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(productSpecs, "underlying_precision"))) // seems inverse of 'impact_size'
 		} else {

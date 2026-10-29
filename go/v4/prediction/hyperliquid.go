@@ -1352,35 +1352,20 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	_ = market
 	var outcomeObj map[string]any = this.SafeOutcome(nil, market)
 	var totalStr *string = this.SafeString(position, "total")
-	var total *float64
-	if derefNum, isNum := this.ParseNumber(totalStr).(float64); isNum {
-		total = &derefNum
-	}
+	var total *float64 = this.ParseNumber(totalStr)
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
 	var entryPrice *float64 = nil
 	if (entryNtlStr != nil) && (totalStr != nil) && !ccxt.Precise.StringEq(totalStr, "0") {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr)).(float64); isNum {
-			entryPrice = &derefNum
-		} else {
-			entryPrice = nil
-		}
+		entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr))
 	}
 	var markPxStr *string = this.SafeString(position, "markPx")
 	var notional *float64 = nil      // current position value = size * mark price
 	var unrealizedPnl *float64 = nil // value - entry notional
 	if (markPxStr != nil) && (totalStr != nil) {
 		var notionalStr *string = ccxt.Precise.StringMul(totalStr, markPxStr)
-		if derefNum, isNum := this.ParseNumber(notionalStr).(float64); isNum {
-			notional = &derefNum
-		} else {
-			notional = nil
-		}
+		notional = this.ParseNumber(notionalStr)
 		if entryNtlStr != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr)).(float64); isNum {
-				unrealizedPnl = &derefNum
-			} else {
-				unrealizedPnl = nil
-			}
+			unrealizedPnl = this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr))
 		}
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -2458,11 +2443,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	}
 	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringMul(price, amount)).(float64); isNum {
-			cost = &derefNum
-		} else {
-			cost = nil
-		}
+		cost = this.ParseNumber(ccxt.Precise.StringMul(price, amount))
 	}
 	var crossed *bool = this.SafeBool(trade, "crossed", false)
 	var takerOrMaker string = "maker"

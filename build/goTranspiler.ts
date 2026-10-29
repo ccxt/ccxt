@@ -894,10 +894,6 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if ((call[1] === 'GetValue') && (args.length === 2) && (stringSlices.has (args[0]) || /^Split\(/.test (args[0]) && (goCallArgsSpanningText (args[0], 5) !== undefined))) {
         return true;
     }
-    // ParseNumber yields untyped nil, a float64 or its (literal) default
-    if (call[1] === 'this.ParseNumber') {
-        return (args.length === 1) || ((args.length === 2) && goAnyNilSafeWrite (args[1], scalarLocals));
-    }
     if (hx4G16AnyNilSafeCall (call[1], args, (arg: string) => goAnyNilSafeWrite (arg, scalarLocals, safeLocal, stringSlices))) {
         return true;
     }
@@ -2455,8 +2451,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
     } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
-        valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op} else if (goMapWriteParseNumberNoDefault (valueMasked)) {
-        valueOut = value; // float64 or nil: the helper's deref is a no-op
+        valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
     }
     if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
@@ -2619,21 +2614,6 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
 // stored value is then the identity
 const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
 
-// `this.ParseNumber(x)` without a default answers a float64 or nil (exchange.go derefs x first): deref'd already
-function goMapWriteParseNumberNoDefault (text: string): boolean {
-    if (!text.startsWith ('this.ParseNumber(') || (goMapWriteGroupEnd (text, 16) !== text.length)) {
-        return false;
-    }
-    let depth = 0;
-    for (const c of text.substring (16, text.length - 1)) {
-        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
-        if ((depth === 0) && (c === ',')) {
-            return false;
-        }
-    }
-    return true;
-}
-
 // a single-declaration `any` local whose declaration and every later write is a deref'd producer,
 // and whose address is never taken (AppendToArray(&x, ..) rewrites it)
 function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean {
@@ -2648,7 +2628,7 @@ function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string)
     for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
         writes.push (w[1].trim ());
     }
-    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init) || goMapWriteParseNumberNoDefault (init));
+    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init) );
 }
 
 // a single-declaration `any` local initialised by a map producer call
@@ -11931,40 +11911,25 @@ function g10kSoleArg (text: string, name: RegExp): string | undefined {
 }
 
 function g10kRewriteLine (line: string): string | undefined {
-    const m = /^(\t*)(?:(var (\w+) (any|\*float64) = )|((\w+) = )|(return ))((?:ccxt\.)?(?:DerefScalar|Float64PtrTyped)\(.*\))$/.exec (line);
+    const m = /^(\t*)(?:(var (\w+) (any) = )|((\w+) = )|(return ))((?:ccxt\.)?DerefScalar\(.*\))$/.exec (line);
     if (!m || (m[1] === '') || (m[6] === '_')) {
         return undefined;
     }
     const [ , ind, decl, declName, declType, , assignName, ret, call ] = m;
     const name = declName ?? assignName;
-    const deref = /^(?:ccxt\.)?DerefScalar\(/.test (call);
-    if ((declType !== undefined) && (declType !== (deref ? 'any' : '*float64'))) {
-        return undefined;
-    }
-    const inner = g10kSoleArg (call, /^(?:ccxt\.)?(?:DerefScalar|Float64PtrTyped)\(/);
+    const inner = g10kSoleArg (call, /^(?:ccxt\.)?DerefScalar\(/);
     if (inner === undefined) {
         return undefined;
     }
-    let head: string;
-    let value: string;
-    if (deref) {
-        const accessor = /^(this\.\w+)\(/.exec (inner);
-        // every declaration of these names returns *string/*int64/*float64/*bool except SafeIntegerOmitZero (any)
-        if (!accessor || !g10kDerefAccessor ().test (inner) || /OmitZero\(/.test (accessor[0]) || (goCallArgsSpanningText (inner, accessor[0].length - 1) === undefined)) {
-            return undefined;
-        }
-        head = 'if derefPtr := ' + inner + '; derefPtr != nil {';
-        value = '*derefPtr';
-    } else {
-        const arg = g10kSoleArg (inner, /^this\.ParseNumber\(/);
-        if (arg === undefined) {
-            return undefined;
-        }
-        head = 'if derefNum, isNum := ' + inner + '.(float64); isNum {';
-        value = '&derefNum';
+    const accessor = /^(this\.\w+)\(/.exec (inner);
+    // every declaration of these names returns *string/*int64/*float64/*bool except SafeIntegerOmitZero (any)
+    if (!accessor || !g10kDerefAccessor ().test (inner) || /OmitZero\(/.test (accessor[0]) || (goCallArgsSpanningText (inner, accessor[0].length - 1) === undefined)) {
+        return undefined;
     }
-    // the operand must not read the name it writes (a `var` would shadow it) nor the temporaries
-    if (((name !== undefined) && new RegExp ('\\b' + name + '\\b').test (inner)) || /\bderef(?:Ptr|Num)\b|\bisNum\b/.test (inner)) {
+    const head = 'if derefPtr := ' + inner + '; derefPtr != nil {';
+    const value = '*derefPtr';
+    // the operand must not read the name it writes (a `var` would shadow it) nor the temporary
+    if (((name !== undefined) && new RegExp ('\\b' + name + '\\b').test (inner)) || /\bderefPtr\b/.test (inner)) {
         return undefined;
     }
     if (ret !== undefined) {
@@ -11990,7 +11955,6 @@ export function g10kDerefSelfTest (): string[] {
     ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "k"))') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil {\n\t\ts = *derefPtr\n\t}', 'var form');
     ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k", 2))') === '\t\tif derefPtr := this.SafeInteger(m, "k", 2); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
     ok (f ('\treturn DerefScalar(this.SafeBool(m, "k"))') === '\tif derefPtr := this.SafeBool(m, "k"); derefPtr != nil {\n\t\treturn *derefPtr\n\t}\n\treturn nil', 'return form');
-    ok (f ('\tvar p *float64 = Float64PtrTyped(this.ParseNumber(s))') === '\tvar p *float64\n\tif derefNum, isNum := this.ParseNumber(s).(float64); isNum {\n\t\tp = &derefNum\n\t}', 'ParseNumber form');
     const kept = [
         '\tvar s any = DerefScalar(data[i])',
         '\tvar s any = DerefScalar(this.SafeIntegerOmitZero(m, "k"))',
@@ -11999,7 +11963,7 @@ export function g10kDerefSelfTest (): string[] {
         '\ts = DerefScalar(this.SafeString(m, "k", s))',
         '\tvar s any = DerefScalar(this.SafeString(m, "k")) // note',
         '\ts = DerefScalar(this.SafeString(func() any {',
-        '\tvar p *float64 = Float64PtrTyped(this.ParseNumber(s, 0))',
+        '\tvar p *float64 = this.ParseNumber(s)',
         '\tvar p *float64 = Float64PtrTyped(GetValue(t, 0))',
         '\t_ = DerefScalar(this.SafeString(m, "k"))',
         '\tx := DerefScalar(this.SafeString(m, "k"))',

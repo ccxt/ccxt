@@ -827,14 +827,8 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 	}
 	var symbol string = *baseId + "/" + *quote + ":" + *settle
 	var expiry int = 0
-	var takerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.0002").(float64); isNum {
-		takerFee = &derefNum
-	}
-	var makerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
-		makerFee = &derefNum
-	}
+	var takerFee *float64 = this.ParseNumber("0.0002")
+	var makerFee *float64 = this.ParseNumber("0.0005")
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1946,10 +1940,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		return *decimalsNum
 	}()
 	var mathPowResult float64 = (math.Pow(10, decimalsNumber))
-	var amountNum *float64
-	if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
-		amountNum = &derefNum
-	}
+	var amountNum *float64 = this.ParseNumber(amount)
 	var amountValue float64 = func() float64 {
 		if amountNum == nil {
 			return 0
@@ -2004,10 +1995,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		response := r4.Raw
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount *float64
-		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
-			parsedAmount = &derefNum
-		}
+		var parsedAmount *float64 = this.ParseNumber(amount)
 
 		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, this.Currency(code))), map[string]any{
 			"timestamp":   currentTime,

@@ -310,7 +310,7 @@ type ICoreExchange interface {
 	FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	Milliseconds() int64
 	GetCcxtVersion() string
-	ParseNumber(v any, a ...any) any
+	ParseNumber(v any, a ...any) *float64
 	ParsePrecision(precision any) any
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) any

@@ -1100,7 +1100,7 @@ func (this *Woo) ParseMarket(market any) map[string]any {
 	var settleId *string = nil
 	var settle *string = nil
 	var symbol any = *base + "/" + *quote
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	var linear any = nil
 	var inverse any = nil
 	var margin bool = true

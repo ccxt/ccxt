@@ -744,10 +744,7 @@ func (this *Gemini) ParseCurrency(rawCurrency any) map[string]any {
 	if isFiat {
 		typeVar = "fiat"
 	}
-	var precision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))).(float64); isNum {
-		precision = &derefNum
-	}
+	var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5)))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
 	var networkCode *string = nil
@@ -1154,7 +1151,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 	var quoteId *string = nil
 	var settleId *string = nil
 	var tickSize any = nil
-	var amountPrecision any = nil
+	var amountPrecision *float64 = nil
 	var minSize *float64 = nil
 	var status any = nil
 	var swap bool = false
@@ -1165,8 +1162,8 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 	var isArray bool = (IsArray(response))
 	if !isString && !isArray {
 		marketId = this.SafeStringLower(response, "symbol")
-		amountPrecision = DerefScalar(this.SafeNumber(response, "tick_size")) // right, exchange has an imperfect naming and this turns out to be an amount-precision
-		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment"))  // this is tick-size actually
+		amountPrecision = this.SafeNumber(response, "tick_size")             // right, exchange has an imperfect naming and this turns out to be an amount-precision
+		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment")) // this is tick-size actually
 		minSize = this.SafeNumber(response, "min_order_size")
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
 		if derefPtr := this.SafeString(response, "base_currency"); derefPtr != nil {
@@ -1896,14 +1893,8 @@ func (this *Gemini) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	var takerBps *string = this.SafeString(response, "api_taker_fee_bps")
 	var makerString *string = Precise.StringDiv(makerBps, "10000")
 	var takerString *string = Precise.StringDiv(takerBps, "10000")
-	var maker *float64
-	if derefNum, isNum := this.ParseNumber(makerString).(float64); isNum {
-		maker = &derefNum
-	}
-	var taker *float64
-	if derefNum, isNum := this.ParseNumber(takerString).(float64); isNum {
-		taker = &derefNum
-	}
+	var maker *float64 = this.ParseNumber(makerString)
+	var taker *float64 = this.ParseNumber(takerString)
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {

@@ -3613,20 +3613,12 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) Position {
 		var absoluteAmount *string = Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteBalance != nil) && !Precise.StringEquals(absoluteAmount, "0") {
-			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAbs(vQuoteBalance), absoluteAmount)).(float64); isNum {
-				entryPrice = &derefNum
-			} else {
-				entryPrice = nil
-			}
+			entryPrice = this.ParseNumber(Precise.StringDiv(Precise.StringAbs(vQuoteBalance), absoluteAmount))
 		}
 		if markPriceX18 != nil {
 			markPrice = this.ParseX18(markPriceX18)
 			var notionalX36 *string = Precise.StringMul(absoluteAmount, markPriceX18)
-			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000")).(float64); isNum {
-				notional = &derefNum
-			} else {
-				notional = nil
-			}
+			notional = this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000"))
 		}
 	}
 	return this.SafePosition(map[string]any{

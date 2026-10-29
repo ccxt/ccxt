@@ -1094,11 +1094,8 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var pricePrecision *float64 = this.SafeNumber(priceFilter, "tickSize")
 	var quantityFilter map[string]any = SafeMapTyped(filters, "quantity")
 	var maxQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "maxQuantity"))
-	var minQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "minQuantity"))
-	var amountPrecision any
-	if derefPtr := this.SafeNumber(quantityFilter, "stepSize"); derefPtr != nil {
-		amountPrecision = *derefPtr
-	}
+	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
+	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
 	var typeVar string
 	var rawType *string = this.SafeString(market, "marketType")
 	var rfq bool = (rawType != nil && *rawType == "RFQ")
@@ -1530,10 +1527,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		}
 	}
 	var quoteAmount *float64 = this.SafeNumber(quote, "quoteQuantity")
-	var baseAmount *float64
-	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
-		baseAmount = &derefNum
-	}
+	var baseAmount *float64 = this.ParseNumber(amountString)
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 

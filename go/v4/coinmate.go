@@ -1422,14 +1422,8 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var makerString *string = this.SafeString(data, "maker")
 	var takerString *string = this.SafeString(data, "taker")
-	var maker *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(makerString, "100")).(float64); isNum {
-		maker = &derefNum
-	}
-	var taker *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(takerString, "100")).(float64); isNum {
-		taker = &derefNum
-	}
+	var maker *float64 = this.ParseNumber(Precise.StringDiv(makerString, "100"))
+	var taker *float64 = this.ParseNumber(Precise.StringDiv(takerString, "100"))
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
 		"info":       data,

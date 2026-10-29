@@ -1068,10 +1068,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
 		// real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
 		var orderMinSize *float64 = this.SafeNumber(market, "orderMinSize", 1)
-		var priceMax *float64
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize))).(float64); isNum {
-			priceMax = &derefNum
-		}
+		var priceMax *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize)))
 		var negRisk *bool = this.SafeBool(market, "negRisk", false)
 		var endDate *string = this.SafeString(market, "endDate", this.SafeString(market, "end_date_iso"))
 		// Gamma API returns these arrays as JSON-encoded strings
@@ -2180,10 +2177,7 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan ccxt.AsyncResult[ccxt.Predic
 	var baseFeeBps *string = this.SafeString(response, "base_fee")
 	var rate *float64 = func() *float64 {
 		if baseFeeBps != nil {
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")).(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000"))
 		}
 		return nil
 	}()
@@ -2518,7 +2512,7 @@ func (this *Polymarket) ParseBalance(response any) map[string]any {
 	}
 	// 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
 	var raw *string = this.SafeString(response, "balance")
-	var total any = nil
+	var total *float64 = nil
 	if raw != nil {
 		total = this.ParseNumber(ccxt.Precise.StringDiv(raw, "1000000"))
 	}

@@ -1887,28 +1887,19 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 		if amountWei == nil {
 			return nil
 		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000")).(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000"))
 	}()
 	var price *float64 = func() *float64 {
 		if priceWei == nil {
 			return nil
 		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000")).(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000"))
 	}()
 	var filled *float64 = func() *float64 {
 		if filledWei == nil {
 			return nil
 		}
-		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000")).(float64); isNum {
-			return &derefNum
-		}
-		return nil
+		return this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000"))
 	}()
 	var statusRaw *string = this.SafeStringLower(order, "status")
 	var status *string = this.ParseOrderStatus(statusRaw)
@@ -3675,8 +3666,8 @@ func (this *Myriad) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	//
 	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	// AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
-	var bid any = nil
-	var ask any = nil
+	var bid *float64 = nil
+	var ask *float64 = nil
 	for i := 0; i < len(outcomes); i++ {
 		var o map[string]any = ccxt.SafeMapTyped(outcomes, i)
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
@@ -3693,10 +3684,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		}
 	}
 	// the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
-	var synthSize *float64
-	if derefNum, isNum := this.ParseNumber("9999").(float64); isNum {
-		synthSize = &derefNum
-	}
+	var synthSize *float64 = this.ParseNumber("9999")
 	var bids []any = []any{}
 	if bid != nil {
 		bids = append(bids, []any{bid, synthSize})
@@ -5483,11 +5471,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}
 		this.Options["positionBalances"] = balances
-		if derefNum, isNum := this.ParseNumber(updated).(float64); isNum {
-			contracts = &derefNum
-		} else {
-			contracts = nil
-		}
+		contracts = this.ParseNumber(updated)
 	}
 	var parsed any = this.SafePredictionPosition(map[string]any{
 		"info":          data,

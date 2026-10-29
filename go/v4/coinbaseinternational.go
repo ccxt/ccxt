@@ -1067,10 +1067,7 @@ func (this *Coinbaseinternational) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var decimals *string = this.SafeString2(currency, "onchain_operations_precision", "decimals")
-	var precision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimals)).(float64); isNum {
-		precision = &derefNum
-	}
+	var precision *float64 = this.ParseNumber(this.ParsePrecision(decimals))
 	var networkFee *float64 = this.SafeNumber(currency, "network_fee")
 	var withdrawalFee *float64 = this.SafeNumber(currency, "withdrawal_fee")
 	var rawNetworks []any = SafeListTyped(currency, "coinbase_networks")
@@ -2216,10 +2213,7 @@ func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...a
 	var transactionTimestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var info map[string]any = SafeMapTyped(transfer, "info")
-	var amount any
-	if derefPtr := this.SafeNumber(transfer, "change"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *float64 = this.SafeNumber(transfer, "change")
 	var fromAccount *string = this.SafeString(transfer, "username")
 	var toAccount *string = this.SafeString(info, "other_user")
 	if this.IsNativeDeribitCredentials() {
@@ -2356,10 +2350,7 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 	var notional *string = this.SafeString(position, "size_currency")
 	var initialMargin *string = this.SafeString(position, "initial_margin")
 	var maintenanceMargin *string = this.SafeString(position, "maintenance_margin")
-	var contracts any
-	if derefPtr := this.SafeNumber(position, "size"); derefPtr != nil {
-		contracts = *derefPtr
-	}
+	var contracts *float64 = this.SafeNumber(position, "size")
 	if this.IsNativeDeribitCredentials() {
 		var size *string = this.SafeString(position, "size")
 		if marketResolved["option"] != true {
@@ -2767,10 +2758,7 @@ func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArg
 	var transactionId *string = this.SafeString(transaction, "id")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var address *string = this.SafeString(info, "addr")
-	var amount any
-	if derefPtr := this.SafeNumber(transaction, "change"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *float64 = this.SafeNumber(transaction, "change")
 	var feeCost *float64 = nil
 	var feeCurrency *string = nil
 	if this.IsNativeDeribitCredentials() {
@@ -3111,11 +3099,8 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 	var marketResolved map[string]any = this.SafeMarket(instrumentName, market)
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "last_update_timestamp")
-	var filled any
-	if derefPtr := this.SafeNumber(order, "filled_amount"); derefPtr != nil {
-		filled = *derefPtr
-	}
-	var amount any = DerefScalar(this.SafeNumber(order, "amount"))
+	var filled *float64 = this.SafeNumber(order, "filled_amount")
+	var amount *float64 = this.SafeNumber(order, "amount")
 	if this.IsNativeDeribitCredentials() && (marketResolved["contract"] == true) {
 		var contractSize *string = this.SafeString(marketResolved, "contractSize")
 		amount = this.ParseNumber(this.SafeString(order, "contracts", Precise.StringDiv(this.SafeString(order, "amount"), contractSize)))
@@ -3131,17 +3116,9 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 	var averageString *string = this.SafeString(order, "average_price")
 	var cost *float64 = nil
 	if (filledString != nil) && (averageString != nil) {
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(filledString, averageString)).(float64); isNum {
-			cost = &derefNum
-		} else {
-			cost = nil
-		}
+		cost = this.ParseNumber(Precise.StringMul(filledString, averageString))
 		if this.IsNativeDeribitCredentials() && (marketResolved["inverse"] == true) && (marketResolved["option"] != true) {
-			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(filledString, averageString)).(float64); isNum {
-				cost = &derefNum
-			} else {
-				cost = nil
-			}
+			cost = this.ParseNumber(Precise.StringDiv(filledString, averageString))
 		}
 	}
 	var lastTradeTimestamp *int64 = lastUpdateTimestamp
@@ -3151,7 +3128,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 	var fee map[string]any = map[string]any{}
 	if this.IsNativeDeribitCredentials() {
 		lastTradeTimestamp = nil
-		if (filled != nil) && (IsGreaterThan(filled, 0)) {
+		if filled != nil && *filled > 0 {
 			lastTradeTimestamp = lastUpdateTimestamp
 		}
 		nativeLastUpdateTimestamp = lastUpdateTimestamp
@@ -3913,7 +3890,7 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 	var marketResolved map[string]any = this.SafeMarket(instrumentName, market)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var price *float64 = this.SafeNumber(trade, "price")
-	var amount any = DerefScalar(this.SafeNumber(trade, "amount"))
+	var amount *float64 = this.SafeNumber(trade, "amount")
 	var amountString *string = this.SafeString(trade, "amount")
 	if this.IsNativeDeribitCredentials() && (marketResolved["contract"] == true) {
 		amount = this.ParseNumber(this.SafeString(trade, "contracts", Precise.StringDiv(amountString, this.SafeString(marketResolved, "contractSize"))))
@@ -3921,17 +3898,9 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 	var priceString *string = this.SafeString(trade, "price")
 	var cost *float64 = nil
 	if (amountString != nil) && (priceString != nil) {
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(amountString, priceString)).(float64); isNum {
-			cost = &derefNum
-		} else {
-			cost = nil
-		}
+		cost = this.ParseNumber(Precise.StringMul(amountString, priceString))
 		if this.IsNativeDeribitCredentials() && (marketResolved["inverse"] == true) && (marketResolved["option"] != true) {
-			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(amountString, priceString)).(float64); isNum {
-				cost = &derefNum
-			} else {
-				cost = nil
-			}
+			cost = this.ParseNumber(Precise.StringDiv(amountString, priceString))
 		}
 	}
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")

@@ -1317,10 +1317,7 @@ func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *str
 	if this.IsFiat(code) {
 		currencyType = "fiat"
 	}
-	var tickSize *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))).(float64); isNum {
-		tickSize = &derefNum
-	}
+	var tickSize *float64 = this.ParseNumber(this.ParsePrecision(this.NumberToString(precision)))
 	return map[string]any{
 		"id":        id,
 		"code":      code,

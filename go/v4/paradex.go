@@ -983,11 +983,8 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
-	var takerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.0003").(float64); isNum {
-		takerFee = &derefNum
-	}
-	var makerFee any = this.ParseNumber("-0.00005")
+	var takerFee *float64 = this.ParseNumber("0.0003")
+	var makerFee *float64 = this.ParseNumber("-0.00005")
 	if isOption {
 		var optionTypeSuffix string = func() string {
 			if optionType != nil && *optionType == "CALL" {
@@ -3780,10 +3777,7 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) Position {
 	// side carries the direction, the unified contracts is a magnitude whether or not size is signed
 	var quantity *string = Precise.StringAbs(this.SafeString(position, "size"))
 	var timestamp *int64 = this.SafeInteger(position, "created_at")
-	var liquidationPrice *float64
-	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))).(float64); isNum {
-		liquidationPrice = &derefNum
-	}
+	var liquidationPrice *float64 = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price")))
 	// cost_usd is signed by side, the unified notional is a magnitude
 	var notionalString *string = Precise.StringAbs(this.SafeString(position, "cost_usd"))
 	return this.SafePosition(map[string]any{
