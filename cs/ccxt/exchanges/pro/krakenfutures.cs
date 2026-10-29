@@ -1373,8 +1373,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //    }
         //
         string? marketId = this.safeString(message, "product_id");
-        Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeSymbol(marketId);
         string? messageHash = this.getMessageHash("orderbook", null, symbol);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
@@ -1413,8 +1412,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //    }
         //
         string? marketId = this.safeString(message, "product_id");
-        Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeSymbol(marketId);
         string? messageHash = this.getMessageHash("orderbook", null, symbol);
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         string? side = this.safeString(message, "side");

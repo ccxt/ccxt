@@ -1115,7 +1115,7 @@ public partial class backpack : Exchange
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = ((((bs + "/") + quote) + ":") + settle);
+            symbol = ((((bs + "/") + quote) + ":") + quote); // settle is the quote currency
             contractSize = 1;
         } else
         {

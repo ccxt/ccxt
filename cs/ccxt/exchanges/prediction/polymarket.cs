@@ -3977,7 +3977,8 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, "outcome");
-            messageHash = ("orders::" + (outcomeResolved));
+            string? outcomeName = this.safeString(outcomeObj, "outcome", "");
+            messageHash = ("orders::" + outcomeName);
         }
         object orders = await this.subscribeUserChannel(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -4009,7 +4010,8 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, "outcome");
-            messageHash = ("myTrades::" + (outcomeResolved));
+            string? outcomeName = this.safeString(outcomeObj, "outcome", "");
+            messageHash = ("myTrades::" + outcomeName);
         }
         object trades = await this.subscribeUserChannel(messageHash, parameters);
         Int64? limitResolved = limit;

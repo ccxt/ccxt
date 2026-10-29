@@ -143,7 +143,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("ticker:" + symbolValue);
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTicker", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
@@ -586,7 +586,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
@@ -763,7 +763,7 @@ public partial class bitget : ccxt.bitget
         }
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         this.ohlcvs[(string)symbol] = symbolOhlcvs;
         string? channel = this.safeString2(arg, "channel", "topic", "");
@@ -1412,7 +1412,7 @@ public partial class bitget : ccxt.bitget
         }
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -3404,10 +3404,10 @@ public partial class bitget : ccxt.bitget
         }
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("unsubscribe:trade:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("trade:" + symbol);
-        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
+        if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
         {
             this.trades.Remove(symbol);
         }
@@ -3495,7 +3495,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? timeframe = this.findTimeframe(interval, timeframes);
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? messageHash = null;
         string? subMessageHash = null;
         if ((isUta == true))
@@ -3507,7 +3507,7 @@ public partial class bitget : ccxt.bitget
             messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
             subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
-        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))
+        if (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
         {
             if (((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
             {

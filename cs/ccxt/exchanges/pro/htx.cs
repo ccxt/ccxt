@@ -974,7 +974,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         string? type = null;
-        object marketId = "*"; // wildcard
+        string? marketId = "*"; // wildcard
         IDictionary<string, object> market = null;
         string? messageHash = null;
         string? channel = null;
@@ -991,7 +991,7 @@ public partial class htx : ccxt.htx
             {
                 subType = "inverse";
             }
-            marketId = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
+            marketId = this.safeString(market, "lowercaseId", "*");
         } else
         {
             type = this.safeString(this.options, "defaultType", "spot");
@@ -1010,7 +1010,7 @@ public partial class htx : ccxt.htx
             string? mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
             mode = this.safeString(paramsRequest, "mode", mode);
             paramsRequest = this.omit(paramsRequest, "mode");
-            messageHash = (((("trade.clearing" + "#") + (marketId)) + "#") + mode);
+            messageHash = (((("trade.clearing" + "#") + marketId) + "#") + mode);
             channel = messageHash;
         } else if (isV5Linear)
         {
@@ -1156,12 +1156,12 @@ public partial class htx : ccxt.htx
         string? type = null;
         string? subType = null;
         IDictionary<string, object> market = null;
-        object suffix = "*"; // wildcard
+        string? suffix = "*"; // wildcard
         if ((symbol != null))
         {
             market = this.market(symbol);
             type = this.safeString(market, "type");
-            suffix = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
+            suffix = this.safeString(market, "lowercaseId", "*");
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
                 subType = "linear";
@@ -1186,7 +1186,7 @@ public partial class htx : ccxt.htx
         string? channel = null;
         if (type == "spot")
         {
-            messageHash = (("orders" + "#") + (suffix));
+            messageHash = (("orders" + "#") + suffix);
             channel = messageHash;
         } else if (isV5Linear)
         {
