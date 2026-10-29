@@ -3205,7 +3205,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.positions, symbolMessageHash);
     }
 
-    parseWsUtaPosition (position: Dict, market: Market = undefined): Position {
+    parseWsUtaPosition (position: Dict, market: Market = undefined): Dict {
         //
         //     {
         //         "pi": "30000000000084845",
