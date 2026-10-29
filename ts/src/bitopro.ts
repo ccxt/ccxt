@@ -1280,9 +1280,11 @@ export default class bitopro extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const id: string = market['uppercaseId'];
+        const id = this.safeString (market, 'uppercaseId');
         const request: Dict = {};
-        request[id] = ids;
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders (this.extend (request, params));
         //
         //     {
