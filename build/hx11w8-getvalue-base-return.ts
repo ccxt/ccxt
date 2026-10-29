@@ -6,6 +6,7 @@
 // Any site without that proof keeps the helper.
 
 const NEW_MAP = '(?:new (?:java\\.util\\.)?HashMap<String, Object>\\(\\) \\{\\{\\}\\})';
+const MAP = '(?:java\\.util\\.)?Map';
 
 function indentOf (l: string): number {
     return l.length - l.trimStart ().length;
@@ -41,20 +42,20 @@ export function hx11w8GetValueBaseReturn (content: string): string {
         if (!lines[i].includes ('Helpers.GetValue(')) continue;
         const member = () => lines.slice (memberStart, i + 1).join ('\n');
         // marketSymbols result read by the loop counter
-        const list = /Helpers\.GetValue\(\(List<String>\)\((\w+)\), (\w+)\)/.exec (lines[i]);
+        const list = /Helpers\.GetValue\(\((?:java\.util\.)?List<String>\)\((\w+)\), (\w+)\)/.exec (lines[i]);
         if (list !== null && !/^\s*\/\//.test (lines[i])) {
             const [ whole, recv, idx ] = list;
             const m = member ();
             const counter = new RegExp (`for \\(var ${idx} = 0; `).test (m) && !new RegExp (`(?<![\\w.])${idx}\\s*(?:=(?!=)|\\+=|--)`).test (m.replace (new RegExp (`for \\(var ${idx} = 0;`), ''));
             const marketSymbols = new RegExp (`\\b${recv} = this\\.marketSymbols\\(`).test (m);
-            if (counter && marketSymbols && declaredOnly (m, recv, 'Object') || (counter && declaredOnly (m, recv, 'List<String>'))) {
-                const l = `((List<String>)(${recv}))`;
+            if (counter && marketSymbols && declaredOnly (m, recv, 'Object') || (counter && (declaredOnly (m, recv, 'List<String>') || declaredOnly (m, recv, 'java.util.List<String>')))) {
+                const l = `((java.util.List<String>)(${recv}))`;
                 lines[i] = lines[i].replace (whole, `(${l} == null || ${idx} < 0 || ${idx} >= ${l}.size() ? null : ${l}.get(${idx}))`);
                 changed = true;
             }
         }
         // per-symbol ohlcvs map read
-        const oh = /Helpers\.GetValue\(\(\(Map<\?, \?>\)this\.ohlcvs\)\.get\((\w+)\), (\w+)\)/.exec (lines[i]);
+        const oh = new RegExp (`Helpers\\.GetValue\\(\\(\\(${MAP}<\\?, \\?>\\)this\\.ohlcvs\\)\\.get\\((\\w+)\\), (\\w+)\\)`).exec (lines[i]);
         if (oh === null) continue;
         const [ whole, sym, key ] = oh;
         if (!declaredOnly (member (), key, 'String') || !declaredOnly (member (), sym, 'String')) continue;
@@ -67,7 +68,7 @@ export function hx11w8GetValueBaseReturn (content: string): string {
             if (new RegExp (`^\\s*this\\.ohlcvs\\.put\\(${sym}, this\\.safeDict\\(this\\.ohlcvs, ${sym}, ${NEW_MAP}\\)\\);\\s*$`).test (l)) anchor = j;
             else if (/^\s*\}\s*$/.test (l) && j >= from + 3 && lines[j - 2].trim () === '{'
                 && new RegExp (`^\\s*this\\.ohlcvs\\.put\\(${sym}, ${NEW_MAP}\\);\\s*$`).test (lines[j - 1])
-                && new RegExp (`^\\s*if \\(!\\(\\(\\(Map<\\?, \\?>\\)this\\.ohlcvs\\)\\.containsKey\\(${sym}\\)\\)\\)\\s*$`).test (lines[j - 3])) anchor = j;
+                && new RegExp (`^\\s*if \\(!\\(\\(\\(${MAP}<\\?, \\?>\\)this\\.ohlcvs\\)\\.containsKey\\(${sym}\\)\\)\\)\\s*$`).test (lines[j - 3])) anchor = j;
             if (anchor === -1) continue;
             ok = sameScope (lines, anchor, i, indentOf (lines[anchor]));
             for (let k = anchor + 1; ok && k < i; k++) {
@@ -76,7 +77,7 @@ export function hx11w8GetValueBaseReturn (content: string): string {
             break;
         }
         if (!ok) continue;
-        lines[i] = lines[i].replace (whole, `((Map<String, Object>) this.ohlcvs.get(${sym})).get(${key})`);
+        lines[i] = lines[i].replace (whole, `((java.util.Map<String, Object>) this.ohlcvs.get(${sym})).get(${key})`);
         changed = true;
     }
     return changed ? lines.join ('\n') : content;
@@ -89,11 +90,13 @@ export function hx11w8GetValueBaseReturnSelfTest (): string[] {
     const read = '        io.github.ccxt.ws.ArrayCache s = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);';
     const loop = '        Object sn = this.marketSymbols(symbols, (Object) null, false, false, false);\n        for (var i = 0; i < ((List<?>)(List<String>)(sn)).size(); i++)\n        {\n            Object x = Helpers.GetValue((List<String>)(sn), i);\n        }';
     const cases: [string, string, string | undefined][] = [
-        [ 'ohlcvs after safeDict put', put + read, '((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe)' ],
+        [ 'ohlcvs after safeDict put', put + read, '((java.util.Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe)' ],
+        [ 'ohlcvs qualified names', put.replace ('HashMap', 'java.util.HashMap') + read.replace ('(Map<?, ?>)', '(java.util.Map<?, ?>)'), '((java.util.Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe)' ],
         [ 'ohlcvs without put', read, undefined ],
         [ 'ohlcvs symbol rewritten', put + '        symbol = other;\n' + read, undefined ],
         [ 'ohlcvs put of safeValue', put.replace ('safeDict', 'safeValue') + read, undefined ],
-        [ 'marketSymbols loop read', loop, '((List<String>)(sn)).get(i)' ],
+        [ 'marketSymbols loop read', loop, '((java.util.List<String>)(sn)).get(i)' ],
+        [ 'marketSymbols qualified list', loop.replace (/\(List<String>\)/g, '(java.util.List<String>)'), '((java.util.List<String>)(sn)).get(i)' ],
         [ 'list read without counter', loop.replace ('for (var i = 0;', 'for (var i = n;'), undefined ],
         [ 'list read of unproven Object', loop.replace ('this.marketSymbols(', 'this.other('), undefined ],
     ];
