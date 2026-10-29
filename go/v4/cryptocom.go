@@ -1923,12 +1923,6 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a type argument"))
-	}
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a side argument"))
-	}
 	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
@@ -2748,11 +2742,11 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196619 []any = r1.Value
-		if retRes196619 == nil {
+		var retRes196019 []any = r1.Value
+		if retRes196019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes196619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes196019)}
 		}
 		return nil
 	}
@@ -4275,11 +4269,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes319919 []any = r1.Value
-		if retRes319919 == nil {
+		var retRes319319 []any = r1.Value
+		if retRes319319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319319)}
 		}
 		return nil
 	}

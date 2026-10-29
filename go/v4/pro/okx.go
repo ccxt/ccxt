@@ -2235,8 +2235,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			// reset the existing orderbook instead of replacing it: a consumer
 			// holds a reference to the old object and would never see updates
 			// after a re-subscription snapshot
-			if !(ccxt.InOp(this.Orderbooks, symbol)) {
-				if symbol != nil {
+			if symbol != nil {
+				if _, ok := this.Orderbooks[*symbol]; !ok {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}
@@ -2278,8 +2278,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		// shared order-book cache when watchOrderBook subscribed to this
 		// channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.(*ccxt.WSClient).Subscriptions)
 		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			if !(ccxt.InOp(this.Orderbooks, symbol)) {
-				if symbol != nil {
+			if symbol != nil {
+				if _, ok := this.Orderbooks[*symbol]; !ok {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}

@@ -1502,8 +1502,8 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "T")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}

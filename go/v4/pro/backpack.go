@@ -1172,8 +1172,8 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	var stream *string = this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(*stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
@@ -1755,8 +1755,8 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}

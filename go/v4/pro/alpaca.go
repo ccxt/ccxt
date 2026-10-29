@@ -359,8 +359,8 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	var datetime *string = this.SafeString(message, "t")
 	var timestamp *int64 = this.Parse8601(datetime)
 	var isSnapshot *bool = this.SafeBool(message, "r", false)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}

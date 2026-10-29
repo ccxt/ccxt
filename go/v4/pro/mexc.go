@@ -1013,8 +1013,8 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	var partsLength int = len(parts) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	var marketId *string = this.SafeString(parts, partsLength-1)
 	var symbol *string = this.SafeSymbol(marketId)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}

@@ -889,8 +889,8 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.CountedOrderBook()
 		}
 	}

@@ -785,8 +785,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}

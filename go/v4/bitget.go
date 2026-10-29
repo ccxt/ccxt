@@ -6297,7 +6297,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 		if isStock {
 			request["category"] = "SPOT"
-		} else if _, ok := request["category"]; !ok {
+		} else {
 			request["category"] = productType
 		}
 

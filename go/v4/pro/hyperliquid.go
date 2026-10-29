@@ -1682,8 +1682,8 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId)
 	var timeframe *string = this.SafeString(data, "i", "")
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}

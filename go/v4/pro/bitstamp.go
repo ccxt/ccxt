@@ -1029,8 +1029,8 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}

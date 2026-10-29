@@ -5584,31 +5584,31 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 	if isPortfolioMargin == true {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry map[string]any = SafeMapTyped(response, i)
-			var account map[string]any = this.Account()
+			var accountPapi map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if typeVar != nil && *typeVar == "linear" {
-				account["free"] = this.SafeString(entry, "umWalletBalance")
-				account["used"] = this.SafeString(entry, "umUnrealizedPNL")
+				accountPapi["free"] = this.SafeString(entry, "umWalletBalance")
+				accountPapi["used"] = this.SafeString(entry, "umUnrealizedPNL")
 			} else if typeVar != nil && *typeVar == "inverse" {
-				account["free"] = this.SafeString(entry, "cmWalletBalance")
-				account["used"] = this.SafeString(entry, "cmUnrealizedPNL")
+				accountPapi["free"] = this.SafeString(entry, "cmWalletBalance")
+				accountPapi["used"] = this.SafeString(entry, "cmUnrealizedPNL")
 			} else if cross {
 				var borrowed *string = this.SafeString(entry, "crossMarginBorrowed")
 				var interest *string = this.SafeString(entry, "crossMarginInterest")
-				account["debt"] = Precise.StringAdd(borrowed, interest)
-				account["free"] = this.SafeString(entry, "crossMarginFree")
-				account["used"] = this.SafeString(entry, "crossMarginLocked")
-				account["total"] = this.SafeString(entry, "crossMarginAsset")
+				accountPapi["debt"] = Precise.StringAdd(borrowed, interest)
+				accountPapi["free"] = this.SafeString(entry, "crossMarginFree")
+				accountPapi["used"] = this.SafeString(entry, "crossMarginLocked")
+				accountPapi["total"] = this.SafeString(entry, "crossMarginAsset")
 			} else {
 				var usedLinear *string = this.SafeString(entry, "umUnrealizedPNL")
 				var usedInverse *string = this.SafeString(entry, "cmUnrealizedPNL")
 				var totalUsed *string = Precise.StringAdd(usedLinear, usedInverse)
 				var totalWalletBalance *string = this.SafeString(entry, "totalWalletBalance")
-				account["total"] = Precise.StringAdd(totalUsed, totalWalletBalance)
+				accountPapi["total"] = Precise.StringAdd(totalUsed, totalWalletBalance)
 			}
 			if code != nil {
-				result[*code] = account
+				result[*code] = accountPapi
 			}
 		}
 	} else if !isolated && ((typeVar != nil && *typeVar == "spot") || cross) {
@@ -5618,16 +5618,16 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			var balance map[string]any = SafeMapTyped(balances, i)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "free")
-			account["used"] = this.SafeString(balance, "locked")
+			var accountSpot map[string]any = this.Account()
+			accountSpot["free"] = this.SafeString(balance, "free")
+			accountSpot["used"] = this.SafeString(balance, "locked")
 			if cross {
 				var debt *string = this.SafeString(balance, "borrowed")
 				var interest *string = this.SafeString(balance, "interest")
-				account["debt"] = Precise.StringAdd(debt, interest)
+				accountSpot["debt"] = Precise.StringAdd(debt, interest)
 			}
 			if code != nil {
-				result[*code] = account
+				result[*code] = accountSpot
 			}
 		}
 	} else if isolated {
@@ -5651,27 +5651,27 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			var entry map[string]any = SafeMapTyped(positionAmountVos, i)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
+			var accountSavings map[string]any = this.Account()
 			var usedAndTotal *string = this.SafeString(entry, "amount")
-			account["total"] = usedAndTotal
-			account["used"] = usedAndTotal
+			accountSavings["total"] = usedAndTotal
+			accountSavings["used"] = usedAndTotal
 			if code != nil {
-				result[*code] = account
+				result[*code] = accountSavings
 			}
 		}
 	} else if typeVar != nil && *typeVar == "funding" {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry map[string]any = SafeMapTyped(response, i)
-			var account map[string]any = this.Account()
+			var accountFunding map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			account["free"] = this.SafeString(entry, "free")
+			accountFunding["free"] = this.SafeString(entry, "free")
 			var frozen *string = this.SafeString(entry, "freeze")
 			var withdrawing *string = this.SafeString(entry, "withdrawing")
 			var locked *string = this.SafeString(entry, "locked")
-			account["used"] = Precise.StringAdd(frozen, Precise.StringAdd(locked, withdrawing))
+			accountFunding["used"] = Precise.StringAdd(frozen, Precise.StringAdd(locked, withdrawing))
 			if code != nil {
-				result[*code] = account
+				result[*code] = accountFunding
 			}
 		}
 	} else {
@@ -5688,12 +5688,12 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			}
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(balance, "availableBalance")
-			account["used"] = this.SafeString(balance, "initialMargin")
-			account["total"] = this.SafeString2(balance, "marginBalance", "balance")
+			var accountFutures map[string]any = this.Account()
+			accountFutures["free"] = this.SafeString(balance, "availableBalance")
+			accountFutures["used"] = this.SafeString(balance, "initialMargin")
+			accountFutures["total"] = this.SafeString2(balance, "marginBalance", "balance")
 			if code != nil {
-				result[*code] = account
+				result[*code] = accountFutures
 			}
 		}
 	}

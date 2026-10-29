@@ -354,7 +354,32 @@ function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
     return maskedBody.every (line => !/\bok\b/.test (line) || /^\s*(?:\} else )?if (?:\w+|_), ok := [^;]+; .*\{$/.test (line));
 }
 
-export function hx10G10Pass (content: string): string {
+// `if !(InOp(this.F, k)) {` whose whole block is one `if k != nil {` (a nil key skips both) swaps the two
+// headers: the nil guard goes outside and the lookup inside it is the native comma-ok
+function hx10G10SwapNilGuard (body: string[], maskedBody: string[], decls: Map<string, Decl>, index: number): boolean {
+    const head = new RegExp ('^(\\t*)if !\\((?:ccxt\\.)?InOp\\((this\\.(?:' + FIELD + ')), (\\w+)\\)\\) \\{$').exec (maskedBody[index]);
+    if ((head === null) || (index + 1 >= body.length)) {
+        return false;
+    }
+    const [ , indent, receiver, key ] = head;
+    if ((hx10G10DeclsAt (body, maskedBody, decls, index).get (key)?.type !== '*string') || (maskedBody[index + 1] !== indent + '\tif ' + key + ' != nil {')) {
+        return false;
+    }
+    let close = index + 2;
+    while ((close < body.length) && (maskedBody[close] !== indent + '\t}') && (maskedBody[close] !== indent + '}')) {
+        close++;
+    }
+    if ((close + 1 >= body.length) || (maskedBody[close] !== indent + '\t}') || (maskedBody[close + 1] !== indent + '}') || !hx10G10OkIsIfLocal (maskedBody)) {
+        return false;
+    }
+    body[index] = indent + 'if ' + key + ' != nil {';
+    body[index + 1] = indent + '\tif _, ok := ' + receiver + '[*' + key + ']; !ok {';
+    maskedBody[index] = body[index];
+    maskedBody[index + 1] = body[index + 1];
+    return true;
+}
+
+function hx10G10Rewrite (content: string): string {
     if (!ANY_FIELD.test (content)) {
         return content;
     }
@@ -380,6 +405,9 @@ export function hx10G10Pass (content: string): string {
         const decls = hx10G10Decls (body, body[0]);
         out.push (body[0]);
         for (let i = 1; i < body.length; i++) {
+            if (ANY_FIELD.test (maskedBody[i])) {
+                hx10G10SwapNilGuard (body, maskedBody, decls, i);
+            }
             const rewritten = hx10G10Line (body, maskedBody, ANY_FIELD.test (maskedBody[i]) ? hx10G10DeclsAt (body, maskedBody, decls, i) : decls, i);
             out.push (...rewritten);
             if (rewritten.length === 1) {
@@ -558,6 +586,11 @@ export function hx10G10SelfTest (): string[] {
     ok (exitGuard ('\tif symbol == nil {\n\t\treturn\n\t}\n', '\tsymbol = this.SafeString(m, \"t\")\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a rebound key keeps InOp');
     ok (exitGuard ('\tif symbol == nil {\n\t\treturn\n\t} else {\n\t\tx()\n\t}\n', '').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a guard with an else arm keeps InOp');
     ok (f ('symbol *string', '\tif symbol == nil {\n\t\tif ccxt.InOp(this.Orderbooks, symbol) {\n\t\t}\n\t\treturn\n\t}\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a site inside the guard block keeps InOp');
+    // a lookup whose whole block is one nil guard on the key swaps headers; anything else keeps InOp
+    const swap = (inner: string) => f ('', '\tvar symbol *string = ccxt.SafeStringPtr(m[\"symbol\"])\n\tif !(ccxt.InOp(this.Orderbooks, symbol)) {\n' + inner + '\t}\n');
+    ok (swap ('\t\tif symbol != nil {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Orderbooks[*symbol]; !ok {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n\t}') >= 0, 'a nil-guard-only lookup block swaps headers');
+    ok (swap ('\t\tccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())\n').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Orderbooks[*symbol]; !ok {\n\t\t\tthis.Orderbooks[*symbol] = this.OrderBook()\n\t\t}\n\t}') >= 0, 'the guard the write rewrite prints swaps too');
+    ok (swap ('\t\tif symbol != nil {\n\t\t\tx()\n\t\t}\n\t\ty()\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a block with a sibling statement keeps InOp');
     // the printer's *sync.Map arms
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
@@ -565,4 +598,39 @@ export function hx10G10SelfTest (): string[] {
     // a field outside the family is untouched
     ok (f ('', '\tthis.Balance = this.CreateSafeDictionary(true)\n').indexOf ('this.CreateSafeDictionary(true)') >= 0, 'Balance keeps the sync.Map init');
     return problems;
+}
+
+// the swap runs on the settled output: the inner `if k != nil {` is what the guarded write above printed
+export function hx10G10Pass (content: string): string {
+    const rewritten = hx10G10Rewrite (content);
+    if (!ANY_FIELD.test (rewritten)) {
+        return rewritten;
+    }
+    const lines = rewritten.split ('\n');
+    const masked = goChanMask (rewritten).split ('\n');
+    if (lines.length !== masked.length) {
+        return rewritten;
+    }
+    let k = 0;
+    while (k < lines.length) {
+        if (!lines[k].startsWith ('func (this *')) {
+            k++;
+            continue;
+        }
+        let end = k;
+        while ((end < lines.length) && (lines[end] !== '}')) {
+            end++;
+        }
+        const body = lines.slice (k, end + 1);
+        const maskedBody = masked.slice (k, end + 1);
+        const decls = hx10G10Decls (body, body[0]);
+        for (let i = 1; i < body.length; i++) {
+            if (hx10G10SwapNilGuard (body, maskedBody, decls, i)) {
+                lines[k + i] = body[i];
+                lines[k + i + 1] = body[i + 1];
+            }
+        }
+        k = end + 1;
+    }
+    return lines.join ('\n');
 }

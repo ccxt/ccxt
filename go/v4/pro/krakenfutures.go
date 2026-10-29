@@ -1623,8 +1623,8 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}

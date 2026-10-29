@@ -1241,8 +1241,8 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if typeVar != nil && *typeVar == "snapshot" {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			if symbol != nil {
+		if symbol != nil {
+			if _, ok := this.Orderbooks[*symbol]; !ok {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		}

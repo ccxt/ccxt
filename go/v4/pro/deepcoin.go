@@ -892,8 +892,8 @@ func (this *Deepcoin) HandleOHLCV(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var interval *string = this.SafeString(data, "P")
 	var timeframe *string = this.FindTimeframe(interval)
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
@@ -1073,8 +1073,8 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
+	if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
