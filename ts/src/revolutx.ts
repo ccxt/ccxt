@@ -787,10 +787,7 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const market: Market = this.market (symbol);
         const request: Dict = {};
         if (market !== undefined) {
             request['symbol'] = market['id'];
