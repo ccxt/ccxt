@@ -880,7 +880,7 @@ export default class htx extends htxRest {
             await this.loadMarkets ();
         }
         let type: Str = undefined;
-        let marketId: Str = '*'; // wildcard
+        let marketId: string = '*'; // wildcard
         let market: Market = undefined;
         let messageHash: Str = undefined;
         let channel: Str = undefined;
@@ -894,7 +894,7 @@ export default class htx extends htxRest {
             } else {
                 subType = 'inverse';
             }
-            marketId = market['lowercaseId'];
+            marketId = this.safeString (market, 'lowercaseId', '*');
         } else {
             type = this.safeString (this.options, 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
@@ -1030,11 +1030,11 @@ export default class htx extends htxRest {
         let type: Str = undefined;
         let subType: Str = undefined;
         let market: Market = undefined;
-        let suffix: Str = '*'; // wildcard
+        let suffix: string = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market (symbol);
             type = this.safeString (market, 'type');
-            suffix = market['lowercaseId'];
+            suffix = this.safeString (market, 'lowercaseId', '*');
             if (market['linear'] === true) {
                 subType = 'linear';
             } else {
