@@ -1838,11 +1838,11 @@ impl ApexCore {
 }
 
     pub fn get_seeds(&self) -> Option<String> {
-        let mut seeds: Value = self.safe_string_k(self.options.clone(), "seeds", &[]);
-        if (seeds == Value::Null) {
+        let mut seeds: Option<String> = self.safe_string_k_opt(self.options.clone(), "seeds", &[]);
+        if (seeds.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX".into()))));
         }
-        return seeds.as_str().map(str::to_owned);
+        return seeds.as_deref().map(str::to_owned);
 }
 
     pub async fn get_account_id(&mut self) -> Value {

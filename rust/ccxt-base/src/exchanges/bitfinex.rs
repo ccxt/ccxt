@@ -1807,17 +1807,17 @@ impl BitfinexCore {
             // safeString instead of raw access: the venue config payload can carry numeric
             // network ids, and the raw value flows into toLowerCase and a dictionary key,
             // which hard-casts to string in the C# build and throws InvalidCastException
-            let mut networkId: Value = self.safe_string(networkIds.clone(), j.clone(), &[]);
-            if (networkId == Value::Null) {
+            let mut networkId: Option<String> = self.safe_string_opt(networkIds.clone(), j.clone(), &[]);
+            if (networkId.is_none()) {
                 continue;
             }
-            let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut dwStatuses: Value = self.safe_list(indexed.get("statuses").cloned().unwrap_or(Value::Null), networkId.clone(), &[Value::from(vec![])]);
+            let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            let mut dwStatuses: Value = self.safe_list(indexed.get("statuses").cloned().unwrap_or(Value::Null), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), networkId.clone());
-        m.insert("id".to_string(), networkId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("info".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), networkId.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(dwStatuses.clone(), Value::Int(1), &[]).as_f64() == Some(1.0)));
@@ -1922,12 +1922,12 @@ impl BitfinexCore {
             if (interest.as_deref() != Some("0")) {
                 account.insert("debt".into(), interest.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut type_var: Value = self.safe_string(balance.clone(), Value::Int(0), &[]);
+            let mut type_var: Option<String> = self.safe_string_opt(balance.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".into())]);
             let mut isDerivativeCode: bool = (currencyId != Value::Null) && (Value::Bool(currencyId.as_str().unwrap_or("").ends_with("f0")).as_bool() == Some(true));
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             let mut derivativeCondition: bool = !isDerivative || isDerivativeCode;
-            if (accountType.as_str() == type_var.as_str()) && derivativeCondition {
+            if (accountType.as_str() == type_var.as_deref()) && derivativeCondition {
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
                 account.insert("total".into(), self.safe_string(balance.clone(), Value::Int(2), &[]));
                 account.insert("free".into(), self.safe_string(balance, Value::Int(4), &[]));
@@ -2233,8 +2233,8 @@ impl BitfinexCore {
         // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
-        let mut firstValue: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
-        let mut hasMarketId: bool = (firstValue != Value::Null) && ((firstValue.as_str().unwrap_or("").starts_with("t")) || (firstValue.as_str().unwrap_or("").starts_with("f")));
+        let mut firstValue: Option<String> = self.safe_string_opt(ticker.clone(), Value::Int(0), &[]);
+        let mut hasMarketId: bool = (firstValue.is_some()) && ((firstValue.as_deref().unwrap_or("").starts_with("t")) || (firstValue.as_deref().unwrap_or("").starts_with("f")));
         let mut isFetchTicker: bool = !hasMarketId;
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);
@@ -2673,9 +2673,9 @@ impl BitfinexCore {
         if crate::precise::Precise::stringLt(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             side = Value::Str("sell".into());
         }
-        let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
-        let mut type_var: Option<String> = self.safe_string_opt(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(orderType.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut orderType: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(8), &[]);
+        let mut type_var: Option<String> = self.safe_string_opt(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeInForce: Value = self.parse_time_in_force(orderType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut rawFlags: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(12), &[]);
         let mut flags: Value = self.parse_order_flags(rawFlags.clone().map(Value::from).unwrap_or(Value::Null));
         let mut postOnly: Value = Value::Bool(false);
@@ -2690,17 +2690,17 @@ impl BitfinexCore {
         }
         let mut price: Value = self.safe_string(orderList.clone(), Value::Int(16), &[]);
         let mut triggerPrice: Value = Value::Null;
-        if (orderType.as_str() == Some("EXCHANGE STOP")) || (orderType.as_str() == Some("EXCHANGE STOP LIMIT")) {
+        if (orderType.as_deref() == Some("EXCHANGE STOP")) || (orderType.as_deref() == Some("EXCHANGE STOP LIMIT")) {
             price = Value::Null;
             triggerPrice = self.safe_string(orderList.clone(), Value::Int(16), &[]);
-            if (orderType.as_str() == Some("EXCHANGE STOP LIMIT")) {
+            if (orderType.as_deref() == Some("EXCHANGE STOP LIMIT")) {
                 price = self.safe_string(orderList.clone(), Value::Int(19), &[]);
             }
         }
         let mut status: Value = Value::Null;
-        let mut statusString: Value = self.safe_string(orderList.clone(), Value::Int(13), &[]);
-        if (statusString != Value::Null) {
-            let mut parts: Value = Value::Array(statusString.as_str().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
+        let mut statusString: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(13), &[]);
+        if (statusString.is_some()) {
+            let mut parts: Value = Value::Array(statusString.as_deref().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
             status = self.parse_order_status(self.safe_string(parts, Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null);
         }
         let mut average: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(17), &[]);
@@ -3834,8 +3834,8 @@ impl BitfinexCore {
             }
             tag = self.safe_string(data.clone(), Value::Int(3), &[]);
             type_var = Value::Str("withdrawal".into());
-            let mut networkId: Value = self.safe_string(data, Value::Int(2), &[]);
-            network = self.network_id_to_code(&[networkId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), code.clone()]); // withdraw returns in lowercase
+            let mut networkId: Option<String> = self.safe_string_opt(data, Value::Int(2), &[]);
+            network = self.network_id_to_code(&[networkId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), code.clone()]); // withdraw returns in lowercase
         }  else if (transactionLength == 22.0) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string_opt(transaction.clone(), Value::Int(1), &[]);
@@ -4301,9 +4301,9 @@ impl BitfinexCore {
         let mut marketId: Option<String> = self.safe_string_opt(positionList.clone(), Value::Int(0), &[]);
         let mut amount: Option<String> = self.safe_string_opt(positionList.clone(), Value::Int(2), &[]);
         let mut timestamp: Value = self.safe_integer(positionList.clone(), Value::Int(12), &[]);
-        let mut meta: Value = self.safe_string(positionList.clone(), Value::Int(19), &[]);
-        let mut tradePrice: Option<String> = self.safe_string_k_opt(meta.clone(), "trade_price", &[]);
-        let mut tradeAmount: Option<String> = self.safe_string_k_opt(meta, "trade_amount", &[]);
+        let mut meta: Option<String> = self.safe_string_opt(positionList.clone(), Value::Int(19), &[]);
+        let mut tradePrice: Option<String> = self.safe_string_k_opt(meta.clone().map(Value::from).unwrap_or(Value::Null), "trade_price", &[]);
+        let mut tradeAmount: Option<String> = self.safe_string_k_opt(meta.map(Value::from).unwrap_or(Value::Null), "trade_amount", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), positionList.clone());
@@ -4483,9 +4483,9 @@ impl BitfinexCore {
         let mut timestamp: Value = self.safe_integer(itemList.clone(), Value::Int(3), &[]);
         let mut amount: Value = self.safe_number(itemList.clone(), Value::Int(5), &[]);
         let mut after: Value = self.safe_number(itemList.clone(), Value::Int(6), &[]);
-        let mut description: Value = self.safe_string(itemList, Value::Int(8), &[]);
-        if (description != Value::Null) {
-            let mut parts: Value = Value::Array(description.as_str().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
+        let mut description: Option<String> = self.safe_string_opt(itemList, Value::Int(8), &[]);
+        if (description.is_some()) {
+            let mut parts: Value = Value::Array(description.as_deref().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
             let mut first: Value = self.safe_string_lower(parts, Value::Int(0), &[]);
             type_var = self.parse_ledger_entry_type(first);
         }

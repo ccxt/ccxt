@@ -2239,18 +2239,18 @@ impl BitstampCore {
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut description: Value = self.safe_string_k(market.clone(), "description", &[]);
-            if (description == Value::Null) {
+            let mut description: Option<String> = self.safe_string_k_opt(market.clone(), "description", &[]);
+            if (description.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".into()))));
             }
-            let mut descriptionParts: Value = Value::Array(description.as_str().map(|__s| __s.split(" / ").map(Value::from).collect()).unwrap_or_default());
+            let mut descriptionParts: Value = Value::Array(description.as_deref().map(|__s| __s.split(" / ").map(Value::from).collect()).unwrap_or_default());
             let mut baseDescription: Option<String> = self.safe_string_opt(descriptionParts.clone(), Value::Int(0), &[]);
             let mut quoteDescription: Option<String> = self.safe_string_opt(descriptionParts, Value::Int(1), &[]);
-            let mut minimumOrder: Value = self.safe_string_k(market.clone(), "minimum_order_value", &[]);
-            if (minimumOrder == Value::Null) {
+            let mut minimumOrder: Option<String> = self.safe_string_k_opt(market.clone(), "minimum_order_value", &[]);
+            if (minimumOrder.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".into()))));
             }
-            let mut parts: Value = Value::Array(minimumOrder.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(minimumOrder.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
             let mut cost: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
             if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Value = self.safe_integer_k(market.clone(), "base_decimals", &[]);
@@ -2443,9 +2443,9 @@ impl BitstampCore {
         //         "eur": 0.0
         //     }
         //
-        let mut currencyId: Value = self.safe_string_lower_k(transaction.clone(), "currency", &[]);
-        if (currencyId != Value::Null) {
-            return currencyId.as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_lower_k_opt(transaction.clone(), "currency", &[]);
+        if (currencyId.is_some()) {
+            return currencyId.as_deref().map(str::to_owned);
         }
         let mut transactionOmitted: Value = self.omit(transaction, Value::from(vec![Value::Str("fee".into()), Value::Str("price".into()), Value::Str("datetime".into()), Value::Str("type".into()), Value::Str("status".into()), Value::Str("id".into())]), &[]);
         let mut ids: Vec<Value> = Value::Array(transactionOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -3732,10 +3732,10 @@ impl BitstampCore {
         }
         let mut tag: Value = Value::Null;
         let mut address: Value = Value::Null;
-        let mut addressRaw: Value = self.safe_string_k(transaction.clone(), "address", &[]);
-        if (addressRaw != Value::Null) {
+        let mut addressRaw: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
+        if (addressRaw.is_some()) {
             // dt (destination tag) is embedded into the address field
-            let mut addressParts: Value = Value::Array(addressRaw.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
+            let mut addressParts: Value = Value::Array(addressRaw.as_deref().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
             address = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
                 tag = self.safe_string(addressParts, Value::Int(1), &[]);

@@ -2540,16 +2540,16 @@ impl KrakenCore {
             let mut __for_first_851: bool = true;
             while { if !__for_first_851 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_851 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
-                symbol = marketId.clone();
+                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                if (symbol.as_str() != marketId.as_str()) {
+                if (symbol.as_str() != marketId.as_deref()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
-            market = self.market(marketId.clone());
-            orderSymbols.push(marketId.clone());
+            market = self.market(marketId.clone().map(Value::from).unwrap_or(Value::Null));
+            orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
@@ -2566,7 +2566,7 @@ impl KrakenCore {
                     m.insert("volume".to_string(), parsedAmount);
                 m
             });
-            let mut orderRequest: Vec<Value> = self.order_request(Value::Str("createOrders".into()), marketId, type_var.map(Value::from).unwrap_or(Value::Null), Value::Map(req), amount, &[price, orderParams]).as_array().cloned().unwrap_or_default();
+            let mut orderRequest: Vec<Value> = self.order_request(Value::Str("createOrders".into()), marketId.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), Value::Map(req), amount, &[price, orderParams]).as_array().cloned().unwrap_or_default();
             ordersRequests.push(orderRequest.get(0).cloned().unwrap_or(Value::Null));
         }
         }
@@ -3034,9 +3034,9 @@ impl KrakenCore {
         let mut isLimitOrder: bool = (type_var != Value::Null) && (type_var.as_str().unwrap_or("").ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut cost: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "cost", &[]);
-        let mut flags: Value = self.safe_string_k(paramsOmitted.clone(), "oflags", &[]);
+        let mut flags: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "oflags", &[]);
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("oflags".into())]), &[]);
-        let mut isViqcOrder: bool = (flags != Value::Null) && (Value::Int(flags.as_str().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)); // volume in quote currency
+        let mut isViqcOrder: bool = (flags.is_some()) && (Value::Int(flags.as_deref().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)); // volume in quote currency
         if isMarketOrder && ((cost.is_some()) || isViqcOrder) {
             if (cost.is_none()) && (amount != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), self.number_to_string(amount))); }
@@ -3044,8 +3044,8 @@ impl KrakenCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))); }
             }
             let mut extendedOflags: Value = Value::Str("viqc".into());
-            if (flags != Value::Null) {
-                extendedOflags = Value::Str(format!("{}{}", flags, Value::Str(",viqc".into())).into());
+            if (flags.is_some()) {
+                extendedOflags = Value::Str(format!("{}{}", flags.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(",viqc".into())).into());
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), extendedOflags); }
         }  else if isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder {
@@ -3133,13 +3133,13 @@ impl KrakenCore {
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         if postOnly.as_bool() == Some(true) {
             let mut extendedPostFlags: Value = Value::Str("post".into());
-            if (flags != Value::Null) {
-                extendedPostFlags = Value::Str(format!("{}{}", flags, Value::Str(",post".into())).into());
+            if (flags.is_some()) {
+                extendedPostFlags = Value::Str(format!("{}{}", flags.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(",post".into())).into());
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), extendedPostFlags); }
         }
-        if (flags != Value::Null) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("oflags"))) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), flags); }
+        if (flags.is_some()) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("oflags"))) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), flags.map(Value::from).unwrap_or(Value::Null)); }
         }
         let mut paramsOmitted3: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()),
             Value::Str("trailingLimitPercent".into()), Value::Str("offset".into())]), &[]);
@@ -4464,12 +4464,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_862: bool = true;
                     while { if !__for_first_862 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_862 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositMethods.len() as i64) as f64) } {
-                    let mut entry: Value = self.safe_string(depositMethods.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[]);
-                    if (entry == Value::Null) {
+                    let mut entry: Option<String> = self.safe_string_opt(depositMethods.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[]);
+                    if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".into()))));
                     }
-                    if Value::Int(entry.as_str().zip(network.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                        depositMethod = entry;
+                    if Value::Int(entry.as_deref().zip(network.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                        depositMethod = entry.map(Value::from).unwrap_or(Value::Null);
                         break;
                     }
                 }
@@ -4872,10 +4872,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode_nested(params.clone(), &[])).into())).into());
             }
         }  else if (apiName.as_str() == Some("private")) {
-            let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+            let mut price: Option<String> = self.safe_string_k_opt(params.clone(), "price", &[]);
             let mut isTriggerPercent: Value = Value::Bool(false);
-            if (price != Value::Null) {
-                isTriggerPercent = (if (price.as_str().unwrap_or("").ends_with("%")) { Value::Bool(true) } else { Value::Bool(false) });
+            if (price.is_some()) {
+                isTriggerPercent = (if (price.as_deref().unwrap_or("").ends_with("%")) { Value::Bool(true) } else { Value::Bool(false) });
             }
             let mut isCancelOrderBatch: bool = path.as_str() == Some("CancelOrderBatch");
             let mut isBatchOrder: bool = path.as_str() == Some("AddOrderBatch");

@@ -1404,8 +1404,8 @@ impl CoinbaseexchangeCore {
                 let mut __for_first_253: bool = true;
                 while { if !__for_first_253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_253 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
                 let mut change: Value = self.safe_list(changes.clone(), i.clone(), &[]);
-                let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
-                let mut side: Option<String> = self.safe_string_opt(Value::Map(sides.clone()), key, &[]);
+                let mut key: Option<String> = self.safe_string_opt(change.clone(), Value::Int(0), &[]);
+                let mut side: Option<String> = self.safe_string_opt(Value::Map(sides.clone()), key.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);
                 let mut amount: Value = self.safe_number(change, Value::Int(2), &[]);
                 let mut bookside: Value = self.safe_value(orderbook.clone(), side.map(Value::from).unwrap_or(Value::Null), &[]);

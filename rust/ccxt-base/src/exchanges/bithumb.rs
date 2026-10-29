@@ -895,9 +895,9 @@ impl BithumbCore {
 }
 
     pub fn get_gen2_market_id(&self, mut market: Value) -> Option<String> {
-        let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[]);
-        if (marketId != Value::Null) && (Value::Int(marketId.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
-            return marketId.as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
+        if (marketId.is_some()) && (Value::Int(marketId.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+            return marketId.as_deref().map(str::to_owned);
         }
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteId".into()), Value::Str("quote".into()), &[Value::Str("".into())]);
         let mut baseId: Value = self.safe_string2(market, Value::Str("baseId".into()), Value::Str("base".into()), &[Value::Str("".into())]);
@@ -936,13 +936,13 @@ impl BithumbCore {
                 let mut __for_first_388: bool = true;
                 while { if !__for_first_388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut entry: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
+                let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
                 let mut baseId: Value = Value::Null;
                 let mut quoteId: Value = Value::Null;
                 let mut base: Value = Value::Null;
                 let mut quote: Value = Value::Null;
-                if (marketId != Value::Null) {
-                    let mut parts: Vec<Value> = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                if (marketId.is_some()) {
+                    let mut parts: Vec<Value> = Value::Array(marketId.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).cloned().unwrap_or(Value::Null);
                     quoteId = parts.get(0).cloned().unwrap_or(Value::Null);
@@ -954,7 +954,7 @@ impl BithumbCore {
                 }
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), marketId);
+                        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                         m.insert("base".to_string(), base.clone());
                         m.insert("quote".to_string(), quote.clone());
@@ -2088,9 +2088,9 @@ impl BithumbCore {
         let mut generationTwoTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut timestamp: Value = generationTwoTimestamp.clone();
         let mut isGenerationTwo: bool = generationTwoTimestamp != Value::Null;
-        let mut transactionDatetime: Value = self.safe_string_k(trade.clone(), "transaction_date", &[]);
-        if (transactionDatetime != Value::Null) {
-            let mut parts: Value = Value::Array(transactionDatetime.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        let mut transactionDatetime: Option<String> = self.safe_string_k_opt(trade.clone(), "transaction_date", &[]);
+        if (transactionDatetime.is_some()) {
+            let mut parts: Value = Value::Array(transactionDatetime.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
                 let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

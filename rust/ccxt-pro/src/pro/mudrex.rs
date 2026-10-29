@@ -489,11 +489,11 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut s: Value = self.safe_string_k(data.clone(), "s", &[]);
-        if (s == Value::Null) {
+        let mut s: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
+        if (s.is_none()) {
             return;
         }
-        let mut market: Value = self.safe_market(&[s.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+        let mut market: Value = self.safe_market(&[s.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "t", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -522,11 +522,11 @@ impl MudrexCore {
             let mut __for_first_510: bool = true;
             while { if !__for_first_510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_510 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut t: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut s: Value = self.safe_string_k(t.clone(), "s", &[]);
-            if (s == Value::Null) {
+            let mut s: Option<String> = self.safe_string_k_opt(t.clone(), "s", &[]);
+            if (s.is_none()) {
                 continue;
             }
-            let mut market: Value = self.safe_market(&[s.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+            let mut market: Value = self.safe_market(&[s.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.milliseconds();
             let mut last: Value = self.safe_number_k(t.clone(), "p", &[]);

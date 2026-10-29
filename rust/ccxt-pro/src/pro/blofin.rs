@@ -1586,9 +1586,9 @@ impl BlofinCore {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" error: ".into())).into()), json_stringify(&message))));
             }
             let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
-            let mut channelName: Value = self.safe_string_k(arg, "channel", &[]);
-            method = self.safe_value(Value::Map(methods.clone()), channelName.clone(), &[]);
-            if (method == Value::Null) && (Value::Int(channelName.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+            let mut channelName: Option<String> = self.safe_string_k_opt(arg, "channel", &[]);
+            method = self.safe_value(Value::Map(methods.clone()), channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            if (method == Value::Null) && (Value::Int(channelName.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                 method = methods.get("candle").cloned().unwrap_or(Value::Null);
             }
         }

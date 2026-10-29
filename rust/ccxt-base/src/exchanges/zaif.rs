@@ -559,11 +559,11 @@ impl ZaifCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "currency_pair", &[]);
-        let mut name: Value = self.safe_string_k(market.clone(), "name", &[]);
-        if (name == Value::Null) {
+        let mut name: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
+        if (name.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
         }
-        let mut nameParts: Value = Value::Array(name.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut nameParts: Value = Value::Array(name.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
         let mut baseId: Option<String> = self.safe_string_opt(nameParts.clone(), Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(nameParts, Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);

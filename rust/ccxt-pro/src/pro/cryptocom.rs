@@ -2094,16 +2094,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut result: Value = self.safe_value2(message.clone(), Value::Str("result".into()), Value::Str("info".into()), &[]);
-        let mut channel: Value = self.safe_string_k(result.clone(), "channel", &[]);
-        if (channel != Value::Null) && Value::Int(channel.as_str().and_then(|__s| __s.find("user.trade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        let mut channel: Option<String> = self.safe_string_k_opt(result.clone(), "channel", &[]);
+        if (channel.is_some()) && Value::Int(channel.as_deref().and_then(|__s| __s.find("user.trade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             // channel might be user.trade.BTC_USDT
             self.handle_trades(client.clone(), result.clone());
         }
-        if (channel != Value::Null) && (channel.as_str().unwrap_or("").starts_with("user.order")) {
+        if (channel.is_some()) && (channel.as_deref().unwrap_or("").starts_with("user.order")) {
             // channel might be user.order.BTC_USDT
             self.handle_orders(client.clone(), result.clone(), &[]);
         }
-        let mut method: Value = self.safe_value(Value::Map(methods), channel, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), channel.map(Value::from).unwrap_or(Value::Null), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, result]);
         }

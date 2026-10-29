@@ -1322,8 +1322,8 @@ if _try_result.is_err() {
         //       "instrument_type": "spot",
         //       "base_asset": "SOL"
         //     },
-        let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[id.clone()]);
+        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[id.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
         let mut isSwap: bool = !(matches!(&isSpot, Value::Bool(true)));
@@ -1337,11 +1337,11 @@ if _try_result.is_err() {
         let mut maxLeverage: Value = Value::Null;
         let mut crossMargin: Value = Value::Null;
         let mut isolatedMargin: Value = Value::Null;
-        if (id == Value::Null) {
+        if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
         if matches!(&isSpot, Value::Bool(true)) {
-            let mut idParts: Value = Value::Array(id.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut idParts: Value = Value::Array(id.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             quoteId = self.safe_string(idParts, Value::Int(1), &[quoteId.clone()]);
         }
         let mut isolatedOnly: Value = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]);
@@ -1377,7 +1377,7 @@ if _try_result.is_err() {
         let mut active: Value = Value::Bool(true); // there is no non-active markets comes from endpoint market info
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);

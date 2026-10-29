@@ -1338,8 +1338,8 @@ impl CoinbaseCore {
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_245 = false; i.as_f64().unwrap_or(f64::NAN) < ((updates.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(updates.clone(), i.clone(), &[]);
-            let mut sideId: Value = self.safe_string_k(trade.clone(), "side", &[]);
-            let mut side: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("sides")).cloned().unwrap_or(Value::Null), sideId, &[]);
+            let mut sideId: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
+            let mut side: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("sides")).cloned().unwrap_or(Value::Null), sideId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut price: Value = self.safe_number_k(trade.clone(), "price_level", &[]);
             let mut amount: Value = self.safe_number_k(trade, "new_quantity", &[]);
             let mut orderbookSide: Value = self.safe_value(orderbook.clone(), side.map(Value::from).unwrap_or(Value::Null), &[]);

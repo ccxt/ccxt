@@ -1375,11 +1375,11 @@ impl BlockchaincomCore {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
-        let mut rawAddress: Value = self.safe_string_k(response.clone(), "address", &[]);
+        let mut rawAddress: Option<String> = self.safe_string_k_opt(response.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
         let mut address: Value = Value::Null;
-        if (rawAddress != Value::Null) {
-            let mut addressParts: Value = Value::Array(rawAddress.as_str().map(|__s| __s.split(";").map(Value::from).collect()).unwrap_or_default());
+        if (rawAddress.is_some()) {
+            let mut addressParts: Value = Value::Array(rawAddress.as_deref().map(|__s| __s.split(";").map(Value::from).collect()).unwrap_or_default());
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             address = self.safe_string(addressParts, Value::Int(1), &[]);

@@ -2763,8 +2763,8 @@ if _try_result.is_err() {
     m
 })]), Value::Str("transfer_metadata".into()), &[]);
                 let mut parsedMetadata: Value = self.parse_json_value(metadata.map(Value::from).unwrap_or(Value::Null));
-                let mut direction: Value = self.safe_string_k(parsedMetadata, "direction", &[]);
-                if (direction.as_str() == transferType.as_str()) {
+                let mut direction: Option<String> = self.safe_string_k_opt(parsedMetadata, "direction", &[]);
+                if (direction.as_deref() == transferType.as_str()) {
                     matchedResults.push(transfer.clone());
                 }  else {
                     nonMatchedResults.push(transfer);

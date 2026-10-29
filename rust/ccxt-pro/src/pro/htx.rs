@@ -1297,11 +1297,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(1), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut size: Value = self.safe_string(parts, Value::Int(3), &[]);
-            if (size == Value::Null) {
+            let mut size: Option<String> = self.safe_string_opt(parts, Value::Int(3), &[]);
+            if (size.is_none()) {
                 return;
             }
-            let mut sizeParts: Value = Value::Array(size.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut sizeParts: Value = Value::Array(size.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut limit: Value = self.safe_integer(sizeParts, Value::Int(1), &[]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2024,7 +2024,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("orderPrice".into()), Value::Str("price".into()), &[]);
         let mut filled: Value = self.safe_string2(order.clone(), Value::Str("execAmt".into()), Value::Str("trade_volume".into()), &[]);
-        let mut typeSide: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut typeSide: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut feeCost: Option<String> = self.safe_string_k_opt(order.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
@@ -2040,12 +2040,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trade", &[]);
         let mut typeSideParts: Value = Value::from(vec![]);
         let mut type_var: Value = Value::Null;
-        if (typeSide != Value::Null) {
-            if Value::Int(typeSide.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                typeSideParts = Value::Array(typeSide.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        if (typeSide.is_some()) {
+            if Value::Int(typeSide.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                typeSideParts = Value::Array(typeSide.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
                 type_var = self.safe_string_lower(typeSideParts.clone(), Value::Int(1), &[]);
             }  else {
-                type_var = typeSide;
+                type_var = typeSide.map(Value::from).unwrap_or(Value::Null);
             }
         }
         if (type_var == Value::Null) {

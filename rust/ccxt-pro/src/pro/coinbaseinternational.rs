@@ -2115,8 +2115,8 @@ impl CoinbaseinternationalCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        let mut channel: Value = self.safe_string_k(params, "channel", &[]);
-        let mut channelParts: Vec<Value> = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut channelParts: Vec<Value> = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut channelPartsLength: f64 = ((channelParts.len() as i64) as f64);
         let mut isGrouped: bool = channelPartsLength == 5.0;
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2141,11 +2141,11 @@ impl CoinbaseinternationalCore {
             if (type_var.as_deref() != Some("snapshot")) && (nonce != Value::Null) && (previousChangeId.as_f64() != nonce.as_f64()) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
-                if (__ch.has_subscription(&channel)) {
-                    __ch.remove_subscription(&channel);
+                if (__ch.has_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null))) {
+                    __ch.remove_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into())))), channel.clone()]);
-                self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), channel.clone()]);
+                client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into())))), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+                self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
                 return;
             }
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
@@ -2156,8 +2156,8 @@ impl CoinbaseinternationalCore {
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        if (channel != Value::Null) {
-            client.resolve(&[orderbook, channel]);
+        if (channel.is_some()) {
+            client.resolve(&[orderbook, channel.map(Value::from).unwrap_or(Value::Null)]);
         }
 }
 
@@ -2282,9 +2282,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
-        let mut channel: Value = self.safe_string_k(params, "channel", &[]);
-        if (channel != Value::Null) {
-            let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        if (channel.is_some()) {
+            let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
             let mut channelId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut userChannel: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
             let mut userHandlers: indexmap::IndexMap<String, Value> = ({
@@ -2308,7 +2308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut handler: Value = self.safe_value(Value::Map(handlers), channelId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (handler == Value::Null) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for websocket channel ".into())).into()), channel)));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for websocket channel ".into())).into()), channel.map(Value::from).unwrap_or(Value::Null))));
             }
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;

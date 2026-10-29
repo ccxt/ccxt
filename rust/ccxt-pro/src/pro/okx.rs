@@ -3736,8 +3736,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut channel: Value = self.safe_string_k(arg, "channel", &[]);
-            if (channel == Value::Null) {
+            let mut channel: Option<String> = self.safe_string_k_opt(arg, "channel", &[]);
+            if (channel.is_none()) {
                 return;
             }
             let mut methods: Value = Value::Map({
@@ -3764,9 +3764,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("balance_and_position".to_string(), Value::Str("handle_balance_and_position".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods, channel.clone(), &[]);
+            let mut method: Value = self.safe_value(methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (method == Value::Null) {
-                if (Value::Int(channel.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+                if (Value::Int(channel.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                     self.handle_ohlcv(client.clone(), message.clone());
                 }
             }  else {
@@ -3836,8 +3836,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut channel: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        if (channel == Value::Null) {
+        let mut channel: Option<String> = self.safe_string_k_opt(arg.clone(), "channel", &[]);
+        if (channel.is_none()) {
             return;
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(arg, "instId", &[]);
@@ -3845,14 +3845,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol == Value::Null) {
             return;
         }
-        if (channel.as_str() == Some("trades")) || (channel.as_str() == Some("trades-all")) {
-            self.handle_un_subscription_trades(client.clone(), symbol.clone(), channel.clone());
-        }  else if (channel.as_str().unwrap_or("").starts_with("bbo")) || (channel.as_str().unwrap_or("").starts_with("book")) {
-            self.handle_unsubscription_order_book(client.clone(), symbol.clone(), channel.clone());
-        }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-            self.handle_unsubscription_ticker(client.clone(), symbol.clone(), channel.clone());
-        }  else if (channel.as_str().unwrap_or("").starts_with("candle")) {
-            self.handle_unsubscription_ohlcv(client, symbol, channel);
+        if (channel.as_deref() == Some("trades")) || (channel.as_deref() == Some("trades-all")) {
+            self.handle_un_subscription_trades(client.clone(), symbol.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null));
+        }  else if (channel.as_deref().unwrap_or("").starts_with("bbo")) || (channel.as_deref().unwrap_or("").starts_with("book")) {
+            self.handle_unsubscription_order_book(client.clone(), symbol.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null));
+        }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            self.handle_unsubscription_ticker(client.clone(), symbol.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null));
+        }  else if (channel.as_deref().unwrap_or("").starts_with("candle")) {
+            self.handle_unsubscription_ohlcv(client, symbol, channel.map(Value::from).unwrap_or(Value::Null));
         }
 }
 }

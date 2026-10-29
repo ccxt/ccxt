@@ -1126,11 +1126,11 @@ impl AlpacaCore {
         //         "price_increment": "1"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
-        if (marketId == Value::Null) {
+        let mut marketId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
+        if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(marketId.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
         let mut assetClass: Option<String> = self.safe_string_k(asset.clone(), "class", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
@@ -1158,7 +1158,7 @@ impl AlpacaCore {
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId);
+        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
@@ -2652,8 +2652,8 @@ impl AlpacaCore {
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
             let mut entry: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
-            if (direction.as_str() == type_var.as_str()) {
+            let mut direction: Option<String> = self.safe_string_k_opt(entry.clone(), "direction", &[]);
+            if (direction.as_deref() == type_var.as_str()) {
                 results.push(entry.clone());
             }  else if (type_var.as_str() == Some("BOTH")) {
                 results.push(entry);

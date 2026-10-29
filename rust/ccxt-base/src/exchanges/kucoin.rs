@@ -3553,11 +3553,11 @@ impl KucoinCore {
             let mut __for_first_885: bool = true;
             while { if !__for_first_885 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_885 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsData.len() as i64) as f64) } {
             let mut market: Value = symbolsData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            if (id == Value::Null) {
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            if (id.is_none()) {
                 continue;
             }
-            let mut idParts: Vec<Value> = Value::Array(id.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut idParts: Vec<Value> = Value::Array(id.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut baseId: Value = idParts.get(0).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = idParts.get(1).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -3566,7 +3566,7 @@ impl KucoinCore {
                 continue;
             }
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            let mut ticker: Value = self.safe_dict(tickersById.clone(), id.clone(), &[Value::Map({
+            let mut ticker: Value = self.safe_dict(tickersById.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3574,12 +3574,12 @@ impl KucoinCore {
             let mut takerFeeRate: Option<String> = self.safe_string_k_opt(ticker.clone(), "takerFeeRate", &[]);
             let mut makerCoefficient: Option<String> = self.safe_string_k_opt(ticker.clone(), "makerCoefficient", &[]);
             let mut takerCoefficient: Option<String> = self.safe_string_k_opt(ticker, "takerCoefficient", &[]);
-            let mut hasCrossMargin: Value = (Value::Bool(matches!((&crossById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
-            let mut hasIsolatedMargin: Value = (Value::Bool(matches!((&isolatedById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
+            let mut hasCrossMargin: Value = (Value::Bool(matches!((&crossById, &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
+            let mut hasIsolatedMargin: Value = (Value::Bool(matches!((&isolatedById, &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
             let mut isMarginable: Value = Value::Bool(self.safe_bool_k(market.clone(), "isMarginEnabled", &[Value::Bool(false)]).as_bool() == Some(true) || matches!(&hasCrossMargin, Value::Bool(true)) || matches!(&hasIsolatedMargin, Value::Bool(true)));
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
@@ -6996,14 +6996,14 @@ impl KucoinCore {
             let mut __for_first_893: bool = true;
             while { if !__for_first_893 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_893 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(ordersList.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            if (marketId == Value::Null) {
+            let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            if (marketId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".into()))));
             }
             if (symbol == Value::Null) {
-                symbol = marketId.clone();
+                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                if (symbol.as_str() != marketId.as_str()) {
+                if (symbol.as_str() != marketId.as_deref()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -7018,7 +7018,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut orderRequest: Value = self.create_spot_order_request(marketId, type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
+            let mut orderRequest: Value = self.create_spot_order_request(marketId.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
             ordersRequests.push(orderRequest);
         }
         }
@@ -11219,8 +11219,8 @@ impl KucoinCore {
                 let mut __for_first_897: bool = true;
                 while { if !__for_first_897 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_897 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                 let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
-                let mut balanceType: Value = self.safe_string_k(balance.clone(), "type", &[]);
-                if (balanceType.as_str() == type_var.as_str()) {
+                let mut balanceType: Option<String> = self.safe_string_k_opt(balance.clone(), "type", &[]);
+                if (balanceType.as_deref() == type_var.as_str()) {
                     let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                     let mut codeInner2: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -13474,9 +13474,9 @@ if _try_result.is_err() {
             let mut __for_first_903: bool = true;
             while { if !__for_first_903 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_903 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-            let mut isFundingIndex: bool = (marketId != Value::Null) && (marketId.as_str().unwrap_or("").starts_with("."));
+            let mut isFundingIndex: bool = (marketId.is_some()) && (marketId.as_deref().unwrap_or("").starts_with("."));
             if !isFundingIndex {
                 rates.push(entry);
             }
@@ -14241,7 +14241,7 @@ if _try_result.is_err() {
         }
         let mut size: Value = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("currentQty".into()), Value::Str("size".into()), Value::Str("maxSize".into()), Value::Str("closeSize".into())]), &[]);
         let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
-        let mut type_var: Value = self.safe_string_lower_k(position.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_lower_k_opt(position.clone(), "type", &[]);
         if (side == Value::Null) {
             if (size != Value::Null) {
                 if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -14249,8 +14249,8 @@ if _try_result.is_err() {
                 }  else if crate::precise::Precise::stringLt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
                     side = Value::Str("short".into());
                 }
-            }  else if (type_var != Value::Null) {
-                if Value::Int(type_var.as_str().and_then(|__s| __s.find("long")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if (type_var.is_some()) {
+                if Value::Int(type_var.as_deref().and_then(|__s| __s.find("long")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                     side = Value::Str("long".into());
                 }  else {
                     side = Value::Str("short".into());

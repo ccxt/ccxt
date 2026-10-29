@@ -688,9 +688,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_200: bool = true;
             while { if !__for_first_200 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_200 = false; i.as_f64().unwrap_or(f64::NAN) < ((replacementKeys.len() as i64) as f64) } {
             let mut replacementKey: Value = replacementKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut replacementValue: Value = self.safe_string(Value::Map(replacements.clone()), replacementKey.clone(), &[]);
-            if (replacementValue != Value::Null) {
-                s = match (s.as_str(), replacementKey.as_str(), replacementValue.as_str()) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => s.clone() }
+            let mut replacementValue: Option<String> = self.safe_string_opt(Value::Map(replacements.clone()), replacementKey.clone(), &[]);
+            if (replacementValue.is_some()) {
+                s = match (s.as_str(), replacementKey.as_str(), replacementValue.as_deref()) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => s.clone() }
             }
         }
         }

@@ -3460,12 +3460,12 @@ impl NadoCore {
             let mut __for_first_994: bool = true;
             while { if !__for_first_994 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_994 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut rawBalance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
-            let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "product_id", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut currencyId: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "product_id", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code.as_str() == Some("0")) {
                 code = Value::Str("USDT0".into());
-            }  else if (code.as_str() == currencyId.as_str()) {
-                let mut market: Value = self.safe_market(&[currencyId, Value::Null, Value::Null, Value::Str("spot".into())]);
+            }  else if (code.as_str() == currencyId.as_deref()) {
+                let mut market: Value = self.safe_market(&[currencyId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("spot".into())]);
                 if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                     code = self.safe_string_k(market, "base", &[code.clone()]);
                 }

@@ -2585,8 +2585,8 @@ impl NadoCore {
                 let mut subscriptionHash: Value = subscriptions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
                 let mut streamType: Option<String> = self.safe_string_k(subscription.clone(), "streamType", &[]).as_str().map(str::to_owned);
-                let mut subscriptionSymbol: Value = self.safe_string_k(subscription, "symbol", &[]);
-                if (streamType.as_deref() == Some("book_depth")) && (subscriptionSymbol.as_str() == symbol.as_str()) {
+                let mut subscriptionSymbol: Option<String> = self.safe_string_k_opt(subscription, "symbol", &[]);
+                if (streamType.as_deref() == Some("book_depth")) && (subscriptionSymbol.as_deref() == symbol.as_str()) {
                     __ch.remove_subscription(&subscriptionHash);
                 }
             }
@@ -2768,8 +2768,8 @@ impl NadoCore {
 }
 
     pub fn ping(&mut self, mut client: Value) -> Value {
-        let mut gatewayUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("gateway".into()), &[]);
-        if (client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null).as_str() == gatewayUrl.as_str()) {
+        let mut gatewayUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("gateway".into()), &[]);
+        if (client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null).as_str() == gatewayUrl.as_deref()) {
             return Value::Null;
         }
         return Value::Map({

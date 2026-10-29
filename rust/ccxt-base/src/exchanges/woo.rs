@@ -3207,9 +3207,9 @@ impl WooCore {
         //     }
         //
         let mut timestamp: Value = Value::Null;
-        let mut timestrampString: Value = self.safe_string_k(order.clone(), "createdTime", &[]);
-        if (timestrampString != Value::Null) {
-            if Value::Int(timestrampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        let mut timestrampString: Option<String> = self.safe_string_k_opt(order.clone(), "createdTime", &[]);
+        if (timestrampString.is_some()) {
+            if Value::Int(timestrampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 timestamp = self.safe_timestamp_k(order.clone(), "createdTime", &[]); // algo orders
             }  else {
                 timestamp = self.safe_integer_k(order.clone(), "createdTime", &[]); // regular orders
@@ -3234,10 +3234,10 @@ impl WooCore {
         let mut fee: Value = self.safe_number_k(order.clone(), "totalFee", &[]);
         let mut feeCurrency: Option<String> = self.safe_string_k_opt(order.clone(), "feeAsset", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
-        let mut lastUpdateTimestampString: Value = self.safe_string_k(order.clone(), "updatedTime", &[]);
+        let mut lastUpdateTimestampString: Option<String> = self.safe_string_k_opt(order.clone(), "updatedTime", &[]);
         let mut lastUpdateTimestamp: Value = Value::Null;
-        if (lastUpdateTimestampString != Value::Null) {
-            if Value::Int(lastUpdateTimestampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if (lastUpdateTimestampString.is_some()) {
+            if Value::Int(lastUpdateTimestampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 lastUpdateTimestamp = self.safe_timestamp_k(order.clone(), "updatedTime", &[]); // algo orders
             }  else {
                 lastUpdateTimestamp = self.safe_integer_k(order.clone(), "updatedTime", &[]); // regular orders
@@ -5777,10 +5777,10 @@ impl WooCore {
         }
         let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
         let mut markPrice: Value = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("mark_price".into()), &[]);
-        let mut timestampString: Value = self.safe_string_k(position.clone(), "timestamp", &[]);
+        let mut timestampString: Option<String> = self.safe_string_k_opt(position.clone(), "timestamp", &[]);
         let mut timestamp: Value = Value::Null;
-        if (timestampString != Value::Null) {
-            if Value::Int(timestampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if (timestampString.is_some()) {
+            if Value::Int(timestampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 timestamp = self.safe_timestamp_k(position.clone(), "timestamp", &[]);
             }  else {
                 timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]);

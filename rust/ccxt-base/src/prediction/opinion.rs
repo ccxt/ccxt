@@ -569,12 +569,12 @@ impl OpinionCore {
         //     "yesTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279"
         // }
         let mut marketId: Option<String> = self.safe_string_k_opt(raw.clone(), "marketId", &[]);
-        let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
+        let mut slug: Option<String> = self.safe_string_k_opt(raw.clone(), "slug", &[]);
         let mut effectiveEventSlug: Value = eventSlug.clone();
-        if (eventSlug != Value::Null) && (slug != Value::Null) && (Value::Int(slug.as_str().zip(eventSlug.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+        if (eventSlug != Value::Null) && (slug.is_some()) && (Value::Int(slug.as_deref().zip(eventSlug.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             effectiveEventSlug = Value::Null;
         }
-        let mut marketSymbol: Value = self.slug_to_market_symbol(effectiveEventSlug.clone(), slug.clone());
+        let mut marketSymbol: Value = self.slug_to_market_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null));
         let mut statusEnum: Option<String> = self.safe_string_k(raw.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
         let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
@@ -590,7 +590,7 @@ impl OpinionCore {
             while { if !__for_first_1379 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1379 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
             let mut label: Option<String> = self.safe_string_opt(outcomeLabels.clone(), i.clone(), &[]);
             let mut tokenId: Value = self.safe_string(outcomeTokenIds.clone(), i.clone(), &[]);
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone(), label.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null));
             let mut winner: Value = Value::Null;
             let mut settleFraction: Value = Value::Null;
             if hasResult {

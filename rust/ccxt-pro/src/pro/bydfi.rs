@@ -586,9 +586,9 @@ impl BydfiCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_217: bool = true;
                 while { if !__for_first_217 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < ((subHashes.len() as i64) as f64) } {
-                let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
-                if (subHash != Value::Null) {
-                    let mut parts: Value = Value::Array(subHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
+                let mut subHash: Option<String> = self.safe_string_opt(subHashes.clone(), i.clone(), &[]);
+                if (subHash.is_some()) {
+                    let mut parts: Value = Value::Array(subHash.as_deref().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
                     let mut symbol: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
                     if (symbol.as_deref() == Some("all")) {
                         continue;

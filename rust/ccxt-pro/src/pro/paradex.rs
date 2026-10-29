@@ -2318,8 +2318,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut data: Value = self.safe_dict_k(parsedMessage.clone(), "params", &[]);
         if (data != Value::Null) {
-            let mut channel: Value = self.safe_string_k(data, "channel", &[]);
-            let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+            let mut channel: Option<String> = self.safe_string_k_opt(data, "channel", &[]);
+            let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
             let mut name: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
             let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

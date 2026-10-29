@@ -819,17 +819,17 @@ impl BtcmarketsCore {
     m
 })]);
         let mut txid: Option<String> = self.safe_string_k_opt(cryptoPaymentDetail.clone(), "txId", &[]);
-        let mut addressRaw: Value = self.safe_string_k(cryptoPaymentDetail, "address", &[]);
+        let mut addressRaw: Option<String> = self.safe_string_k_opt(cryptoPaymentDetail, "address", &[]);
         let mut address: Value = Value::Null;
         let mut tag: Value = Value::Null;
-        if (addressRaw != Value::Null) {
-            let mut addressParts: Vec<Value> = Value::Array(addressRaw.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        if (addressRaw.is_some()) {
+            let mut addressParts: Vec<Value> = Value::Array(addressRaw.as_deref().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut numParts: f64 = ((addressParts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
                 address = addressParts.get(0).cloned().unwrap_or(Value::Null);
                 tag = addressParts.get(1).cloned().unwrap_or(Value::Null);
             }  else {
-                address = addressRaw;
+                address = addressRaw.map(Value::from).unwrap_or(Value::Null);
             }
         }
         let mut fee: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);

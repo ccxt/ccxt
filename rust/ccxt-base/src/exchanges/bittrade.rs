@@ -1645,9 +1645,9 @@ impl BittradeCore {
         let mut order: Option<String> = self.safe_string_k_opt(trade.clone(), "order-id", &[]);
         let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
         let mut type_var: Value = Value::Null;
-        let mut typeRaw: Value = self.safe_string_k(trade.clone(), "type", &[]);
-        if (typeRaw != Value::Null) {
-            let mut typeParts: Value = Value::Array(typeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut typeRaw: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        if (typeRaw.is_some()) {
+            let mut typeParts: Value = Value::Array(typeRaw.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             side = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
             type_var = self.safe_string(typeParts, Value::Int(1), &[]);
         }
@@ -2403,9 +2403,9 @@ impl BittradeCore {
         let mut side: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
-        let mut orderTypeRaw: Value = self.safe_string_k(order.clone(), "type", &[]);
-        if (orderTypeRaw != Value::Null) {
-            let mut orderType: Value = Value::Array(orderTypeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut orderTypeRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
+        if (orderTypeRaw.is_some()) {
+            let mut orderType: Value = Value::Array(orderTypeRaw.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             side = self.safe_string(orderType.clone(), Value::Int(0), &[]);
             type_var = self.safe_string(orderType, Value::Int(1), &[]);
             status = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -2697,10 +2697,10 @@ impl BittradeCore {
         //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
-        let mut successes: Value = self.safe_string_k(orders.clone(), "successes", &[]);
+        let mut successes: Option<String> = self.safe_string_k_opt(orders.clone(), "successes", &[]);
         let mut success: Value = Value::Null;
-        if (successes != Value::Null) {
-            success = Value::Array(successes.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+        if (successes.is_some()) {
+            success = Value::Array(successes.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
         }  else {
             success = self.safe_list_k(orders.clone(), "success", &[Value::from(vec![])]);
         }

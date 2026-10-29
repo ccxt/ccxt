@@ -3721,11 +3721,11 @@ impl BybitCore {
         if hasSlash {
             baseName = self.safe_string(symbolBase.clone(), Value::Int(0), &[Value::Str("".into())]);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
-            let mut symbolQuoteAndSettle: Value = self.safe_string(symbolBase, Value::Int(1), &[]);
-            if (symbolQuoteAndSettle == Value::Null) {
+            let mut symbolQuoteAndSettle: Option<String> = self.safe_string_opt(symbolBase, Value::Int(1), &[]);
+            if (symbolQuoteAndSettle.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing symbolQuoteAndSettle".into()))));
             }
-            let mut splitQuote: Value = Value::Array(symbolQuoteAndSettle.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+            let mut splitQuote: Value = Value::Array(symbolQuoteAndSettle.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
             let mut quoteAndSettle: Option<String> = self.safe_string_opt(splitQuote, Value::Int(0), &[]);
             quote = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
         }  else {
@@ -4706,7 +4706,7 @@ impl BybitCore {
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_502 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCoin", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCoin", &[]);
             let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settleCoin", &[]);
@@ -4726,10 +4726,10 @@ impl BybitCore {
 })]);
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut expiry: Value = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
-            if (id == Value::Null) {
+            if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".into()))));
             }
-            let mut splitId: Value = Value::Array(id.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut splitId: Value = Value::Array(id.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             let mut strike: Value = self.safe_string(splitId.clone(), Value::Int(2), &[Value::Str("".into())]);
             let optionLetter: String = self.safe_string_opt(splitId, Value::Int(3), &[Value::Str("".into())]).unwrap_or_default();
             let mut isActive: Value = (Value::Bool(status.as_deref() == Some("Trading")));
@@ -4739,7 +4739,7 @@ impl BybitCore {
                 Some(__y) if __y == 1.0) })) || ((match &(loadExpiredOptions) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) {
                 result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()),
             quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionLetter).into()));
         m.insert("base".to_string(), base);
@@ -5072,8 +5072,8 @@ impl BybitCore {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers can only accept a list of symbols of the same type".into()))));
                 }
                 if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    let mut marketBase: Value = self.safe_string_k(market.clone(), "base", &[]);
-                    if (code != Value::Null) && (code.as_str() != marketBase.as_str()) {
+                    let mut marketBase: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
+                    if (code != Value::Null) && (code.as_str() != marketBase.as_deref()) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers".into()))));
                     }
                     if (code == Value::Null) {

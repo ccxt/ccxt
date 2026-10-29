@@ -1321,16 +1321,16 @@ impl Bit2cCore {
         let mut side: Value = Value::Null;
         let mut makerOrTaker: Value = Value::Null;
         let mut tradeMarket: Value = Value::Null;
-        let mut reference: Value = self.safe_string_k(trade.clone(), "reference", &[]);
-        if (reference != Value::Null) {
-            id = reference.clone();
+        let mut reference: Option<String> = self.safe_string_k_opt(trade.clone(), "reference", &[]);
+        if (reference.is_some()) {
+            id = reference.clone().map(Value::from).unwrap_or(Value::Null);
             timestamp = self.safe_timestamp_k(trade.clone(), "ticks", &[]);
             let mut rawPrice: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
             if (rawPrice.is_some()) {
                 price = self.remove_comma_from_value(rawPrice.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             }
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]);
-            let mut reference_parts: Vec<Value> = Value::Array(reference.as_str().map(|__s| __s.split("|").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            let mut reference_parts: Vec<Value> = Value::Array(reference.as_deref().map(|__s| __s.split("|").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
             let mut marketByPair: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
             tradeMarket = self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]);

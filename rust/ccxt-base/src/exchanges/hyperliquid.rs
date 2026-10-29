@@ -716,13 +716,13 @@ impl HyperliquidCore {
         }
         if !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut symbolParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
-            let mut baseName: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[]);
+            let mut baseName: Option<String> = self.safe_string_opt(symbolParts.clone(), Value::Int(0), &[]);
             let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (matches!((&spotCurrencyMapping, &baseName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut unifiedBaseName: Option<String> = self.safe_string_opt(spotCurrencyMapping.clone(), baseName.clone(), &[]);
+            if (matches!((&spotCurrencyMapping, &baseName.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                let mut unifiedBaseName: Option<String> = self.safe_string_opt(spotCurrencyMapping.clone(), baseName.map(Value::from).unwrap_or(Value::Null), &[]);
                 let quote: String = self.safe_string_opt(symbolParts, Value::Int(1), &[]).unwrap_or_default();
                 let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), &[]), Value::Str("/".into())).into()), quote).into());
                 if (matches!((&self.markets, &newSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -884,9 +884,9 @@ impl HyperliquidCore {
             m
         }));
         // add in wrapped map
-        let mut fullName: Value = self.safe_string_k(rawCurrency, "fullName", &[]);
-        if (fullName != Value::Null) && (name != Value::Null) {
-            let mut isWrapped: bool = (fullName.as_str().unwrap_or("").starts_with("Unit ")) && (name.as_str().unwrap_or("").starts_with("U"));
+        let mut fullName: Option<String> = self.safe_string_k_opt(rawCurrency, "fullName", &[]);
+        if (fullName.is_some()) && (name != Value::Null) {
+            let mut isWrapped: bool = (fullName.as_deref().unwrap_or("").starts_with("Unit ")) && (name.as_str().unwrap_or("").starts_with("U"));
             if isWrapped {
                 let mut parts: Vec<Value> = Value::Array(name.as_str().map(|__s| __s.split("U").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut nameWithoutU: Value = Value::Str("".into());
@@ -1088,7 +1088,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut collateralToken: Value = self.safe_string_k(meta.clone(), "collateralToken", &[]);
+            let mut collateralToken: Option<String> = self.safe_string_k_opt(meta.clone(), "collateralToken", &[]);
             let mut universe: Value = self.safe_list_k(meta, "universe", &[Value::from(vec![])]);
             let mut assetCtxs: Value = self.safe_list(response, Value::Int(1), &[Value::from(vec![])]);
             let mut result: Vec<Value> = Vec::new();
@@ -1106,7 +1106,7 @@ impl HyperliquidCore {
 })]);
                 let mut data: Value = self.extend(__ws_arg_4, &[__ws_arg_5]);
                 if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("baseId".into(), self.sum(&[j.clone(), offset.clone()])); }
-                if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("collateralToken".into(), collateralToken.clone()); }
+                if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("collateralToken".into(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("hip3".into(), Value::Bool(true)); }
                 if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName.clone()); }
                 let mut cachedCurrencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrenciesById", &[Value::Map({
@@ -1114,9 +1114,9 @@ impl HyperliquidCore {
     m
 })]);
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                if (matches!((&cachedCurrencies, &collateralToken), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (matches!((&cachedCurrencies, &collateralToken.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut name: Value = self.safe_string_k(data.clone(), "name", &[]);
-                    let mut collateralTokenCode: Option<String> = self.safe_string_opt(cachedCurrencies.clone(), collateralToken.clone(), &[]);
+                    let mut collateralTokenCode: Option<String> = self.safe_string_opt(cachedCurrencies.clone(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null)); }
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let mut safeCode: Value = self.safe_currency_code(name.clone(), &[]);
@@ -3260,7 +3260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isMarket: Value = (Value::Bool(typeValue.as_str() == Some("MARKET")));
         let mut isBuy: Value = (Value::Bool(sideValue.as_str() == Some("BUY")));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
-        let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[]);
+        let mut slippage: Option<String> = self.safe_string_k_opt(params.clone(), "slippage", &[]);
         let mut defaultTimeInForce: Value = Value::Str("gtc".into());
         if matches!(&isMarket, Value::Bool(true)) {
             defaultTimeInForce = Value::Str("ioc".into());
@@ -3280,7 +3280,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).".into()))));
             }
-            px = (if (isBuy).as_bool() == Some(true) { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
+            px = (if (isBuy).as_bool() == Some(true) { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage.clone().map(Value::from).unwrap_or(Value::Null))) } else { crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage.clone().map(Value::from).unwrap_or(Value::Null))) });
             px = self.price_to_precision(symbol.clone(), px.clone()); // round after adding slippage
         }  else {
             px = self.price_to_precision(symbol.clone(), price);
@@ -5137,7 +5137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut fills: Vec<Value> = Vec::new();
         if (matches!(&response, Value::Arr(_))) {
-            let mut user: Value = self.safe_string_lower_k(Value::Map(request), "user", &[]);
+            let mut user: Option<String> = self.safe_string_lower_k_opt(Value::Map(request), "user", &[]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_823: bool = true;
@@ -5151,7 +5151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                 // liquidator fills carry the liquidated counterparty here
-                if (self.safe_string_lower_k(liquidation, "liquidatedUser", &[]).as_str() == user.as_str()) {
+                if (self.safe_string_lower_k(liquidation, "liquidatedUser", &[]).as_str() == user.as_deref()) {
                     fills.push(fill);
                 }
             }

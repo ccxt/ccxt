@@ -1488,11 +1488,11 @@ impl DigifinexCore {
             let mut __for_first_640: bool = true;
             while { if !__for_first_640 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_640 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = markets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
-            if (id == Value::Null) {
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "market", &[]);
+            if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketsV1() missing id".into()))));
             }
-            let mut idParts: Value = Value::Array(id.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut idParts: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut baseId: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(0), &[]);
             let mut quoteId: Option<String> = self.safe_string_opt(idParts, Value::Int(1), &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1502,7 +1502,7 @@ impl DigifinexCore {
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
@@ -2636,11 +2636,11 @@ impl DigifinexCore {
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_643 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
-                symbol = marketId.clone();
+                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                if (symbol.as_str() != marketId.as_str()) {
+                if (symbol.as_str() != marketId.as_deref()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -2663,7 +2663,7 @@ impl DigifinexCore {
                     }
                 }
             }
-            let mut orderRequest: Value = self.create_order_request(marketId, type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
+            let mut orderRequest: Value = self.create_order_request(marketId.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
             ordersRequests.push(orderRequest);
         }
         }
@@ -3304,7 +3304,7 @@ impl DigifinexCore {
         let mut type_var: Value = Value::Null;
         let mut reduceOnly: Value = Value::Null;
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut sideRaw: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut sideRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut marketResolved: Value = self.market(symbol.clone());
@@ -3325,16 +3325,16 @@ impl DigifinexCore {
                 }
             }
             // 1 open long, 2 open short, 3 close long, 4 close short
-            if (sideRaw.as_str() == Some("1")) {
+            if (sideRaw.as_deref() == Some("1")) {
                 side = Value::Str("buy".into());
                 reduceOnly = Value::Bool(false);
-            }  else if (sideRaw.as_str() == Some("2")) {
+            }  else if (sideRaw.as_deref() == Some("2")) {
                 side = Value::Str("sell".into());
                 reduceOnly = Value::Bool(false);
-            }  else if (sideRaw.as_str() == Some("3")) {
+            }  else if (sideRaw.as_deref() == Some("3")) {
                 side = Value::Str("sell".into());
                 reduceOnly = Value::Bool(true);
-            }  else if (sideRaw.as_str() == Some("4")) {
+            }  else if (sideRaw.as_deref() == Some("4")) {
                 side = Value::Str("buy".into());
                 reduceOnly = Value::Bool(true);
             }
@@ -3343,8 +3343,8 @@ impl DigifinexCore {
         }  else {
             timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]);
             lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]);
-            if (sideRaw != Value::Null) {
-                let mut parts: Vec<Value> = Value::Array(sideRaw.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            if (sideRaw.is_some()) {
+                let mut parts: Vec<Value> = Value::Array(sideRaw.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut numParts: f64 = ((parts.len() as i64) as f64);
                 if numParts > ((1i64) as f64) {
                     side = parts.get(0).cloned().unwrap_or(Value::Null);

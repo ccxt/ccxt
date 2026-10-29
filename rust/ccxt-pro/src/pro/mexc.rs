@@ -2851,12 +2851,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
-        let mut c: Value = self.safe_string_k(message.clone(), "c", &[]);
+        let mut c: Option<String> = self.safe_string_k_opt(message.clone(), "c", &[]);
         let mut channel: Value = Value::Null;
-        if (c == Value::Null) {
+        if (c.is_none()) {
             channel = self.safe_string_k(message.clone(), "channel", &[]);
         }  else {
-            let mut parts: Value = Value::Array(c.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(c.as_deref().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
             channel = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
         }
         let mut methods: indexmap::IndexMap<String, Value> = ({

@@ -2009,10 +2009,10 @@ if _try_result.is_err() {
             if (type_var.as_str() == Some("perp")) {
                 type_var = Value::Str("swap".into());
             }
-            let mut marketSymbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut baseId: Value = marketSymbol.clone();
-            if (marketSymbol != Value::Null) && (Value::Int(marketSymbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
-                let mut symbolParts: Vec<Value> = Value::Array(marketSymbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut marketSymbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            let mut baseId: Value = marketSymbol.clone().map(Value::from).unwrap_or(Value::Null);
+            if (marketSymbol.is_some()) && (Value::Int(marketSymbol.as_deref().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
+                let mut symbolParts: Vec<Value> = Value::Array(marketSymbol.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 baseId = symbolParts.get(0).cloned().unwrap_or(Value::Null);
             }
             let mut quoteId: Value = Value::Str("USDC".into());

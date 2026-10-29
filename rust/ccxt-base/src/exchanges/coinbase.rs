@@ -1459,9 +1459,9 @@ impl CoinbaseCore {
     m
 })]);
         let mut currencyId: Value = self.safe_string_k(currency, "code", &[currencyIdV3.map(Value::from).unwrap_or(Value::Null)]);
-        let mut typeV3: Value = self.safe_string_k(account.clone(), "name", &[]);
+        let mut typeV3: Option<String> = self.safe_string_k_opt(account.clone(), "name", &[]);
         let mut typeV2: Value = self.safe_string_k(account.clone(), "type", &[]);
-        let mut parts: Value = Value::Array(typeV3.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(typeV3.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(account.clone(), Value::Str("id".into()), Value::Str("uuid".into()), &[]));
@@ -2794,8 +2794,8 @@ if _try_result.is_err() {
         let mut expireDateTime: Value = self.iso8601(expireTimestamp.clone());
         // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         let mut fundingInterval: Option<String> = self.safe_string_k(futureProductDetails.clone(), "funding_interval", &[]).as_str().map(str::to_owned);
-        let mut displayName: Value = self.safe_string_k(market.clone(), "display_name", &[]);
-        let mut isPerpetualDisplayName: bool = (displayName != Value::Null) && (displayName.as_str().unwrap_or("").ends_with("PERP"));
+        let mut displayName: Option<String> = self.safe_string_k_opt(market.clone(), "display_name", &[]);
+        let mut isPerpetualDisplayName: bool = (displayName.is_some()) && (displayName.as_deref().unwrap_or("").ends_with("PERP"));
         let mut isSwap: Value = Value::Bool((contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName);
         let mut baseId: Option<String> = self.safe_string_k_opt(futureProductDetails, "contract_root_unit", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote_currency_id", &[]);
@@ -3039,12 +3039,12 @@ if _try_result.is_err() {
             let mut assetId: Option<String> = self.safe_string_k(currency.clone(), "asset_id", &[]).as_str().map(str::to_owned);
             let mut id: Value = self.safe_string2(currency.clone(), Value::Str("id".into()), Value::Str("code".into()), &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
+            let mut name: Option<String> = self.safe_string_k_opt(currency.clone(), "name", &[]);
             if (code != Value::Null) {
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), name.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); } }
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), name.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); } }
             }
             if (code != Value::Null) {
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networksById".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), name.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); } }
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networksById".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), name.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)); } }
             }
             let mut type_var: Value = Value::Str("fiat".into());
             if (assetId.is_some()) {
@@ -3057,7 +3057,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), id);
         m.insert("code".to_string(), code.clone());
         m.insert("type".to_string(), type_var);
-        m.insert("name".to_string(), name.clone());
+        m.insert("name".to_string(), name.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -3087,7 +3087,7 @@ if _try_result.is_err() {
 }))); }
             }
             if (assetId.is_some()) {
-                let mut lowerCaseName: Value = name.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut lowerCaseName: Value = name.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
                 if (code != Value::Null) {
                     networks.insert(crate::runtime::stringify_param(&code), lowerCaseName.clone());
                 }
@@ -3761,11 +3761,11 @@ if _try_result.is_err() {
                     let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
                     page = self.v3_private_get_brokerage_accounts(&[__ws_arg_28]).await;
                     accounts = self.array_concat(accounts.clone(), self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])]));
-                    let mut nextCursor: Value = self.safe_string_k(page.clone(), "cursor", &[]);
-                    if (nextCursor.as_str() == cursor.as_str()) {
+                    let mut nextCursor: Option<String> = self.safe_string_k_opt(page.clone(), "cursor", &[]);
+                    if (nextCursor.as_deref() == cursor.as_str()) {
                         break;
                     }
-                    cursor = nextCursor;
+                    cursor = nextCursor.map(Value::from).unwrap_or(Value::Null);
                 }
                 let __ws_arg_29 = self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]);
                 let __ws_arg_30 = self.safe_string_k(page, "cursor", &[]);
@@ -4171,10 +4171,10 @@ if _try_result.is_err() {
         let mut id: Option<String> = self.safe_string_k_opt(item.clone(), "id", &[]);
         let mut type_var: Value = self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut status: Value = self.parse_ledger_entry_status(self.safe_string_k(item.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut path: Value = self.safe_string_k(item.clone(), "resource_path", &[]);
+        let mut path: Option<String> = self.safe_string_k_opt(item.clone(), "resource_path", &[]);
         let mut accountId: Value = Value::Null;
-        if (path != Value::Null) {
-            let mut parts: Vec<Value> = Value::Array(path.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        if (path.is_some()) {
+            let mut parts: Vec<Value> = Value::Array(path.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((3i64) as f64) {
                 accountId = parts.get(3).cloned().unwrap_or(Value::Null);
@@ -5986,10 +5986,10 @@ if _try_result.is_err() {
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "network", &[]);
         let mut code: Value = self.safe_currency_code(Value::Null, &[currency.clone()]);
-        let mut addressLabel: Value = self.safe_string_k(depositAddress.clone(), "address_label", &[]);
+        let mut addressLabel: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address_label", &[]);
         let mut currencyId: Value = Value::Null;
-        if (addressLabel != Value::Null) {
-            let mut splitAddressLabel: Value = Value::Array(addressLabel.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        if (addressLabel.is_some()) {
+            let mut splitAddressLabel: Value = Value::Array(addressLabel.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
             currencyId = self.safe_string(splitAddressLabel, Value::Int(0), &[]);
         }  else {
             currencyId = self.safe_string_k(depositAddress.clone(), "currency", &[]);

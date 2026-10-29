@@ -2501,7 +2501,7 @@ impl SxbetCore {
             outcomeObj = self.outcome(outcome.clone());
             request.insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]));
         }
-        let mut wantedOutcomeId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
+        let mut wantedOutcomeId: Option<String> = self.safe_string_k_opt(outcomeObj, "outcomeId", &[]);
         if (since != Value::Null) {
             request.insert("startDate".into(), self.iso8601(since));
         }
@@ -2524,7 +2524,7 @@ impl SxbetCore {
             let mut __for_first_1507: bool = true;
             while { if !__for_first_1507 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1507 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
             let mut settlement: Value = self.parse_settlement(rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
-            if (wantedOutcomeId == Value::Null) || (self.safe_string_k(settlement.clone(), "outcomeId", &[]).as_str() == wantedOutcomeId.as_str()) {
+            if (wantedOutcomeId.is_none()) || (self.safe_string_k(settlement.clone(), "outcomeId", &[]).as_str() == wantedOutcomeId.as_deref()) {
                 result.push(settlement);
             }
         }
@@ -3288,8 +3288,8 @@ impl SxbetCore {
         if (push == Value::Null) {
             return;
         }
-        let mut channel: Value = self.safe_string_k(push.clone(), "channel", &[]);
-        if (channel == Value::Null) {
+        let mut channel: Option<String> = self.safe_string_k_opt(push.clone(), "channel", &[]);
+        if (channel.is_none()) {
             return;
         }
         let mut pub_val: Value = self.safe_dict_k(push, "pub", &[Value::Map({
@@ -3307,7 +3307,7 @@ impl SxbetCore {
         }  else {
             rows = Value::from(vec![data]);
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
         let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook_v3")) {
             self.handle_order_book(client.clone(), rows.clone());
@@ -3317,9 +3317,9 @@ impl SxbetCore {
             self.handle_trades(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
-            if Value::Int(channel.as_str().and_then(|__s| __s.find("orders_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(channel.as_deref().and_then(|__s| __s.find("orders_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 self.handle_order(client.clone(), rows.clone());
-            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("fills_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("fills_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 self.handle_my_trade(client, rows);
             }
         }
@@ -3563,8 +3563,8 @@ impl SxbetCore {
             let mut __for_first_1520: bool = true;
             while { if !__for_first_1520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut entry: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
-            let mut marketHash: Value = self.safe_string_k(entry.clone(), "marketHash", &[]);
-            if (marketHash == Value::Null) {
+            let mut marketHash: Option<String> = self.safe_string_k_opt(entry.clone(), "marketHash", &[]);
+            if (marketHash.is_none()) {
                 continue;
             }
             // every publication carries BOTH sides (null = no resting liquidity), so the legacy
@@ -3579,7 +3579,7 @@ impl SxbetCore {
 })]);
             let mut raw: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marketHash".to_string(), marketHash.clone());
+                    m.insert("marketHash".to_string(), marketHash.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("outcomeOne".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("percentageOdds".to_string(), self.safe_string_k(bestOne, "percentageOdds", &[]));
@@ -3598,7 +3598,7 @@ impl SxbetCore {
                 let mut __for_first_1519: bool = true;
                 while { if !__for_first_1519 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1519 = false; j.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
                 let mut sym: Value = watchedSyms.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                if (self.safe_string(watchedTickers.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
+                if (self.safe_string(watchedTickers.clone(), sym.clone(), &[]).as_str() != marketHash.as_deref()) {
                     continue;
                 }
                 let mut outcomeObj: Value = self.outcome(sym.clone());

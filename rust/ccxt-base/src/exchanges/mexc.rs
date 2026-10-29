@@ -4004,15 +4004,15 @@ impl MexcCore {
             let mut __for_first_949: bool = true;
             while { if !__for_first_949 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_949 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            let mut market: Value = self.market(marketId.clone());
+            let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut market: Value = self.market(marketId.clone().map(Value::from).unwrap_or(Value::Null));
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() is only supported for spot markets".into()))));
             }
             if (symbol == Value::Null) {
-                symbol = marketId.clone();
+                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                if (symbol.as_str() != marketId.as_str()) {
+                if (symbol.as_str() != marketId.as_deref()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -6569,9 +6569,9 @@ impl MexcCore {
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updateTime", &[]);
         let mut currencyId: Value = Value::Null;
-        let mut currencyWithNetwork: Value = self.safe_string_k(transaction.clone(), "coin", &[]);
-        if (currencyWithNetwork != Value::Null) {
-            let mut currencyParts: Vec<Value> = Value::Array(currencyWithNetwork.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyWithNetwork: Option<String> = self.safe_string_k_opt(transaction.clone(), "coin", &[]);
+        if (currencyWithNetwork.is_some()) {
+            let mut currencyParts: Vec<Value> = Value::Array(currencyWithNetwork.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             currencyId = currencyParts.get(0).cloned().unwrap_or(Value::Null);
         }
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);

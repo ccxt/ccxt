@@ -4180,9 +4180,9 @@ impl OkxCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCcy", &[Value::Str("".into())]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleCcy", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut underlying: Value = self.safe_string_k(market.clone(), "uly", &[]);
-        if (underlying != Value::Null) && !(matches!(&spot, Value::Bool(true))) {
-            let mut parts: Value = Value::Array(underlying.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut underlying: Option<String> = self.safe_string_k_opt(market.clone(), "uly", &[]);
+        if (underlying.is_some()) && !(matches!(&spot, Value::Bool(true))) {
+            let mut parts: Value = Value::Array(underlying.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             quoteId = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]);
         }
@@ -8936,9 +8936,9 @@ impl OkxCore {
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut network: Value = Value::Null;
-        let mut chain: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
-        if (chain != Value::Null) {
-            let mut chainParts: Value = Value::Array(chain.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut chain: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
+        if (chain.is_some()) {
+            let mut chainParts: Value = Value::Array(chain.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
             let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
             let mut networkId: Value = Value::Str(networkParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
             network = self.network_id_to_code(&[networkId, code.clone()]);
@@ -11777,11 +11777,11 @@ impl OkxCore {
                 if (currencyId.is_some()) {
                     add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &currencyId.clone().map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
                 }
-                let mut chain: Value = self.safe_string_k(feeInfo.clone(), "chain", &[]);
-                if (chain == Value::Null) {
+                let mut chain: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "chain", &[]);
+                if (chain.is_none()) {
                     continue;
                 }
-                let mut chainSplit: Value = Value::Array(chain.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                let mut chainSplit: Value = Value::Array(chain.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
                 let mut networkId: Option<String> = self.safe_string_opt(chainSplit, Value::Int(1), &[]);
                 let mut withdrawFee: Value = self.safe_number_k(feeInfo, "fee", &[]);
                 let mut withdrawResult: indexmap::IndexMap<String, Value> = ({

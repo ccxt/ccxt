@@ -890,8 +890,8 @@ impl BitsoCore {
             let mut __for_first_418: bool = true;
             while { if !__for_first_418 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_418 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = markets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "book", &[]);
-            let mut parts: Value = Value::Array(id.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
+            let mut parts: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
             let mut base: Value = self.safe_currency_code(baseId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
@@ -948,7 +948,7 @@ impl BitsoCore {
             let mut baseCurrency: Value = self.safe_dict(currencies.clone(), base.clone(), &[]);
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
@@ -1412,16 +1412,16 @@ impl BitsoCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "book", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut makerSide: Value = self.safe_string_k(trade.clone(), "maker_side", &[]);
+        let mut makerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_side", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (side != Value::Null) {
-            if (side.as_str() == makerSide.as_str()) {
+            if (side.as_str() == makerSide.as_deref()) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());
             }
         }  else {
-            if (makerSide.as_str() == Some("buy")) {
+            if (makerSide.as_deref() == Some("buy")) {
                 side = Value::Str("sell".into());
             }  else {
                 side = Value::Str("buy".into());

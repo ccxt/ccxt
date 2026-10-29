@@ -3468,10 +3468,10 @@ if _try_result.is_err() {
             let mut __for_first_1316: bool = true;
             while { if !__for_first_1316 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1316 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
-            let mut strategy: Value = self.safe_string_lower_k(item.clone(), "strategy", &[]);
-            if (strategy != Value::Null) {
-                let mut buyIndex: i64 = strategy.as_str().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
-                let mut sellIndex: i64 = strategy.as_str().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
+            let mut strategy: Option<String> = self.safe_string_lower_k_opt(item.clone(), "strategy", &[]);
+            if (strategy.is_some()) {
+                let mut buyIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
+                let mut sellIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
                 if ((buyIndex as f64) >= ((0i64) as f64)) || ((sellIndex as f64) >= ((0i64) as f64)) {
                     trades.push(item);
                 }
@@ -3570,27 +3570,27 @@ if _try_result.is_err() {
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "outcomeTokenPrice", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "outcomeTokenAmount", &[]);
         let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "collateralAmount", &[]);
-        let mut rawSide: Value = self.safe_string_lower_k(trade.clone(), "strategy", &[]);
-        if (rawSide == Value::Null) {
+        let mut rawSide: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "strategy", &[]);
+        if (rawSide.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
-        let mut sellIndex: i64 = rawSide.as_str().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
+        let mut sellIndex: i64 = rawSide.as_deref().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
         let mut side: Value = Value::Str("buy".into());
         if (sellIndex as f64) >= ((0i64) as f64) {
             side = Value::Str("sell".into());
         }
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
-        if (rawSide == Value::Null) {
+        if (rawSide.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
-        if Value::Int(rawSide.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if Value::Int(rawSide.as_deref().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             type_var = Value::Str("limit".into());
             takerOrMaker = Value::Str("maker".into());
-            if (rawSide == Value::Null) {
+            if (rawSide.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing rawSide".into()))));
             }
-        }  else if Value::Int(rawSide.as_str().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if Value::Int(rawSide.as_deref().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             type_var = Value::Str("market".into());
             takerOrMaker = Value::Str("taker".into());
         }
@@ -3639,8 +3639,8 @@ if _try_result.is_err() {
             let mut __for_first_1317: bool = true;
             while { if !__for_first_1317 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1317 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             let mut outcome: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
-            let mut outcomeLabel: Value = self.safe_string_k(outcome.clone(), "label", &[]);
-            if (outcomeLabel.as_str() == label.as_str()) {
+            let mut outcomeLabel: Option<String> = self.safe_string_k_opt(outcome.clone(), "label", &[]);
+            if (outcomeLabel.as_deref() == label.as_str()) {
                 return outcome;
             }
         }

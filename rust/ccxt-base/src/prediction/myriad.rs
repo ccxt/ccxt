@@ -2210,8 +2210,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
             }
-            let mut currentOutcomeId: Value = self.safe_string_k(row.clone(), "outcomeId", &[]);
-            if (rowOutcomeId != Value::Null) && (currentOutcomeId.as_str() != rowOutcomeId.as_str()) {
+            let mut currentOutcomeId: Option<String> = self.safe_string_k_opt(row.clone(), "outcomeId", &[]);
+            if (rowOutcomeId != Value::Null) && (currentOutcomeId.as_deref() != rowOutcomeId.as_str()) {
                 continue;
             }
             result.push(self.parse_amm_event_to_order(row, &[outcomeObj.clone()]));
@@ -3449,14 +3449,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut networkId: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("networkId".into()), &[]);
         let mut marketId: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketId".into()), &[]);
-        let mut outcomeId: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeId".into()), &[]);
+        let mut outcomeId: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeId".into()), &[]);
         let mut tradingModel: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("tradingModel".into()), &[Value::Str("amm".into())]).as_str().map(str::to_owned);
         if (tradingModel.as_deref() == Some("ob")) {
             let mut obRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("network_id".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("outcome".to_string(), outcomeId.clone());
+                    m.insert("outcome".to_string(), outcomeId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_25 = self.extend(Value::Map(obRequest), &[params.clone()]);
@@ -3553,7 +3553,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1351: bool = true;
             while { if !__for_first_1351 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1351 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             let mut o: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
-            if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_str()) {
+            if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_deref()) {
                 let mut price: Value = self.safe_number_k(o, "price", &[]);
                 if (price != Value::Null) {
                     if price.as_f64().unwrap_or(f64::NAN) > (0.001) {
@@ -4075,7 +4075,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut eventId: Value = self.safe_string_k(params.clone(), "eventId", &[]);
+        let mut eventId: Option<String> = self.safe_string_k_opt(params.clone(), "eventId", &[]);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
@@ -4086,12 +4086,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[rest.clone()]).await, self.fetch_raw_questions_by_search(queries.clone(), &[rest.clone()]).await])).await;
             rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]);
             rawQuestions = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]);
-        }  else if (eventId != Value::Null) {
-            if Value::Int(eventId.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-                let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone(), &[rest.clone()]).await;
+        }  else if (eventId.is_some()) {
+            if Value::Int(eventId.as_deref().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+                let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone().map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
                 rawMarkets = Value::from(vec![rawMarket]);
             }  else {
-                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId, &[rest.clone()]).await;
+                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.clone().map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
                 rawQuestions = Value::from(vec![rawQuestion.clone()]);
             }
         }  else {
@@ -4404,8 +4404,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (push == Value::Null) {
             return;
         }
-        let mut channel: Value = self.safe_string_k(push.clone(), "channel", &[]);
-        if (channel == Value::Null) {
+        let mut channel: Option<String> = self.safe_string_k_opt(push.clone(), "channel", &[]);
+        if (channel.is_none()) {
             return;
         }
         let mut pub_val: Value = self.safe_dict_k(push, "pub", &[Value::Map({
@@ -4416,7 +4416,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
         let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook")) {
             self.handle_order_book(client.clone(), data.clone());

@@ -733,11 +733,11 @@ impl BitoproCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut active: Value = Value::Bool(!(self.safe_bool_k(market.clone(), "maintain", &[Value::Bool(false)]).as_bool() == Some(true)));
-        let mut id: Value = self.safe_string_k(market.clone(), "pair", &[]);
-        if (id == Value::Null) {
+        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "pair", &[]);
+        if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
-        let mut uppercaseId: Value = id.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseId: Value = id.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -776,7 +776,7 @@ impl BitoproCore {
         });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("uppercaseId".to_string(), uppercaseId);
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base.clone());

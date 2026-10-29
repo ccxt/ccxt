@@ -1762,12 +1762,12 @@ impl PolymarketCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[]);
-        if (ch == Value::Null) {
+        let mut ch: Option<String> = self.safe_string_k_opt(message.clone(), "ch", &[]);
+        if (ch.is_none()) {
             self.handle_ack(client.clone(), message.clone());
             return;
         }
-        let mut parts: Value = Value::Array(ch.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(ch.as_deref().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
         let mut family: Value = self.safe_string(parts, Value::Int(0), &[Value::Str("".into())]);
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -3105,13 +3105,13 @@ impl BackpackCore {
         //         "status":"Ok"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-        if (status == Value::Null) {
+        let mut status: Option<String> = self.safe_string_k_opt(response.clone(), "status", &[]);
+        if (status.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchStatus() missing status".into()))));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), status.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -3747,12 +3747,12 @@ impl BackpackCore {
 })]);
             let mut stepSize: Value = self.safe_string_k(quantityFilter.clone(), "stepSize", &[]);
             let mut minimum: Option<String> = self.safe_string_k_opt(quantityFilter.clone(), "minQuantity", &[]);
-            let mut maximum: Value = self.safe_string_k(quantityFilter, "maxQuantity", &[]);
+            let mut maximum: Option<String> = self.safe_string_k_opt(quantityFilter, "maxQuantity", &[]);
             if (minimum.is_none()) || (stepSize == Value::Null) || !(crate::precise::Precise::stringGt(&stepSize, &Value::Str("0".into())).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() stock indicative quote is missing valid session quantity constraints".into()))));
             }
-            if ((minimum.is_some()) && crate::precise::Precise::stringLt(&quantity, &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) || ((maximum != Value::Null) && crate::precise::Precise::stringGt(&quantity,
-                &maximum).as_bool() == Some(true)) || ((stepSize != Value::Null) && !(crate::precise::Precise::stringEq(&crate::precise::Precise::stringMod(&quantity, &stepSize), &Value::Str("0".into())).as_bool() == Some(true))) {
+            if ((minimum.is_some()) && crate::precise::Precise::stringLt(&quantity, &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) || ((maximum.is_some()) && crate::precise::Precise::stringGt(&quantity,
+                &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) || ((stepSize != Value::Null) && !(crate::precise::Precise::stringEq(&crate::precise::Precise::stringMod(&quantity, &stepSize), &Value::Str("0".into())).as_bool() == Some(true))) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() quantity does not match the current stock session constraints".into()))));
             }
         }  else if (limitPrice == Value::Null) {

@@ -1960,16 +1960,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut splitTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
             let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
             if (splitLength == 2.0) {
-                let mut name: Value = self.safe_string(splitTopic.clone(), Value::Int(1), &[]);
-                if (name == Value::Null) {
+                let mut name: Option<String> = self.safe_string_opt(splitTopic.clone(), Value::Int(1), &[]);
+                if (name.is_none()) {
                     return;
                 }
-                method = self.safe_value(Value::Map(methods.clone()), name.clone(), &[]);
+                method = self.safe_value(Value::Map(methods.clone()), name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 if (method != Value::Null) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }
-                let mut splitName: Value = Value::Array(name.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                let mut splitName: Value = Value::Array(name.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
                 let mut splitNameLength: f64 = ((splitTopic.len() as i64) as f64);
                 if (splitNameLength == 2.0) {
                     method = self.safe_value(Value::Map(methods), self.safe_string(splitName, Value::Int(0), &[]), &[]);

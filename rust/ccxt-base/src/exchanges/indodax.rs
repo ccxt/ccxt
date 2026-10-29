@@ -1982,16 +1982,16 @@ impl IndodaxCore {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
                 if (matches!((&networks, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    let mut networkId: Value = self.safe_string(networks.clone(), marketId.clone(), &[]);
-                    if (networkId == Value::Null) {
+                    let mut networkId: Option<String> = self.safe_string_opt(networks.clone(), marketId.clone(), &[]);
+                    if (networkId.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                     }
-                    if Value::Int(networkId.as_str().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                    if Value::Int(networkId.as_deref().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                         network = Value::from(vec![]);
-                        if (networkId == Value::Null) {
+                        if (networkId.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                         }
-                        let mut networkIds: Vec<Value> = Value::Array(networkId.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                        let mut networkIds: Vec<Value> = Value::Array(networkId.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: Value = Value::Int(0);
                             let mut __for_first_843: bool = true;
@@ -2003,7 +2003,7 @@ impl IndodaxCore {
                         }
                         }
                     }  else {
-                        let mut _netIdTmp: Value = self.network_id_to_code(&[networkId, code.clone()]);
+                        let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                         if (_netIdTmp != Value::Null) {
                             network = _netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
                         }

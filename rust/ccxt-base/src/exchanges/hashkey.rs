@@ -1593,7 +1593,7 @@ impl HashkeyCore {
         //         ]
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "marginToken", &[]);
@@ -1603,7 +1603,7 @@ impl HashkeyCore {
         let mut isSpot: bool = true;
         let mut isSwap: bool = false;
         let mut suffix: Value = Value::Str("".into());
-        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(marketId.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         if (secondPart.as_deref() == Some("PERPETUAL")) {
             marketType = Value::Str("swap".into());
@@ -1681,7 +1681,7 @@ impl HashkeyCore {
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId);
+        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
@@ -3163,10 +3163,10 @@ impl HashkeyCore {
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut amountString: Value = self.safe_string_k(item.clone(), "change", &[]);
-        let mut amount: Value = self.parse_number(amountString.clone(), &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);
+        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut direction: Value = Value::Str("in".into());
-        if Value::Int(amountString.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if Value::Int(amountString.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             direction = Value::Str("out".into());
         }
         let mut afterString: Option<String> = self.safe_string_k_opt(item.clone(), "total", &[]);
@@ -4898,12 +4898,12 @@ impl HashkeyCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() supports swap markets only".into()))));
         }
-        let mut sideParam: Value = self.safe_string_k(params.clone(), "side", &[]);
+        let mut sideParam: Option<String> = self.safe_string_k_opt(params.clone(), "side", &[]);
         let mut paramsSide: Value = self.omit(params, Value::Str("side".into()), &[]);
-        if (sideParam == Value::Null) {
+        if (sideParam.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str("Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"".into()))));
         }
-        let mut side: Value = sideParam.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut side: Value = sideParam.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (side.as_str() != Some("LONG")) && (side.as_str() != Some("SHORT")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str("Margin() params[\"side\"] must be either long or short".into()))));
         }

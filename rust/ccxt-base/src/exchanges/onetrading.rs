@@ -1474,7 +1474,7 @@ impl OnetradingCore {
         //     }
         //
         let mut granularity: Value = self.safe_dict_k(ohlcv.clone(), "granularity", &[]);
-        let mut unit: Value = self.safe_string_k(granularity.clone(), "unit", &[]);
+        let mut unit: Option<String> = self.safe_string_k_opt(granularity.clone(), "unit", &[]);
         let mut period: Option<String> = self.safe_string_k_opt(granularity, "period", &[]);
         let mut units: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1485,7 +1485,7 @@ impl OnetradingCore {
                 m.insert("MONTHS".to_string(), Value::Str("M".into()));
             m
         });
-        let mut lowercaseUnit: Option<String> = self.safe_string_opt(Value::Map(units), unit, &[]);
+        let mut lowercaseUnit: Option<String> = self.safe_string_opt(Value::Map(units), unit.map(Value::from).unwrap_or(Value::Null), &[]);
         if (period.is_none()) || (lowercaseUnit.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".into()))));
         }
@@ -1532,11 +1532,11 @@ impl OnetradingCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut periodUnit: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]);
-        if (periodUnit == Value::Null) {
+        let mut periodUnit: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[]);
+        if (periodUnit.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing periodUnit".into()))));
         }
-        let mut periodUnitParts: Vec<Value> = Value::Array(periodUnit.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut periodUnitParts: Vec<Value> = Value::Array(periodUnit.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut period: Value = periodUnitParts.get(0).cloned().unwrap_or(Value::Null);
         let mut unit: Value = periodUnitParts.get(1).cloned().unwrap_or(Value::Null);
         let mut durationInSeconds: Value = self.parse_timeframe(timeframe.clone());

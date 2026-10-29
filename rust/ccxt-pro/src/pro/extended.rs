@@ -1366,8 +1366,8 @@ impl ExtendedCore {
             while { if !__for_first_330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), key, &[]);
-            let mut subscriptionName: Value = self.safe_string_k(subscription.clone(), "name", &[]);
-            if (subscriptionName.as_str() == name.as_str()) {
+            let mut subscriptionName: Option<String> = self.safe_string_k_opt(subscription.clone(), "name", &[]);
+            if (subscriptionName.as_deref() == name.as_str()) {
                 return subscription;
             }
         }

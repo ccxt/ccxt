@@ -2012,11 +2012,11 @@ impl DeepcoinCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_611: bool = true;
                 while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-                let mut entryNetwork: Value = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
+                let mut entryNetwork: Option<String> = self.safe_string_opt(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("network".into()), &[]);
-                if (entryNetwork.as_str() == network.as_str()) {
+                if (entryNetwork.as_deref() == network.as_str()) {
                     index = i.clone();
                 }
             }

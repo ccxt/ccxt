@@ -2653,11 +2653,11 @@ impl DeltaCore {
         //
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_order_id", &[]);
-        let mut createdAt: Value = self.safe_string_k(order.clone(), "created_at", &[]);
+        let mut createdAt: Option<String> = self.safe_string_k_opt(order.clone(), "created_at", &[]);
         let mut timestamp: Value = Value::Null;
-        if (createdAt != Value::Null) {
-            if Value::Int(createdAt.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                timestamp = self.parse8601(createdAt);
+        if (createdAt.is_some()) {
+            if Value::Int(createdAt.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                timestamp = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 timestamp = self.safe_integer_product_k(order.clone(), "created_at", Value::Float(0.001), &[]);
             }

@@ -932,15 +932,15 @@ impl KrakenfuturesCore {
             let mut __for_first_865: bool = true;
             while { if !__for_first_865 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_865 = false; i.as_f64().unwrap_or(f64::NAN) < ((instruments.len() as i64) as f64) } {
             let mut market: Value = instruments.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            let mut marketType: Option<String> = self.safe_string_k_opt(market.clone(), "type", &[]);
             let mut type_var: Value = Value::Null;
-            let mut index: Value = (Value::Bool(Value::Int(marketType.as_str().and_then(|__s| __s.find(" index")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+            let mut index: Value = (Value::Bool(Value::Int(marketType.as_deref().and_then(|__s| __s.find(" index")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             if !(matches!(&index, Value::Bool(true))) {
-                linear = (Value::Bool(Value::Int(marketType.as_str().and_then(|__s| __s.find("_vanilla")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                linear = (Value::Bool(Value::Int(marketType.as_deref().and_then(|__s| __s.find("_vanilla")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
                 inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 let mut settleTime: Option<String> = self.safe_string_k_opt(market.clone(), "lastTradingTime", &[]);
                 type_var = (if (settleTime.is_none()) { Value::Str("swap".into()) } else { Value::Str("future".into()) });
@@ -950,8 +950,8 @@ impl KrakenfuturesCore {
             }
             let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
             let mut future: Value = (Value::Bool(type_var.as_str() == Some("future")));
-            let mut symbol: Value = id.clone();
-            let mut split: Value = Value::Array(id.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut split: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut splitMarket: Value = self.safe_string(split, Value::Int(1), &[Value::Str("".into())]);
             let mut baseId: Value = (match (&(splitMarket), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &((match (&(Value::Int(splitMarket.len() as i64)),
                 &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n),
@@ -991,7 +991,7 @@ impl KrakenfuturesCore {
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol);
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
@@ -1846,11 +1846,11 @@ impl KrakenfuturesCore {
             cost = crate::precise::Precise::stringMul(&cost, &contractSize.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut takerOrMaker: Value = Value::Null;
-        let mut fillType: Value = self.safe_string_k(trade.clone(), "fillType", &[]);
-        if (fillType != Value::Null) {
-            if Value::Int(fillType.as_str().and_then(|__s| __s.find("taker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        let mut fillType: Option<String> = self.safe_string_k_opt(trade.clone(), "fillType", &[]);
+        if (fillType.is_some()) {
+            if Value::Int(fillType.as_deref().and_then(|__s| __s.find("taker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 takerOrMaker = Value::Str("taker".into());
-            }  else if Value::Int(fillType.as_str().and_then(|__s| __s.find("maker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(fillType.as_deref().and_then(|__s| __s.find("maker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 takerOrMaker = Value::Str("maker".into());
             }
         }
@@ -4758,14 +4758,14 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marketIdUpper: Value = self.safe_string(self.market(symbol), Value::Str("id".into()), &[]);
-        if (marketIdUpper == Value::Null) {
+        let mut marketIdUpper: Option<String> = self.safe_string_opt(self.market(symbol), Value::Str("id".into()), &[]);
+        if (marketIdUpper.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" marketId is required".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("maxLeverage".to_string(), leverage);
-                m.insert("symbol".to_string(), marketIdUpper.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), marketIdUpper.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
@@ -4832,13 +4832,13 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut marketIdUpper: Value = self.safe_string_k(market.clone(), "id", &[]);
-        if (marketIdUpper == Value::Null) {
+        let mut marketIdUpper: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
+        if (marketIdUpper.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" marketId is required".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), marketIdUpper.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), marketIdUpper.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);

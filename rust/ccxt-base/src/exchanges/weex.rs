@@ -1660,7 +1660,7 @@ impl WeexCore {
         //         "marketOpenLimitSize": "2300"
         //     }
         //
-        let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
         let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "marginAsset", &[]);
@@ -1700,13 +1700,13 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        if (id == Value::Null) {
+        if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".into()))));
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
-        m.insert("lowercaseId".to_string(), id.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("lowercaseId".to_string(), id.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "contractId", &[]));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
@@ -5226,11 +5226,11 @@ impl WeexCore {
                 m.insert("isolated".to_string(), Value::Str("ISOLATED".into()));
             m
         });
-        let mut result: Value = self.safe_string(Value::Map(marginTypes), marginMode, &[]);
-        if (result == Value::Null) {
+        let mut result: Option<String> = self.safe_string_opt(Value::Map(marginTypes), marginMode, &[]);
+        if (result.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either cross or isolated".into()))));
         }
-        return result.as_str().map(str::to_owned);
+        return result.as_deref().map(str::to_owned);
 }
 
 /*
@@ -5709,16 +5709,16 @@ impl WeexCore {
         //         "msg": "Either orderId or origClientOrderId must be sent."
         //     }
         //
-        let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
-        if (message != Value::Null) {
+        let mut message: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
+        if (message.is_some()) {
             let mut errorCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            if (errorCode.as_deref() == Some("200")) && (message.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == Some("success")) {
+            if (errorCode.as_deref() == Some("200")) && (message.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == Some("success")) {
                 return Value::Null;
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message, feedback);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
         }
         return Value::Null;

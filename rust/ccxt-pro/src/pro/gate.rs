@@ -1067,11 +1067,11 @@ impl GateCore {
     m
 }) });
         let mut full: Value = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]);
-        let mut marketIdWithPrefix: Value = self.safe_string_k(result.clone(), "s", &[]);
-        if (marketIdWithPrefix == Value::Null) {
+        let mut marketIdWithPrefix: Option<String> = self.safe_string_k_opt(result.clone(), "s", &[]);
+        if (marketIdWithPrefix.is_none()) {
             return;
         }
-        let mut marketIdParts: Value = Value::Array(marketIdWithPrefix.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut marketIdParts: Value = Value::Array(marketIdWithPrefix.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
         let mut marketId: Option<String> = self.safe_string_opt(marketIdParts, Value::Int(1), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), Value::Str("spot".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());

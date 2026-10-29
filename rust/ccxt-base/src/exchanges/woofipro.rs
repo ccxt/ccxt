@@ -1471,11 +1471,11 @@ impl WoofiproCore {
         //     "liquidation_tier": "1"
         //   }
         //
-        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        if (marketId == Value::Null) {
+        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(marketId.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
         let mut marketType: Value = Value::Str("swap".into());
         let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(1), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(2), &[]);
@@ -1489,7 +1489,7 @@ impl WoofiproCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into());
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId);
+        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);

@@ -2579,9 +2579,9 @@ impl FoxbitCore {
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut cryptoDetails: Value = self.safe_dict_k(transaction.clone(), "details_crypto", &[]);
         let mut address: Value = self.safe_string2(cryptoDetails.clone(), Value::Str("receiving_address".into()), Value::Str("destination_address".into()), &[]);
-        let mut sn: Value = self.safe_string_k(transaction.clone(), "sn", &[]);
+        let mut sn: Option<String> = self.safe_string_k_opt(transaction.clone(), "sn", &[]);
         let mut type_var: Value = Value::Str("withdrawal".into());
-        if (sn != Value::Null) && (sn.as_str().unwrap_or("").starts_with("D")) {
+        if (sn.is_some()) && (sn.as_deref().unwrap_or("").starts_with("D")) {
             type_var = Value::Str("deposit".into());
         }
         let mut fee: Value = self.safe_string_k(transaction.clone(), "fee", &[Value::Str("0".into())]);

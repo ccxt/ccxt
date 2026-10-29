@@ -940,11 +940,11 @@ impl PolymarketCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut numericId: Option<String> = self.safe_string_k_opt(market.clone(), "instrument_id", &[]);
-        let mut venueSymbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut venueSymbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_asset", &[]);
         // prices are denominated using USD while pUSD is the 1:1 collateral and settlement token
         let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "quote_asset", &[]);
-        let mut parts: Value = Value::Array(venueSymbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(venueSymbol.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("USD".into())]);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -2802,8 +2802,8 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rowId: Value = self.safe_string_k(row.clone(), "order_id", &[]);
-            if (rowId.as_str() == id.as_str()) {
+            let mut rowId: Option<String> = self.safe_string_k_opt(row.clone(), "order_id", &[]);
+            if (rowId.as_deref() == id.as_str()) {
                 return self.parse_order(row, &[market.clone()]);
             }
         }
@@ -3320,8 +3320,8 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rowId: Value = self.safe_string_k(row.clone(), "instrument_id", &[]);
-            if (rowId.as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
+            let mut rowId: Option<String> = self.safe_string_k_opt(row.clone(), "instrument_id", &[]);
+            if (rowId.as_deref() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
                 return self.parse_leverage(row, &[market.clone()]);
             }
         }

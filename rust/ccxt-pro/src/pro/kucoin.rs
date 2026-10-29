@@ -1399,9 +1399,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut topic: Value = self.safe_string_k(ticker.clone(), "topic", &[]);
-        if Value::Int(topic.as_str().and_then(|__s| __s.find("contractMarket")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
-            let mut parts: Vec<Value> = Value::Array(topic.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut topic: Option<String> = self.safe_string_k_opt(ticker.clone(), "topic", &[]);
+        if Value::Int(topic.as_deref().and_then(|__s| __s.find("contractMarket")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
+            let mut parts: Vec<Value> = Value::Array(topic.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut marketId: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone()]);
             let mut symbol: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
@@ -2571,13 +2571,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         orderbook.set_book_meta("nonce", self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[timestamp.clone()]));
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-        let mut change: Value = self.safe_string_k(delta.clone(), "change", &[]);
+        let mut change: Option<String> = self.safe_string_k_opt(delta.clone(), "change", &[]);
         let mut changes: Value = self.safe_dict_k(delta.clone(), "changes", &[delta.clone()]);
         let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
         let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
-        if (change != Value::Null) {
+        if (change.is_some()) {
             // handling futures orderbook update
-            let mut splitChange: Value = Value::Array(change.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut splitChange: Value = Value::Array(change.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
             let mut price: Value = self.safe_number(splitChange.clone(), Value::Int(0), &[]);
             let mut side: Option<String> = self.safe_string(splitChange.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut quantity: Value = self.safe_number(splitChange, Value::Int(2), &[]);
@@ -3700,10 +3700,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }) });
         let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
-        let mut relationEvent: Value = self.safe_string_k(data.clone(), "relationEvent", &[]);
+        let mut relationEvent: Option<String> = self.safe_string_k_opt(data.clone(), "relationEvent", &[]);
         let mut requestAccountType: Value = Value::Null;
-        if (relationEvent != Value::Null) {
-            let mut relationEventParts: Value = Value::Array(relationEvent.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        if (relationEvent.is_some()) {
+            let mut relationEventParts: Value = Value::Array(relationEvent.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
             requestAccountType = self.safe_string(relationEventParts, Value::Int(0), &[]);
         }
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

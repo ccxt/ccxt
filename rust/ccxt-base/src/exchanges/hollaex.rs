@@ -696,10 +696,10 @@ impl HollaexCore {
             while { if !__for_first_759 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_759 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(pairs.clone(), key, &[]);
-            let mut baseId: Value = self.safe_string_k(market.clone(), "pair_base", &[]);
-            let mut quoteId: Value = self.safe_string_k(market.clone(), "pair_2", &[]);
-            let mut baseCode: Value = self.common_currency_code(baseId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-            let mut quoteCode: Value = self.common_currency_code(quoteId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_base", &[]);
+            let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_2", &[]);
+            let mut baseCode: Value = self.common_currency_code(baseId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            let mut quoteCode: Value = self.common_currency_code(quoteId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(market.clone(), "name", &[]));
@@ -707,8 +707,8 @@ impl HollaexCore {
                     m.insert("base".to_string(), baseCode);
                     m.insert("quote".to_string(), quoteCode);
                     m.insert("settle".to_string(), Value::Null);
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));

@@ -1391,8 +1391,8 @@ impl BinanceCore {
             let mut __for_first_1214: bool = true;
             while { if !__for_first_1214 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1214 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
-            let mut accountType: Value = self.safe_string_k(balance.clone(), "accountType", &[]);
-            if (accountType.as_str() == type_var.as_str()) {
+            let mut accountType: Option<String> = self.safe_string_k_opt(balance.clone(), "accountType", &[]);
+            if (accountType.as_deref() == type_var.as_str()) {
                 let mut free: Option<String> = self.safe_string_k_opt(balance, "availableBalanceDisplay", &[]);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));

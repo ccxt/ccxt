@@ -1686,15 +1686,15 @@ impl BigoneCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "asset_pair_name", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut takerSide: Value = self.safe_string_k(trade.clone(), "taker_side", &[]);
+        let mut takerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "taker_side", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (takerSide != Value::Null) && (side != Value::Null) && (side.as_str() != Some("SELF_TRADING")) {
-            takerOrMaker = (if (takerSide.as_str() == side.as_str()) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+        if (takerSide.is_some()) && (side != Value::Null) && (side.as_str() != Some("SELF_TRADING")) {
+            takerOrMaker = (if (takerSide.as_deref() == side.as_str()) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         if (side == Value::Null) {
             // taker side is not related to buy/sell side
             // the following code is probably a mistake
-            side = (if (takerSide.as_str() == Some("ASK")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (takerSide.as_deref() == Some("ASK")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }  else {
             if (side.as_str() == Some("BID")) {
                 side = Value::Str("buy".into());
@@ -1748,10 +1748,10 @@ impl BigoneCore {
                 }
             }
         }  else if (side.as_str() == Some("SELF_TRADING")) {
-            if (takerSide.as_str() == Some("BID")) {
+            if (takerSide.as_deref() == Some("BID")) {
                 makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-            }  else if (takerSide.as_str() == Some("ASK")) {
+            }  else if (takerSide.as_deref() == Some("ASK")) {
                 makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
             }

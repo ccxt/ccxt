@@ -1846,8 +1846,8 @@ impl DeribitCore {
                 let mut __for_first_620: bool = true;
                 while { if !__for_first_620 { if let Value::Int(n) = &mut k { *n += 1; } } __for_first_620 = false; k.as_f64().unwrap_or(f64::NAN) < ((instrumentsResult.len() as i64) as f64) } {
                 let mut market: Value = instrumentsResult.get(k.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[]);
-                let mut isSpot: Value = (Value::Bool(kind.as_str() == Some("spot")));
+                let mut kind: Option<String> = self.safe_string_k_opt(market.clone(), "kind", &[]);
+                let mut isSpot: Value = (Value::Bool(kind.as_deref() == Some("spot")));
                 let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "instrument_name", &[]);
                 let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
                 let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
@@ -1860,18 +1860,18 @@ impl DeribitCore {
                 let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
                 let mut swap: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
-                if (kind == Value::Null) {
+                if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (Value::Int(kind.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
-                if (kind == Value::Null) {
+                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (Value::Int(kind.as_deref().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut option: Value = (Value::Bool(Value::Int(kind.as_str().and_then(|__s| __s.find("option")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
-                if (kind == Value::Null) {
+                let mut option: Value = (Value::Bool(Value::Int(kind.as_deref().and_then(|__s| __s.find("option")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut isComboMarket: bool = Value::Int(kind.as_str().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+                let mut isComboMarket: bool = Value::Int(kind.as_deref().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
                 let mut expiry: Value = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]);
                 let mut strike: Value = Value::Null;
                 let mut optionType: Value = Value::Null;

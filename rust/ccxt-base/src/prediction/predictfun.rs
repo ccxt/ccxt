@@ -2004,8 +2004,8 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut takerSigner: Value = self.safe_string_lower_k(taker.clone(), "signer", &[]);
-            if (takerSigner.as_str() == wallet.as_str()) {
+            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(taker.clone(), "signer", &[]);
+            if (takerSigner.as_deref() == wallet.as_str()) {
                 let mut takerParty: Value = self.extend(taker, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("role".to_string(), Value::Str("taker".into()));
@@ -2026,8 +2026,8 @@ impl PredictfunCore {
                 let mut __for_first_1462: bool = true;
                 while { if !__for_first_1462 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1462 = false; j.as_f64().unwrap_or(f64::NAN) < makersLength } {
                 let mut maker: Value = makers.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut makerSigner: Value = self.safe_string_lower_k(maker.clone(), "signer", &[]);
-                if (makerSigner.as_str() == wallet.as_str()) {
+                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(maker.clone(), "signer", &[]);
+                if (makerSigner.as_deref() == wallet.as_str()) {
                     let mut makerParty: Value = self.extend(maker, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("role".to_string(), Value::Str("maker".into()));
@@ -4327,8 +4327,8 @@ impl PredictfunCore {
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
         // markets - and the outcome filter afterwards then kept them, as they now matched
-        let mut hintId: Value = self.safe_string_k(market.clone(), "outcomeId", &[]);
-        if (tokenId == Value::Null) || (hintId.as_str() == tokenId.as_str()) {
+        let mut hintId: Option<String> = self.safe_string_k_opt(market.clone(), "outcomeId", &[]);
+        if (tokenId == Value::Null) || (hintId.as_deref() == tokenId.as_str()) {
             return self.safe_outcome(tokenId.clone(), &[market]);
         }
         return self.safe_outcome(tokenId, &[]);

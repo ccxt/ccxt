@@ -3083,17 +3083,17 @@ impl BlofinCore {
     m
 })]);
             let mut currencyNetwork: Value = self.safe_dict(currencyNetworks, unifiedCode.clone(), &[]);
-            let mut currencyNetworkId: Value = self.safe_string_k(currencyNetwork, "id", &[]);
-            if (currencyNetworkId != Value::Null) {
-                return currencyNetworkId.as_str().map(str::to_owned);
+            let mut currencyNetworkId: Option<String> = self.safe_string_k_opt(currencyNetwork, "id", &[]);
+            if (currencyNetworkId.is_some()) {
+                return currencyNetworkId.as_deref().map(str::to_owned);
             }
         }
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        let mut direct: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[]);
-        if (direct != Value::Null) {
-            return direct.as_str().map(str::to_owned);
+        let mut direct: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[]);
+        if (direct.is_some()) {
+            return direct.as_deref().map(str::to_owned);
         }
         let mut prefix: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkPrefixes")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[]);
         if (prefix.is_some()) {
@@ -3119,9 +3119,9 @@ impl BlofinCore {
             let mut tail: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]);
             let mut tailParts: Value = Value::Array(tail.as_str().map(|__s| __s.split(")").map(Value::from).collect()).unwrap_or_default());
             let mut suffix: Value = self.safe_string(tailParts, Value::Int(0), &[]);
-            let mut suffixCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]);
-            if (suffixCode != Value::Null) {
-                return suffixCode.as_str().map(str::to_owned);
+            let mut suffixCode: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]);
+            if (suffixCode.is_some()) {
+                return suffixCode.as_deref().map(str::to_owned);
             }
             let mut prefixes: Value = self.safe_dict_k(self.options.clone(), "networkPrefixes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4288,7 +4288,7 @@ impl BlofinCore {
             notionalString = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut notional: Value = self.parse_number(notionalString.clone(), &[]);
-        let mut marginMode: Value = self.safe_string_k(position.clone(), "marginMode", &[]);
+        let mut marginMode: Option<String> = self.safe_string_k_opt(position.clone(), "marginMode", &[]);
         let mut initialMarginString: Value = Value::Null;
         let mut entryPriceString: Value = self.safe_string2(position.clone(), Value::Str("averagePrice".into()), Value::Str("openAveragePrice".into()), &[]);
         let mut unrealizedPnlString: Option<String> = self.safe_string_k_opt(position.clone(), "unrealizedPnl", &[]);
@@ -4296,10 +4296,10 @@ impl BlofinCore {
         let mut initialMarginPercentage: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
         let mut marginString: Value = Value::Null;
-        if (marginMode.as_str() == Some("cross")) {
+        if (marginMode.as_deref() == Some("cross")) {
             initialMarginString = self.safe_string_k(position.clone(), "initialMargin", &[]);
             collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { initialMarginString.clone() });
-        }  else if (marginMode.as_str() == Some("isolated")) {
+        }  else if (marginMode.as_deref() == Some("isolated")) {
             initialMarginPercentage = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut isolatedMarginString: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("margin".into()), Value::Str("initialMargin".into()), &[]));
             if (isolatedMarginString != Value::Null) {
@@ -4320,7 +4320,7 @@ impl BlofinCore {
         let mut rounder: Value = Value::Str("0.00005".into()); // round to closest 0.01%
         let mut maintenanceMarginPercentage: Value = (if (maintenanceMarginPercentageString != Value::Null) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".into()), &Value::Int(4)), &[]) } else { Value::Null });
         let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
-        if (liquidationPriceString == Value::Null) && (marginMode.as_str() == Some("isolated")) && (initialMarginString != Value::Null) && (entryPriceString != Value::Null) && (contractsAbs != Value::Null) && crate::precise::Precise::stringGt(&contractsAbs, &Value::Str("0".into())).as_bool() == Some(true) && (contractSizeString != Value::Null) && (maintenanceMarginPercentage != Value::Null) {
+        if (liquidationPriceString == Value::Null) && (marginMode.as_deref() == Some("isolated")) && (initialMarginString != Value::Null) && (entryPriceString != Value::Null) && (contractsAbs != Value::Null) && crate::precise::Precise::stringGt(&contractsAbs, &Value::Str("0".into())).as_bool() == Some(true) && (contractSizeString != Value::Null) && (maintenanceMarginPercentage != Value::Null) {
             let mut takerFeeRate: Value = self.safe_string_k(marketResolved, "taker", &[Value::Str("0.0006".into())]);
             let mut mmpWithFee: Value = crate::precise::Precise::stringAdd(&self.number_to_string(maintenanceMarginPercentage.clone()), &takerFeeRate);
             let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString);
@@ -4342,7 +4342,7 @@ impl BlofinCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), notional);
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("entryPrice".to_string(), self.parse_number(entryPriceString, &[]));
         m.insert("exitPrice".to_string(), self.safe_number_k(position.clone(), "closeAveragePrice", &[]));

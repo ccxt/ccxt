@@ -3382,9 +3382,9 @@ impl BitrueCore {
         if (currencyId != Value::Null) {
             let mut parts: Value = Value::Array(currencyId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            let mut networkId: Value = self.safe_string(parts, Value::Int(1), &[]);
-            if (networkId != Value::Null) {
-                network = self.network_id_to_code(&[networkId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+            let mut networkId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
+            if (networkId.is_some()) {
+                network = self.network_id_to_code(&[networkId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
             }
         }
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
@@ -3616,11 +3616,11 @@ impl BitrueCore {
         //
         //     {}
         //
-        let mut transferType: Value = self.safe_string_k(transfer.clone(), "transferType", &[]);
+        let mut transferType: Option<String> = self.safe_string_k_opt(transfer.clone(), "transferType", &[]);
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
-        if (transferType != Value::Null) {
-            let mut accountSplit: Value = Value::Array(transferType.as_str().map(|__s| __s.split("_to_").map(Value::from).collect()).unwrap_or_default());
+        if (transferType.is_some()) {
+            let mut accountSplit: Value = Value::Array(transferType.as_deref().map(|__s| __s.split("_to_").map(Value::from).collect()).unwrap_or_default());
             fromAccount = self.safe_string(accountSplit.clone(), Value::Int(0), &[]);
             toAccount = self.safe_string(accountSplit, Value::Int(1), &[]);
         }

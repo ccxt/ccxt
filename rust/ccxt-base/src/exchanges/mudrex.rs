@@ -895,10 +895,10 @@ impl MudrexCore {
 }
 
     pub fn parse_market(&self, mut asset: Value) -> Value {
-        let mut ms: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
-        let mut base: Value = ms.clone();
-        if (ms != Value::Null) && (ms.as_str().unwrap_or("").ends_with("USDT")) {
-            base = ms.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut ms: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
+        let mut base: Value = ms.clone().map(Value::from).unwrap_or(Value::Null);
+        if (ms.is_some()) && (ms.as_deref().unwrap_or("").ends_with("USDT")) {
+            base = ms.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         let mut quote: Value = Value::Str("USDT".into());
         let mut settle: Value = Value::Str("USDT".into());
@@ -910,7 +910,7 @@ impl MudrexCore {
         let mut qtyStep: Value = self.safe_string_k(asset.clone(), "quantity_step", &[Value::Str("0.001".into())]);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), ms);
+        m.insert("id".to_string(), ms.map(Value::from).unwrap_or(Value::Null));
         m.insert("lowercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base.clone());

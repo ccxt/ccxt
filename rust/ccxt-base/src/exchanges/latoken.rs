@@ -1822,10 +1822,10 @@ impl LatokenCore {
         if symbolKnown {
             marketResolved = self.market(symbol.clone());
         }
-        let mut orderSide: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut orderSide: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut side: Value = Value::Null;
-        if (orderSide != Value::Null) {
-            let mut parts: Value = Value::Array(orderSide.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        if (orderSide.is_some()) {
+            let mut parts: Value = Value::Array(orderSide.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
             let mut partsLength: Value = Value::Int(parts.len() as i64);
             side = self.safe_string_lower(parts, (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         }
@@ -1835,11 +1835,11 @@ impl LatokenCore {
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filled", &[]);
         let mut cost: Option<String> = self.safe_string_k_opt(order.clone(), "cost", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut message: Value = self.safe_string_k(order.clone(), "message", &[]);
-        if (message != Value::Null) {
-            if Value::Int(message.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        let mut message: Option<String> = self.safe_string_k_opt(order.clone(), "message", &[]);
+        if (message.is_some()) {
+            if Value::Int(message.as_deref().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 status = Value::Str("canceled".into());
-            }  else if Value::Int(message.as_str().and_then(|__s| __s.find("accept")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(message.as_deref().and_then(|__s| __s.find("accept")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 status = Value::Str("open".into());
             }
         }
