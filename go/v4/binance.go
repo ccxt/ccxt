@@ -13282,12 +13282,12 @@ func (this *Binance) ParseIncome(income any, optionalArgs ...any) any {
  * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Binance) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Binance) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13322,7 +13322,7 @@ func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		}
 		if fromId == "ISOLATED" {
 			if symbol == nil {
-				panic(ArgumentsRequired(Add(this.Id+" transfer () requires params[\"symbol\"] when fromAccount is ", fromAccount)))
+				panic(ArgumentsRequired(this.Id + " transfer () requires params[\"symbol\"] when fromAccount is " + fromAccount))
 			}
 		}
 		if toId == "ISOLATED" {
@@ -13348,7 +13348,7 @@ func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code strin
 			var option bool = (fromId == "OPTION") || (toId == "OPTION")
 			var prohibitedWithIsolated bool = fromFuture || toFuture || funding || option
 			if (fromIsolated || toIsolated) && prohibitedWithIsolated {
-				panic(BadRequest(Add(Add(Add(this.Id+" transfer () does not allow transfers between ", fromAccount), " and "), toAccount)))
+				panic(BadRequest(this.Id + " transfer () does not allow transfers between " + fromAccount + " and " + toAccount))
 			} else if toSpot && fromIsolated {
 				fromId = "ISOLATED_MARGIN"
 				request["fromSymbol"] = isolatedSymbol

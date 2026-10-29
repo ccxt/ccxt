@@ -1613,12 +1613,12 @@ func (this *Bitvavo) ParseAccount(account any) map[string]any {
  * @param {string} [params.clientRequestId] client defined unique id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Bitvavo) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1631,29 +1631,20 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var subaccountParam *string = this.SafeString(params, "subaccountId")
 	var direction string
-	var subaccountId any = nil
-	if (IsEqual(fromAccount, "master")) && (toAccount == "master") {
+	var subaccountId *string = nil
+	if (fromAccount == "master") && (toAccount == "master") {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
-	} else if IsEqual(fromAccount, "master") {
+	} else if fromAccount == "master" {
 		direction = "masterToSub"
-		if subaccountParam == nil {
-			subaccountId = toAccount
-		} else {
-			subaccountId = subaccountParam
-		}
+		subaccountId = this.SafeString(params, "subaccountId", toAccount)
 	} else if toAccount == "master" {
 		direction = "subToMaster"
-		if subaccountParam == nil {
-			subaccountId = fromAccount
-		} else {
-			subaccountId = subaccountParam
-		}
+		subaccountId = this.SafeString(params, "subaccountId", fromAccount)
 	} else {
 		panic(ArgumentsRequired(this.Id + " transfer() requires either fromAccount or toAccount to be master"))
 	}
-	if IsEqual(subaccountId, nil) {
+	if subaccountId == nil {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)"))
 	}
 	var request map[string]any = map[string]any{
@@ -2326,11 +2317,11 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	listEp2199 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
-	if listEp2199.Err != nil {
-		panic(listEp2199.Err)
+	listEp2190 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
+	if listEp2190.Err != nil {
+		panic(listEp2190.Err)
 	}
-	var response []any = listEp2199.Value
+	var response []any = listEp2190.Value
 
 	//
 	//     [
@@ -2556,22 +2547,22 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes194019 []any = r1.Value
-		if retRes194019 == nil {
+		var retRes193119 []any = r1.Value
+		if retRes193119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193119)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2416 := <-this.PrivateGetOrders(request)
-	if listEp2416.Err != nil {
-		panic(listEp2416.Err)
+	listEp2407 := <-this.PrivateGetOrders(request)
+	if listEp2407.Err != nil {
+		panic(listEp2407.Err)
 	}
-	var response []any = listEp2416.Value
+	var response []any = listEp2407.Value
 
 	//
 	//     [
@@ -2654,11 +2645,11 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 
-	listEp2496 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2496.Err != nil {
-		panic(listEp2496.Err)
+	listEp2487 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2487.Err != nil {
+		panic(listEp2487.Err)
 	}
-	var response []any = listEp2496.Value
+	var response []any = listEp2487.Value
 
 	//
 	//     [
@@ -2890,22 +2881,22 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes221119 []any = r1.Value
-		if retRes221119 == nil {
+		var retRes220219 []any = r1.Value
+		if retRes220219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes221119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes220219)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2732 := <-this.PrivateGetTrades(request)
-	if listEp2732.Err != nil {
-		panic(listEp2732.Err)
+	listEp2723 := <-this.PrivateGetTrades(request)
+	if listEp2723.Err != nil {
+		panic(listEp2723.Err)
 	}
-	var response []any = listEp2732.Value
+	var response []any = listEp2723.Value
 
 	//
 	//     [
@@ -3204,11 +3195,11 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		currency = this.Currency(code)
 	}
 
-	listEp3009 := <-this.PrivateGetWithdrawalHistory(request)
-	if listEp3009.Err != nil {
-		panic(listEp3009.Err)
+	listEp3000 := <-this.PrivateGetWithdrawalHistory(request)
+	if listEp3000.Err != nil {
+		panic(listEp3000.Err)
 	}
-	var response []any = listEp3009.Value
+	var response []any = listEp3000.Value
 
 	//
 	//     [
@@ -3293,11 +3284,11 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		currency = this.Currency(code)
 	}
 
-	listEp3091 := <-this.PrivateGetDepositHistory(request)
-	if listEp3091.Err != nil {
-		panic(listEp3091.Err)
+	listEp3082 := <-this.PrivateGetDepositHistory(request)
+	if listEp3082.Err != nil {
+		panic(listEp3082.Err)
 	}
-	var response []any = listEp3091.Value
+	var response []any = listEp3082.Value
 
 	//
 	//     [
@@ -3489,11 +3480,11 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 		}
 	}
 
-	listEp3280 := <-this.PublicGetAssets(params)
-	if listEp3280.Err != nil {
-		panic(listEp3280.Err)
+	listEp3271 := <-this.PublicGetAssets(params)
+	if listEp3271.Err != nil {
+		panic(listEp3271.Err)
 	}
-	var response []any = listEp3280.Value
+	var response []any = listEp3271.Value
 
 	//
 	//   [

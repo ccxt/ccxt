@@ -1373,12 +1373,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transferring between derivatives wallet and regular wallet is not documented in their API
@@ -1520,7 +1520,7 @@ func (this *Bitfinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar any) any {
+func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar string) any {
 	// there is a difference between this and the v1 api, namely trading wallet is called margin in v2
 	// {
 	//   "id": "fUSTF0",
@@ -1530,7 +1530,7 @@ func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar any)
 	var transferId *string = this.SafeString(info, 0)
 	var underlying []any = SafeListTyped(info, 4)
 	var currencyId any = nil
-	if IsEqual(typeVar, "derivatives") {
+	if typeVar == "derivatives" {
 		if derefPtr := this.SafeString(underlying, 0, transferId); derefPtr != nil {
 			currencyId = *derefPtr
 		} else {
@@ -1540,7 +1540,7 @@ func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar any)
 		if !isDerivativeCode {
 			currencyId = Add(currencyId, "F0")
 		}
-	} else if !IsEqual(typeVar, "margin") {
+	} else if typeVar != "margin" {
 		if derefPtr := this.SafeString(underlying, 1, transferId); derefPtr != nil {
 			currencyId = *derefPtr
 		} else {

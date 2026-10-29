@@ -1869,12 +1869,12 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Apex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1919,7 +1919,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
-	var isContract bool = (ToLower(fromAccount) == "contract")
+	var isContract bool = (strings.ToLower(fromAccount) == "contract")
 	var assets any = this.SafeList(spotConfig, "assets", []any{})
 	if isContract {
 		assets = this.SafeList(contractConfig, "assets", []any{})
