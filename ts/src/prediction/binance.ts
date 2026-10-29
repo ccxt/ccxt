@@ -206,7 +206,10 @@ export default class binance extends Exchange {
             maxTopicsResolved = this.parseToInt (maxTopics);
         }
         const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
+        let pageLimit = this.parseToInt (100);
+        if (pageLimitOption < 100) {
+            pageLimit = this.parseToInt (pageLimitOption);
+        }
         const collected: List = [];
         let offset: int = 0;
         while (true) {
@@ -1755,7 +1758,7 @@ export default class binance extends Exchange {
         const quote = await this.fetchQuote (quoteRequest, paramsOmitted);
         const quoteId = this.safeString (quote, 'quoteId');
         const orderRequest = this.extend (commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString (wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
@@ -1837,7 +1840,7 @@ export default class binance extends Exchange {
         const wallet = await this.fetchWallet ('cancelOrders', params);
         const request: Dict = {
             'walletAddress': this.safeString (wallet, 'walletAddress'),
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString (wallet, 'walletId'),
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (let i = 0; i < ids.length; i++) {
