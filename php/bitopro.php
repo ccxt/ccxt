@@ -1237,7 +1237,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_cancel_orders(mixed $data): array {
+    public function parse_cancel_orders(array $data): array {
         $dataKeys = is_array($data) ? array_keys($data) : array();
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
@@ -1288,7 +1288,7 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_cancel_orders($data);
     }
 

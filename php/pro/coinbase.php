@@ -59,11 +59,11 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function subscribe(string $name, bool $isPrivate, mixed $symbol = null, $params = array()) {
+    public function subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
         return Async\async(self::do_subscribe(...))($name, $isPrivate, $symbol, $params);
     }
 
-    private function do_subscribe(string $name, bool $isPrivate, mixed $symbol = null, $params = array()) {
+    private function do_subscribe(string $name, bool $isPrivate, ?string $symbol = null, $params = array()) {
         /**
          * @ignore
          * subscribes to a websocket channel
@@ -82,11 +82,7 @@ class coinbase extends \ccxt\async\coinbase {
         $market = null;
         $messageHash = $name;
         $productIds = array();
-        if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
-            $symbols = $this->market_symbols($symbol);
-            $productIds = $this->market_ids($symbols);
-            $messageHash = $name . '::' . implode(',', $symbols);
-        } elseif ($symbol !== null) {
+        if ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash = $name . '::' . $symbol;
             $productIds = array( $this->safe_string($market, 'id') );
@@ -106,11 +102,11 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
     }
 
-    public function un_subscribe(string $topic, string $name, bool $isPrivate, mixed $symbol = null) {
+    public function un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
         return Async\async(self::do_un_subscribe(...))($topic, $name, $isPrivate, $symbol);
     }
 
-    private function do_un_subscribe(string $topic, string $name, bool $isPrivate, mixed $symbol = null) {
+    private function do_un_subscribe(string $topic, string $name, bool $isPrivate, ?string $symbol = null) {
         /**
          * @ignore
          * unSubscribes to a websocket channel
@@ -134,12 +130,7 @@ class coinbase extends \ccxt\async\coinbase {
         $watchMessageHash = $name;
         $unWatchMessageHash = 'unsubscribe:' . $name;
         $productIds = array();
-        if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
-            $symbols = $this->market_symbols($symbol);
-            $productIds = $this->market_ids($symbols);
-            $watchMessageHash = $name . '::' . implode(',', $symbols);
-            $unWatchMessageHash = 'unsubscribe:' . $name . '::' . implode(',', $symbols);
-        } elseif ($symbol !== null) {
+        if ($symbol !== null) {
             $market = $this->market($symbol);
             $watchMessageHash = $name . '::' . $symbol;
             $unWatchMessageHash = 'unsubscribe:' . $name . '::' . $symbol;

@@ -194,6 +194,9 @@ class bullish extends \ccxt\async\bullish {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
+        if ($symbol === null) {
+            return;
+        }
         $market = $this->market($symbol);
         $rawTrades = $this->safe_list($data, 'trades', array());
         $trades = $this->parse_trades($rawTrades, $market);

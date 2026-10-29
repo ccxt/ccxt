@@ -771,10 +771,7 @@ class revolutx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
+        $market = $this->market($symbol);
         $request = array();
         if ($market !== null) {
             $request['symbol'] = $market['id'];

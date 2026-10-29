@@ -2189,9 +2189,7 @@ class okx extends Exchange {
         $isFullBook = ($method === 'publicGetMarketBooksFull');
         $largeLimit = (($limit === null) && $isFullBook) || (($limit !== null) && ($limit > 400));
         $limitResolved = ($rpi && $largeLimit) ? 400 : $requestedLimit;
-        if ($limitResolved !== null) {
-            $request['sz'] = $limitResolved; // max 400
-        }
+        $request['sz'] = $limitResolved; // max 400
         if ($rpi) {
             $response = $this->publicGetMarketBooksRpi($this->extend($request, $paramsMethod));
         } elseif ($isFullBook || $largeLimit) {
