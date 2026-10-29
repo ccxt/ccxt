@@ -63,10 +63,6 @@ impl crate::exchange::DerivedExchange for BitstampCore {
         // Forward to the inherent method on BitstampCore.
         BitstampCore::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitstampCore.
-        BitstampCore::parse_balance(self, response)
-    }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitstampCore.
         BitstampCore::parse_funding_rate(self, rate, &[market])
@@ -140,7 +136,7 @@ impl crate::exchange_generated::ExchangeBase for BitstampCore {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_fiat" => self.is_fiat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currencies" => self.parse_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2802,7 +2798,7 @@ impl BitstampCore {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, mut response: Value) -> Value {
         let mut finalResponse: Value = response.clone(); // java req
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2850,7 +2846,7 @@ impl BitstampCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_post_account_balances(&[params]).await;
-        return self.parse_balance(response);
+        return self.parse_balance_list(response);
 
     Value::Null
 }

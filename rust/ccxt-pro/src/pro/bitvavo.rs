@@ -2408,7 +2408,7 @@ impl BitvavoCore {
         //
         let mut messageHash: Value = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut balance: Value = self.parse_balance(response);
+        let mut balance: Value = self.parent.parse_balance_list(response);
         client.resolve(&[balance, messageHash]);
 }
 

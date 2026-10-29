@@ -3403,7 +3403,10 @@ impl DydxCore {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(response, "subaccount", &[]);
+        let mut data: Value = self.safe_dict_k(response, "subaccount", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_balance(data);
 
     Value::Null

@@ -1928,7 +1928,7 @@ impl HitbtcCore {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_balance(params);
+        let mut balance: Value = self.parent.parse_balance_list(params);
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();

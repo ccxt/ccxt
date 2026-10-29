@@ -1855,7 +1855,7 @@ impl BackpackCore {
         let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
         let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
         let mut firstDeltaStart: Value = self.safe_integer_k(firstDelta, "U", &[]);
-        let mut cacheLength: Value = get_array_length(&cache);
+        let mut cacheLength: Value = Value::Int(cache.len() as i64);
         if (nonce == Value::Null) {
             return cacheLength;
         }

@@ -63,10 +63,6 @@ impl crate::exchange::DerivedExchange for BitoproCore {
         // Forward to the inherent method on BitoproCore.
         BitoproCore::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitoproCore.
-        BitoproCore::parse_balance(self, response)
-    }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitoproCore.
         BitoproCore::parse_currency(self, currency)
@@ -120,7 +116,7 @@ impl crate::exchange_generated::ExchangeBase for BitoproCore {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "insert_missing_candles" => self.insert_missing_candles(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_cancel_orders" => self.parse_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1315,7 +1311,7 @@ impl BitoproCore {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, mut response: Value) -> Value {
         //
         //     [{
         //         "currency":"twd",
@@ -1374,7 +1370,7 @@ impl BitoproCore {
         }
         let mut response: Value = self.private_get_accounts_balance(&[params]).await;
         let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_balance(balances);
+        return self.parse_balance_list(balances);
 
     Value::Null
 }
@@ -1644,14 +1640,14 @@ impl BitoproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-        let mut id: Value = market.get("uppercaseId").cloned().unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol);
+        let mut id: Option<String> = self.safe_string_k_opt(market, "uppercaseId", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (id != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&id), ids);
+        if (id.is_some()) {
+            request.insert(id.as_deref().unwrap_or("null").to_string(), ids);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;

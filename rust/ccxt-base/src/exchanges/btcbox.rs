@@ -650,7 +650,7 @@ impl BtcboxCore {
             let mut currency: Value = self.currency(code.clone());
             let currencyId: String = self.safe_string_k_opt(currency, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into());
-            if (in_op(&response, &free)) {
+            if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut used: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_lock".into())).into());
                 account.insert("free".into(), self.safe_string(response.clone(), free.clone(), &[]));

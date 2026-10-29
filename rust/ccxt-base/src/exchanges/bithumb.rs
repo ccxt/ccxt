@@ -63,10 +63,6 @@ impl crate::exchange::DerivedExchange for BithumbCore {
         // Forward to the inherent method on BithumbCore.
         BithumbCore::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BithumbCore.
-        BithumbCore::parse_balance(self, response)
-    }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BithumbCore.
         BithumbCore::parse_deposit_address(self, depositAddress, &[currency])
@@ -123,7 +119,7 @@ impl crate::exchange_generated::ExchangeBase for BithumbCore {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1146,7 +1142,7 @@ impl BithumbCore {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, mut response: Value) -> Value {
         //
         // generation 1
         //
@@ -1250,7 +1246,7 @@ impl BithumbCore {
             let __ws_arg_2 = self.extend(Value::Map(request), &[paramsGeneration]);
             response = self.private_post_info_balance(&[__ws_arg_2]).await;
         }
-        return self.parse_balance(response);
+        return self.parse_balance_list(response);
 
     Value::Null
 }

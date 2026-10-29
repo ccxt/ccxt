@@ -1992,7 +1992,7 @@ impl DeribitCore {
             m
         });
         let mut summaries: Value = Value::from(vec![]);
-        if (in_op(&balance, &Value::Str("summaries".into()))) {
+        if (matches!(&balance, Value::Dict(__d) if __d.contains_key("summaries"))) {
             summaries = self.safe_list_k(balance.clone(), "summaries", &[Value::from(vec![])]);
         }  else {
             summaries = Value::from(vec![balance]);

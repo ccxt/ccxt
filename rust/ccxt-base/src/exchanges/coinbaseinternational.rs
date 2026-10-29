@@ -63,10 +63,6 @@ impl crate::exchange::DerivedExchange for CoinbaseinternationalCore {
         // Forward to the inherent method on CoinbaseinternationalCore.
         CoinbaseinternationalCore::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinbaseinternationalCore.
-        CoinbaseinternationalCore::parse_balance(self, response)
-    }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
         CoinbaseinternationalCore::parse_position(self, position, &[market])
@@ -141,7 +137,7 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseinternationalCore {
                 "handle_route_and_params" => self.handle_route_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "is_eddsa_secret" => self.is_eddsa_secret(),
                 "is_native_deribit_credentials" => self.is_native_deribit_credentials(),
-                "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2451,16 +2447,16 @@ impl CoinbaseinternationalCore {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             let mut summaries: Value = self.safe_list_k(result.clone(), "summaries", &[]);
             if (summaries != Value::Null) {
-                return self.parse_balance(summaries);
+                return self.parse_balance_list(summaries);
             }
-            return self.parse_balance(self.safe_dict_k(result.clone(), "summaries", &[Value::from(vec![])]));
+            return self.parse_balance_list(self.safe_dict_k(result.clone(), "summaries", &[Value::from(vec![])]));
         }
-        return self.parse_balance(result);
+        return self.parse_balance_list(result);
 
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, mut response: Value) -> Value {
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

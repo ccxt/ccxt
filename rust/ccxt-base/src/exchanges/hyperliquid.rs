@@ -5772,7 +5772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // unified account is active", a unified account has to move balances with sendAsset instead
         let mut transferMethod: Value = Value::Null;
         let mut query: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default(); transferMethod = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default(); transferMethod = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut masterAddress: Value = Value::Null;
         masterAddress = self.safe_string(self.handle_public_address(Value::Str("transfer".into()), query.clone()), Value::Int(0), &[]);
         query = self.safe_dict(self.handle_public_address(Value::Str("transfer".into()), query.clone()), Value::Int(1), &[Value::Map({

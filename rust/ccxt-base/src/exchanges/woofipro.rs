@@ -4078,7 +4078,10 @@ impl WoofiproCore {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_balance(data);
 
     Value::Null
