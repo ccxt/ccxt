@@ -8,7 +8,7 @@ import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: hand
 import { hx10C08PromiseAll, hx10C08SnippetChecks } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
-import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
+import { MARKET_ROW_STRING_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
 import { hx10C05NativeArithmeticEquality } from './hx10w7-C05.js' // hx10 wave7 C05: isEqual over native arithmetic
 import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
@@ -3411,7 +3411,7 @@ class NewTranspiler {
                 const calledCore = typedCallRe.exec (expr);
                 const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
                 // CP04: the return already carries the core's own dictionary type
-                if (isTyped && cp04ReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier)) {
+                if (isTyped && (cp04ReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
                     tailOk[j] = true;
                     j = lastLine;
                     continue;
@@ -3538,7 +3538,8 @@ class NewTranspiler {
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 if (this.syncCoreReturnIsAlreadyTyped (expr)
-                        || cp04ReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)) {
+                        || cp04ReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)
+                        || this.callReturnsDeclaredType (expr, SYNC_TYPED_CORES[methodName], this.isPrediction)) {
                     j = lastLine;
                     continue;
                 }
@@ -3556,6 +3557,18 @@ class NewTranspiler {
             i = bodyEnd;
         }
         return lines.join ('\n');
+    }
+
+    // a `this.`/`base.` call whose callee is declared with the target type in the closed
+    // tables (typed cores, collection returns): every override prints it, so ToDict is identity
+    callReturnsDeclaredType (expr: string, targetType: string, predictionTier: boolean): boolean {
+        const call = /^(await\s+)?(this|base)\.(\w+)\(/.exec (expr);
+        if (call === null || (targetType !== 'Dictionary<string, object>' && targetType !== 'List<Dictionary<string, object>>')) {
+            return false;
+        }
+        const venue = (call[2] === 'base') ? '' : this.currentVenue;
+        const declared = (call[1] !== undefined) ? this.typedCoreType (call[3], predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
+        return declared === targetType;
     }
 
     // the returns of a SYNC_TYPED_CORES method that already hand the dictionary back, so a
