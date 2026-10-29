@@ -1514,7 +1514,7 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

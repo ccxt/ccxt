@@ -468,7 +468,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 				}
 			}
 			if symbol != nil {
-				this.WsCacheSet("Orderbooks", symbol, orderbook)
+				this.WsCacheSet("Orderbooks", *symbol, orderbook)
 			}
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			return nil

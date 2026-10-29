@@ -1316,7 +1316,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 		var balanceType *string = this.SafeString(rawBalance, 0)
 		var oldBalance map[string]any = this.SafeDictMap(this.Balance, balanceType, map[string]any{})
 		if code != nil {
-			ccxt.AddElementToObject(oldBalance, code, balance)
+			oldBalance[*code] = balance
 		}
 		oldBalance["info"] = message
 		ccxt.AddElementToObject(this.Balance, balanceType, this.SafeBalance(oldBalance))

@@ -462,7 +462,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bullish) SeparateBidsOrAsks(entry any) []any {

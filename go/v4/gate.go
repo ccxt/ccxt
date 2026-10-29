@@ -9090,7 +9090,7 @@ func (this *Gate) fetchPositionBody(ch chan AsyncResult[Position], symbol any, o
 	//         "pending_orders": 0
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchPosition() returned empty response"))
 	}
 
@@ -9243,7 +9243,7 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	//     ]
 	//
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 

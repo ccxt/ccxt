@@ -313,7 +313,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			ccxt.AddElementToObject(this.Trades, symbol, stored)
+			this.Trades[*symbol] = stored
 		}
 		stored.(ccxt.Appender).Append(trade)
 		ccxt.AddElementToObject(storesForSymbols, symbol, stored)

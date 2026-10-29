@@ -2560,7 +2560,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
 		parsed["nonce"] = this.SafeInteger(data, "O")
 		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		this.Orderbooks[*symbol] = orderbook
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger(data, "C")

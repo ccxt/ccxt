@@ -506,7 +506,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "id"))
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

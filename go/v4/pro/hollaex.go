@@ -137,7 +137,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		var orderbook any = nil
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			orderbook = this.OrderBook(snapshot)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+			this.Orderbooks[*symbol] = orderbook
 		} else {
 			orderbook = this.Orderbooks[*symbol]
 			if ccxt.IsEqual(orderbook, nil) {

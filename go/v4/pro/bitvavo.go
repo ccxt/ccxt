@@ -751,7 +751,9 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 			_, ok := marketIdsByInterval[*interval]
 			return ok
 		}()) {
-			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
+			if interval != nil {
+				marketIdsByInterval[*interval] = []any{}
+			}
 		}
 		var intervalIds any = func() any {
 			if interval == nil {
@@ -874,7 +876,9 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 			_, ok := marketIdsByInterval[*interval]
 			return ok
 		}()) {
-			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
+			if interval != nil {
+				marketIdsByInterval[*interval] = []any{}
+			}
 		}
 		var intervalIds any = func() any {
 			if interval == nil {
@@ -1274,7 +1278,9 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 		var messageItem any = ccxt.GetValue(messages, i)
 		this.HandleOrderBookMessage(client, messageItem, orderbook)
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	// getBook is a one-shot request but this.watch tracks it as a persistent
 	// subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot

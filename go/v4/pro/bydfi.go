@@ -900,7 +900,7 @@ func (this *Bydfi) HandleOrderBook(client any, message map[string]any) {
 	var orderbook any = this.Orderbooks[*symbol]
 	var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

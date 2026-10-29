@@ -499,7 +499,9 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 		this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i), orderbook)
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {

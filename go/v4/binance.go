@@ -8207,7 +8207,7 @@ func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string
 	//         "updateTime": 1684300587845
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -11323,7 +11323,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, opti
 	//         "priceProtect": false
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -12498,7 +12498,7 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	var responseList any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		if stock == true {
 			var rows any = this.SafeList(response, "rows", []any{})
 			responseList = rows
@@ -12800,11 +12800,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		}
 		response = r3.Raw
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " method() returned empty response"))
 	}
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
@@ -12922,14 +12922,14 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		}
 		response = r3.Raw
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " method() returned empty response"))
 	}
 	if IsString(response) {
 		response = this.ParseJson(response)
 	}
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
@@ -14244,7 +14244,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		//    ]
 		//
 		var spotFees map[string]any = map[string]any{}
-		if IsEqual(response, nil) {
+		if response == nil {
 			panic(NullResponse(this.Id + " method() returned empty response"))
 		}
 		var fees []any = this.ToArray(response)

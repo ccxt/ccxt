@@ -2416,7 +2416,9 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
-		ccxt.AddElementToObject(marketSymbols, symbol, true)
+		if symbol != nil {
+			marketSymbols[*symbol] = true
+		}
 	}
 	var keys []string = nil
 	if marketSymbols != nil {

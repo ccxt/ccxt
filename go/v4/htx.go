@@ -3563,7 +3563,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	//         }
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if InOp(response, "tick") {
@@ -8063,7 +8063,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	} else {
 		result = response
 	}
-	if IsEqual(result, nil) {
+	if result == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 

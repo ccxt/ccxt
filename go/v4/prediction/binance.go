@@ -1116,7 +1116,7 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			continue
 		}
 		var response any = this.SafeDict(responsesByMarketId, marketId)
-		if ccxt.IsEqual(response, nil) {
+		if response == nil {
 			var request map[string]any = map[string]any{
 				"marketId": marketId,
 			}

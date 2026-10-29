@@ -544,12 +544,12 @@ func (this *Nado) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the place_order execute
  */
-func (this *Nado) CreateOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Nado) CreateOrderRequestAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -557,7 +557,7 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var market map[string]any = this.Market(symbol)
-	if !IsEqual(typeVar, "limit") {
+	if typeVar != "limit" {
 		panic(InvalidOrder(this.Id + " createOrder() supports limit orders only"))
 	}
 	if price == nil {
@@ -568,7 +568,7 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var priceX18 *string = this.ConvertToX18(priceString)
 	var amountX18 *string = this.ConvertToX18(amountString)
-	if IsEqual(side, "sell") {
+	if side == "sell" {
 		amountX18 = Precise.StringMul(amountX18, "-1")
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "createOrder", "subaccount", "default")
@@ -594,7 +594,7 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 	if spotLeverage != nil {
 		placeOrder["spot_leverage"] = spotLeverage
 	}
-	var isBuy bool = (IsEqual(side, "buy"))
+	var isBuy bool = (side == "buy")
 	var triggerPrice *string = this.SafeString2(paramsRecvWindow, "triggerPrice", "stopPrice")
 	var stopLossTriggerPrice *string = this.SafeString(paramsRecvWindow, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(paramsRecvWindow, "takeProfitPrice")

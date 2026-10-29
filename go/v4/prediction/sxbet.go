@@ -257,14 +257,14 @@ func (this *Sxbet) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInterf
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rawMarkets any = nil
+	var rawMarkets []any = nil
 	if r.Value != nil {
 		rawMarkets = ccxt.MapSliceToList(r.Value)
 	}
 	var markets []any = []any{}
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		markets = append(markets, this.ParseSxbetMarket(ccxt.GetValue(rawMarkets, i)))
+		markets = append(markets, this.ParseSxbetMarket(rawMarkets[i]))
 	}
 	var marketsLength int = len(markets)
 	if (userLimit != nil) && (int64(marketsLength) > *userLimit) {
@@ -3354,7 +3354,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		this.ApplySxbetWsSnapshot(snapshot)
 		if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 			var emptyBook any = this.OrderBook(map[string]any{})
-			this.WsCacheSet("Orderbooks", sym, emptyBook)
+			this.WsCacheSet("Orderbooks", *sym, emptyBook)
 		}
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3424,7 +3424,9 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var orderbook any = this.SafeValue(this.Orderbooks, sym)
 		if ccxt.IsEqual(orderbook, nil) {
 			orderbook = this.OrderBook(map[string]any{})
-			ccxt.AddElementToObject(this.Orderbooks, sym, orderbook)
+			if sym != nil {
+				this.Orderbooks[*sym] = orderbook
+			}
 		}
 		var bookSnapshot map[string]any = map[string]any{
 			"bids":      this.SafeList(sides, "bids", []any{}),
