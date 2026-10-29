@@ -176,7 +176,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var topic *string = this.SafeString(params, "channel")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 		var subscription any = func() any {
 			if topic == nil {
@@ -185,14 +185,9 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 			return client.(ccxt.ClientInterface).SubscriptionGet(topic)
 		}()
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -584,10 +579,8 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if ccxt.InOp(this.Trades, symbol) {
-		if symbol != nil {
-			delete(this.Trades, *symbol)
-		}
+	if _, ok := this.Trades[*symbol]; ok {
+		delete(this.Trades, *symbol)
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }

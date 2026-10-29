@@ -4036,7 +4036,7 @@ func (this *Nado) SignOrder(order map[string]any, productId any, chainId *string
 			"type": "uint128",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, order)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, order)
 	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignCancellation(cancellation map[string]any, chainId *string, endpointAddress string) string {
@@ -4061,7 +4061,7 @@ func (this *Nado) SignCancellation(cancellation map[string]any, chainId *string,
 			"type": "uint64",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
 	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignCancellationProducts(cancellation map[string]any, chainId *string, endpointAddress string) string {
@@ -4083,7 +4083,7 @@ func (this *Nado) SignCancellationProducts(cancellation map[string]any, chainId 
 			"type": "uint64",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
 	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignFetchTriggerOrders(tx map[string]any, chainId *string, endpointAddress *string) string {
@@ -4102,7 +4102,7 @@ func (this *Nado) SignFetchTriggerOrders(tx map[string]any, chainId *string, end
 			"type": "uint64",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, tx)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, tx)
 	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignHash(hash any, privateKey any) string {

@@ -776,10 +776,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
 		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -1369,10 +1366,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var trades any
-	if symbol != nil {
-		trades = this.Trades[*symbol]
-	}
+	var trades any = this.Trades[*symbol]
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)

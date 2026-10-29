@@ -9903,7 +9903,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 			if upperCaseSide == "BUY" {
 				var precision *float64 = this.SafeNumber(market["precision"], "price")
 				var quoteOrderQtyNew *string = this.SafeString2(paramsPapi, "quoteOrderQty", "cost")
-				var notional any = nil
+				var notional *string = nil
 				if quoteOrderQtyNew != nil {
 					notional = quoteOrderQtyNew
 				} else if price != nil {
@@ -9911,11 +9911,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 					var priceString *string = this.NumberToString(price)
 					notional = Precise.StringMul(amountString, priceString)
 				} else {
-					if derefPtr := this.NumberToString(amount); derefPtr != nil {
-						notional = *derefPtr
-					} else {
-						notional = nil
-					}
+					notional = this.NumberToString(amount)
 				}
 				if precision == nil {
 					request["notional"] = notional

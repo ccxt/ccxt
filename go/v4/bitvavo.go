@@ -1953,16 +1953,16 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		paramsCost = this.Omit(paramsOmitted, []any{"cost"})
 	}
 	if isMarketOrder {
-		var cost any = nil
+		var cost *float64 = nil
 		if price != nil {
 			var priceString *string = this.NumberToString(price)
 			var amountString *string = this.NumberToString(amount)
 			var quoteAmount *string = Precise.StringMul(amountString, priceString)
 			cost = this.ParseNumber(quoteAmount)
 		} else {
-			cost = DerefScalar(this.SafeNumber(paramsOmitted, "cost"))
+			cost = this.SafeNumber(paramsOmitted, "cost")
 		}
-		if !IsEqual(cost, nil) {
+		if cost != nil {
 			var precision any = this.Currency(market["quote"])["precision"]
 			request["amountQuote"] = this.DecimalToPrecision(cost, TRUNCATE, precision, this.PrecisionMode)
 		} else {

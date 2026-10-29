@@ -10013,8 +10013,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 			return bodyJson
 		}()
 		var bodySignature any = this.Hash(this.Encode(bodyPayload), sha512)
-		var nonce any = this.Nonce()
-		var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
+		var nonce int64 = this.Nonce()
+		var timestamp int64 = this.ParseToInt(float64(nonce) / 1000)
 		var timestampString string = strconv.FormatInt(timestamp, 10)
 		var signaturePath string = "/api/" + this.Version + entirePath
 		var payloadArray []any = []any{strings.ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}

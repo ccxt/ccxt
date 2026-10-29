@@ -2032,7 +2032,7 @@ func (this *Nado) SignStreamAuthentication(tx map[string]any, chainId *string, e
 			"type": "uint64",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, tx)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, tx)
 	return this.SignHash(this.Hash(encoded, ccxt.Keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) CreatePublicSubscriptionRequest(method string, streamType any, optionalArgs ...any) map[string]any {
@@ -2364,21 +2364,17 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if timeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}

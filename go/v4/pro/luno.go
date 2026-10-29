@@ -289,10 +289,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
 		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)

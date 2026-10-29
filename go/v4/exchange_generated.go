@@ -2999,8 +2999,8 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	if (typeVar == "market") && (takerOrMaker == "maker") {
 		panic(ArgumentsRequired(this.Id + " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee."))
 	}
-	var markets any = this.Markets()
-	if IsEqual(markets, nil) {
+	var markets map[string]any = this.Markets()
+	if markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var market any = this.SafeDict(markets, symbol, map[string]any{})
@@ -6696,8 +6696,8 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
-	var markets any = this.Markets()
-	if IsEqual(markets, nil) {
+	var markets map[string]any = this.Markets()
+	if markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var marketsById any = this.Markets_by_id()
@@ -7685,9 +7685,9 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	if _, ok := accountsByType[lowercaseAccount]; ok {
 		return accountsByType[lowercaseAccount]
 	}
-	var markets any = this.Markets()
+	var markets map[string]any = this.Markets()
 	var marketsById any = this.Markets_by_id()
-	if ((!IsEqual(markets, nil)) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
+	if ((markets != nil) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
 
 		var market map[string]any = this.DerivedExchange.Market(account)
 		return market["id"]
@@ -9231,7 +9231,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
-				if InOp(this.Trades, symbol) {
+				if _, ok := this.Trades[*symbol]; ok {
 					delete(this.Trades, *symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {

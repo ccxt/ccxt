@@ -4205,7 +4205,7 @@ func (this *Modetrade) withdrawBody(ch chan AsyncResult[Transaction], code strin
 		panic(r1.Err)
 	}
 	var withdrawNonce *float64 = Float64PtrTyped(r1.Value)
-	var nonce any = this.Nonce()
+	var nonce int64 = this.Nonce()
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "Orderly",
@@ -4245,7 +4245,7 @@ func (this *Modetrade) withdrawBody(ch chan AsyncResult[Transaction], code strin
 		"withdrawNonce": withdrawNonce,
 		"timestamp":     nonce,
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
 	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signature":         signature,

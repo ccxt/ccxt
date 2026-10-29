@@ -2176,7 +2176,7 @@ func (this *Predictfun) SignPredictfunOrder(order map[string]any, isNegRisk bool
 	}}
 	// ccxt.EthEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
 	// the order hash the venue indexes the order by
-	var encoded any = this.EthEncodeStructuredData(domain, map[string]any{
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, map[string]any{
 		"Order": orderStruct,
 	}, order)
 	// ccxt.EthEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
@@ -2320,7 +2320,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		var now int64 = this.Seconds()
 		expiration = this.Sum(now, expirationDelta)
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var salt *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.NumberToString(nonce))
 	var taker string = "0x0000000000000000000000000000000000000000"
 	var takerOptionparamsTakerVariable []any = this.HandleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker)

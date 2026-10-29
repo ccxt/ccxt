@@ -749,10 +749,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var tradesArray any
-	if symbol != nil {
-		tradesArray = this.Trades[*symbol]
-	}
+	var tradesArray any = this.Trades[*symbol]
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1112,17 +1109,15 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
 	var stored any
-	if symbol != nil && timeframe != nil {
+	if timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
@@ -1399,10 +1394,7 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")
 	var nonce *int64 = this.SafeInteger(message, "u")

@@ -2572,7 +2572,7 @@ func (this *Derive) SignOrder(order []any, privateKey any) string {
 func (this *Derive) NonceString() string {
 	// incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
 	// the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
-	var rawNonce any = this.IncrementingNonce()
+	var rawNonce int64 = this.IncrementingNonce()
 	var randomPart int64 = this.RandNumber(6) // guards against collisions of different instances with the same wallet
 	var milliseconds *string = this.NumberToString(rawNonce)
 	var suffix *string = this.NumberToString(randomPart)

@@ -7,6 +7,8 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 import "strings"
 
+import "strconv"
+
 type Coinbaseexchange struct {
 	*ccxt.Coinbaseexchange
 	base *ccxt.Coinbaseexchange
@@ -56,8 +58,8 @@ func (this *Coinbaseexchange) Describe() map[string]any {
 func (this *Coinbaseexchange) Authenticate() map[string]any {
 	this.CheckRequiredCredentials()
 	var path string = "/users/self/verify"
-	var nonce any = this.Nonce()
-	var payload string = ccxt.ToString(nonce) + "GET" + path
+	var nonce int64 = this.Nonce()
+	var payload string = strconv.FormatInt(nonce, 10) + "GET" + path
 	var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	return map[string]any{
 		"timestamp":  nonce,

@@ -448,10 +448,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	var bids []any = this.SeparateBidsOrAsks(this.SafeList(data, "bids", []any{}))
 	var asks []any = this.SeparateBidsOrAsks(this.SafeList(data, "asks", []any{}))
 	var snapshot map[string]any = map[string]any{

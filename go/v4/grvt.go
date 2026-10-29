@@ -4375,7 +4375,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	}
 	var domainData map[string]any = this.EipDomainData()
 	var definitions map[string]any = this.EipDefinitions()
-	var ethEncodedMessage any = this.EthEncodeStructuredData(domainData, definitions[structureType], messageData)
+	var ethEncodedMessage []uint8 = this.EthEncodeStructuredData(domainData, definitions[structureType], messageData)
 	var usesPrivKey bool = this.UsesPrivateKey() // py transpiler needs this line separated
 	var secretOrPrivkey any = func() any {
 		if usesPrivKey {

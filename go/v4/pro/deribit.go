@@ -179,9 +179,9 @@ func (this *Deribit) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
-	var balance any = this.ParseBalance(data)
+	var balance map[string]any = this.ParseBalance(data)
 	if currencyCode != nil {
-		ccxt.AddElementToObject(this.Balance, currencyCode, balance)
+		this.Balance[*currencyCode] = balance
 	}
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

@@ -1602,7 +1602,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) map[strin
 	} else {
 		this.CheckRequiredCredentials()
 		// independentreserve requires an increasing nonce
-		var rawNonce any = this.IncrementingNonce()
+		var rawNonce int64 = this.IncrementingNonce()
 		var nonce int64 = this.ParseToInt(rawNonce)
 		var auth []any = []any{url, "apiKey=" + this.ApiKey, "nonce=" + strconv.FormatInt(nonce, 10)}
 		var paramsDict map[string]any = this.Extend(map[string]any{}, params)

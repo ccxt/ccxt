@@ -2720,7 +2720,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		}(this)
 
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var sides map[string]any = map[string]any{
 		"buy":  0,
 		"sell": 1,
@@ -2904,7 +2904,7 @@ func (this *Limitless) SignOrderRequest(signRequest map[string]any, marketSymbol
 			"type": "uint8",
 		}},
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, signRequest)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, signRequest)
 	return this.SignMessage(msg, this.PrivateKey)
 }
 func (this *Limitless) HashMessage(message any) any {

@@ -2138,7 +2138,7 @@ func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) an
 		var message map[string]any = map[string]any{
 			"action": "STARK Key",
 		}
-		var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+		var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 		var signature string = this.SignMessage(msg, this.PrivateKey)
 		var account any = this.RetrieveStarkAccount(signature, this.SafeString(systemConfig, "paraclear_account_hash"), this.SafeString(systemConfig, "paraclear_account_proxy_hash"))
 		this.Options["paradexAccount"] = account

@@ -535,7 +535,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
-	var result any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 	if ccxt.IsEqual(this.HandleOption("watchTrades", "ignoreDuplicates", true), true) {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
@@ -554,17 +554,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 		return nil
 	}
 
-	var resolved1 []any
-	switch resolved1Box := result.(type) {
-	case []any:
-		resolved1 = resolved1Box
-	case ccxt.IArrayCache:
-		resolved1 = resolved1Box.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(resolved1)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(result)}
 	return nil
 }
 

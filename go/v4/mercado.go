@@ -1444,7 +1444,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		url += this.Version + "/"
 		// mercado requires each tonce to be greater than the previous one
-		var nonce any = this.IncrementingNonce()
+		var nonce int64 = this.IncrementingNonce()
 		privateBody = this.Urlencode(this.Extend(map[string]any{
 			"tapi_method": path,
 			"tapi_nonce":  nonce,

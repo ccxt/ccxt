@@ -1125,10 +1125,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var storedOrderBook ccxt.OrderBookInterface
-	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {

@@ -3377,16 +3377,17 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var id *string = nil
+	var id *string = this.SafeString(transaction, "DepositId")
 	var currencyId *string = this.SafeString(transaction, "ProductId")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var typeVar any = nil
-	if InOp(transaction, "DepositId") {
-		id = this.SafeString(transaction, "DepositId")
+	if id != nil {
 		typeVar = "deposit"
-	} else if InOp(transaction, "WithdrawId") {
+	} else {
 		id = this.SafeString(transaction, "WithdrawId")
-		typeVar = "withdrawal"
+		if id != nil {
+			typeVar = "withdrawal"
+		}
 	}
 	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
 	var updated *int64 = this.SafeInteger(transaction, "LastUpdateTimeStamp")

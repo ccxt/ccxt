@@ -1203,8 +1203,8 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
 		var market map[string]any = this.SafeDictMap(all, i, map[string]any{})
-		var parsed any = this.ParseMarket(market)
-		if !IsEqual(parsed, nil) {
+		var parsed map[string]any = this.ParseMarket(market)
+		if parsed != nil {
 			result = append(result, parsed)
 		}
 	}

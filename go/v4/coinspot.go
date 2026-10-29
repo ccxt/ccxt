@@ -1291,7 +1291,7 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) map[string]any {
 	if accessType == "private" {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce
-		var nonce any = this.IncrementingNonce()
+		var nonce int64 = this.IncrementingNonce()
 		requestBody = this.Json(this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params))

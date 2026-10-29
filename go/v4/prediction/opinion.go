@@ -1271,7 +1271,7 @@ func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress stri
 			"type": "uint8",
 		}},
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, order)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, order)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(this.SafeInteger(sig, "v"))
 }
@@ -2237,7 +2237,7 @@ func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp 
 		"action":        action,
 		"timestamp":     timestamp,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(this.SafeInteger(sig, "v"))
 }

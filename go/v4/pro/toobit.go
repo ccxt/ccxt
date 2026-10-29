@@ -298,16 +298,13 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		if symbol != nil {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var stored any
-	if symbol != nil {
-		stored = this.Trades[*symbol]
-	}
+	var stored any = this.Trades[*symbol]
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
@@ -480,22 +477,18 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var timeframeId *string = this.SafeString(params, "klineType")
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options["ws"], "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			if symbol != nil && this.Ohlcvs[*symbol] != nil {
+			if this.Ohlcvs[*symbol] != nil {
 				this.Ohlcvs[*symbol][*timeframe] = stored
 			}
 		}
@@ -818,19 +811,14 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderBook ccxt.OrderBookInterface
-		if symbol != nil {
-			orderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-		}
+		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
 		orderBook.SetTimestamp(timestamp)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = orderBook
-		}
+		this.Orderbooks[*symbol] = orderBook
 		client.(ccxt.ClientInterface).Resolve(orderBook, messageHash)
 	}
 }
@@ -878,10 +866,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook any
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook any = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)

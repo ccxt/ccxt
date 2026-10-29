@@ -3973,9 +3973,9 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var parsedMarket any = this.ParseMarket(market)
-		if (!IsEqual(parsedMarket, nil)) && EvalTruthy(GetValue(parsedMarket, "spot")) {
-			var marketId *string = SafeStringPtr(GetValue(parsedMarket, "id"))
+		var parsedMarket map[string]any = this.ParseMarket(market)
+		if (parsedMarket != nil) && EvalTruthy(parsedMarket["spot"]) {
+			var marketId *string = SafeStringPtr(parsedMarket["id"])
 			var instrument map[string]any = SafeMapTyped(spotInstruments, marketId)
 			if instrument != nil {
 				var parsedInstrument map[string]any = this.ParseMarket(instrument)
@@ -4317,7 +4317,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var parsedMarket any = this.ParseMarket(market)
+		var parsedMarket map[string]any = this.ParseMarket(market)
 		result = append(result, parsedMarket)
 	}
 

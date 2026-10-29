@@ -1422,10 +1422,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 		//
 		return
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if nonce == nil {
 		// 2. Buffer the events you receive from the stream.
@@ -1441,10 +1438,8 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 						}
 						ret_ = func(this *Binance) any {
 							// catch block:
-							if ccxt.InOp(this.Orderbooks, symbol) {
-								if symbol != nil {
-									delete(this.Orderbooks, *symbol)
-								}
+							if _, ok := this.Orderbooks[*symbol]; ok {
+								delete(this.Orderbooks, *symbol)
 							}
 							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)

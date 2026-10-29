@@ -2981,7 +2981,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		var orderParams any = this.SafeDict(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
 			// a distinct salt per order so two identical orders don't collide, within a batch or across calls
-			var orderSalt any = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+			var orderSalt int64 = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
 			orderParams = this.Extend(orderParams, map[string]any{
 				"salt": this.NumberToString(orderSalt),
 			})
@@ -3097,7 +3097,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 	var eoa string = this.EthChecksumAddress(ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey)))
 	var funder string = this.EthChecksumAddress(this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress)))
 	// the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
-	var defaultSalt any = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+	var defaultSalt int64 = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
 	var salt *string = this.SafeString(params, "salt", this.NumberToString(defaultSalt))
 	var timestamp *string = this.SafeString(params, "timestamp", this.NumberToString(this.Milliseconds()))
 	// GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
@@ -3354,7 +3354,7 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress *s
 	// strict comparison, which would always wrongly select the EOA path
 	if this.ParseToInt(sigType) != 3 {
 		// standard EOA EIP-712 order signature
-		var encoded any = this.EthEncodeStructuredData(orderDomain, map[string]any{
+		var encoded []uint8 = this.EthEncodeStructuredData(orderDomain, map[string]any{
 			"Order": orderStruct,
 		}, message)
 		var eoaSig any = this.SignMessage(encoded, this.PrivateKey)
@@ -3402,7 +3402,7 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress *s
 		"verifyingContract": message["signer"],
 		"salt":              bytes32Zero,
 	}
-	var innerEncoded any = this.EthEncodeStructuredData(orderDomain, map[string]any{
+	var innerEncoded []uint8 = this.EthEncodeStructuredData(orderDomain, map[string]any{
 		"TypedDataSign": typedDataSignStruct,
 		"Order":         orderStruct,
 	}, innerValue)
@@ -4163,7 +4163,7 @@ func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) s
 		"nonce":     nonce,
 		"message":   "This message attests that I control the given wallet",
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
 }

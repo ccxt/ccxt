@@ -1599,7 +1599,7 @@ func (this *Dydx) SignOnboardingAction() any {
 			"type": "string",
 		}},
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	if this.PrivateKey == "" {
 		panic(ArgumentsRequired(this.Id + " signOnboardingAction() requires a privateKey to be set."))
 	}

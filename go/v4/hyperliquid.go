@@ -2099,7 +2099,7 @@ func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any
 			"type": "bytes32",
 		}},
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
 	var signature any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
@@ -2112,7 +2112,7 @@ func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any
 		"verifyingContract": zeroAddress,
 		"version":           "1",
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
@@ -2272,7 +2272,7 @@ func (this *Hyperliquid) setRefBody(ch chan AsyncResult[bool]) any {
 		"type": "setReferrer",
 		"code": this.SafeString(this.Options, "ref", "CCXT1"),
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var signature any = this.SignL1Action(action, nonce)
 	var request map[string]any = map[string]any{
 		"action":    action,
@@ -2318,7 +2318,7 @@ func (this *Hyperliquid) ApproveBuilderFeeAsync(builder any, maxFeeRate any) <-c
 func (this *Hyperliquid) approveBuilderFeeBody(ch chan AsyncResult[map[string]any], builder any, maxFeeRate any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {
@@ -2595,7 +2595,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[map[string]a
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("setUserAbstraction", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
 	var payload map[string]any = map[string]any{
@@ -2663,7 +2663,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[map[st
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("enableUserDexAbstraction", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
 	var payload map[string]any = map[string]any{
@@ -2727,7 +2727,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
@@ -2842,7 +2842,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol 
 		panic(r2.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isBuy bool = (strings.ToUpper(side) == "BUY")
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "randomize")
@@ -3103,7 +3103,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		}
 	}
 	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
 	var grouping any = "na"
 	for i := 0; i < ordersLength; i++ {
@@ -3375,7 +3375,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 		"a":    this.ParseToInt(market["baseId"]),
 		"t":    this.ParseToNumeric(id),
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var signature any = this.SignL1Action(action, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    action,
@@ -3437,7 +3437,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
@@ -3521,7 +3521,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
@@ -3643,13 +3643,13 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 		panic(r1.Err)
 	}
 	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
 	var cancelAction map[string]any = map[string]any{
 		"type": "scheduleCancel",
-		"time": Add(nonce, timeout),
+		"time": nonce + timeout,
 	}
 	var vaultAddress any = nil
 	var vaultAddressPtr *string = nil
@@ -3798,7 +3798,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) map[
 		}
 		modifies = append(modifies, modifyReq)
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var modifyAction map[string]any = map[string]any{
 		"type":     "batchModify",
 		"modifies": modifies,
@@ -3991,7 +3991,7 @@ func (this *Hyperliquid) createVaultBody(ch chan AsyncResult[map[string]any], na
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
@@ -5395,7 +5395,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	}
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var isCross bool = (marginMode == "cross")
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var params2 map[string]any = this.OmitDict(params, []any{"leverage"})
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
@@ -5478,7 +5478,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	var marginMode *string = this.SafeString(params, "marginMode", "cross")
 	var isCross bool = (marginMode != nil && *marginMode == "cross")
 	var asset int64 = this.ParseToInt(market["baseId"])
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var params2 any = this.Omit(params, "marginMode")
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
@@ -5609,7 +5609,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan AsyncResult[MarginModifi
 		}
 		return szAbs
 	}()
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var updateAction map[string]any = map[string]any{
 		"type":  "updateIsolatedMargin",
 		"asset": asset,
@@ -5709,7 +5709,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 	}
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode")
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	if this.InArray(fromAccount, []any{"spot", "swap", "perp"}) {
 		// handle swap <> spot account transfer
 		if !this.InArray(toAccount, []any{"spot", "swap", "perp"}) {
@@ -5995,7 +5995,7 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 	}
 	vaultAddressOption, _ := this.HandleOptionStringAndParams(params, "withdraw", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var action map[string]any = map[string]any{}
 	var sig any = nil
 	if vaultAddress != nil {
@@ -6831,7 +6831,7 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan AsyncResult[map[string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
@@ -6872,7 +6872,7 @@ func (this *Hyperliquid) createSubAccountBody(ch chan AsyncResult[map[string]any
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}

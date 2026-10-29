@@ -1545,7 +1545,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	var market map[string]any = this.Market(marketSymbol)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isBuy bool = (strings.ToUpper(side) == "BUY")
 	var isMarket bool = (strings.ToUpper(typeVar) == "MARKET")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
@@ -1761,7 +1761,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var cancelReq []any = []any{}
@@ -2788,7 +2788,7 @@ func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any
 			"type": "bytes32",
 		}},
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
 	return this.SignMessage(msg, this.PrivateKey)
 }
 func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any {
@@ -2800,7 +2800,7 @@ func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any
 		"verifyingContract": zeroAddress,
 		"version":           "1",
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
@@ -2840,7 +2840,7 @@ func (this *Hyperliquid) ApproveBuilderFeeAsync(builder any, maxFeeRate any) <-c
 func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[string]any], builder any, maxFeeRate any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {

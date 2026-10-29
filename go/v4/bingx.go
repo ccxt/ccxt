@@ -3083,7 +3083,7 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var request map[string]any = map[string]any{}
 	var rows []any = []any{}
@@ -3094,7 +3094,7 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 		return len(symbolsNormalized)
 	}()
 	if typeVar != nil && *typeVar == "spot" {
-		if (!IsEqual(market, nil)) && (symbolsLength == 1) {
+		if (market != nil) && (symbolsLength == 1) {
 			request["symbol"] = this.SafeString(market, "id")
 		}
 
@@ -3105,7 +3105,7 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 		response := r1.Raw
 		rows = ArrayTyped(this.SafeList(response, "data", []any{}))
 	} else {
-		if (IsEqual(market, nil)) || (GetValue(market, "inverse") == true) || (symbolsLength != 1) {
+		if (market == nil) || (GetValue(market, "inverse") == true) || (symbolsLength != 1) {
 			panic(ArgumentsRequired(this.Id + " fetchBidsAsks() requires exactly one linear swap symbol for contract markets"))
 		}
 		request["symbol"] = this.SafeString(market, "id")

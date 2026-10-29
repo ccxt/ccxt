@@ -1751,12 +1751,10 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
-	var limitValue any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return mathMin(limit, maxLimit)
-	}()
+	var limitValue any = defaultLimit
+	if limit != nil {
+		limitValue = mathMin(limit, maxLimit)
+	}
 	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":    limitValue,
@@ -2185,14 +2183,9 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	var initialUppercaseType string = strings.ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-	var triggerKeys any = func() any {
-		if triggerPrice != nil {
-			return []any{"triggerPrice", "stopPrice"}
-		}
-		return []any{}
-	}()
-	var paramsRequest any = this.Omit(paramsPostOnly, this.ArrayConcat([]any{"clientId", "clientOrderId", "timeInForce"}, triggerKeys))
+	var paramsRequest any = this.Omit(paramsPostOnly, []any{"clientId", "clientOrderId", "timeInForce"})
 	if triggerPrice != nil {
+		paramsRequest = this.Omit(paramsRequest, []any{"triggerPrice", "stopPrice"})
 		if postOnly {
 			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
 		}
@@ -2582,11 +2575,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes218815 []any = OrdersToList(r.Value)
-	if retRes218815 == nil {
+	var retRes219115 []any = OrdersToList(r.Value)
+	if retRes219115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes218815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes219115)}
 	}
 	return nil
 }
@@ -2626,11 +2619,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes220415 []any = OrdersToList(r.Value)
-	if retRes220415 == nil {
+	var retRes220715 []any = OrdersToList(r.Value)
+	if retRes220715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220715)}
 	}
 	return nil
 }

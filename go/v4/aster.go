@@ -5519,7 +5519,7 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload map[string]any, network a
 		"nonce":             this.SafeInteger(withdrawPayload, "userNonce"),
 		"aster chain":       "Mainnet",
 	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, request)
+	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, request)
 	var signature string = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
@@ -5815,7 +5815,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 				"msg": paramString,
 			}
 		}
-		var encodedMessage any = this.EthEncodeStructuredData(domain, messageTypes, paramsToEncode)
+		var encodedMessage []uint8 = this.EthEncodeStructuredData(domain, messageTypes, paramsToEncode)
 		var signature string = this.SignMessage(encodedMessage, this.PrivateKey)
 		var queryString string = paramString + "&" + "signature=" + signature
 		if method == "GET" {

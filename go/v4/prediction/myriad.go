@@ -1685,7 +1685,7 @@ func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[str
 		"chainId":           this.ParseToInt(networkId),
 		"verifyingContract": exchangeAddress,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, types, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, types, message)
 	var digest any = this.Hash(encoded, ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(digest, this.Remove0xPrefix(this.PrivateKey), ccxt.Secp256k1, nil)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])

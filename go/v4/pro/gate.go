@@ -919,10 +919,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, 1000)
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	if full != nil && *full {
 		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
 		snapshopt["nonce"] = this.SafeInteger(result, "u")

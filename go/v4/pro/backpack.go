@@ -1359,7 +1359,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
-	var result any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.SortBy(result, "timestamp"))} // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 	return nil
@@ -2228,7 +2228,7 @@ func (this *Backpack) HandleBalance(client any, message any) bool {
 		"staked":    this.SafeString(data, "S"),
 	}
 	this.Options["wsBalanceAssets"] = assets
-	var response any = this.ParseBalance(assets)
+	var response map[string]any = this.ParseBalance(assets)
 	var parsed any = this.SafeDict(map[string]any{
 		"balances": response,
 	}, "balances", map[string]any{})

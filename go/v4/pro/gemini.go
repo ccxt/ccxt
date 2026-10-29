@@ -537,10 +537,7 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
 		var bidsSnapshot []any = []any{}
@@ -575,9 +572,7 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -801,10 +796,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var ob ccxt.OrderBookInterface = this.OrderBook()
 		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var bids any = orderbook.GetBids()
 	var asks any = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
@@ -822,9 +814,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	orderbook.SetNonce(nonce)
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Gemini) HandleL2Updates(client any, message map[string]any) {

@@ -260,16 +260,11 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -695,17 +690,12 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(first, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
-	var trades any
-	if symbol != nil {
-		trades = this.Trades[*symbol]
-	}
+	var trades any = this.Trades[*symbol]
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(row, market)
@@ -903,20 +893,18 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if rowsLength == 0 {
 		return
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if timeframe != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
 	var ohlcv any
-	if symbol != nil && timeframe != nil {
+	if timeframe != nil {
 		ohlcv = this.Ohlcvs[*symbol][*timeframe]
 	}
 	for i := 0; i < len(rows); i++ {

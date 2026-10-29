@@ -127,9 +127,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks[*symbol] = orderbook
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

@@ -797,7 +797,7 @@ func (this *Cryptocom) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		messageHashes = append(messageHashes, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1001,7 +1001,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 		topics = append(topics, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1355,7 +1355,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 		panic(r1.Err)
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1652,7 +1652,7 @@ func (this *Cryptocom) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], s
 		"method": "private/create-order",
 		"params": paramsValue,
 	}
-	var messageHash any = this.IncrementingNonce()
+	var messageHash int64 = this.IncrementingNonce()
 
 	r1 := <-this.WatchPrivateRequestAsync(messageHash, request)
 	if r1.Err != nil {
@@ -1703,7 +1703,7 @@ func (this *Cryptocom) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 		"method": "private/amend-order",
 		"params": paramsValue,
 	}
-	var messageHash any = this.IncrementingNonce()
+	var messageHash int64 = this.IncrementingNonce()
 
 	r1 := <-this.WatchPrivateRequestAsync(messageHash, request)
 	if r1.Err != nil {
@@ -1766,7 +1766,7 @@ func (this *Cryptocom) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 		"method": "private/cancel-order",
 		"params": paramsExtended,
 	}
-	var messageHash any = this.IncrementingNonce()
+	var messageHash int64 = this.IncrementingNonce()
 
 	r1 := <-this.WatchPrivateRequestAsync(messageHash, request)
 	if r1.Err != nil {
@@ -1813,7 +1813,7 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Ord
 		market = this.Market(symbol)
 		ccxt.AddElementToObject(request["params"], "instrument_name", market["id"])
 	}
-	var messageHash any = this.IncrementingNonce()
+	var messageHash int64 = this.IncrementingNonce()
 
 	r1 := <-this.WatchPrivateRequestAsync(messageHash, request)
 	if r1.Err != nil {
@@ -1854,7 +1854,7 @@ func (this *Cryptocom) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHas
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1882,7 +1882,7 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], me
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1912,7 +1912,7 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 	var subExtend map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subExtend
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -1994,7 +1994,7 @@ func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], 
 		panic(r.Err)
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -2165,7 +2165,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var method string = "public/auth"
-		var nonceValue any = this.IncrementingNonce()
+		var nonceValue int64 = this.IncrementingNonce()
 		var nonce *string = this.NumberToString(nonceValue)
 		var auth string = method + *nonce + this.ApiKey + *nonce
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)

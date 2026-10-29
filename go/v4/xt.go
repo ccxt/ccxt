@@ -1633,8 +1633,8 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]MarketInterf
 func (this *Xt) ParseMarkets(markets any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
-		var parsed any = this.ParseMarket(this.SafeValue(markets, i))
-		if !IsEqual(parsed, nil) {
+		var parsed map[string]any = this.ParseMarket(this.SafeValue(markets, i))
+		if parsed != nil {
 			result = append(result, parsed)
 		}
 	}
@@ -2647,7 +2647,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "s")
 	var marketType *string = this.SafeString(market, "type")
-	var hasSpotKeys bool = (InOp(ticker, "cv")) || (InOp(ticker, "aq"))
+	var hasSpotKeys bool = (this.SafeString(ticker, "cv") != nil) || (this.SafeString(ticker, "aq") != nil)
 	if marketType == nil {
 		marketType = SafeStringPtr(func() string {
 			if hasSpotKeys {
@@ -3074,7 +3074,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	var marketType *string = this.SafeString(market, "type")
-	var hasSpotKeys bool = (InOp(trade, "b")) || (InOp(trade, "bizType")) || (InOp(trade, "oi"))
+	var hasSpotKeys bool = (this.SafeBool(trade, "b") != nil) || (this.SafeString(trade, "bizType") != nil) || (this.SafeString(trade, "oi") != nil)
 	if marketType == nil {
 		marketType = SafeStringPtr(func() string {
 			if hasSpotKeys {
@@ -5881,7 +5881,7 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) Transacti
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar string = func() string {
-		if InOp(transaction, "fromAddr") {
+		if this.SafeString(transaction, "fromAddr") != nil {
 			return "deposit"
 		}
 		return "withdraw"

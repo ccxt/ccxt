@@ -161,7 +161,7 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(firstSymbol, limit)
 	}
-	var result any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
+	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.SortBy(result, "timestamp"))} // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
 	return nil
@@ -1250,9 +1250,7 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(first))
 	var symbol *string = this.SafeString(fundingRate, "symbol", "")
-	if symbol != nil {
-		this.FundingRates[*symbol] = fundingRate
-	}
+	this.FundingRates[*symbol] = fundingRate
 	var messageHash string = "fundingRate:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }

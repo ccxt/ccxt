@@ -1156,7 +1156,7 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = this.CreateOrderRequest(nonce, SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
@@ -1204,7 +1204,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 			panic(r.Err)
 		}
 	}
-	var nonceValue any = this.IncrementingNonce()
+	var nonceValue int64 = this.IncrementingNonce()
 	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -1323,7 +1323,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = this.EditOrderRequest(nonce, SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
@@ -1369,7 +1369,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 			panic(r.Err)
 		}
 	}
-	var nonceValue any = this.IncrementingNonce()
+	var nonceValue int64 = this.IncrementingNonce()
 	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -1551,7 +1551,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 			panic(r.Err)
 		}
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var nonce16 string = this.IntToBase16(nonce)
 	var noncePadded string = (strings.Repeat("0", max(16-len(nonce16), 0)) + nonce16)[max(len(nonce16)-16, 0):]
 	var message []byte = this.Base16ToBinary(noncePadded)

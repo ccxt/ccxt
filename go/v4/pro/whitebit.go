@@ -378,7 +378,7 @@ func (this *Whitebit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var method string = "market_subscribe"
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -1133,7 +1133,7 @@ func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
@@ -1168,7 +1168,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
 	var request any = nil
 	var marketIds []any = []any{}
@@ -1261,7 +1261,7 @@ func (this *Whitebit) watchPrivateBody(ch chan ccxt.AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var id any = this.IncrementingNonce()
+	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
@@ -1373,7 +1373,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 			if token == nil {
 				panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty websocket_token"))
 			}
-			var id any = this.IncrementingNonce()
+			var id int64 = this.IncrementingNonce()
 			var request map[string]any = map[string]any{
 				"id":     id,
 				"method": "authorize",

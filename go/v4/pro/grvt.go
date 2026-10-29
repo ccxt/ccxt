@@ -479,17 +479,14 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		if symbol != nil {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
 	var parsed map[string]any = this.ParseWsTrade(data)
-	var stored any
-	if symbol != nil {
-		stored = this.Trades[*symbol]
-	}
+	var stored any = this.Trades[*symbol]
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
@@ -827,10 +824,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")
 	var isSnapshotChannel bool = (stream != nil && *stream == "v1.book.s")
@@ -855,9 +849,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	// unconditional assignment is correct for every language.
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Grvt) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

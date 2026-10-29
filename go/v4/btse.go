@@ -4969,7 +4969,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
-		var nonce any = this.Nonce()
+		var nonce int64 = this.Nonce()
 		var bodyString string = this.Json(query)
 		if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 			bodyString = ""
@@ -4986,7 +4986,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			signPath = this.CleanPath(path)
 		}
-		var payload string = signPath + ToString(nonce) + bodyString
+		var payload string = signPath + strconv.FormatInt(nonce, 10) + bodyString
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"request-api":   this.ApiKey,

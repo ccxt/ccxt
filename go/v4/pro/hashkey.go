@@ -205,20 +205,18 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if timeframe != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var stored any
-	if symbol != nil && timeframe != nil {
+	if timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	for i := 0; i < len(data); i++ {
@@ -402,16 +400,13 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		if symbol != nil {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var stored any
-	if symbol != nil {
-		stored = this.Trades[*symbol]
-	}
+	var stored any = this.Trades[*symbol]
 	var data any = this.SafeList(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")
@@ -504,10 +499,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")

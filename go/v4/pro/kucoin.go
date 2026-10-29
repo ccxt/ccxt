@@ -1995,10 +1995,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var cache any
-	if symbol != nil {
-		cache = this.Trades[*symbol]
-	}
+	var cache any = this.Trades[*symbol]
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2029,10 +2026,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var cache any
-	if symbol != nil {
-		cache = this.Trades[*symbol]
-	}
+	var cache any = this.Trades[*symbol]
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2503,10 +2497,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
-		var orderbook any
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook any = this.Orderbooks[*symbol]
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {
@@ -2531,10 +2522,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	var book any
-	if symbol != nil {
-		book = this.Orderbooks[*symbol]
-	}
+	var book any = this.Orderbooks[*symbol]
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
@@ -2562,15 +2550,10 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(data, "M", 0.000001)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	var depth *string = this.SafeString(message, "dp", "")
 	var messageHash string = "uta:orderbook:" + *symbol + ":depth:" + *depth
 	if typeVar != nil && *typeVar == "snapshot" {
@@ -2598,10 +2581,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	var book any
-	if symbol != nil {
-		book = this.Orderbooks[*symbol]
-	}
+	var book any = this.Orderbooks[*symbol]
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }

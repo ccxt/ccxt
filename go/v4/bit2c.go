@@ -1412,7 +1412,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		this.CheckRequiredCredentials()
 		// bit2c requires an increasing nonce per key
-		var nonce any = this.IncrementingNonce()
+		var nonce int64 = this.IncrementingNonce()
 		var query map[string]any = this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params)

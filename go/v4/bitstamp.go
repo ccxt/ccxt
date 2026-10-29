@@ -1310,7 +1310,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 }
 func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *string, precision *int64, minCost any, originalPayload map[string]any) map[string]any {
 	var currencyType string = "crypto"
-	var description any = this.Describe()
+	var description map[string]any = this.Describe()
 	var fees map[string]any = SafeMapTyped(description, "fees")
 	var fundingFees map[string]any = SafeMapTyped(fees, "funding")
 	var withdrawFee *float64 = this.SafeNumber(fundingFees, "withdraw")

@@ -1017,8 +1017,8 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			panic(r.Err)
 		}
 		var rawResponse map[string]any = r.Value
-		var parsed any = this.ParseMarket(rawResponse)
-		if !IsEqual(parsed, nil) {
+		var parsed map[string]any = this.ParseMarket(rawResponse)
+		if parsed != nil {
 			result = append(result, parsed)
 		}
 	}
@@ -2833,7 +2833,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 			panic(AuthenticationError(this.Id + " sign() requires an account-key, master-keys are not-supported"))
 		}
 		// gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-		var nonceValue any = this.IncrementingNonce()
+		var nonceValue int64 = this.IncrementingNonce()
 		var nonce *string = this.NumberToString(nonceValue)
 		var finalUrl string = url
 		var request map[string]any = this.Extend(map[string]any{

@@ -325,7 +325,7 @@ func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[ccx
 func (this *Coinbaseinternational) HandleBalance(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsed any = this.ParseBalance(data)
+	var parsed map[string]any = this.ParseBalance(data)
 	this.WsBalanceReplace(this.DeepExtend(this.Balance, parsed))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
@@ -1600,19 +1600,17 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(resolution, timeframes)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe), nil) {
+	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[*symbol], timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if timeframe != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var stored any
-	if symbol != nil && timeframe != nil {
+	if timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
@@ -1815,10 +1813,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 			this.Trades[*symbol] = tradesArrayCache
 		}
 	}
-	var tradesArray any
-	if symbol != nil {
-		tradesArray = this.Trades[*symbol]
-	}
+	var tradesArray any = this.Trades[*symbol]
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))

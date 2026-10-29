@@ -1137,7 +1137,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		"nonce":    nonce,
 		"deadline": deadline,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var digest any = this.HashEip712Digest(encoded)
 	var signature string = this.SignDigest(digest, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -1313,7 +1313,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		"maker":                    maker,
 		"isMakerBettingOutcomeOne": isMakerBettingOutcomeOne,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var digest any = this.HashEip712Digest(encoded)
 	var orderSignature string = this.SignDigest(digest, this.PrivateKey)
 	var orderItem map[string]any = map[string]any{

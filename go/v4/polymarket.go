@@ -3337,7 +3337,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		"salt":    salt,
 		"ts":      ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
@@ -3815,7 +3815,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"salt": salt,
 		"ts":   ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
@@ -3946,7 +3946,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable any, 
 		"salt": salt,
 		"ts":   ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var proxyPrivateKey *string = this.SafeString(credentials, "privateKey")
 	var signature any = this.SignMessage(encoded, proxyPrivateKey)
 	var envelope map[string]any = map[string]any{

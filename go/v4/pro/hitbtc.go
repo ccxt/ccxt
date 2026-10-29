@@ -189,7 +189,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any,
 	} else {
 		messageHashes = append(messageHashes, messageHashPrefix)
 	}
-	var requestId any = this.IncrementingNonce()
+	var requestId int64 = this.IncrementingNonce()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
 		"id":     requestId,
@@ -247,7 +247,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any
 	if symbol != nil {
 		messageHash = ccxt.SafeStringPtr(*messageHashBase + "::" + *symbol)
 	}
-	var requestId any = this.IncrementingNonce()
+	var requestId int64 = this.IncrementingNonce()
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": params,
@@ -295,7 +295,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan ccxt.AsyncResult[any], name string,
 	}
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
 	var url *string = this.SafeString(wsUrls, "private")
-	var requestId any = this.IncrementingNonce()
+	var requestId int64 = this.IncrementingNonce()
 	var messageHash *string = this.NumberToString(requestId)
 	var subscribe map[string]any = map[string]any{
 		"method": name,
@@ -426,10 +426,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook ccxt.OrderBookInterface
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
@@ -445,9 +442,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 		ccxt.AddElementToObject(orderbook, "nonce", nonce)
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = orderbook
-		}
+		this.Orderbooks[*symbol] = orderbook
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }

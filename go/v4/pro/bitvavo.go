@@ -2525,7 +2525,7 @@ func (this *Bitvavo) HandleFetchBalance(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
 	var response []any = ccxt.SafeListTypedDefault(message, "response", []any{})
-	var balance any = this.ParseBalance(response)
+	var balance map[string]any = this.ParseBalance(response)
 	client.(ccxt.ClientInterface).Resolve(balance, messageHash)
 }
 func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {

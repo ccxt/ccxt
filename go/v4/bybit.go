@@ -13275,10 +13275,10 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
-		request["symbol"] = GetValue(market, "id")
+	if market != nil {
+		request["symbol"] = market["id"]
 	}
 	typeVarparamsValueVariable := this.GetBybitType("fetchPositionsADLRank", market, params)
 	var typeVar *string = SafeStringPtr(typeVarparamsValueVariable[0])
