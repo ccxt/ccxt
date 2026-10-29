@@ -325,19 +325,15 @@ export default class binance extends binanceRest {
         return (base === undefined) ? undefined : base.toLowerCase ();
     }
 
-    getStockUnifiedSymbol (stockSymbol: Str, quote: Str = undefined): Str {
+    getStockUnifiedSymbol (stockSymbol: Str, quote: string = 'USDC'): Str {
         if (stockSymbol === undefined) {
             return undefined;
-        }
-        let safeQuote: Str = quote;
-        if (quote === undefined) {
-            safeQuote = 'USDC';
         }
         const parsed = this.safeSymbol (stockSymbol, undefined, '/', 'spot');
         if ((parsed !== undefined) && (parsed.indexOf ('/') >= 0)) {
             return parsed;
         }
-        return stockSymbol + '/' + safeQuote;
+        return stockSymbol + '/' + quote;
     }
 
     /**
