@@ -6561,6 +6561,174 @@
                     "id"
                 ]
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "spot trade unsubscribe acknowledgement",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.gateio.ws/ws/v4/",
+                "messages": [
+                    {
+                        "id": 1,
+                        "channel": "spot.trades",
+                        "event": "unsubscribe",
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 0,
+                        "channel": "spot.trades",
+                        "event": "unsubscribe",
+                        "payload": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "time"
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "linear swap trade unsubscribe acknowledgement",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+                "messages": [
+                    {
+                        "id": 1,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 0,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "payload": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "time"
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "inverse swap trade unsubscribe acknowledgement",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/btc",
+                "messages": [
+                    {
+                        "id": 1,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 0,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "payload": [
+                            "BTC_USD"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "time"
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "delivery future trade unsubscribe acknowledgement",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/delivery/usdt",
+                "messages": [
+                    {
+                        "id": 1,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 0,
+                        "channel": "futures.trades",
+                        "event": "unsubscribe",
+                        "payload": [
+                            "BTC_USDT_20260626"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "time"
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "multiple spot trade unsubscribe acknowledgement",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ],
+                "url": "wss://api.gateio.ws/ws/v4/",
+                "messages": [
+                    {
+                        "id": 1,
+                        "channel": "spot.trades",
+                        "event": "unsubscribe",
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 0,
+                        "channel": "spot.trades",
+                        "event": "unsubscribe",
+                        "payload": [
+                            "BTC_USDT",
+                            "ETH_USDT"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "time"
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
