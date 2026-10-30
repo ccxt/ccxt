@@ -18256,7 +18256,15 @@ function j14ScalarLocal (printer, declaration) {
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    // sibling `let name = <String producer>` blocks of one method may share the String type
+    const bound = index.bindingCounts.get (name) ?? 0;
+    if (bound !== 1 && !(bound > 1 && (index.declarations.get (name) ?? []).length === bound
+        && index.declarations.get (name).every ((d) => d.parent?.declarations?.length === 1 && ts.isVariableDeclarationList (d.parent)
+            && d.parent.parent?.kind !== ts.SyntaxKind.ForStatement && d.initializer !== undefined
+            && j14Value (printer, d.initializer, d, 'String') !== undefined))) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
