@@ -1242,23 +1242,16 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        subaccountParam = self.safe_string(params, 'subaccountId')
         direction = None
         subaccountId = None
         if (fromAccount == 'master') and (toAccount == 'master'):
             raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)')
         elif fromAccount == 'master':
             direction = 'masterToSub'
-            if subaccountParam is None:
-                subaccountId = toAccount
-            else:
-                subaccountId = subaccountParam
+            subaccountId = self.safe_string(params, 'subaccountId', toAccount)
         elif toAccount == 'master':
             direction = 'subToMaster'
-            if subaccountParam is None:
-                subaccountId = fromAccount
-            else:
-                subaccountId = subaccountParam
+            subaccountId = self.safe_string(params, 'subaccountId', fromAccount)
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be master')
         if subaccountId is None:

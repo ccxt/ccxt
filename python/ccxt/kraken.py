@@ -3372,7 +3372,7 @@ class kraken(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_account_type(self, account: Str) -> Str:
+    def parse_account_type(self, account: str) -> Str:
         accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',

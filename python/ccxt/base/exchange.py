@@ -4499,10 +4499,8 @@ class BaseExchange(object):
                         side = self.safe_string(trade, 'side')
                     tradeTimestamp = self.safe_integer(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
-                        if lastTradeTimeTimestamp is None:
+                        if lastTradeTimeTimestamp is None or tradeTimestamp > lastTradeTimeTimestamp:
                             lastTradeTimeTimestamp = tradeTimestamp
-                        else:
-                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
                     if shouldParseFees:
                         tradeFees = self.safe_list(trade, 'fees')
                         if tradeFees is not None:
@@ -7488,17 +7486,15 @@ class BaseExchange(object):
         return [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest]
 
     def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
-        maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
-        maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
-        paginationDirection, paramsPaginationDirection = self.handle_option_and_params(paramsMaxRetries, method, 'paginationDirection', 'backward')
+        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', 10)
+        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', 3)
+        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
+        paginationDirection, paramsPaginationDirection = self.handle_option_string_and_params(paramsRemoveRepeated, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsPaginationDirection, method, 'removeRepeated', removeRepeated)
         result = []
         errors = 0
-        until = self.safe_integer_n(paramsRemoveRepeated, ['until', 'untill', 'till'])  # do not omit it from params here
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsRemoveRepeated)
+        until = self.safe_integer_n(paramsPaginationDirection, ['until', 'untill', 'till'])  # do not omit it from params here
+        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationDirection)
         if (paginationDirection == 'forward'):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
@@ -7672,9 +7668,10 @@ class BaseExchange(object):
                     raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
                 responseLength = len(response)
                 if self.verbose:
-                    cursorString = '' if (cursorValue is None) else cursorValue
-                    iteration = (i + 1)
-                    cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
+                    cursorString = ''
+                    if cursorValue is not None:
+                        cursorString = str(cursorValue)
+                    cursorMessage = 'Cursor pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
                     shouldBreak = True
@@ -7689,7 +7686,8 @@ class BaseExchange(object):
                         index = responseLength - j - 1
                         entry = self.safe_dict(response, index)
                         info = self.safe_dict(entry, 'info')
-                        cursorValue = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
+                        if cursorReceived is not None:
+                            cursorValue = self.safe_value(info, cursorReceived)
                 if cursorValue is None:
                     shouldBreak = True
                     break
