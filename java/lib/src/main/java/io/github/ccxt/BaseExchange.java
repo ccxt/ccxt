@@ -2456,10 +2456,10 @@ public class BaseExchange {
 
     /** Hand-written (not transpiled): the last_request_* fields are written and read on the
      *  request's own call chain, so plain assignments need no volatile publication. */
-    public void setLastRequest(Object request) {
-        this.last_request_headers = Helpers.GetValue(request, "headers");
-        this.last_request_body = Helpers.GetValue(request, "body");
-        this.last_request_url = Helpers.GetValue(request, "url");
+    public void setLastRequest(Map<String, Object> request) {
+        this.last_request_headers = request.get("headers");
+        this.last_request_body = request.get("body");
+        this.last_request_url = request.get("url");
     }
 
     /** Check if a message is binary (byte array). */

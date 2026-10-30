@@ -2745,7 +2745,7 @@ export class BaseExchange {
         this.lastRestRequestTimestamp = this.milliseconds ();
     }
 
-    setLastRequest (request: any) {
+    setLastRequest (request: Dict) {
         // hand-written per language (not transpiled): plain assignments in most
         // languages, but the Go implementation guards the writes with a mutex because
         // concurrent requests would otherwise data-race on these bookkeeping fields

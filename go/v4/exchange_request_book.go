@@ -20,7 +20,7 @@ const (
 
 type requestBookOp struct {
 	kind       requestBookKind
-	request    any
+	request    map[string]any
 	headers    map[string]any
 	stamp      int64
 	key        string
@@ -119,9 +119,9 @@ func (book *requestBook) apply(op requestBookOp) (recovered any) {
 	case requestBookStamp:
 		this.LastRestRequestTimestamp = op.stamp
 	case requestBookRequest:
-		this.Last_request_headers = GetValue(op.request, "headers")
-		this.Last_request_body = GetValue(op.request, "body")
-		this.Last_request_url = GetValue(op.request, "url")
+		this.Last_request_headers = op.request["headers"]
+		this.Last_request_body = op.request["body"]
+		this.Last_request_url = op.request["url"]
 	case requestBookResponse:
 		this.Last_response_headers = op.headers
 		this.LastResponseHeaders = op.headers

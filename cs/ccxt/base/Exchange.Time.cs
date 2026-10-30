@@ -31,11 +31,11 @@ public partial class BaseExchange
         this.lastRestRequestTimestamp = this.milliseconds();
     }
 
-    public virtual void setLastRequest(object request)
+    public virtual void setLastRequest(Dictionary<string, object> request)
     {
-        this.last_request_headers = getValue(request, "headers");
-        this.last_request_body = getValue(request, "body");
-        this.last_request_url = getValue(request, "url");
+        this.last_request_headers = (request != null && request.ContainsKey("headers") ? request["headers"] : null);
+        this.last_request_body = (request != null && request.ContainsKey("body") ? request["body"] : null);
+        this.last_request_url = (request != null && request.ContainsKey("url") ? request["url"] : null);
     }
 
     public long microseconds()

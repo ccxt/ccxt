@@ -28,7 +28,7 @@ func (this *BaseExchange) SetLastRestRequestTimestamp() {
 // concurrent request goroutines never write them.
 // This is a hand-written Go override (blacklisted in goTranspiler.ts) of the
 // transpiled setLastRequest method in ts/src/base/Exchange.ts.
-func (this *BaseExchange) SetLastRequest(request any) {
+func (this *BaseExchange) SetLastRequest(request map[string]any) {
 	this.handOffRequestBook(requestBookOp{kind: requestBookRequest, request: request})
 }
 
