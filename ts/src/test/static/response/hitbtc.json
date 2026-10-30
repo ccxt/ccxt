@@ -3,6 +3,229 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until with till; hitbtc returns the newest rows first and ignored the until param, so fixed 8h windows got the latest rows instead of the requested days",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792540799000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "till=1792540799000&symbols=BTCUSDT_PERP&limit=3": {
+                        "BTCUSDT_PERP": [
+                            {
+                                "timestamp": "2026-10-20T16:00:00.003Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-21T00:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-20T08:00:00.003Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-20T16:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-20T00:00:00.002Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-20T08:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            }
+                        ]
+                    },
+                    "till=1792454400001&symbols=BTCUSDT_PERP&limit=3": {
+                        "BTCUSDT_PERP": [
+                            {
+                                "timestamp": "2026-10-19T16:00:00.008Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-20T00:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-19T08:00:00.008Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-19T16:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-19T00:00:00.002Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-19T08:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            }
+                        ]
+                    },
+                    "till=1792368000001&symbols=BTCUSDT_PERP&limit=3": {
+                        "BTCUSDT_PERP": [
+                            {
+                                "timestamp": "2026-10-18T16:00:00.002Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-19T00:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-18T08:00:00.008Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-18T16:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-18T00:00:00.003Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-18T08:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            }
+                        ]
+                    },
+                    "until=1792540799000&symbols=BTCUSDT_PERP&from=1792368000000&limit=3": {
+                        "BTCUSDT_PERP": [
+                            {
+                                "timestamp": "2026-10-25T08:00:00.003Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T16:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-25T00:00:00.018Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T08:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-24T16:00:00.002Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T00:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            }
+                        ]
+                    },
+                    "until=1792540799000&symbols=BTCUSDT_PERP&from=1792454399999&limit=3": {
+                        "BTCUSDT_PERP": [
+                            {
+                                "timestamp": "2026-10-25T08:00:00.003Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T16:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-25T00:00:00.018Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T08:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            },
+                            {
+                                "timestamp": "2026-10-24T16:00:00.002Z",
+                                "funding_rate": "0.0001",
+                                "avg_premium_index": "0",
+                                "next_funding_time": "2026-10-25T00:00:00.000Z",
+                                "interest_rate": "0.0001"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": "2026-10-19T00:00:00.002Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-19T08:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792368000002,
+                        "datetime": "2026-10-19T00:00:00.002Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": "2026-10-19T08:00:00.008Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-19T16:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792396800008,
+                        "datetime": "2026-10-19T08:00:00.008Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": "2026-10-19T16:00:00.008Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-20T00:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792425600008,
+                        "datetime": "2026-10-19T16:00:00.008Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": "2026-10-20T00:00:00.002Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-20T08:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792454400002,
+                        "datetime": "2026-10-20T00:00:00.002Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": "2026-10-20T08:00:00.003Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-20T16:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792483200003,
+                        "datetime": "2026-10-20T08:00:00.003Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": "2026-10-20T16:00:00.003Z",
+                            "funding_rate": "0.0001",
+                            "avg_premium_index": "0",
+                            "next_funding_time": "2026-10-21T00:00:00.000Z",
+                            "interest_rate": "0.0001"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792512000003,
+                        "datetime": "2026-10-20T16:00:00.003Z"
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

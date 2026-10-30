@@ -828,6 +828,19 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "fundingRateHistory with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hitbtc.com/api/3/public/futures/history/funding?till=1792454399000&symbols=BTCUSDT_PERP&from=1792368000000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    3,
+                    {
+                        "until": 1792454399000
+                    }
+                ]
             }
         ],
         "fetchFundingRate": [
