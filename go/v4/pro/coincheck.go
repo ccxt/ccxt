@@ -255,7 +255,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 		"fee":          nil,
 	}, market))
 }
-func (this *Coincheck) HandleMessage(client any, message any) {
+func (this *Coincheck) HandleListMessage(client any, message any) {
 	var data any = this.SafeList(message, 0)
 	if data == nil {
 		this.HandleOrderBook(client, message)

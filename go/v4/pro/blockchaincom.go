@@ -192,9 +192,9 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv:" + *symbolValue
+	var messageHash string = "ohlcv:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":      "subscribe",
 		"channel":     "prices",

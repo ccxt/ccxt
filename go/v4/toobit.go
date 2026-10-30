@@ -1746,8 +1746,10 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(response); i++ {
 		var ticker any = GetValue(response, i)
 		var marketId *string = this.SafeString(ticker, "s")
-		if (marketId != nil) && (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), marketId)) {
-			rows = append(rows, ticker)
+		if marketId != nil {
+			if _, ok := this.Markets_by_id()[*marketId]; ok {
+				rows = append(rows, ticker)
+			}
 		}
 	}
 

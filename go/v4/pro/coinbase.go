@@ -1018,7 +1018,7 @@ func (this *Coinbase) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var name string = "level2"
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.SubscribeAsync(name, false, symbolValue, params)
 	if r1.Err != nil {

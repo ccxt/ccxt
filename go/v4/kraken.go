@@ -3232,12 +3232,12 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) FetchOrdersByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kraken) FetchOrdersByIdsAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Kraken) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3254,7 +3254,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids any, 
 
 	r1 := <-this.PrivatePostQueryOrders(this.Extend(map[string]any{
 		"trades": true,
-		"txid":   Join(ids, ","),
+		"txid":   strings.Join(ids, ","),
 	}, params))
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -5188,7 +5188,7 @@ func (this *Kraken) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
 	var res []LedgerEntry = r.Value
 	return res, nil
 }
-func (this *Kraken) FetchLedgerEntriesByIds(ids any, options ...FetchLedgerEntriesByIdsOptions) ([]LedgerEntry, error) {
+func (this *Kraken) FetchLedgerEntriesByIds(ids []string, options ...FetchLedgerEntriesByIdsOptions) ([]LedgerEntry, error) {
 
 	opts := FetchLedgerEntriesByIdsOptionsStruct{}
 
@@ -5473,7 +5473,7 @@ func (this *Kraken) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]Order, error) {
+func (this *Kraken) FetchOrdersByIds(ids []string, options ...FetchOrdersByIdsOptions) ([]Order, error) {
 
 	opts := FetchOrdersByIdsOptionsStruct{}
 

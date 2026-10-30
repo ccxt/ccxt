@@ -1572,12 +1572,7 @@ func (this *Derive) HandleMessage(client any, message map[string]any) {
 			}
 		}
 	}
-	var method any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(methods, event)
-	}()
+	var method any = this.SafeValue(methods, event)
 	if method != nil {
 		ccxt.CallDynamically(method, client, message)
 		return

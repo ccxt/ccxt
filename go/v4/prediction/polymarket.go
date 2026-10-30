@@ -4377,37 +4377,36 @@ func (this *Polymarket) Ping(client any) any {
 	// keepAlive interval set in describe.streaming sends it on both the market and user channels
 	return "PING"
 }
-func (this *Polymarket) HandleMessage(client any, message any) {
+func (this *Polymarket) HandleTextMessage(client any, message any) {
 	// Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
 	// client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
 	// base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-	if ccxt.IsString(message) {
-		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
-		return
-	}
-	var events any = func() any {
-		if ccxt.IsArray(message) {
-			return message
-		}
-		return []any{message}
-	}()
-	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var event any = ccxt.GetValue(events, i)
+	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+}
+func (this *Polymarket) HandleMessage(client any, message map[string]any) {
+	this.HandleMessageEvent(client, message)
+}
+func (this *Polymarket) HandleListMessage(client any, message any) {
+	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+		var event any = ccxt.GetValue(message, i)
 		if (event == nil) || (!ccxt.IsObject(event)) {
 			continue
 		}
-		var eventType *string = this.SafeString(event, "event_type")
-		if eventType != nil && *eventType == "book" {
-			this.HandleOrderBookSnapshot(client, event)
-		} else if eventType != nil && *eventType == "price_change" {
-			this.HandleOrderBookDelta(client, event)
-		} else if eventType != nil && *eventType == "last_trade_price" {
-			this.HandleTrade(client, event)
-		} else if eventType != nil && *eventType == "order" {
-			this.HandleOrder(client, event)
-		} else if eventType != nil && *eventType == "trade" {
-			this.HandleMyTrade(client, event)
-		}
+		this.HandleMessageEvent(client, event)
+	}
+}
+func (this *Polymarket) HandleMessageEvent(client any, event any) {
+	var eventType *string = this.SafeString(event, "event_type")
+	if eventType != nil && *eventType == "book" {
+		this.HandleOrderBookSnapshot(client, event)
+	} else if eventType != nil && *eventType == "price_change" {
+		this.HandleOrderBookDelta(client, event)
+	} else if eventType != nil && *eventType == "last_trade_price" {
+		this.HandleTrade(client, event)
+	} else if eventType != nil && *eventType == "order" {
+		this.HandleOrder(client, event)
+	} else if eventType != nil && *eventType == "trade" {
+		this.HandleMyTrade(client, event)
 	}
 }
 func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {

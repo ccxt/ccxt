@@ -1953,12 +1953,7 @@ func (this *Poloniex) HandleMessage(client any, message map[string]any) {
 		"cancelAllOrders":   this.HandleOrderRequest,
 		"auth":              this.HandleAuthenticate,
 	}
-	var method any = func() any {
-		if typeVar == nil {
-			return nil
-		}
-		return this.SafeValue(methods, typeVar)
-	}()
+	var method any = this.SafeValue(methods, typeVar)
 	if typeVar != nil && *typeVar == "auth" {
 		this.HandleAuthenticate(client, message)
 	} else if typeVar == nil {

@@ -1010,12 +1010,7 @@ func (this *Upbit) HandleMessage(client any, message map[string]any) {
 		"candle.1s": this.HandleOHLCV,
 	}
 	var methodName *string = this.SafeString(message, "type")
-	var method any = func() any {
-		if methodName == nil {
-			return nil
-		}
-		return this.SafeValue(methods, methodName)
-	}()
+	var method any = this.SafeValue(methods, methodName)
 	if method != nil {
 		ccxt.CallDynamically(method, client, message)
 	}

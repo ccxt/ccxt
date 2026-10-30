@@ -1778,7 +1778,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
@@ -4760,7 +4760,7 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}, marketResolved)
 }
-func (this *Extended) GetExtendedStringToFelt(value *string) any {
+func (this *Extended) GetExtendedStringToFelt(value string) any {
 	return this.ConvertToBigInt(this.StringToBase16(value))
 }
 func (this *Extended) GetExtendedEncodeI64(value any) any {
@@ -4801,8 +4801,8 @@ func (this *Extended) GetExtendedDomainHash() any {
 	if isTestnet {
 		defaultChainId = "SN_SEPOLIA"
 	}
-	var chainId *string = this.SafeString(this.Options, "chainId", defaultChainId)
-	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt(SafeStringPtr("Perpetuals")), this.GetExtendedStringToFelt(SafeStringPtr("v0")), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))
+	var chainId string = *this.SafeString(this.Options, "chainId", defaultChainId)
+	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt("Perpetuals"), this.GetExtendedStringToFelt("v0"), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))
 }
 func (this *Extended) GetExtendedOrderMsgHash(settlement map[string]any) string {
 	var orderTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
@@ -4821,21 +4821,21 @@ func (this *Extended) GetExtendedOrderMsgHash(settlement map[string]any) string 
 	// Order struct hash
 	var orderHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{orderTypeHash, positionId, this.ConvertToBigInt(baseAssetId), this.GetExtendedEncodeI64(baseAmount), this.ConvertToBigInt(quoteAssetId), this.GetExtendedEncodeI64(quoteAmount), this.ConvertToBigInt(feeAssetId), feeAmount, expiration, salt}))
 	// SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
-	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt(SafeStringPtr("StarkNet Message")), domainHash, starkKey, orderHash})
+	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash})
 }
 func (this *Extended) GetExtendedWithdrawalMsgHash(settlement map[string]any, starkKey *string) string {
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var expiration map[string]any = SafeMapTyped(settlement, "expiration")
 	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient", "0")), this.ConvertToBigInt(this.SafeString(settlement, "positionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(expiration, "seconds", "0")), this.ConvertToBigInt(this.SafeString(settlement, "salt", "0"))}))
-	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt(SafeStringPtr("StarkNet Message")), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
+	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
 }
 func (this *Extended) GetExtendedTransferMsgHash(settlement map[string]any) string {
 	var transferTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var senderPublicKey any = this.ConvertToBigInt(this.SafeString(settlement, "senderPublicKey", "0"))
 	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "assetId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp", "0")), this.ConvertToBigInt(this.SafeString(settlement, "nonce", "0"))}))
-	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt(SafeStringPtr("StarkNet Message")), domainHash, senderPublicKey, transferHash})
+	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
 func (this *Extended) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

@@ -182,7 +182,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	// only supports a limit of 150 at this time
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".trade.detail"
@@ -301,7 +301,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".kline." + *interval
@@ -422,7 +422,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	// only supports a limit of 150 at this time
 	var limitValue int = 150
 	var marketId string = *this.SafeString(market, "id", "")
@@ -681,7 +681,7 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }
-func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
+func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "id": 1583414227,
@@ -721,7 +721,7 @@ func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) any
 	//
 	return message
 }
-func (this *Bittrade) HandleSubject(client any, message any) {
+func (this *Bittrade) HandleSubject(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -782,10 +782,10 @@ func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, messa
 	}
 	return nil
 }
-func (this *Bittrade) HandlePing(client any, message any) {
+func (this *Bittrade) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
+func (this *Bittrade) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//     {
 	//         "ts": 1586323747018,
@@ -840,7 +840,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 	}
 	return true
 }
-func (this *Bittrade) HandleMessage(client any, message any) {
+func (this *Bittrade) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		//
 		//     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

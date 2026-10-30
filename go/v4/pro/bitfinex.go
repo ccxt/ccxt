@@ -1755,8 +1755,42 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades":             nil,
 	}, marketResolved))
 }
-func (this *Bitfinex) HandleMessage(client any, message any) {
+func (this *Bitfinex) HandleListMessage(client any, message any) {
 	var channelId *string = this.SafeString(message, 0)
+	var heartbeat *string = this.SafeString(message, 1)
+	if heartbeat != nil && *heartbeat == "hb" {
+		return // skip heartbeats within subscription channels for now
+	}
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
+	var channel *string = this.SafeString(subscription, "channel")
+	var name *string = this.SafeString(message, 1)
+	var publicMethods map[string]any = map[string]any{
+		"book":    this.HandleOrderBook,
+		"cs":      this.HandleChecksum,
+		"candles": this.HandleOHLCV,
+		"ticker":  this.HandleTicker,
+		"trades":  this.HandleTrades,
+	}
+	var privateMethods map[string]any = map[string]any{
+		"os": this.HandleOrders,
+		"ou": this.HandleOrders,
+		"on": this.HandleOrders,
+		"oc": this.HandleOrders,
+		"wu": this.HandleBalance,
+		"ws": this.HandleBalance,
+		"tu": this.HandleMyTrade,
+	}
+	var method any = nil
+	if channelId != nil && *channelId == "0" {
+		method = this.SafeValue(privateMethods, name)
+	} else {
+		method = this.SafeValue2(publicMethods, name, channel)
+	}
+	if method != nil {
+		ccxt.CallDynamically(method, client, message, subscription)
+	}
+}
+func (this *Bitfinex) HandleMessage(client any, message any) {
 	//
 	//     [
 	//         1231,
@@ -1782,52 +1816,17 @@ func (this *Bitfinex) HandleMessage(client any, message any) {
 	//        }
 	//    }
 	//
-	if ccxt.IsArray(message) {
-		var heartbeat *string = this.SafeString(message, 1)
-		if heartbeat != nil && *heartbeat == "hb" {
-			return // skip heartbeats within subscription channels for now
+	var event *string = this.SafeString(message, "event")
+	if event != nil {
+		var methods map[string]any = map[string]any{
+			"info":         this.HandleSystemStatus,
+			"subscribed":   this.HandleSubscriptionStatus,
+			"unsubscribed": this.HandleUnsubscriptionStatus,
+			"auth":         this.HandleAuthenticationMessage,
 		}
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
-		var channel *string = this.SafeString(subscription, "channel")
-		var name *string = this.SafeString(message, 1)
-		var publicMethods map[string]any = map[string]any{
-			"book":    this.HandleOrderBook,
-			"cs":      this.HandleChecksum,
-			"candles": this.HandleOHLCV,
-			"ticker":  this.HandleTicker,
-			"trades":  this.HandleTrades,
-		}
-		var privateMethods map[string]any = map[string]any{
-			"os": this.HandleOrders,
-			"ou": this.HandleOrders,
-			"on": this.HandleOrders,
-			"oc": this.HandleOrders,
-			"wu": this.HandleBalance,
-			"ws": this.HandleBalance,
-			"tu": this.HandleMyTrade,
-		}
-		var method any = nil
-		if channelId != nil && *channelId == "0" {
-			method = this.SafeValue(privateMethods, name)
-		} else {
-			method = this.SafeValue2(publicMethods, name, channel)
-		}
+		var method any = this.SafeValue(methods, event)
 		if method != nil {
-			ccxt.CallDynamically(method, client, message, subscription)
-		}
-	} else {
-		var event *string = this.SafeString(message, "event")
-		if event != nil {
-			var methods map[string]any = map[string]any{
-				"info":         this.HandleSystemStatus,
-				"subscribed":   this.HandleSubscriptionStatus,
-				"unsubscribed": this.HandleUnsubscriptionStatus,
-				"auth":         this.HandleAuthenticationMessage,
-			}
-			var method any = this.SafeValue(methods, event)
-			if method != nil {
-				ccxt.CallDynamically(method, client, message)
-			}
+			ccxt.CallDynamically(method, client, message)
 		}
 	}
 }

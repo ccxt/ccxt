@@ -522,12 +522,12 @@ func (this *BaseExchange) HandleDeltas(bookside any, deltas any) {
 func (this *BaseExchange) HandleDelta(bookside any, delta any) {
 	panic(NotSupported(this.Id + " handleDelta not supported yet"))
 }
-func (this *BaseExchange) HandleBookDeltas(orderbook any, deltas any) {
+func (this *BaseExchange) HandleBookDeltas(orderbook OrderBookInterface, deltas any) {
 	for i := 0; i < GetArrayLength(deltas); i++ {
 		this.HandleBookDelta(orderbook, this.SafeValue(deltas, i))
 	}
 }
-func (this *BaseExchange) HandleBookDelta(orderbook any, delta any) {
+func (this *BaseExchange) HandleBookDelta(orderbook OrderBookInterface, delta any) {
 	panic(NotSupported(this.Id + " handleBookDelta not supported yet"))
 }
 func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optionalArgs ...any) {
@@ -5670,11 +5670,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705115 map[string]any = r.Value
-	if retRes705115 == nil {
+	var retRes707015 map[string]any = r.Value
+	if retRes707015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705115}
+		ch <- AsyncResult[map[string]any]{Value: retRes707015}
 	}
 	return nil
 }
@@ -11529,11 +11529,11 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 		panic(r.Err)
 	}
 	listRecv11149, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046515 []any = listRecv11149
-	if retRes1046515 == nil {
+	var retRes1048415 []any = listRecv11149
+	if retRes1048415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048415)}
 	}
 	return nil
 }

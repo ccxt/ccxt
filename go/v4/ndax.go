@@ -1693,13 +1693,15 @@ func (this *Ndax) ParseBalanceList(response any) map[string]any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "ProductId")
-		if (currencyId != nil) && (this.Currencies_by_id() != nil) && (InOp(this.Currencies_by_id(), currencyId)) {
-			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["total"] = this.SafeString(balance, "Amount")
-			account["used"] = this.SafeString(balance, "Hold")
-			if code != nil {
-				result[*code] = account
+		if currencyId != nil {
+			if _, ok := this.Currencies_by_id()[*currencyId]; ok {
+				var code *string = this.SafeCurrencyCode(currencyId)
+				var account map[string]any = this.Account()
+				account["total"] = this.SafeString(balance, "Amount")
+				account["used"] = this.SafeString(balance, "Hold")
+				if code != nil {
+					result[*code] = account
+				}
 			}
 		}
 	}

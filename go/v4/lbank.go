@@ -4136,7 +4136,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 		}, signedQuery)))
 		var encoded string = this.Encode(auth)
 		var uppercaseHash string = ToUpper(this.Hash(encoded, md5))
-		var sign *string = nil
+		var sign string = ""
 		if signatureMethod == "RSA" {
 			var cacheSecretAsPem *bool = this.SafeBool(this.Options, "cacheSecretAsPem", true)
 			var pem any = nil
@@ -4151,9 +4151,9 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 			} else {
 				pem = this.ConvertSecretToPem(this.Encode(this.Secret))
 			}
-			sign = SafeStringPtr(Rsa(uppercaseHash, pem, sha256))
+			sign = Rsa(uppercaseHash, pem, sha256)
 		} else if signatureMethod == "HmacSHA256" {
-			sign = SafeStringPtr(this.Hmac(this.Encode(uppercaseHash), this.Encode(this.Secret), sha256))
+			sign = this.Hmac(this.Encode(uppercaseHash), this.Encode(this.Secret), sha256)
 		}
 		signedQuery["sign"] = sign
 		var bodySigned string = this.Urlencode(this.Keysort(signedQuery))

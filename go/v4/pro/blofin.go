@@ -1418,7 +1418,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Blofin) HandleUnsubscription(client any, message any) {
+func (this *Blofin) HandleUnsubscription(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "unsubscribe",
@@ -1457,7 +1457,12 @@ func (this *Blofin) GetSubscriptionRequest(args []any) map[string]any {
 		"args": args,
 	}
 }
-func (this *Blofin) HandleMessage(client any, message any) {
+func (this *Blofin) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "pong") {
+		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	}
+}
+func (this *Blofin) HandleMessage(client any, message map[string]any) {
 	//
 	// message examples
 	//
@@ -1483,29 +1488,24 @@ func (this *Blofin) HandleMessage(client any, message any) {
 		"funding-rate": this.HandleFundingRate,
 	}
 	var method any = nil
-	if ccxt.IsEqual(message, "pong") {
-		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	var event *string = this.SafeString(message, "event")
+	if event != nil && *event == "subscribe" {
 		return
-	} else {
-		var event *string = this.SafeString(message, "event")
-		if event != nil && *event == "subscribe" {
-			return
-		} else if event != nil && *event == "unsubscribe" {
-			this.HandleUnsubscription(client, message)
-			return
-		} else if event != nil && *event == "login" {
-			var future any = client.(ccxt.ClientInterface).FutureGet("authenticate_hash")
-			future.(*ccxt.Future).Resolve(true)
-			return
-		} else if event != nil && *event == "error" {
-			panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(message)))
-		}
-		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-		var channelName *string = this.SafeString(arg, "channel")
-		method = this.SafeValue(methods, channelName)
-		if (ccxt.IsEqual(method, nil)) && (strings.Index(*channelName, "candle") >= 0) {
-			method = methods["candle"]
-		}
+	} else if event != nil && *event == "unsubscribe" {
+		this.HandleUnsubscription(client, message)
+		return
+	} else if event != nil && *event == "login" {
+		var future any = client.(ccxt.ClientInterface).FutureGet("authenticate_hash")
+		future.(*ccxt.Future).Resolve(true)
+		return
+	} else if event != nil && *event == "error" {
+		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(message)))
+	}
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var channelName *string = this.SafeString(arg, "channel")
+	method = this.SafeValue(methods, channelName)
+	if (ccxt.IsEqual(method, nil)) && (strings.Index(*channelName, "candle") >= 0) {
+		method = methods["candle"]
 	}
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)

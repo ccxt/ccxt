@@ -77,7 +77,7 @@ func (this *Bullish) Ping(client any) any {
 		"id":      id,
 	}
 }
-func (this *Bullish) HandlePong(client any, message any) any {
+func (this *Bullish) HandlePong(client any, message map[string]any) any {
 	//
 	//     {
 	//         "id": "7",
@@ -219,7 +219,7 @@ func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bullish) HandleTrades(client any, message any) {
+func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "snapshot",
@@ -311,7 +311,7 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)} // no need to send a subscribe message, the server sends a ticker update on connect
 	return nil
 }
-func (this *Bullish) HandleTicker(client any, message any) {
+func (this *Bullish) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "update",
@@ -417,7 +417,7 @@ func (this *Bullish) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bullish) HandleOrderBook(client any, message any) {
+func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "snapshot",
@@ -550,7 +550,7 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bullish) HandleOrders(client any, message any) {
+func (this *Bullish) HandleOrders(client any, message map[string]any) {
 	// snapshot
 	//     {
 	//         "type": "snapshot",
@@ -705,7 +705,7 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bullish) HandleMyTrades(client any, message any) {
+func (this *Bullish) HandleMyTrades(client any, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -833,7 +833,7 @@ func (this *Bullish) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Bullish) HandleBalance(client any, message any) {
+func (this *Bullish) HandleBalance(client any, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -910,7 +910,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		if (tradingAccountId != nil) && (code != nil) {
 			ccxt.AddElementToObject(this.Balance[*tradingAccountId], code, account)
 		}
-		ccxt.AddElementToObject(this.Balance[*tradingAccountId], "info", message)
+		this.WsBalanceEntryForWrite(*tradingAccountId)["info"] = message
 		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])
 	}
 	var messageHash string = "balance"
@@ -1031,7 +1031,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 }
-func (this *Bullish) HandleErrorMessage(client any, message any) {
+func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1071,7 +1071,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 
 	}
 }
-func (this *Bullish) HandleMessage(client any, message any) {
+func (this *Bullish) HandleMessage(client any, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if result != nil {

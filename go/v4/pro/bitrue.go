@@ -542,12 +542,12 @@ func (this *Bitrue) ParseContractBidsAsks(bidsAsks []any, symbol string) []any {
 		var level []any = ccxt.SafeListTyped(bidsAsks, i)
 		var price *float64 = this.SafeNumber(level, 0)
 		var rawAmount *float64 = this.SafeNumber(level, 1)
-		var amount any = this.ConvertFromRawQuantity(ccxt.SafeStringPtr(symbol), rawAmount)
+		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)
 		result = append(result, []any{price, amount})
 	}
 	return result
 }
-func (this *Bitrue) ConvertFromRawQuantity(symbol *string, rawQuantity *float64) any {
+func (this *Bitrue) ConvertFromRawQuantity(symbol string, rawQuantity *float64) any {
 	if rawQuantity == nil {
 		return nil
 	}
@@ -595,7 +595,7 @@ func (this *Bitrue) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTrades is only supported for swap markets"))
 	}
@@ -603,7 +603,7 @@ func (this *Bitrue) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
 	var wsId string = "e_" + baseIdLower + quoteIdLower
 	var channel string = "market_" + wsId + "_trade_ticker"
-	var messageHash string = "trades:" + *symbolValue
+	var messageHash string = "trades:" + symbolValue
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
 	var url any = wsUrls["futurePublic"]
 	var message map[string]any = map[string]any{
@@ -681,7 +681,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 func (this *Bitrue) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var sideLower *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
@@ -835,7 +835,7 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeTimestamp(tick, "id")
 	var open *float64 = this.SafeNumber(tick, "open")
 	var high *float64 = this.SafeNumber(tick, "high")
@@ -937,7 +937,7 @@ func (this *Bitrue) HandleTicker(client any, message map[string]any) {
 func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs ...any) map[string]any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var rawVol *float64 = this.SafeNumber(tick, "vol")
 	var rawAmount *float64 = this.SafeNumber(tick, "amount")
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)

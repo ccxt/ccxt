@@ -438,7 +438,7 @@ func (this *Deepcoin) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleTicker(client any, message any) {
+func (this *Deepcoin) HandleTicker(client any, message map[string]any) {
 	//
 	//     a: 'PO',
 	//     m: 'Success',
@@ -637,7 +637,7 @@ func (this *Deepcoin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleTrades(client any, message any) {
+func (this *Deepcoin) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "a": "PMT",
@@ -795,10 +795,10 @@ func (this *Deepcoin) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv" + "::" + *symbolValue + "::" + timeframe
+	var messageHash string = "ohlcv" + "::" + symbolValue + "::" + timeframe
 	var suffix string = "_" + *interval
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "11", params, suffix)
@@ -845,10 +845,10 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv" + "::" + *symbolValue + "::" + timeframe
+	var messageHash string = "ohlcv" + "::" + symbolValue + "::" + timeframe
 	var suffix string = "_" + *interval
 	var subscription map[string]any = map[string]any{
 		"topic":                "ohlcv",
@@ -862,7 +862,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleOHLCV(client any, message any) {
+func (this *Deepcoin) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "a": "PK",
@@ -1052,7 +1052,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	}
 	return []any{"_" + *aggregation, paramsAggregation}
 }
-func (this *Deepcoin) HandleOrderBook(client any, message any) {
+func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "a": "PMO",
@@ -1099,7 +1099,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
+func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any) {
 	var entries []any = ccxt.SafeListTyped(message, "r")
 	var first map[string]any = ccxt.SafeMapTyped(entries, 0)
 	var data map[string]any = ccxt.SafeMapTyped(first, "d")
@@ -1142,7 +1142,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	var messageHash string = "orderbook" + "::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook any) {
+func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) {
 	//     {
 	//         "a": "PMO",
 	//         "t": "i", // i - update, f - snapshot
@@ -1167,10 +1167,10 @@ func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook 
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 }
-func (this *Deepcoin) HandleBookDelta(orderbook any, entry any) {
+func (this *Deepcoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, entry any) {
 	var data map[string]any = ccxt.SafeMapTyped(entry, "d")
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
+	var bids any = orderbook.GetBids()
+	var asks any = orderbook.GetAsks()
 	var side *string = this.SafeString(data, "D")
 	var price *float64 = this.SafeNumber(data, "P")
 	var volume *float64 = this.SafeNumber(data, "V")
@@ -1241,7 +1241,7 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Deepcoin) HandleMyTrade(client any, message any) {
+func (this *Deepcoin) HandleMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushTrade",
@@ -1353,7 +1353,7 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Deepcoin) HandleOrder(client any, message any) {
+func (this *Deepcoin) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushOrder",
@@ -1548,7 +1548,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Deepcoin) HandlePosition(client any, message any) {
+func (this *Deepcoin) HandlePosition(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushPosition",
@@ -1664,37 +1664,36 @@ func (this *Deepcoin) ParseWsMarginMode(marginMode *string) *string {
 	}
 	return this.SafeString(modes, marginMode, marginMode)
 }
-func (this *Deepcoin) HandleMessage(client any, message any) {
-	if ccxt.IsString(message) {
-		if ccxt.IsEqual(message, "pong") {
-			this.HandlePong(client, message)
-		}
-	} else {
-		var m *string = this.SafeString(message, "m")
-		if (m != nil) && (m == nil || *m != "Success") {
-			this.HandleErrorMessage(client, message)
-		}
-		var action *string = this.SafeString2(message, "a", "action")
-		if action != nil && *action == "RecvTopicAction" {
-			this.HandleSubscriptionStatus(client, message)
-		} else if action != nil && *action == "PO" {
-			this.HandleTicker(client, message)
-		} else if action != nil && *action == "PMT" {
-			this.HandleTrades(client, message)
-		} else if action != nil && *action == "PK" {
-			this.HandleOHLCV(client, message)
-		} else if action != nil && *action == "PMO" {
-			this.HandleOrderBook(client, message)
-		} else if action != nil && *action == "PushTrade" {
-			this.HandleMyTrade(client, message)
-		} else if action != nil && *action == "PushOrder" {
-			this.HandleOrder(client, message)
-		} else if action != nil && *action == "PushPosition" {
-			this.HandlePosition(client, message)
-		}
+func (this *Deepcoin) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "pong") {
+		this.HandlePong(client, message)
 	}
 }
-func (this *Deepcoin) HandleSubscriptionStatus(client any, message any) {
+func (this *Deepcoin) HandleMessage(client any, message map[string]any) {
+	var m *string = this.SafeString(message, "m")
+	if (m != nil) && (m == nil || *m != "Success") {
+		this.HandleErrorMessage(client, message)
+	}
+	var action *string = this.SafeString2(message, "a", "action")
+	if action != nil && *action == "RecvTopicAction" {
+		this.HandleSubscriptionStatus(client, message)
+	} else if action != nil && *action == "PO" {
+		this.HandleTicker(client, message)
+	} else if action != nil && *action == "PMT" {
+		this.HandleTrades(client, message)
+	} else if action != nil && *action == "PK" {
+		this.HandleOHLCV(client, message)
+	} else if action != nil && *action == "PMO" {
+		this.HandleOrderBook(client, message)
+	} else if action != nil && *action == "PushTrade" {
+		this.HandleMyTrade(client, message)
+	} else if action != nil && *action == "PushOrder" {
+		this.HandleOrder(client, message)
+	} else if action != nil && *action == "PushPosition" {
+		this.HandlePosition(client, message)
+	}
+}
+func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]any) {
 	//
 	//     {
 	//         "a": "RecvTopicAction",
@@ -1732,7 +1731,7 @@ func (this *Deepcoin) HandleUnSubscription(client any, subscription any) {
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	this.CleanCache(subscription)
 }
-func (this *Deepcoin) HandleErrorMessage(client any, message any) {
+func (this *Deepcoin) HandleErrorMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "a": "RecvTopicAction",

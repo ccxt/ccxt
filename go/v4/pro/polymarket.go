@@ -206,8 +206,8 @@ func (this *Polymarket) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sym
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "orderbook:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "orderbook:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var channel string = "book::" + *this.SafeString(market, "id", "")
 	var context map[string]any = map[string]any{
@@ -333,8 +333,8 @@ func (this *Polymarket) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "ticker:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "ticker:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var channel string = "tickers::" + *this.SafeString(market, "id", "")
 	var context map[string]any = map[string]any{
@@ -580,8 +580,8 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trade:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"trades::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -624,8 +624,8 @@ func (this *Polymarket) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "trade:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "trade:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var channel string = "trades::" + *this.SafeString(market, "id", "")
 	var context map[string]any = map[string]any{
@@ -778,13 +778,13 @@ func (this *Polymarket) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
 	var interval *string = this.SafeString(wsTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() does not support the " + timeframe + " timeframe over the websocket"))
 	}
-	var messageHash string = "candles:" + timeframe + ":" + *symbolResolved
+	var messageHash string = "candles:" + timeframe + ":" + symbolResolved
 	var channel string = "klines::" + *this.SafeString(market, "id", "") + "::" + *interval
 	var request map[string]any = this.SendSubscription("sub", []any{channel}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
@@ -831,10 +831,10 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
 	var interval *string = this.SafeString(wsTimeframes, timeframe, timeframe)
-	var subMessageHash string = "candles:" + timeframe + ":" + *symbolResolved
+	var subMessageHash string = "candles:" + timeframe + ":" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var channel string = "klines::" + *this.SafeString(market, "id", "") + "::" + *interval
 	var context map[string]any = map[string]any{
@@ -1652,7 +1652,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		}
 	}
 }
-func (this *Polymarket) HandleMessage(client any, message any) {
+func (this *Polymarket) HandleMessage(client any, message map[string]any) {
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		this.HandleAck(client, message)

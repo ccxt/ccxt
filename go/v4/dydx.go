@@ -2483,7 +2483,7 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync("fetchLedger", code, since, limit, params)
+	r1 := <-this.FetchTransactionsHelperAsync("fetchLedger", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2778,7 +2778,7 @@ func (this *Dydx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync("fetchTransfers", code, since, limit, params)
+	r1 := <-this.FetchTransactionsHelperAsync("fetchTransfers", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2999,7 +2999,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync("fetchWithdrawals", code, since, limit, params)
+	r1 := <-this.FetchTransactionsHelperAsync("fetchWithdrawals", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3054,7 +3054,7 @@ func (this *Dydx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync("fetchDeposits", code, since, limit, params)
+	r1 := <-this.FetchTransactionsHelperAsync("fetchDeposits", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3109,7 +3109,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync("fetchDepositsWithdrawals", code, since, limit, params)
+	r1 := <-this.FetchTransactionsHelperAsync("fetchDepositsWithdrawals", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3140,8 +3140,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan AsyncResult[[]map[string]a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsOmitted map[string]any = this.OmitDict(params, "methodName")
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(methodName, paramsOmitted)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(methodName, params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0")

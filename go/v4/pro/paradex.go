@@ -1888,15 +1888,18 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	}
 	return false
 }
-func (this *Paradex) HandleMessage(client any, message any) {
-	var parsedMessage any = message
-	if this.IsBinaryMessage(message) {
-		parsedMessage = this.ParseSbeMessage(message)
-		if ccxt.IsEqual(parsedMessage, nil) {
-			return
-		}
+func (this *Paradex) HandleBinaryMessage(client any, message any) {
+	var parsedMessage any = this.ParseSbeMessage(message)
+	if ccxt.IsEqual(parsedMessage, nil) {
+		return
 	}
-	if this.HandleErrorMessage(client, parsedMessage) != true {
+	this.HandleStreamMessage(client, parsedMessage)
+}
+func (this *Paradex) HandleMessage(client any, message map[string]any) {
+	this.HandleStreamMessage(client, message)
+}
+func (this *Paradex) HandleStreamMessage(client any, message any) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	//
@@ -1927,12 +1930,12 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(parsedMessage, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if result != nil {
-		this.HandleRequestReply(client, parsedMessage)
+		this.HandleRequestReply(client, message)
 		return
 	}
-	var data map[string]any = ccxt.SafeMapTyped(parsedMessage, "params")
+	var data map[string]any = ccxt.SafeMapTyped(message, "params")
 	if data != nil {
 		var channel *string = this.SafeString(data, "channel")
 		var parts []string = strings.Split(*channel, ".")
@@ -1949,7 +1952,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 		}
 		var method any = this.SafeValue(methods, name)
 		if method != nil {
-			ccxt.CallDynamically(method, client, parsedMessage)
+			ccxt.CallDynamically(method, client, message)
 		}
 	}
 }

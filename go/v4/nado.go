@@ -2566,7 +2566,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -2575,7 +2575,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
 	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
 	if ticker == nil {
-		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + *symbolValue))
+		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + symbolValue))
 	}
 
 	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
@@ -3964,7 +3964,7 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) strin
 	if len(encoded) > 24 {
 		panic(BadRequest(this.Id + " createOrder() subaccount must fit in 12 bytes"))
 	}
-	return "0x" + address + this.PadHex(SafeStringPtr(encoded), 24, false)
+	return "0x" + address + this.PadHex(encoded, 24, false)
 }
 func (this *Nado) QueryContractsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
@@ -3994,18 +3994,18 @@ func (this *Nado) queryContractsBody(ch chan AsyncResult[map[string]any], option
 	return nil
 }
 func (this *Nado) OrderVerifyingContract(productId any) string {
-	return "0x" + this.PadHex(SafeStringPtr(this.IntToBase16(productId)), 40)
+	return "0x" + this.PadHex(this.IntToBase16(productId), 40)
 }
-func (this *Nado) PadHex(value *string, length any, optionalArgs ...any) string {
+func (this *Nado) PadHex(value string, length any, optionalArgs ...any) string {
 	var left bool = GetArgBool(optionalArgs, 0, true)
 	_ = left
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	if left == true {
-		var paddedLeft string = zeros + *value
+		var paddedLeft string = zeros + value
 		var start int64 = int64(len(paddedLeft)) - this.ParseToInt(length)
 		return Slice(paddedLeft, start, len(paddedLeft))
 	}
-	var paddedRight string = *value + zeros
+	var paddedRight string = value + zeros
 	return Slice(paddedRight, 0, length)
 }
 func (this *Nado) SignOrder(order map[string]any, productId any, chainId *string) string {
@@ -4110,8 +4110,8 @@ func (this *Nado) SignHash(hash any, privateKey string) string {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
 	var signature map[string]any = Ecdsa(hash, privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
-	var r *string = SafeStringPtr(signature["r"])
-	var s *string = SafeStringPtr(signature["s"])
+	var r string = *this.SafeString(signature, "r", "")
+	var s string = *this.SafeString(signature, "s", "")
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
 	return "0x" + this.PadHex(r, 64) + this.PadHex(s, 64) + v
 }

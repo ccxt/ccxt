@@ -246,12 +246,12 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	}
 	return ccxt.GetArrayLength(cache)
 }
-func (this *Xt) HandleBookDelta(orderbook any, delta any) {
+func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(delta, "i", "u"))
 	var obAsks []any = ccxt.SafeListTyped(delta, "a")
 	var obBids []any = ccxt.SafeListTyped(delta, "b")
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
+	var bids any = orderbook.GetBids()
+	var asks any = orderbook.GetAsks()
 	for i := 0; i < len(obBids); i++ {
 		var bid []any = ccxt.SafeListTyped(obBids, i)
 		var price *float64 = this.SafeNumber(bid, 0)

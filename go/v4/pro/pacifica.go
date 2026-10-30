@@ -1876,7 +1876,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Pacifica) HandleErrorMessage(client any, message any) any {
+func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	// 'rl' key is present only when a rate-limited API key is used
 	// {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -2023,7 +2023,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 		}
 	}
 }
-func (this *Pacifica) HandleMessage(client any, message any) {
+func (this *Pacifica) HandleMessage(client any, message map[string]any) {
 	//
 	// {
 	//     "channel":"subscribe",
@@ -2109,7 +2109,7 @@ func (this *Pacifica) WrapAsPostAction(operationType any, request any) map[strin
 	}
 	return payload
 }
-func (this *Pacifica) HandleWsPost(client any, message any) {
+func (this *Pacifica) HandleWsPost(client any, message map[string]any) {
 	//
 	// market order
 	// {

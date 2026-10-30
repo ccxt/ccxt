@@ -362,7 +362,7 @@ func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Luno) HandleBookDelta(orderbook any, message any) {
+func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any) {
 	//
 	//  create
 	//     {
@@ -406,8 +406,8 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
-	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
+	var asksOrderSide any = orderbook.GetAsks()
+	var bidsOrderSide any = orderbook.GetBids()
 	// trade updates are applied first, matching the ordering of the
 	// reference luno streaming client
 	var tradeUpdates []any = ccxt.SafeListTyped(message, "trade_updates")
@@ -532,10 +532,7 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 	}
 	return true
 }
-func (this *Luno) HandleMessage(client any, message any) {
-	if ccxt.IsEqual(message, "") {
-		return
-	}
+func (this *Luno) HandleMessage(client any, message map[string]any) {
 	var subscriptions []any = client.(ccxt.ClientInterface).SubscriptionValues()
 	var subscriptionsLength int = len(subscriptions)
 	if subscriptionsLength == 0 {

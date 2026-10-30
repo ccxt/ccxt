@@ -116,13 +116,13 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) string {
 	}
 	var isBusiness bool = (access == "business")
 	var isPublic bool = (access == "public")
-	var url *string = this.SafeString(this.Urls["api"], "ws", "")
+	var url string = *this.SafeString(this.Urls["api"], "ws", "")
 	if isBusiness || (ccxt.GetIndexOf(channel, "candle") > -1) || (ccxt.IsEqual(channel, "orders-algo")) {
-		return *url + "/business" + sandboxSuffix
+		return url + "/business" + sandboxSuffix
 	} else if isPublic {
-		return *url + "/public" + sandboxSuffix
+		return url + "/public" + sandboxSuffix
 	}
-	return *url + "/private" + sandboxSuffix
+	return url + "/private" + sandboxSuffix
 }
 func (this *Okx) SubscribeMultipleAsync(access string, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -1739,7 +1739,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Okx) HandleOHLCV(client any, message any) {
+func (this *Okx) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "candle1m", instId: "BTC-USDT" },
@@ -3570,7 +3570,7 @@ func (this *Okx) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Okx) HandleErrorMessage(client any, message any) any {
+func (this *Okx) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
 	//     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
@@ -3640,7 +3640,12 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 	}
 	return true
 }
-func (this *Okx) HandleMessage(client any, message any) {
+func (this *Okx) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "pong") {
+		this.HandlePong(client, message)
+	}
+}
+func (this *Okx) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
@@ -3683,12 +3688,6 @@ func (this *Okx) HandleMessage(client any, message any) {
 	//
 	//
 	//
-	if ccxt.IsString(message) {
-		if ccxt.IsEqual(message, "pong") {
-			this.HandlePong(client, message)
-		}
-		return
-	}
 	// const table = this.safeString (message, 'table')
 	// if (table === undefined) {
 	var event *string = this.SafeString2(message, "event", "op")

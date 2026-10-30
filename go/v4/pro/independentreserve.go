@@ -373,12 +373,7 @@ func (this *Independentreserve) HandleMessage(client any, message map[string]any
 		"OrderBookSnapshot": this.HandleOrderBook,
 		"OrderBookChange":   this.HandleOrderBook,
 	}
-	var handler any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(handlers, event)
-	}()
+	var handler any = this.SafeValue(handlers, event)
 	if handler != nil {
 		ccxt.CallDynamically(handler, client, message)
 		return

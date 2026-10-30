@@ -2196,7 +2196,7 @@ func (this *Coinbaseinternational) handleHeartbeatBody(ch chan ccxt.AsyncResult[
 	}
 	return nil
 }
-func (this *Coinbaseinternational) HandleMessage(client any, message any) {
+func (this *Coinbaseinternational) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -2247,7 +2247,7 @@ func (this *Coinbaseinternational) HandleMessage(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(this.SafeValue(message, "result", message), requestId)
 	}
 }
-func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, message any) {
+func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

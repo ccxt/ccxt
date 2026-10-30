@@ -602,7 +602,7 @@ func (this *Backpack) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optiona
 
 	return nil
 }
-func (this *Backpack) HandleTicker(client any, message any) {
+func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -715,7 +715,7 @@ func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) map[string]
  * @param {object} message stream envelope
  * @returns {boolean} whether a subscription was updated
  */
-func (this *Backpack) HandleStockTicker(client any, message any) bool {
+func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var stream string = *this.SafeString(message, "stream", "")
 	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
@@ -820,7 +820,7 @@ func (this *Backpack) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], option
 
 	return nil
 }
-func (this *Backpack) HandleBidAsk(client any, message any) {
+func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -1145,7 +1145,7 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Backpack) HandleOHLCV(client any, message any) {
+func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -1433,7 +1433,7 @@ func (this *Backpack) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Backpack) HandleTrades(client any, message any) {
+func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -1733,7 +1733,7 @@ func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Backpack) HandleOrderBook(client any, message any) {
+func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	//
 	// initial snapshot is fetched with ccxt's fetchOrderBook
 	// the feed does not include a snapshot, just the deltas
@@ -1791,7 +1791,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	this.HandleBookDelta(storedOrderBook, data)
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
-func (this *Backpack) HandleBookDelta(orderbook any, delta any) {
+func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var microseconds int64 = *this.SafeInteger(delta, "T", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -1799,8 +1799,8 @@ func (this *Backpack) HandleBookDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
 	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
 	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
-	var storedBids any = ccxt.GetValue(orderbook, "bids")
-	var storedAsks any = ccxt.GetValue(orderbook, "asks")
+	var storedBids any = orderbook.GetBids()
+	var storedAsks any = orderbook.GetAsks()
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }
@@ -1999,7 +1999,7 @@ func (this *Backpack) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Backpack) HandleOrder(client any, message any) {
+func (this *Backpack) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -2215,7 +2215,7 @@ func (this *Backpack) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], optiona
  * @param {object} message stream envelope
  * @returns {boolean} whether a balance was updated
  */
-func (this *Backpack) HandleBalance(client any, message any) bool {
+func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var assetId *string = this.SafeString(data, "a")
 	if assetId == nil {
@@ -2474,7 +2474,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Backpack) HandlePositions(client any, message any) {
+func (this *Backpack) HandlePositions(client any, message map[string]any) {
 	//
 	//     {
 	//         data: {
@@ -2590,7 +2590,7 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 		"marginRatio":                 nil,
 	}))
 }
-func (this *Backpack) HandleMessage(client any, message any) {
+func (this *Backpack) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
@@ -2618,7 +2618,7 @@ func (this *Backpack) HandleMessage(client any, message any) {
 		this.HandlePositions(client, message)
 	}
 }
-func (this *Backpack) HandleErrorMessage(client any, message any) any {
+func (this *Backpack) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//     {
 	//         id: null,

@@ -7627,7 +7627,7 @@ func (this *Binance) HandleEventStreamTerminated(client any, message map[string]
 		client.(ccxt.ClientInterface).Reject(error, accountType)
 	}
 }
-func (this *Binance) HandleMessage(client any, message any) {
+func (this *Binance) HandleMessage(client any, message map[string]any) {
 	// eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
 	//   { "stream": "<streamName>", "data": { "e": "...", ... } }
 	var streamWrapper *string = this.SafeString(message, "stream")

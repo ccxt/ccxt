@@ -290,7 +290,7 @@ func (this *Bingx) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bingx) HandleTicker(client any, message any) {
+func (this *Bingx) HandleTicker(client any, message map[string]any) {
 	//
 	// swap
 	//
@@ -600,7 +600,7 @@ func (this *Bingx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bingx) HandleTrades(client any, message any) {
+func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	//
 	// spot: first snapshot
 	//
@@ -849,7 +849,7 @@ func (this *Bingx) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat2(delta, 1, "a")
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Bingx) HandleOrderBook(client any, message any) {
+func (this *Bingx) HandleOrderBook(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -994,7 +994,7 @@ func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	}
 	return []any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
-func (this *Bingx) HandleOHLCV(client any, message any) {
+func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 	//
 	// spot:
 	//
@@ -1850,7 +1850,7 @@ func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) any {
 		"marginRatio":                 nil,
 	}))
 }
-func (this *Bingx) HandlePositions(client any, message any) {
+func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "ACCOUNT_UPDATE",
@@ -1913,7 +1913,7 @@ func (this *Bingx) HandlePositions(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "swap:positions")
 }
-func (this *Bingx) HandleErrorMessage(client any, message any) bool {
+func (this *Bingx) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	// { code: 100400, msg: '', timestamp: 1696245808833 }
 	//
@@ -2149,7 +2149,7 @@ func (this *Bingx) pongBody(ch chan ccxt.AsyncResult[bool], client any, message 
 	}
 	return nil
 }
-func (this *Bingx) HandleOrder(client any, message any) {
+func (this *Bingx) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "code": 0,
@@ -2233,7 +2233,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 	//        }
 	//    }
 	//
-	var isSpot bool = (ccxt.InOp(message, "dataType"))
+	var isSpot bool = (func() bool { _, ok := message["dataType"]; return ok }())
 	var data map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2274,7 +2274,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash+":"+symbol)
 }
-func (this *Bingx) HandleMyTrades(client any, message any) {
+func (this *Bingx) HandleMyTrades(client any, message map[string]any) {
 	//
 	//
 	//      {
@@ -2331,7 +2331,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	//        }
 	//    }
 	//
-	var isSpot bool = (ccxt.InOp(message, "dataType"))
+	var isSpot bool = (func() bool { _, ok := message["dataType"]; return ok }())
 	var result map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	var cachedTrades any = this.MyTrades
 	if cachedTrades == nil {
@@ -2357,7 +2357,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash+":"+symbol)
 }
-func (this *Bingx) HandleBalance(client any, message any) {
+func (this *Bingx) HandleBalance(client any, message map[string]any) {
 	// spot
 	//     {
 	//         "e":"ACCOUNT_UPDATE",
@@ -2424,19 +2424,19 @@ func (this *Bingx) HandleBalance(client any, message any) {
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
-func (this *Bingx) HandleMessage(client any, message any) {
-	// plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-	if ccxt.IsString(message) {
-		if ccxt.IsEqual(message, "Ping") {
-			this.Spawn(this.PongAsync, client, message)
-		}
-		return
+
+// plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+func (this *Bingx) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "Ping") {
+		this.Spawn(this.PongAsync, client, message)
 	}
+}
+func (this *Bingx) HandleMessage(client any, message map[string]any) {
 	if !this.HandleErrorMessage(client, message) {
 		return
 	}
 	// public subscriptions
-	if ccxt.InOp(message, "ping") {
+	if _, ok := message["ping"]; ok {
 		this.Spawn(this.PongAsync, client, message)
 		return
 	}
@@ -2498,7 +2498,7 @@ func (this *Bingx) HandleMessage(client any, message any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Bingx) HandleSubscriptionStatus(client any, message any) any {
+func (this *Bingx) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "code": 0,

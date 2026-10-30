@@ -151,10 +151,10 @@ func (this *Hashkey) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "kline_" + *interval
-	var messageHash string = "ohlcv:" + *symbolValue + ":" + timeframe
+	var messageHash string = "ohlcv:" + symbolValue + ":" + timeframe
 
 	r1 := <-this.WathPublicAsync(market, topic, messageHash, params)
 	if r1.Err != nil {
@@ -355,9 +355,9 @@ func (this *Hashkey) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var topic string = "trade"
-	var messageHash string = "trades:" + *symbolValue
+	var messageHash string = "trades:" + symbolValue
 
 	r1 := <-this.WathPublicAsync(market, topic, messageHash, params)
 	if r1.Err != nil {
@@ -399,14 +399,12 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if symbol != nil {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.Trades[*symbol]
+	var stored any = this.Trades[symbol]
 	var data any = this.SafeList(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")
@@ -416,7 +414,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	}
-	var messageHash string = "trades" + ":" + *symbol
+	var messageHash string = "trades" + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -1280,28 +1278,30 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 	}
 	return nil
 }
-func (this *Hashkey) HandleMessage(client any, message any) {
-	var messageInner any = message
-	if ccxt.IsArray(message) {
-		messageInner = this.SafeDict(message, 0, map[string]any{})
-	}
-	var topic *string = this.SafeString2(messageInner, "topic", "e")
+func (this *Hashkey) HandleListMessage(client any, message any) {
+	this.HandleStreamMessage(client, this.SafeDict(message, 0, map[string]any{}))
+}
+func (this *Hashkey) HandleMessage(client any, message map[string]any) {
+	this.HandleStreamMessage(client, message)
+}
+func (this *Hashkey) HandleStreamMessage(client any, message any) {
+	var topic *string = this.SafeString2(message, "topic", "e")
 	if topic != nil && *topic == "kline" {
-		this.HandleOHLCV(client, messageInner)
+		this.HandleOHLCV(client, message)
 	} else if topic != nil && *topic == "realtimes" {
-		this.HandleTicker(client, messageInner)
+		this.HandleTicker(client, message)
 	} else if topic != nil && *topic == "trade" {
-		this.HandleTrades(client, messageInner)
+		this.HandleTrades(client, message)
 	} else if topic != nil && *topic == "depth" {
-		this.HandleOrderBook(client, messageInner)
+		this.HandleOrderBook(client, message)
 	} else if (topic != nil && *topic == "contractExecutionReport") || (topic != nil && *topic == "executionReport") {
-		this.HandleOrder(client, messageInner)
+		this.HandleOrder(client, message)
 	} else if topic != nil && *topic == "ticketInfo" {
-		this.HandleMyTrade(client, messageInner)
+		this.HandleMyTrade(client, message)
 	} else if topic != nil && *topic == "outboundContractPositionInfo" {
-		this.HandlePosition(client, messageInner)
+		this.HandlePosition(client, message)
 	} else if (topic != nil && *topic == "outboundAccountInfo") || (topic != nil && *topic == "outboundContractAccountInfo") {
-		this.HandleBalance(client, messageInner)
+		this.HandleBalance(client, message)
 	}
 }
 

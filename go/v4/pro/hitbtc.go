@@ -1912,12 +1912,7 @@ func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
 			"spot_balance":    this.HandleBalance,
 			"futures_balance": this.HandleBalance,
 		}
-		var method any = func() any {
-			if channel == nil {
-				return nil
-			}
-			return this.SafeValue(methods, channel)
-		}()
+		var method any = this.SafeValue(methods, channel)
 		if method != nil {
 			ccxt.CallDynamically(method, client, message)
 		}

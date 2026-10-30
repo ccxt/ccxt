@@ -86,8 +86,8 @@ func (this *Extended) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + symbolValue
 	var query string = this.Urlencode(params)
 	var url string = *this.SafeString(this.Urls["api"], "ws", "") + "/orderbooks/" + *this.SafeString(market, "id", "")
 	if len(query) > 0 {
@@ -739,8 +739,8 @@ func (this *Extended) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "fundingRate:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "fundingRate:" + symbolValue
 	var query string = this.Urlencode(params)
 	var url string = *this.SafeString(this.Urls["api"], "ws", "") + "/funding/" + *this.SafeString(market, "id", "")
 	if len(query) > 0 {
@@ -835,8 +835,8 @@ func (this *Extended) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "markPrice:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "markPrice:" + symbolValue
 	var query string = this.Urlencode(params)
 	var url string = *this.SafeString(this.Urls["api"], "ws", "") + "/prices/mark/" + *this.SafeString(market, "id", "")
 	if len(query) > 0 {
@@ -921,8 +921,8 @@ func (this *Extended) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trades:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbolValue
 	var query string = this.Urlencode(params)
 	var url string = *this.SafeString(this.Urls["api"], "ws", "") + "/publicTrades/" + *this.SafeString(market, "id", "")
 	if len(query) > 0 {
@@ -1033,7 +1033,7 @@ func (this *Extended) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var price *string = this.SafeString(params, "price")
 	var candleType *string = this.SafeString(params, "candleType")
 	if candleType == nil {
@@ -1047,7 +1047,7 @@ func (this *Extended) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"candleType", "price"})
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash string = "ohlcv:" + *symbolValue + ":" + timeframe + ":" + *candleType
+	var messageHash string = "ohlcv:" + symbolValue + ":" + timeframe + ":" + *candleType
 	var query string = this.Urlencode(this.Extend(map[string]any{
 		"interval": interval,
 	}, paramsOmitted))

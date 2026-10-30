@@ -1387,8 +1387,8 @@ func (this *Cex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ohlcv:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ohlcv:" + symbolValue
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var baseId string = *this.SafeString(market, "baseId", "")
 	var quoteId string = *this.SafeString(market, "quoteId", "")

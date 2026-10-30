@@ -3199,21 +3199,20 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan ccxt.AsyncResult[ccxt.Array
 	ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r1.Value)}
 	return nil
 }
+func (this *Sxbet) HandleTextMessage(client any, message any) {
+	var lines []string = ccxt.Split(message, "\n")
+	var linesLength int = len(lines)
+	for i := 0; i < linesLength; i++ {
+		var line *string = ccxt.SafeStringPtr(lines[i])
+		if len(*line) > 0 {
+			var parsed any = ccxt.JsonParse(line)
+			this.HandleCentrifugoFrame(client, parsed)
+		}
+	}
+}
 func (this *Sxbet) HandleMessage(client any, message any) {
 	// Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
 	// base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-	if ccxt.IsString(message) {
-		var lines []string = ccxt.Split(message, "\n")
-		var linesLength int = len(lines)
-		for i := 0; i < linesLength; i++ {
-			var line *string = ccxt.SafeStringPtr(lines[i])
-			if len(*line) > 0 {
-				var parsed any = ccxt.JsonParse(line)
-				this.HandleCentrifugoFrame(client, parsed)
-			}
-		}
-		return
-	}
 	this.HandleCentrifugoFrame(client, message)
 }
 func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {

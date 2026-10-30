@@ -213,9 +213,9 @@ func (this *Onetrading) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subscriptionHash string = "MARKET_TICKER"
-	var messageHash string = "ticker." + *symbolValue
+	var messageHash string = "ticker." + symbolValue
 	var request map[string]any = map[string]any{
 		"type": "SUBSCRIBE",
 		"channels": []any{map[string]any{
@@ -481,8 +481,8 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "book:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "book:" + symbolValue
 	var subscriptionHash string = "ORDER_BOOK"
 	var depth any = 0
 	if limit != nil {
@@ -559,23 +559,23 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 }
-func (this *Onetrading) HandleBookDelta(orderbook any, delta any) {
+func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	//
 	//   [ 'BUY', "0.053595", "0" ]
 	//
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 1, 2)
 	var typeVar *string = this.SafeString(delta, 0)
 	if typeVar != nil && *typeVar == "BUY" {
-		var bids any = ccxt.GetValue(orderbook, "bids")
+		var bids any = orderbook.GetBids()
 		bids.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	} else if typeVar != nil && *typeVar == "SELL" {
-		var asks any = ccxt.GetValue(orderbook, "asks")
+		var asks any = orderbook.GetAsks()
 		asks.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}
 }
-func (this *Onetrading) HandleBookDeltas(orderbook any, deltas any) {
+func (this *Onetrading) HandleBookDeltas(orderbook ccxt.OrderBookInterface, deltas any) {
 	//
 	//    [
 	//       [ 'BUY', "0.053593", "0" ],
@@ -1292,7 +1292,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
@@ -1300,7 +1300,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbolValue+".", timeframe))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+symbolValue+".", timeframe))
 	var subscriptionHash string = "CANDLESTICKS"
 	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
 	var typeVar string = "SUBSCRIBE"

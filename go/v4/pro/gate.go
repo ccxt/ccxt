@@ -728,7 +728,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var url any = this.GetUrlByMarket(market)
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
@@ -739,7 +739,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	interval, query := this.HandleOptionStringAndParams(params, "watchOrderBook", "interval", intervalDefault)
 	var messageType any = this.GetTypeByMarket(market)
-	var messageHash string = "orderbook" + ":" + *symbolValue
+	var messageHash string = "orderbook" + ":" + symbolValue
 	// max 100 atm, max 50 for options
 	var defaultLimit int = 100
 	if (market["spot"] == true) || (ccxt.IsEqual(messageType, "options")) {
@@ -816,7 +816,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	}
 	var market map[string]any = this.Market(symbol)
 	var url any = this.GetUrlByMarket(market)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (market["spot"] == true) && !isEuUrl
@@ -857,8 +857,8 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 		var stringLimit string = ccxt.ToString(limit)
 		payload = append(payload, stringLimit)
 	}
-	var subMessageHash string = "orderbook" + ":" + *symbolValue
-	var messageHash string = "unsubscribe:orderbook" + ":" + *symbolValue
+	var subMessageHash string = "orderbook" + ":" + symbolValue
+	var messageHash string = "unsubscribe:orderbook" + ":" + symbolValue
 
 	r1 := <-this.UnSubscribePublicMultipleAsync(url, "orderbook", []any{symbolValue}, []any{messageHash}, []any{subMessageHash}, payload, channel, paramsInterval)
 	if r1.Err != nil {
@@ -1073,15 +1073,15 @@ func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
 		}
 	}
 }
-func (this *Gate) HandleBookDelta(orderbook any, delta any) {
+func (this *Gate) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var timestamp *int64 = this.SafeInteger(delta, "t")
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
 	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
 	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
-	var storedBids any = ccxt.GetValue(orderbook, "bids")
-	var storedAsks any = ccxt.GetValue(orderbook, "asks")
+	var storedBids any = orderbook.GetBids()
+	var storedAsks any = orderbook.GetAsks()
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }
@@ -1115,7 +1115,7 @@ func (this *Gate) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	params["callerMethodName"] = "watchTicker"
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
@@ -1614,7 +1614,7 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	}
 	// todo add options support
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType any = this.GetTypeByMarket(market)

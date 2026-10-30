@@ -1078,6 +1078,9 @@ func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 func (this *Gemini) HandleError(client any, message any) {
 	panic(ccxt.ExchangeError(this.Json(message)))
 }
+func (this *Gemini) HandleListMessage(client any, message any) {
+	this.HandleOrder(client, message)
+}
 func (this *Gemini) HandleMessage(client any, message any) {
 	//
 	//  public
@@ -1114,11 +1117,6 @@ func (this *Gemini) HandleMessage(client any, message any) {
 	//         }
 	//     ]
 	//
-	var isArray bool = ccxt.IsArray(message)
-	if isArray {
-		this.HandleOrder(client, message)
-		return
-	}
 	var reason *string = this.SafeString(message, "reason")
 	if reason != nil && *reason == "error" {
 		this.HandleError(client, message)

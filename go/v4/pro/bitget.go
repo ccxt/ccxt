@@ -663,7 +663,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash string
@@ -688,11 +688,11 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		args["topic"] = "kline"
 		args["symbol"] = market["id"]
 		args["interval"] = interval
-		messageHash = "kline:" + *symbolValue
+		messageHash = "kline:" + symbolValue
 	} else {
 		args["channel"] = ccxt.Add("candle", interval)
 		args["instId"] = market["id"]
-		messageHash = "candles:" + timeframe + ":" + *symbolValue
+		messageHash = "candles:" + timeframe + ":" + symbolValue
 	}
 
 	r1 := <-this.WatchPublicAsync(isStockOrUta, messageHash, args, paramsRequest)
@@ -785,7 +785,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) HandleOHLCV(client any, message any) {
+func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -1190,7 +1190,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		return nil
 	}
 }
-func (this *Bitget) HandleOrderBook(client any, message any) {
+func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	//
 	//   {
 	//       "action":"snapshot",
@@ -3467,7 +3467,7 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) HandleAuthenticate(client any, message any) {
+func (this *Bitget) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//  { event: "login", code: 0 }
 	//
@@ -3475,7 +3475,7 @@ func (this *Bitget) HandleAuthenticate(client any, message any) {
 	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	future.(*ccxt.Future).Resolve(true)
 }
-func (this *Bitget) HandleErrorMessage(client any, message any) any {
+func (this *Bitget) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//    { event: "error", code: 30015, msg: "Invalid sign" }
 	//
@@ -3523,7 +3523,12 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 		return nil
 	}
 }
-func (this *Bitget) HandleMessage(client any, message any) {
+func (this *Bitget) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "pong") {
+		this.HandlePong(client, message)
+	}
+}
+func (this *Bitget) HandleMessage(client any, message map[string]any) {
 	//
 	//   {
 	//       "action": "snapshot",
@@ -3604,12 +3609,6 @@ func (this *Bitget) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	if ccxt.IsString(message) {
-		if ccxt.IsEqual(message, "pong") {
-			this.HandlePong(client, message)
-		}
-		return
-	}
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -3669,7 +3668,7 @@ func (this *Bitget) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Bitget) HandleSubscriptionStatus(client any, message any) any {
+func (this *Bitget) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//    {
 	//        "event": "subscribe",
@@ -3678,7 +3677,7 @@ func (this *Bitget) HandleSubscriptionStatus(client any, message any) any {
 	//
 	return message
 }
-func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
+func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
 	//
@@ -3712,7 +3711,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
+func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
@@ -3742,7 +3741,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
+func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
@@ -3772,7 +3771,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
+func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
 	//
@@ -3816,7 +3815,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 }
-func (this *Bitget) HandleUnSubscriptionStatus(client any, message any) any {
+func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//  {
 	//      "op":"unsubscribe",

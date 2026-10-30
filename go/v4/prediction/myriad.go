@@ -4524,21 +4524,20 @@ func (this *Myriad) subscribeMyriadChannelBody(ch chan ccxt.AsyncResult[any], me
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Myriad) HandleMessage(client any, message any) {
+func (this *Myriad) HandleTextMessage(client any, message any) {
+	var lines []string = ccxt.Split(message, "\n")
+	var linesLength int = len(lines)
+	for i := 0; i < linesLength; i++ {
+		var line *string = ccxt.SafeStringPtr(lines[i])
+		if len(*line) > 0 {
+			var parsed any = ccxt.JsonParse(line)
+			this.HandleCentrifugoFrame(client, parsed)
+		}
+	}
+}
+func (this *Myriad) HandleMessage(client any, message map[string]any) {
 	// Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
 	// base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-	if ccxt.IsString(message) {
-		var lines []string = ccxt.Split(message, "\n")
-		var linesLength int = len(lines)
-		for i := 0; i < linesLength; i++ {
-			var line *string = ccxt.SafeStringPtr(lines[i])
-			if len(*line) > 0 {
-				var parsed any = ccxt.JsonParse(line)
-				this.HandleCentrifugoFrame(client, parsed)
-			}
-		}
-		return
-	}
 	this.HandleCentrifugoFrame(client, message)
 }
 func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {

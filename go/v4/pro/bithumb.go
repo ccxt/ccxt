@@ -684,7 +684,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bithumb) HandleBookDelta(orderbook any, delta any) {
+func (this *Bithumb) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	//
 	//    {
 	//        symbol: "ETH_BTC",
@@ -1359,19 +1359,15 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		"trades":             nil,
 	}, market))
 }
-func (this *Bithumb) HandleMessage(client any, message any) {
-	if ccxt.IsString(message) {
-		var content string = ccxt.ToLower(message)
-		if content == "pong" {
-			this.HandlePong(client, message)
-			return
-		}
-		if content == "ping" {
-			this.HandlePing(client, message)
-			return
-		}
-		return
+func (this *Bithumb) HandleTextMessage(client any, message any) {
+	var content string = ccxt.ToLower(message)
+	if content == "pong" {
+		this.HandlePong(client, message)
+	} else if content == "ping" {
+		this.HandlePing(client, message)
 	}
+}
+func (this *Bithumb) HandleMessage(client any, message any) {
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "UP" {
 		this.HandlePong(client, message)

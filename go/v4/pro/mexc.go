@@ -1187,7 +1187,7 @@ func (this *Mexc) HandleBooksideDelta(bookside any, bidasks []any) {
 		}
 	}
 }
-func (this *Mexc) HandleBookDelta(orderbook any, delta any) {
+func (this *Mexc) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var existingNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var deltaNonce *int64 = this.SafeIntegerN(delta, []any{"r", "version", "fromVersion"})
 	if (deltaNonce != nil) && (existingNonce != nil) && (*deltaNonce < *existingNonce) {
@@ -1198,8 +1198,8 @@ func (this *Mexc) HandleBookDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", deltaNonce)
 	var asks []any = ccxt.SafeListTypedDefault(delta, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(delta, "bids", []any{})
-	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
-	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
+	var asksOrderSide any = orderbook.GetAsks()
+	var bidsOrderSide any = orderbook.GetBids()
 	this.HandleBooksideDelta(asksOrderSide, asks)
 	this.HandleBooksideDelta(bidsOrderSide, bids)
 }
@@ -2464,16 +2464,13 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			}
 		} else if strings.Index(*messageHash, "candles") >= 0 {
 			var splitHashes []string = strings.Split(*messageHash, ":")
-			var candlesSymbol any
-			if derefPtr := this.SafeString(splitHashes, 2, ""); derefPtr != nil {
-				candlesSymbol = *derefPtr
-			}
+			var candlesSymbol string = *this.SafeString(splitHashes, 2, "")
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 			if splitHashesLength > 4 {
-				candlesSymbol = ccxt.Add(candlesSymbol, ":"+*this.SafeString(splitHashes, 3, ""))
+				candlesSymbol += ":" + *this.SafeString(splitHashes, 3, "")
 			}
-			if ccxt.InOp(this.Ohlcvs, candlesSymbol) {
-				ccxt.Remove(this.Ohlcvs, candlesSymbol)
+			if _, ok := this.Ohlcvs[candlesSymbol]; ok {
+				delete(this.Ohlcvs, candlesSymbol)
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
@@ -2627,11 +2624,11 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 	}
 	return nil
 }
-func (this *Mexc) HandlePong(client any, message any) any {
+func (this *Mexc) HandlePong(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
+func (this *Mexc) HandleSubscriptionStatus(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": 0,
@@ -2722,20 +2719,18 @@ func (this *Mexc) HandleProtobufMessage(client any, message any) bool {
 	}
 	return true
 }
-func (this *Mexc) HandleMessage(client any, message any) {
-	if ccxt.IsString(message) {
-		if ccxt.IsEqual(message, "Invalid listen key") {
-			error := ccxt.AuthenticationError(this.Id + " invalid listen key")
-			client.(ccxt.ClientInterface).Reject(error)
-			return
-		}
+func (this *Mexc) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "Invalid listen key") {
+		error := ccxt.AuthenticationError(this.Id + " invalid listen key")
+		client.(ccxt.ClientInterface).Reject(error)
 	}
-	if this.IsBinaryMessage(message) {
-		var decodedMessage any = this.DecodeProtoMsg(message)
-		this.HandleProtobufMessage(client, decodedMessage)
-		return
-	}
-	if ccxt.InOp(message, "msg") {
+}
+func (this *Mexc) HandleBinaryMessage(client any, message any) {
+	var decodedMessage any = this.DecodeProtoMsg(message)
+	this.HandleProtobufMessage(client, decodedMessage)
+}
+func (this *Mexc) HandleMessage(client any, message map[string]any) {
+	if _, ok := message["msg"]; ok {
 		this.HandleSubscriptionStatus(client, message)
 		return
 	}

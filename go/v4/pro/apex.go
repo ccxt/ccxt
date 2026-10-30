@@ -1298,7 +1298,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Apex) HandleErrorMessage(client any, message any) any {
+func (this *Apex) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//   {
 	//       "success": false,
@@ -1405,7 +1405,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 		return nil
 	}
 }
-func (this *Apex) HandleMessage(client any, message any) {
+func (this *Apex) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -1507,7 +1507,7 @@ func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message a
 	}
 	return nil
 }
-func (this *Apex) HandlePong(client any, message any) any {
+func (this *Apex) HandlePong(client any, message map[string]any) any {
 	//
 	//   {
 	//       "success": true,
@@ -1540,7 +1540,7 @@ func (this *Apex) HandleAccount(client any, message map[string]any) {
 		this.HandleOrder(client, orders)
 	}
 }
-func (this *Apex) HandleAuthenticate(client any, message any) any {
+func (this *Apex) HandleAuthenticate(client any, message map[string]any) any {
 	//
 	//    {
 	//        "success": true,

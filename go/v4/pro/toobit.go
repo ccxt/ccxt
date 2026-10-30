@@ -83,6 +83,30 @@ func (this *Toobit) Ping(client any) any {
 		"ping": this.Milliseconds(),
 	}
 }
+func (this *Toobit) HandleListMessage(client any, message any) {
+	// private streams
+	var methods map[string]any = map[string]any{
+		"trade":                        this.HandleTrades,
+		"kline":                        this.HandleOHLCV,
+		"realtimes":                    this.HandleTickers,
+		"depth":                        this.HandleOrderBookPartialSnapshot,
+		"diffDepth":                    this.HandleOrderBook,
+		"outboundAccountInfo":          this.HandleBalance,
+		"outboundContractAccountInfo":  this.HandleBalance,
+		"executionReport":              this.HandleOrder,
+		"contractExecutionReport":      this.HandleOrder,
+		"ticketInfo":                   this.HandleMyTrade,
+		"outboundContractPositionInfo": this.HandlePositions,
+	}
+	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+		var item any = ccxt.GetValue(message, i)
+		var event *string = this.SafeString(item, "e")
+		var method any = this.SafeValue(methods, event)
+		if method != nil {
+			ccxt.CallDynamically(method, client, item)
+		}
+	}
+}
 func (this *Toobit) HandleMessage(client any, message any) {
 	//
 	// public
@@ -147,29 +171,9 @@ func (this *Toobit) HandleMessage(client any, message any) {
 		"ticketInfo":                   this.HandleMyTrade,
 		"outboundContractPositionInfo": this.HandlePositions,
 	}
-	var method any = func() any {
-		if topic == nil {
-			return nil
-		}
-		return this.SafeValue(methods, topic)
-	}()
+	var method any = this.SafeValue(methods, topic)
 	if method != nil {
 		ccxt.CallDynamically(method, client, message)
-	} else {
-		// check private streams
-		for i := 0; i < ccxt.GetArrayLength(message); i++ {
-			var item any = ccxt.GetValue(message, i)
-			var event *string = this.SafeString(item, "e")
-			var method2 any = func() any {
-				if event == nil {
-					return nil
-				}
-				return this.SafeValue(methods, event)
-			}()
-			if method2 != nil {
-				ccxt.CallDynamically(method2, client, item)
-			}
-		}
 	}
 }
 func (this *Toobit) HandleIncomingPong(client any, pongTimestamp *int64) {

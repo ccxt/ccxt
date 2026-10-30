@@ -5067,8 +5067,10 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	// swap ids are asset indexes, so the market is looked up by symbol
-	if (symbol != nil) && (this.Markets() != nil) && (InOp(this.Markets(), symbol)) {
-		marketResolved = this.Market(symbol)
+	if symbol != nil {
+		if _, ok := this.Markets()[*symbol]; ok {
+			marketResolved = this.Market(symbol)
+		}
 	}
 	var side *string = this.SafeString(liquidation, "side")
 	if side != nil {
@@ -7064,7 +7066,7 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id any, symbol any, typeVar an
 	var market map[string]any = this.Market(symbol)
 	vaultAddressOption, params2 := this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var order map[string]any = map[string]any{
 		"symbol": symbolValue,
 		"type":   typeVar,

@@ -223,12 +223,12 @@ func (this *Alpaca) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"bars":   []any{market["id"]},
 	}
-	var messageHash string = "ohlcv:" + *symbolValue
+	var messageHash string = "ohlcv:" + symbolValue
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	if r2.Err != nil {
@@ -427,8 +427,8 @@ func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"trades": []any{market["id"]},
@@ -927,7 +927,7 @@ func (this *Alpaca) HandleCryptoMessage(client any, message any) {
 		}
 	}
 }
-func (this *Alpaca) HandleTradingMessage(client any, message any) {
+func (this *Alpaca) HandleTradingMessage(client any, message map[string]any) {
 	var stream *string = this.SafeString(message, "stream")
 	var methods map[string]any = map[string]any{
 		"authorization": this.HandleAuthenticate,
@@ -939,12 +939,11 @@ func (this *Alpaca) HandleTradingMessage(client any, message any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Alpaca) HandleMessage(client any, message any) {
-	if ccxt.IsArray(message) {
-		this.HandleCryptoMessage(client, message)
-		return
-	}
+func (this *Alpaca) HandleMessage(client any, message map[string]any) {
 	this.HandleTradingMessage(client, message)
+}
+func (this *Alpaca) HandleListMessage(client any, message any) {
+	this.HandleCryptoMessage(client, message)
 }
 func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	//
