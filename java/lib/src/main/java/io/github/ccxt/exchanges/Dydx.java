@@ -3058,8 +3058,8 @@ public class Dydx extends DydxApi
             if ((errorCodeNum != null && errorCodeNum > 0))
             {
                 String feedback = ((this.id + " ") + this.json(response));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

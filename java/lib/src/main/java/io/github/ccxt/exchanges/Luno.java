@@ -2030,7 +2030,7 @@ public class Luno extends LunoApi
         {
             String feedback = ((this.id + " ") + this.json(response));
             String errorCode = this.safeString(response, "error_code");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

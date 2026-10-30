@@ -1221,7 +1221,7 @@ public class Sxbet extends SxbetApi
             {
                 String reason = this.safeString(first, "reason", "FAILED");
                 String feedback = ((this.id + " createOrder() rejected: ") + reason);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), reason, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (reason), feedback);
                 throw new InvalidOrder(feedback) ;
             }
             // with waitForOutcome the venue reports the matching result inline:
@@ -3330,8 +3330,8 @@ public class Sxbet extends SxbetApi
             messageString = message;
         }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), messageString, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (messageString), feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if ((code != null && ((Number) code).doubleValue() == 400))

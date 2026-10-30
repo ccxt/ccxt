@@ -1533,7 +1533,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             if (!java.util.Objects.equals(errorMessage, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessage, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorMessage), feedback);
             }
             return false;
         } catch(Exception error)

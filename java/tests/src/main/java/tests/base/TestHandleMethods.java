@@ -27,14 +27,14 @@ public class TestHandleMethods extends BaseTest
             Map<String, Object> initialParams = new HashMap<String, Object>() {{
                 put( "defaultType", "valueFromParam" );
             }};
-            Object market = exchange.safeMarket("TEST1/TEST2", (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = exchange.safeMarket("TEST1/TEST2", (Map<String, Object>) null, (String) null, (String) null);
             Helpers.addElementToObject(market, "type", "spot");
             //
             // ########### test different variations ###########
             //
             // case #1, should prevail: param
             //
-            Pair<String, Map<String, Object>> marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), initialParams, "valueDefault");
+            Pair<String, Map<String, Object>> marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault");
             String marketType1 = marketType1params1Variable.first();
             Map<String, Object> params1 = marketType1params1Variable.second();
             Assert(initialParams.containsKey("defaultType"));
@@ -43,7 +43,7 @@ public class TestHandleMethods extends BaseTest
             //
             // case #2, should prevail: market.type
             //
-            Pair<String, Map<String, Object>> marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), new HashMap<String, Object>() {{}}, "valueDefault");
+            Pair<String, Map<String, Object>> marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", market, new HashMap<String, Object>() {{}}, "valueDefault");
             String marketType2 = marketType2params2Variable.first();
             Map<String, Object> params2 = marketType2params2Variable.second();
             Assert(java.util.Objects.equals(marketType2, "spot"));

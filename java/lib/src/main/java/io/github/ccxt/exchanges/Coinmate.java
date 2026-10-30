@@ -1634,8 +1634,8 @@ public class Coinmate extends CoinmateApi
         if (!java.util.Objects.equals(errorMessage, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessage, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorMessage, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

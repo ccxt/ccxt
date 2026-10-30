@@ -939,8 +939,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             String errorCode = this.safeString(data, "errorCode");
             String errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorCodeName, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorCodeName), feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {

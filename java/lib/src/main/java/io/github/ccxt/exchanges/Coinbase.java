@@ -3896,8 +3896,8 @@ public class Coinbase extends CoinbaseApi
                 String errorMessage = this.safeString(errorResponse, "message");
                 if (!java.util.Objects.equals(errorResponse, null))
                 {
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorTitle, errorMessage);
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorTitle, errorMessage);
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorTitle, errorMessage);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorTitle, errorMessage);
                     throw new ExchangeError(errorMessage) ;
                 }
             }
@@ -6361,16 +6361,16 @@ public class Coinbase extends CoinbaseApi
         if (!java.util.Objects.equals(errorCode, null))
         {
             String errorMessage = this.safeString2(response, "error_description", "error");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         Map<String, Object> errorResponse = (Map<String, Object>) this.safeDict(response, "error_response", (Object) null);
         if (!java.util.Objects.equals(errorResponse, null))
         {
             String errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessageInner, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessageInner, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorMessageInner, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessageInner, feedback);
             throw new ExchangeError(feedback) ;
         }
         List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
@@ -6383,8 +6383,8 @@ public class Coinbase extends CoinbaseApi
                 String errorMessage = this.safeString((errors == null || 0 >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(0)), "message");
                 if (!java.util.Objects.equals(errorCode, null))
                 {
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
                     throw new ExchangeError(feedback) ;
                 }
             }

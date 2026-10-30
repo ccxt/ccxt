@@ -7007,8 +7007,8 @@ public class Xt extends XtApi
             String errorCode = this.safeString(error, "code", spotErrorCode);
             String spotMessage = this.safeString(response, "msgInfo");
             String message = this.safeString(error, "msg", spotMessage);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

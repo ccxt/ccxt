@@ -3916,11 +3916,11 @@ public class Bithumb extends BithumbApi
             String feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
-                this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorName, (String) (feedback));
             }
             if (!java.util.Objects.equals(message, null))
             {
-                this.throwExactlyMatchedException(this.exceptions, message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
             }
             throw new ExchangeError((String)feedback) ;
         }
@@ -3941,8 +3941,8 @@ public class Bithumb extends BithumbApi
                 return null;  // no error
             }
             String feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException(this.exceptions, status, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), status, (String) (feedback));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
             throw new ExchangeError((String)feedback) ;
         }
         return null;

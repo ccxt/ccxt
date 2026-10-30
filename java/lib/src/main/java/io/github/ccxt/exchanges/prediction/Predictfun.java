@@ -2995,7 +2995,7 @@ public class Predictfun extends PredictfunApi
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         String message = this.safeString(response, "message");
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
         // the venue also answers 401 when the request was authorised but acted on someone else's
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
@@ -3006,7 +3006,7 @@ public class Predictfun extends PredictfunApi
             this.options.put("jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if ((code != null && ((Number) code).doubleValue() == 400))

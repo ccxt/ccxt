@@ -2433,9 +2433,9 @@ public class Hollaex extends HollaexApi
             //
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(response, "message");
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             String status = String.valueOf(code);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), status, feedback);
         }
         return null;
     }

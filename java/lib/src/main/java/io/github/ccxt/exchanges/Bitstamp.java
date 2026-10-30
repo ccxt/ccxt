@@ -3805,8 +3805,8 @@ public class Bitstamp extends BitstampApi
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 String value = this.safeString(errors, i);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), value, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), value, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), value, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), value, feedback);
             }
             throw new ExchangeError(feedback) ;
         }

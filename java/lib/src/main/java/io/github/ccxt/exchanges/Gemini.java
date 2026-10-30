@@ -2615,7 +2615,7 @@ public class Gemini extends GeminiApi
             if ((body instanceof String))
             {
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
             }
             return null;  // fallback to default error handler
         }
@@ -2632,9 +2632,9 @@ public class Gemini extends GeminiApi
             String reasonInner = this.safeString(response, "reason");
             String message = this.safeString(response, "message");
             String feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), reasonInner, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), reasonInner, (String) (feedback));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, (String) (feedback));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, (String) (feedback));
             throw new ExchangeError((String)feedback) ;
         }
         return null;

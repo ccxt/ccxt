@@ -3185,8 +3185,8 @@ public class Tokocrypto extends TokocryptoApi
         String message = this.safeString(responseParsed, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(responseParsed, "code");
@@ -3210,7 +3210,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 throw new MarginModeAlreadySet(feedback) ;
             }
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!Boolean.TRUE.equals(success))

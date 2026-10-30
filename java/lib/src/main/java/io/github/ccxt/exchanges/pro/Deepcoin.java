@@ -1552,8 +1552,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), messageText, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageText, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (messageText), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageText), feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {

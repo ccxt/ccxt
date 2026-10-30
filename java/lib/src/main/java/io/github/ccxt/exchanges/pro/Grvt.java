@@ -1158,9 +1158,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             String body = this.json(response);
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(error, "message");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return false;

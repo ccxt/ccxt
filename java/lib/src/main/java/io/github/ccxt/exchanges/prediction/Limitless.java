@@ -3833,9 +3833,9 @@ public class Limitless extends LimitlessApi
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
         }
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

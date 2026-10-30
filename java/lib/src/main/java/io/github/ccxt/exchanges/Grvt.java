@@ -4051,7 +4051,7 @@ public class Grvt extends GrvtApi
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
                 throw new ExchangeError(feedback) ;
             } else
             {
@@ -4059,7 +4059,7 @@ public class Grvt extends GrvtApi
                 if (!java.util.Objects.equals(message, null))
                 {
                     String feedback = ((this.id + " ") + body);
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
                     throw new ExchangeError(feedback) ;
                 } else
                 {

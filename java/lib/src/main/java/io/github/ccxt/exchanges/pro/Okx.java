@@ -3082,12 +3082,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String feedback = ((this.id + " ") + this.json(message));
                 if (!java.util.Objects.equals(errorCode, "1"))
                 {
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                 }
                 String messageString = this.safeString(message, "msg");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
                 } else
                 {
                     List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -3097,12 +3097,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                         errorCode = this.safeString(d, "sCode");
                         if (!java.util.Objects.equals(errorCode, null))
                         {
-                            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if (!java.util.Objects.equals(messageString, null))
                         {
-                            this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
                         }
                     }
                 }

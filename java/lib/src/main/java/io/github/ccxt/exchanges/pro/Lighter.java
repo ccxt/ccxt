@@ -1704,8 +1704,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String code = this.safeString(error, "code");
                 String errorMessage = this.safeString(error, "message");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
                 throw new ExchangeError(feedback) ;
             }
         } catch(Exception e)

@@ -4795,7 +4795,7 @@ public class TestMain extends BaseTest
                 }};
                 exchange.walletAddress = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
                 exchange.privateKey = "0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5";
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"LBTC/USDC", "limit", "sell", 0.01, 3000, Helpers.toMapArg(parameters)})).join();
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"LBTC/USDC", "limit", "sell", 0.01, 3000, parameters})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);

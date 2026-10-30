@@ -1162,9 +1162,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0"))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
                 String msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (msg), feedback);
                 throw new ExchangeError(feedback) ;
             }
             Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);

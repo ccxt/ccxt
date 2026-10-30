@@ -1447,7 +1447,7 @@ public class Cryptomus extends CryptomusApi
         if (!java.util.Objects.equals(codeError, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
         } else if (!java.util.Objects.equals(message, null))
         {
@@ -1455,8 +1455,8 @@ public class Cryptomus extends CryptomusApi
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

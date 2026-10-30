@@ -4990,8 +4990,8 @@ public class Hashkey extends HashkeyApi
         if ((!(code != null && ((Number) code).doubleValue() == 200)) || Boolean.TRUE.equals(errorInArray))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), responseCodeString, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCodeString, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), responseCodeString, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCodeString, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

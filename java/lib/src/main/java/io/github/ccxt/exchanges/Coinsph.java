@@ -2779,8 +2779,8 @@ public class Coinsph extends CoinsphApi
         if ((!java.util.Objects.equals(responseCode, null)) && (!java.util.Objects.equals(responseCode, "200")) && (!java.util.Objects.equals(responseCode, "0")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

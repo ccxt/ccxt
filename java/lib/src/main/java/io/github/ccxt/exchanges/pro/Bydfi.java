@@ -1326,9 +1326,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String code = this.safeString(message, "code");
         String msg = this.safeString(message, "msg");
         String feedback = ((this.id + " ") + this.json(message));
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), msg, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (msg), feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (msg), feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
         throw new ExchangeError(feedback) ;
     }
 

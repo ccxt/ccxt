@@ -4461,7 +4461,7 @@ public class Cryptocom extends CryptocomApi
         if (!java.util.Objects.equals(errorCode, "0"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return null;

@@ -1775,8 +1775,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             String error = this.safeString(data, "error");
             String eventVar = this.safeString(message, "e", "");
             String feedback = ((((this.id + " ") + eventVar) + " ") + error);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception error)
         {

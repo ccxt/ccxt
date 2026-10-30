@@ -2367,7 +2367,7 @@ public class Bitso extends BitsoApi
                     throw new ExchangeError(feedback) ;
                 }
                 String codeError = this.safeString(error, "code");
-                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), codeError, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

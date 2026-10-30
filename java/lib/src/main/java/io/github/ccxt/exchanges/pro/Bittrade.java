@@ -766,8 +766,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 String feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                     throw new ExchangeError(feedback) ;
                 } catch(Exception e)
                 {

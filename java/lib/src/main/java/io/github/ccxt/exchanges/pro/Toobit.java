@@ -1310,7 +1310,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         // [
@@ -1341,25 +1341,15 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v10 -> ((Object)(accountType)) != null && j39v10.contains(accountType); case Map<?, ?> j39v9 -> ((Object)(accountType)) instanceof String && j39v9.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v7 -> ((Object)(accountType)) != null && j39v7.contains(accountType); case Map<?, ?> j39v6 -> ((Object)(accountType)) instanceof String && j39v6.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
         // handleMessage's fallback dispatches one item at a time
-        Object rawPositions = message;
-        if (!(message instanceof List))
-        {
-            rawPositions = new ArrayList<Object>(Arrays.asList(message));
-        }
-        List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
-        {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            ((List<Object>)newPositions).add(position);
-            ((io.github.ccxt.ws.ArrayCache) cache).append(position);
-        }
+        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (message), (Map<String, Object>) null);
+        List<Object> newPositions = new ArrayList<Object>(Arrays.asList(position));
+        ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

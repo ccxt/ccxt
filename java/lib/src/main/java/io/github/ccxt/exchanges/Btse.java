@@ -4306,8 +4306,8 @@ public class Btse extends BtseApi
             String spotErrorCode = this.safeString(response, "code");
             String spotMessage = this.safeString(response, "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), spotErrorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), spotMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), spotErrorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), spotMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         String errorCode = this.safeString(response, "errorCode");
@@ -4315,8 +4315,8 @@ public class Btse extends BtseApi
         {
             String message = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         //
@@ -4337,8 +4337,8 @@ public class Btse extends BtseApi
         {
             String legacyMessage = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), legacyEnumCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), legacyMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), legacyEnumCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), legacyMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
@@ -4362,8 +4362,8 @@ public class Btse extends BtseApi
                     message = this.safeString(embedded, "default_msg", message);
                 }
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), status, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             }
         }
         return null;

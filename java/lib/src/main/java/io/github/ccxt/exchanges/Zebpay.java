@@ -2455,7 +2455,7 @@ public class Zebpay extends ZebpayApi
     {
         if (java.util.Objects.equals(response, null))
         {
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, body);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), (String) (body));
             return null;
         }
         //
@@ -2468,9 +2468,9 @@ public class Zebpay extends ZebpayApi
         String errorCode = this.safeString2(response, "code", "statusCode");
         String message = this.safeString2(response, "msg", "statusDescription", "");
         String feedback = ((this.id + " ") + message);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         return null;
     }
 }

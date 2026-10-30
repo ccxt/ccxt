@@ -1043,9 +1043,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         String feedback = ((this.id + " ") + this.json(message));
         String errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
         String errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
         throw new ExchangeError(feedback) ;
     }
 

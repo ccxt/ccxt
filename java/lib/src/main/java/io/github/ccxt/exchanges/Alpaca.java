@@ -2740,12 +2740,12 @@ public class Alpaca extends AlpacaApi
         String feedback = ((this.id + " ") + body);
         String errorCode = this.safeString(response, "code");
         // code is an int: it is never undefined, the guard was dead
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             String codeAsString = String.valueOf(code);
             Long statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))

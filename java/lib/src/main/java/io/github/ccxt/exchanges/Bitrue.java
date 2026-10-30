@@ -3804,8 +3804,8 @@ public class Bitrue extends BitrueApi
         String message = this.safeString(errorResponse, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(errorResponse, "code");
@@ -3825,7 +3825,7 @@ public class Bitrue extends BitrueApi
                 throw new DDoSProtection(((this.id + " temporary banned: ") + body)) ;
             }
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!Boolean.TRUE.equals(success))

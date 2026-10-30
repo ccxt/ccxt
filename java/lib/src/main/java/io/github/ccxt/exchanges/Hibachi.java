@@ -2162,10 +2162,10 @@ public class Hibachi extends HibachiApi
             {
                 String codeError = this.safeString(response, "errorCode");
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
                 String message = this.safeString(response, "message");
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

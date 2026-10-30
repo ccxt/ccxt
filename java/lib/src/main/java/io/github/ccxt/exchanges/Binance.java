@@ -16439,10 +16439,10 @@ public class Binance extends BinanceApi
         String message = this.safeString(responseParsed, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), message, ((this.id + " ") + message));
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.getExceptionsByUrl((String) (url), "broad"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.getExceptionsByUrl((String) (url), "exact")), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.getExceptionsByUrl((String) (url), "broad")), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(responseParsed, "code");
@@ -16466,8 +16466,8 @@ public class Binance extends BinanceApi
             {
                 throw new MarginModeAlreadySet(feedback) ;
             }
-            this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), error, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.getExceptionsByUrl((String) (url), "exact")), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!Boolean.TRUE.equals(success))
@@ -16484,8 +16484,8 @@ public class Binance extends BinanceApi
                 String errorCode = this.safeString(element, "code");
                 if (!java.util.Objects.equals(errorCode, null))
                 {
-                    this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), errorCode, ((this.id + " ") + body));
-                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, ((this.id + " ") + body));
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.getExceptionsByUrl((String) (url), "exact")), errorCode, ((this.id + " ") + body));
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, ((this.id + " ") + body));
                 }
             }
         }

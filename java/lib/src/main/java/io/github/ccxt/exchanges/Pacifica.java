@@ -4447,9 +4447,9 @@ public class Pacifica extends PacificaApi
         if (Boolean.TRUE.equals(error) || Boolean.TRUE.equals(nonEmptyMessage))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorId, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorId, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             Long statusCode = this.parseToInt(code);
             String codeAsString = String.valueOf(code);
             if ((((statusCode == null || statusCode < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))

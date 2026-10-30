@@ -1307,8 +1307,8 @@ public class Coincheck extends CoincheckApi
         {
             String error = this.safeString(response, "error");
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -11554,10 +11554,10 @@ public class Okx extends OkxApi
                 Map<String, Object> error = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String errorCode = this.safeString(error, "sCode");
                 String message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             }
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

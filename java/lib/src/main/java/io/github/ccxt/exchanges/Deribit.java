@@ -4839,7 +4839,7 @@ public class Deribit extends DeribitApi
         {
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

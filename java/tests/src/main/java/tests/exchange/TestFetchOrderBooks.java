@@ -26,7 +26,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Object symbols = exchange.symbols;
         Assert(!java.util.Objects.equals(symbols, null), (((exchange.id + " ") + method) + " requires exchange.symbols to be loaded"));
         Object symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
-        Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol)), (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
         List<Object> orderBookKeys = new ArrayList<Object>(((Map<String, Object>)orderBooks).keySet());
         Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));

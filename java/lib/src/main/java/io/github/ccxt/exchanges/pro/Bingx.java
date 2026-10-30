@@ -1752,7 +1752,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!java.util.Objects.equals(code, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
             }
         } catch(Exception e)
         {

@@ -2381,8 +2381,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), msg, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (msg), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (msg), feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception error)
             {

@@ -1283,7 +1283,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), (String) (code), feedback);
             }
         } catch(Exception e)
         {

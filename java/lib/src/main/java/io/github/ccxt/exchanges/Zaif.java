@@ -1089,8 +1089,8 @@ public class Zaif extends ZaifApi
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);

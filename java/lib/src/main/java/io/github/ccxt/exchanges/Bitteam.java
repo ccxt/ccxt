@@ -2741,8 +2741,8 @@ public class Bitteam extends BitteamApi
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(response, "message");
             String responseCode = this.safeString(response, "code");
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

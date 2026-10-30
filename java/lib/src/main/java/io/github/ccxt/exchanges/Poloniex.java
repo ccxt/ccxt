@@ -3465,7 +3465,7 @@ public class Poloniex extends PoloniexApi
             //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
             //     }
             //
-            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3503,7 +3503,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
-            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3539,7 +3539,7 @@ public class Poloniex extends PoloniexApi
         return new ArrayList<Object>(Arrays.asList(request, query, currency, networkEntry));
     }
 
-    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Object currency, Map<String, Object> networkEntry)
+    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Map<String, Object> currency, Map<String, Object> networkEntry)
     {
         String address = this.safeString(response, "address");
         if (java.util.Objects.equals(address, null))
@@ -4820,8 +4820,8 @@ public class Poloniex extends PoloniexApi
         {
             String message = this.safeString2(response, "message", "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

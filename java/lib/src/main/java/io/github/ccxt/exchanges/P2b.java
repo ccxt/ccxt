@@ -1589,7 +1589,7 @@ public class P2b extends P2bApi
         {
             String errorCode = this.safeString(response, "errorCode");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             String codeAsString = String.valueOf(code);
             Long statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))

@@ -1581,10 +1581,10 @@ public class Bitflyer extends BitflyerApi
         String feedback = ((this.id + " ") + body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         String errorMessage = this.safeString(response, "error_message");
-        Long statusCode = this.safeInteger(response, "status");
+        String statusCode = this.safeString(response, "status");
         if (!java.util.Objects.equals(errorMessage, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), statusCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), statusCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

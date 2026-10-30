@@ -3573,15 +3573,15 @@ public class Woo extends WooApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object getCurrencyFromChaincode(Object networkizedCode, Object currency)
+    public Object getCurrencyFromChaincode(String networkizedCode, Map<String, Object> currency)
     {
         if (!java.util.Objects.equals(currency, null))
         {
             return currency;
         } else
         {
-            List<Object> parts = (List<Object>) Helpers.split(networkizedCode, "_");
-            Integer partsLength = (parts == null ? 0 : parts.size());
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)networkizedCode).split(java.util.regex.Pattern.quote("_"))));
+            Integer partsLength = ((List<?>)parts).size();
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
             if ((partsLength != null && partsLength > 2))
@@ -3691,7 +3691,7 @@ public class Woo extends WooApi
         //         "confirmedNumber": null
         //     }
         //
-        String networkizedCode = this.safeString(transaction, "token");
+        String networkizedCode = this.safeString(transaction, "token", "");
         Object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         String code = this.safeString(currencyDefined, "code");
         String movementDirection = this.safeStringLowerN(transaction, new ArrayList<Object>(Arrays.asList("token_side", "tokenSide", "type")));
@@ -4189,8 +4189,8 @@ public class Woo extends WooApi
         if (!java.util.Objects.equals(success, true))
         {
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         }
         return null;
     }

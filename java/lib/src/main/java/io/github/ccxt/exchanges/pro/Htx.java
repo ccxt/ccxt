@@ -2847,7 +2847,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException(wsExceptions.get("exact"), errorCode, this.json(message));
+                    this.throwExactlyMatchedException((Map<String, Object>) (wsExceptions.get("exact")), (String) (errorCode), (String) (this.json(message)));
                     throw new ExchangeError((String)this.json(message)) ;
                 } catch(Exception e)
                 {
@@ -2879,7 +2879,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException(wsExceptions.get("exact"), code, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (wsExceptions.get("exact")), (String) (code), feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {

@@ -10684,7 +10684,7 @@ public class Gate extends GateApi
         if (!java.util.Objects.equals(label, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), label, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), label, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

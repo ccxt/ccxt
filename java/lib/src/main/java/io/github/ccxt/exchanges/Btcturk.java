@@ -1335,7 +1335,7 @@ public class Btcturk extends BtcturkApi
         {
             feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
         if ((!java.util.Objects.equals(errorCode, "0")) && (!java.util.Objects.equals(errorCode, "SUCCESS")))
         {
             throw new ExchangeError(feedback) ;

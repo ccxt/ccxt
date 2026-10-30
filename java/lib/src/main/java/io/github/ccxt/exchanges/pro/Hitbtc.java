@@ -1743,8 +1743,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 String errorMessage = this.safeString(error, "message");
                 String description = this.safeString(error, "description");
                 String feedback = ((this.id + " ") + description);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {

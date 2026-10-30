@@ -3832,10 +3832,10 @@ public class Deepcoin extends DeepcoinApi
         }
         if ((!(code != null && ((Number) code).doubleValue() == 200)) || (!java.util.Objects.equals(messageCode, "0")) || (!java.util.Objects.equals(sCode, null) && !java.util.Objects.equals(sCode, "0")))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), messageCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), sCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), msg, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), messageCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), sCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), msg, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
             throw new ExchangeError(feedback) ;
         } else
         {

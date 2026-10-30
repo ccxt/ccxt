@@ -1610,8 +1610,8 @@ public class Polymarket extends PolymarketApi
                 Map<String, Object> firstInfo = (Map<String, Object>) this.safeDict(first, "info", new HashMap<String, Object>() {{}});
                 String errorId = this.safeString(firstInfo, "error");
                 String feedback = ((this.id + " createOrder() rejected: ") + this.json(firstInfo));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorId, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorId, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorId, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorId, feedback);
                 throw new InvalidOrder(feedback) ;
             }
             Map<String, Object> created = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
@@ -3430,8 +3430,8 @@ public class Polymarket extends PolymarketApi
         if ((java.util.Objects.equals(status, "err")) || (!java.util.Objects.equals(error, null)))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             if ((code != null && ((Number) code).doubleValue() == 400))
             {
                 throw new BadRequest(feedback) ;

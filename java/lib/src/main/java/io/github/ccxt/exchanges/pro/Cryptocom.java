@@ -1659,11 +1659,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if ((!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "")) && !java.util.Objects.equals(errorCode, "0"))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                 String messageString = this.safeString(message, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
                 }
                 throw new ExchangeError(feedback) ;
             }

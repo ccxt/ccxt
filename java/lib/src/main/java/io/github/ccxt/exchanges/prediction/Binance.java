@@ -2245,8 +2245,8 @@ public class Binance extends BinanceApi
         {
             String message = this.safeString(response, "msg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

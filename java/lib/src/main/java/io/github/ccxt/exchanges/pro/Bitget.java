@@ -3268,9 +3268,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), (String) (code), feedback);
                 String msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("broad"), msg, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("broad")), (String) (msg), feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;

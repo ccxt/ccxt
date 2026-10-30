@@ -614,7 +614,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             if (!java.util.Objects.equals(error, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), error, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), this.safeString(message, "error"), feedback);
             }
         } catch(Exception e)
         {

@@ -4422,8 +4422,8 @@ public class Kraken extends KrakenApi
                         for (var i = 0; (numErrors != null && i < numErrors); i++)
                         {
                             Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
-                            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, message);
+                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), message);
+                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), message);
                         }
                         throw new ExchangeError(message) ;
                     }
@@ -4441,8 +4441,8 @@ public class Kraken extends KrakenApi
                             String error = this.safeString(order, "error");
                             if (!java.util.Objects.equals(error, null))
                             {
-                                this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
-                                this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, message);
+                                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, message);
+                                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, message);
                                 throw new ExchangeError(message) ;
                             }
                         }

@@ -9508,10 +9508,10 @@ public class Htx extends HtxApi
             {
                 String codeError = this.safeString2(response, "err-code", "err_code");
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
                 String message = this.safeString2(response, "err-msg", "err_msg");
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }
@@ -9520,7 +9520,7 @@ public class Htx extends HtxApi
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
             String codeError = this.safeString(response, "code");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
         List<Object> errorsList = (List<Object>) this.safeList(data, "errors", (Object) null);
@@ -9530,8 +9530,8 @@ public class Htx extends HtxApi
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
             String feedBack = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errcode, feedBack);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errmessage, feedBack);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errcode, feedBack);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errmessage, feedBack);
         }
         return null;
     }

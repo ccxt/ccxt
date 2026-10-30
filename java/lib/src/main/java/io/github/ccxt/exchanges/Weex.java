@@ -3942,10 +3942,10 @@ public class Weex extends WeexApi
             return;
         }
         String feedback = ((this.id + " ") + this.json(order));
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessageValue, feedback);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCodeValue, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessageValue, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorCodeValue, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorMessageValue, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCodeValue, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessageValue, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorCodeValue, feedback);
         throw new InvalidOrder(feedback) ;
     }
 
@@ -5373,9 +5373,9 @@ public class Weex extends WeexApi
                 return null;
             }
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return null;

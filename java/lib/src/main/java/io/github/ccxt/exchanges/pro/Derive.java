@@ -1291,7 +1291,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;

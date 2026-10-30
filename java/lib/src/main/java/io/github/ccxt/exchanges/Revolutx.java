@@ -1764,7 +1764,7 @@ public class Revolutx extends RevolutxApi
             }
             if (!java.util.Objects.equals(errorMessage, null))
             {
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             }
             return null;
         }

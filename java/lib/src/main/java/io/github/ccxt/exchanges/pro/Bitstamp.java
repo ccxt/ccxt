@@ -1098,8 +1098,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             String feedback = ((this.id + " ") + this.json(message));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-            Double code = this.safeNumber(data, "code", (Object) null);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            String code = this.safeString(data, "code");
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
         }
         return true;
     }

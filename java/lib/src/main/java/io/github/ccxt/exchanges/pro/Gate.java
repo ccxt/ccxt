@@ -2468,10 +2468,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("exact"), code, this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, this.json(errs));
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), (String) (code), (String) (this.json(message)));
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), (String) (this.json(errs)));
                 String errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions.get("ws")).get("broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("broad")), (String) (errorMessage), (String) (this.json(message)));
                 throw new ExchangeError((String)this.json(message)) ;
             } catch(Exception e)
             {

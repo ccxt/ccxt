@@ -4091,8 +4091,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String errorCode = this.safeString(error, "code");
         String errorMessage = this.safeString(error, "message");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
         throw new ExchangeError(feedback) ;
     }
 }

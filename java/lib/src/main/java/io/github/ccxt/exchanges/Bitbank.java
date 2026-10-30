@@ -1446,7 +1446,7 @@ public class Bitbank extends BitbankApi
             }};
             String codeError = this.safeString(data, "code");
             String message = this.safeString(errorMessages, codeError, "Error");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, message);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, message);
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }
         return null;

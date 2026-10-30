@@ -3636,9 +3636,9 @@ public class Bydfi extends BydfiApi
         if (!java.util.Objects.equals(codeError, "200"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

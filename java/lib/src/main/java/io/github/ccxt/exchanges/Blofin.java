@@ -4332,9 +4332,9 @@ public class Blofin extends BlofinApi
         String feedback = ((this.id + " ") + body);
         if (!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0"))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         //
@@ -4351,9 +4351,9 @@ public class Blofin extends BlofinApi
         String insideCode = this.safeString(first, "code");
         if (!java.util.Objects.equals(insideCode, null) && !java.util.Objects.equals(insideCode, "0"))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), insideCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), insideMsg, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), insideMsg, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), insideCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), insideMsg, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), insideMsg, feedback);
         }
         return null;
     }

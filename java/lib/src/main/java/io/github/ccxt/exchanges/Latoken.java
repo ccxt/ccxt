@@ -2391,14 +2391,14 @@ public class Latoken extends LatokenApi
         String feedback = ((this.id + " ") + body);
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
         }
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

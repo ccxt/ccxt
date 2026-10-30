@@ -6156,8 +6156,8 @@ public class Hyperliquid extends HyperliquidApi
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
         if (Boolean.TRUE.equals(nonEmptyMessage))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
         }
         if (Boolean.TRUE.equals(nonEmptyMessage))
         {

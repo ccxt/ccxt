@@ -2243,8 +2243,8 @@ public class Cex extends CexApi
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
@@ -2254,7 +2254,7 @@ public class Cex extends CexApi
             String rejectReason = this.safeString(data, "rejectReason");
             if (!java.util.Objects.equals(rejectReason, null))
             {
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), rejectReason, rejectReason);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), rejectReason, rejectReason);
                 throw new ExchangeError(((this.id + " createOrder() ") + rejectReason)) ;
             }
         }

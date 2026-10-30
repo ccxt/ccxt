@@ -4403,8 +4403,8 @@ public class Krakenfutures extends KrakenfuturesApi
             return null;
         }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
         if ((code != null && ((Number) code).doubleValue() == 400))
         {
             throw new BadRequest(feedback) ;

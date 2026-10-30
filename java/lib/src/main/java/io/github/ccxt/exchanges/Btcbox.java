@@ -1028,7 +1028,7 @@ public class Btcbox extends BtcboxApi
         }
         String codeError = this.safeString(response, "code");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), codeError, feedback);
         throw new ExchangeError(feedback) ;
     }
 

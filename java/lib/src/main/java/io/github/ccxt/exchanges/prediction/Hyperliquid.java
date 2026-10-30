@@ -2757,8 +2757,8 @@ public class Hyperliquid extends HyperliquidApi
         {
             String message = this.safeString(response, "response", body);
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
             throw new ExchangeError(feedback) ;
         }
         // Check for error statuses in order responses
@@ -2771,8 +2771,8 @@ public class Hyperliquid extends HyperliquidApi
             if (!java.util.Objects.equals(message, null))
             {
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

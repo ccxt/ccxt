@@ -1582,8 +1582,8 @@ public class Blockchaincom extends BlockchaincomApi
         String errorMessage = this.safeString(response, "error");
         // code is an int: it is never undefined, the guard was dead
         String feedback = ((this.id + " ") + this.json(response));
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
         return null;
     }
 }

@@ -3289,8 +3289,8 @@ public class Ndax extends NdaxApi
         if ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

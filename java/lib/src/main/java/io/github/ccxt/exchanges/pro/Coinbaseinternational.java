@@ -1744,8 +1744,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {

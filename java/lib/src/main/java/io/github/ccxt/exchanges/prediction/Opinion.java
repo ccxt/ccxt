@@ -2616,8 +2616,8 @@ public class Opinion extends OpinionApi
         {
             String errmsg = this.safeString(response, "errmsg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errmsg, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), this.numberToString(errno), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errmsg), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

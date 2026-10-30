@@ -5245,8 +5245,8 @@ public class Whitebit extends WhitebitApi
                         errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorInfo), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
                 throw new ExchangeError(feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
@@ -5264,8 +5264,8 @@ public class Whitebit extends WhitebitApi
                     errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorInfo), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

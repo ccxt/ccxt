@@ -2499,9 +2499,9 @@ public class Foxbit extends FoxbitApi
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), detailsString, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

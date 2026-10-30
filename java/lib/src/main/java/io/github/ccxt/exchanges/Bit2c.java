@@ -1326,8 +1326,8 @@ public class Bit2c extends Bit2cApi
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

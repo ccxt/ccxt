@@ -15080,14 +15080,14 @@ public class Bitget extends BitgetApi
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")) && (!java.util.Objects.equals(message, "success")));
         if (Boolean.TRUE.equals(nonEmptyMessage))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
         }
         String errorCode = this.safeString2(response, "code", "err_code");
         Boolean nonZeroErrorCode = (!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "00000"));
         if (Boolean.TRUE.equals(nonZeroErrorCode))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         }
         if (Boolean.TRUE.equals(nonZeroErrorCode) || Boolean.TRUE.equals(nonEmptyMessage))
         {
