@@ -12919,6 +12919,7 @@ impl std::ops::DerefMut for ${coreName} {
     r31Str(content: string): string {
         content = this.x39Affix(content); // hx5 X39
         content = this.nativeLiteralAffixTest(content);
+        content = this.nativeDictKeyRead(content);
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
         const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
@@ -13362,6 +13363,38 @@ impl std::ops::DerefMut for ${coreName} {
         if (!content.includes('is_some_and(|__s| __s.')) return content;
         const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_str\(\)\.is_some_and\(\|__s\| __s\.(starts_with|ends_with)\(("(?:[^"\\]|\\.)+")\)\)/g;
         return content.replace(re, '$1.as_str().unwrap_or("").$2($3)');
+    }
+
+    // Dict read/membership keyed by a Str place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
+    //   M.as_map().and_then(|__m| K.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)
+    //     -> (if let (Some(__m), Some(__k)) = (M.as_map(), K.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
+    //   K.as_str().and_then(|__k| D.get(__k)).cloned().unwrap_or(Value::Null)   (D a shadowed &map)
+    //     -> (if let Some(__k) = K.as_str() { D.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
+    //   K.as_str().map(|__k| D.contains_key(__k)).unwrap_or(false)
+    //     -> matches!(K.as_str(), Some(__k) if D.contains_key(__k))
+    // A non-Str key stays absent / Null / false exactly like the `None` arm. M and K are side-effect-free place
+    // paths, so evaluating K eagerly (the closure ran it only for a map) is unobservable. Skips a line that would
+    // cross 400 chars.
+    nativeDictKeyRead(content: string): string {
+        if (!content.includes('|__k|')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const lead = '(?<![A-Za-z0-9_.:])';
+        const guard = (m: string, off: number, whole: string, text: string): string => {
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        };
+        const dyn = new RegExp(`${lead}(${P})\\.as_map\\(\\)\\.and_then\\(\\|__m\\| (${P})\\.as_str\\(\\)\\.and_then\\(\\|__k\\| __m\\.get\\(__k\\)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        content = content.replace(dyn, (m: string, x: string, k: string, off: number, whole: string) =>
+            guard(m, off, whole, `(if let (Some(__m), Some(__k)) = (${x}.as_map(), ${k}.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })`));
+        const get = new RegExp(`${lead}(${P})\\.as_str\\(\\)\\.and_then\\(\\|__k\\| (${P})\\.get\\(__k\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        content = content.replace(get, (m: string, k: string, d: string, off: number, whole: string) =>
+            guard(m, off, whole, `(if let Some(__k) = ${k}.as_str() { ${d}.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })`));
+        const has = new RegExp(`${lead}(${P})\\.as_str\\(\\)\\.map\\(\\|__k\\| (${P})\\.contains_key\\(__k\\)\\)\\.unwrap_or\\(false\\)`, 'g');
+        content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
+            guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
+        return content;
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
