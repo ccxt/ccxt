@@ -5292,6 +5292,50 @@ export class RustTranspilerBuilder {
         return this._rustExchangeSrcs;
     }
 
+    private _rustSelfBoolFields: Set<string> | null = null;
+
+    /** TS-boolean base fields held as `Value` in the Rust core struct whose
+     *  every core write boxes a `Value::Bool` (so the field is Bool or Null). */
+    private rustSelfBoolFields(): Set<string> {
+        if (this._rustSelfBoolFields !== null) return this._rustSelfBoolFields;
+        const out = new Set<string>();
+        try {
+            const ts = fs.readFileSync('./ts/src/base/Exchange.ts', 'utf8');
+            const core = fs.readdirSync(RUST_CORE).filter(f => f.endsWith('.rs')).map(f => fs.readFileSync(`${RUST_CORE}/${f}`, 'utf8')).join('\n');
+            const rx = /^    ([A-Za-z_][A-Za-z0-9_]*): boolean = /gm;
+            let m: RegExpExecArray | null;
+            while ((m = rx.exec(ts)) !== null) {
+                const n = m[1];
+                if (!new RegExp(`\\bpub ${n}:\\s*Value,`).test(core)) continue;
+                const writes = core.match(new RegExp(`\\bself\\.${n}\\s*=[^=][^;\\n]*`, 'g')) ?? [];
+                if (writes.every(w => /=\s*Value::Bool\(/.test(w))) out.add(n);
+            }
+        } catch (e: any) {
+            if (e.code !== 'ENOENT') throw e;
+        }
+        this._rustSelfBoolFields = out;
+        return out;
+    }
+
+    /** `is_true(&self.<f>)` over a bool-only `Value` field in a proven bool slot
+     *  prints `self.<f>.as_bool() == Some(true)` (is_truthy of Bool/Null). */
+    dropSelfBoolFieldIsTrue(content: string): string {
+        if (!content.includes('is_true(&self.')) return content;
+        const fields = this.rustSelfBoolFields();
+        if (fields.size === 0) return content;
+        const rx = /(?<![A-Za-z0-9_:])is_true\(&self\.([A-Za-z_][A-Za-z0-9_]*)\)/g;
+        let out = ''; let at = 0; let m: RegExpExecArray | null;
+        while ((m = rx.exec(content)) !== null) {
+            if (!fields.has(m[1])) continue;
+            const slot = this.rustIsTrueBoolSlot(content, m.index, m.index + m[0].length);
+            if (slot === undefined) continue;
+            const native = `self.${m[1]}.as_bool() == Some(true)`;
+            out += content.slice(at, m.index) + (slot === 'negated' ? `(${native})` : native);
+            at = m.index + m[0].length;
+        }
+        return at === 0 ? content : out + content.slice(at);
+    }
+
     private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
 
     /**
@@ -9127,6 +9171,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // D-32: bool/`Option<bool>` callees and `Option`-typed shadow
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
+                rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
                 rustContent = this.hx4R24BoolParamIsTrue(rustContent);
                 rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
@@ -9897,6 +9942,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropBoolValuedIsTrue(finalFile);
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
+        finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
         finalFile = this.hx4R24BoolParamIsTrue(finalFile);
         finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
