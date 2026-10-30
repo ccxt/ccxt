@@ -1,5 +1,6 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import type { Dict } from '../../base/types.js';
 
 function testMergeBalanceAccount () {
 
