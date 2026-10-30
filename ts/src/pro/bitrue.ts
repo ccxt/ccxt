@@ -424,7 +424,10 @@ export default class bitrue extends bitrueRest {
         client.resolve (orderbook, messageHash);
     }
 
-    findSwapMarketByWsBaseQuote (wsBaseQuote: string) {
+    findSwapMarketByWsBaseQuote (wsBaseQuote: Str) {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         const markets = this.markets;
         if (markets === undefined) {
             return undefined;
