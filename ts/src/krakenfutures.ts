@@ -929,7 +929,10 @@ export default class krakenfutures extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
-        const windowLimit: Int = ((limit === undefined) || (limit > 2000)) ? 2000 : limit;
+        let windowLimit: Int = 2000;
+        if ((limit !== undefined) && (limit <= 2000)) {
+            windowLimit = limit;
+        }
         const windowSize = this.parseToInt (windowLimit);
         let limitResolved: Int = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
@@ -2499,7 +2502,10 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills (params);
         //
