@@ -37,7 +37,7 @@ export default class bybit extends Exchange {
     upgradeUnifiedTradeAccount(params?: Dict): Promise<Dict>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    getBybitType(method: any, market: any, params?: Dict): [Str, Dict];
+    getBybitType(method: string, market?: Market, params?: Dict): [Str, Dict];
     getAmount(symbol: Str, amount: number | undefined): Str;
     getPrice(symbol: Str, price: any): any;
     getCost(symbol: Str, cost: Str): Str;

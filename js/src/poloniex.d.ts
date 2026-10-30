@@ -299,7 +299,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     prepareRequestForDepositAddress(code: string, params?: Dict): any;
-    parseDepositAddressSpecial(response: Dict, currency: any, networkEntry: Dict): DepositAddress;
+    parseDepositAddressSpecial(response: Dict, currency: Currency, networkEntry: Dict): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer

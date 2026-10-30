@@ -3046,7 +3046,7 @@ export default class woo extends Exchange {
         };
         return this.safeString(types, type, type);
     }
-    getCurrencyFromChaincode(networkizedCode, currency) {
+    getCurrencyFromChaincode(networkizedCode, currency = undefined) {
         if (currency !== undefined) {
             return currency;
         }
@@ -3138,7 +3138,7 @@ export default class woo extends Exchange {
         //         "confirmedNumber": null
         //     }
         //
-        const networkizedCode = this.safeString(transaction, 'token');
+        const networkizedCode = this.safeString(transaction, 'token', '');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = this.safeString(currencyDefined, 'code');
         let movementDirection = this.safeStringLowerN(transaction, ['token_side', 'tokenSide', 'type']);

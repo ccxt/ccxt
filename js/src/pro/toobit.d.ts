@@ -178,7 +178,7 @@ export default class toobit extends toobitRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, type: string, symbols?: Strings): void;
     loadPositionsSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
-    handlePositions(client: Client, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     authenticate(params?: Dict): Promise<void>;
     setWsOptions(entry: Dict): void;

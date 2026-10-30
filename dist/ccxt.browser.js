@@ -236231,7 +236231,7 @@ class bitflyer extends _abstract_bitflyer_js__rspack_import_0/* ["default"] */.A
         const feedback = this.id + ' ' + body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         const errorMessage = this.safeString(response, 'error_message');
-        const statusCode = this.safeInteger(response, 'status');
+        const statusCode = this.safeString(response, 'status');
         if (errorMessage !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], statusCode, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
@@ -291344,7 +291344,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
-    getBybitType(method, market, params = {}) {
+    getBybitType(method, market = undefined, params = {}) {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams(method, market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams(method, market, paramsMarketType);
         if (type === 'option' || type === 'spot') {
@@ -547255,7 +547255,7 @@ class bitstamp extends _bitstamp_js__rspack_import_0/* ["default"] */.A {
         if (event === 'bts:error') {
             const feedback = this.id + ' ' + this.json(message);
             const data = this.safeDict(message, 'data', {});
-            const code = this.safeNumber(data, 'code');
+            const code = this.safeString(data, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
         return true;
@@ -577066,7 +577066,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
         try {
             if (error !== undefined) {
                 const feedback = this.id + ' ' + this.json(message);
-                this.throwExactlyMatchedException(this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException(this.exceptions['ws']['exact'], this.safeString(message, 'error'), feedback);
             }
         } catch (e) {
             if (e instanceof _base_errors_js__rspack_import_1.AuthenticationError) {
@@ -613203,19 +613203,11 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
         }
         const cache = this.positions[accountType];
         // handleMessage's fallback dispatches one item at a time
-        let rawPositions = message;
-        if (!Array.isArray(message)) {
-            rawPositions = [
-                message
-            ];
-        }
-        const newPositions = [];
-        for(let i = 0; i < rawPositions.length; i++){
-            const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition(rawPosition);
-            newPositions.push(position);
-            cache.append(position);
-        }
+        const position = this.parseWsPosition(message);
+        const newPositions = [
+            position
+        ];
+        cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
@@ -649393,7 +649385,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         };
         return this.safeString(types, type, type);
     }
-    getCurrencyFromChaincode(networkizedCode, currency) {
+    getCurrencyFromChaincode(networkizedCode, currency = undefined) {
         if (currency !== undefined) {
             return currency;
         } else {
@@ -649481,7 +649473,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         //         "confirmedNumber": null
         //     }
         //
-        const networkizedCode = this.safeString(transaction, 'token');
+        const networkizedCode = this.safeString(transaction, 'token', '');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = this.safeString(currencyDefined, 'code');
         let movementDirection = this.safeStringLowerN(transaction, [

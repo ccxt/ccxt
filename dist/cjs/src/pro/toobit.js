@@ -1098,17 +1098,9 @@ class toobit extends toobit$1["default"] {
         }
         const cache = this.positions[accountType];
         // handleMessage's fallback dispatches one item at a time
-        let rawPositions = message;
-        if (!Array.isArray(message)) {
-            rawPositions = [message];
-        }
-        const newPositions = [];
-        for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition(rawPosition);
-            newPositions.push(position);
-            cache.append(position);
-        }
+        const position = this.parseWsPosition(message);
+        const newPositions = [position];
+        cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

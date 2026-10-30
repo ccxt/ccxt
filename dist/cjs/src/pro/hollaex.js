@@ -502,7 +502,7 @@ class hollaex extends hollaex$1["default"] {
         try {
             if (error !== undefined) {
                 const feedback = this.id + ' ' + this.json(message);
-                this.throwExactlyMatchedException(this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException(this.exceptions['ws']['exact'], this.safeString(message, 'error'), feedback);
             }
         }
         catch (e) {

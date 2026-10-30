@@ -418,7 +418,7 @@ export default class woo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
-    getCurrencyFromChaincode(networkizedCode: any, currency: any): CurrencyInterface;
+    getCurrencyFromChaincode(networkizedCode: string, currency?: Currency): CurrencyInterface;
     /**
      * @method
      * @name woo#fetchDeposits
