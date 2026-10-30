@@ -4233,7 +4233,7 @@ public partial class htx : Exchange
         string? accountId = this.safeString2(parameters, "accountId", "account-id");
         if ((accountId != null))
         {
-            return ccxt.BaseExchange.ToStringValue(accountId);
+            return accountId;
         }
         object accountType = type;
         if ((type is "spot"))
@@ -4261,15 +4261,15 @@ public partial class htx : Exchange
             {
                 if ((subtype == marketId))
                 {
-                    return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
+                    return this.safeString(account, "id");
                 }
             } else if (isEqual(accountType, typeFromAccount))
             {
-                return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
+                return this.safeString(account, "id");
             }
         }
         IDictionary<string, object> defaultAccount = this.safeDict(accounts, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToStringValue(this.safeString(defaultAccount, "id"));
+        return this.safeString(defaultAccount, "id");
     }
 
     /**

@@ -212,7 +212,7 @@ public partial class xt : ccxt.xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribe(object name, string? access, string? methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribe(object name, string access, string methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool privateAccess = (access == "private");
@@ -282,7 +282,7 @@ public partial class xt : ccxt.xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> unSubscribe(object messageHash, object name, string? access, string? methodName, object topic, IDictionary<string, object> market = null, IList<object> symbols = null, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> unSubscribe(object messageHash, object name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object> symbols = null, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
@@ -885,7 +885,7 @@ public partial class xt : ccxt.xt
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -900,9 +900,9 @@ public partial class xt : ccxt.xt
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "position::contract");
         }

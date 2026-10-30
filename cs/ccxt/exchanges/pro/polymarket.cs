@@ -96,7 +96,7 @@ public partial class polymarket : ccxt.polymarket
         bool willSend = false;
         for (int i = 0; i < getArrayLength(hashesToCheck); i++)
         {
-            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
+            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
             {
                 willSend = true;
             }
@@ -995,7 +995,7 @@ public partial class polymarket : ccxt.polymarket
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1005,9 +1005,9 @@ public partial class polymarket : ccxt.polymarket
             cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
         }
         client.resolve(cache, "positions");
@@ -1063,14 +1063,14 @@ public partial class polymarket : ccxt.polymarket
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash)
     {
         Dictionary<string, object> balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         this.balance = this.extend(this.balance, balance);
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(this.balance);
         }
         client.resolve(this.balance, "balance");
@@ -1240,7 +1240,7 @@ public partial class polymarket : ccxt.polymarket
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
                 object messageHash = messageHashes[i];
-                if ((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2)))
+                if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
                 }

@@ -2399,7 +2399,7 @@ public partial class BaseExchange
         string? cost = this.safeString(orderDict, "cost");
         string? average = ((string)this.omitZero(this.safeString(orderDict, "average")));
         string? price = ((string)this.omitZero(this.safeString(orderDict, "price")));
-        object lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
+        Int64? lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
         string? symbol = this.safeString(orderDict, "symbol");
         string? side = this.safeString(orderDict, "side");
         string? status = this.safeString(orderDict, "status");
@@ -2490,12 +2490,9 @@ public partial class BaseExchange
                     Int64? tradeTimestamp = this.safeInteger(trade, "timestamp");
                     if (parseLastTradeTimeTimestamp && ((tradeTimestamp != null)))
                     {
-                        if ((lastTradeTimeTimestamp == null))
+                        if ((lastTradeTimeTimestamp == null) || (tradeTimestamp != null && (lastTradeTimeTimestamp == null || tradeTimestamp > lastTradeTimeTimestamp)))
                         {
                             lastTradeTimeTimestamp = tradeTimestamp;
-                        } else
-                        {
-                            lastTradeTimeTimestamp = mathMax(lastTradeTimeTimestamp, tradeTimestamp);
                         }
                     }
                     if (shouldParseFees)
@@ -3549,7 +3546,7 @@ public partial class BaseExchange
     }
 
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public virtual IList<object> marketSymbols(object symbols = null, object type = null, object allowEmpty = null, bool? sameTypeOnly = null, bool? sameSubTypeOnly = null)
+    public virtual IList<object> marketSymbols(object symbols = null, object type = null, bool? allowEmpty = null, bool? sameTypeOnly = null, bool? sameSubTypeOnly = null)
     {
         /**
         * @param {string[]|undefined} symbols list of unified symbols
@@ -3565,7 +3562,7 @@ public partial class BaseExchange
         sameSubTypeOnly ??= false;
         if ((symbols == null))
         {
-            if (!isTrue(allowEmpty))
+            if (allowEmpty != true)
             {
                 throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
             }
@@ -3574,7 +3571,7 @@ public partial class BaseExchange
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            if (!isTrue(allowEmpty))
+            if (allowEmpty != true)
             {
                 throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
             }
@@ -5152,7 +5149,7 @@ public partial class BaseExchange
         return this.market(symbol);
     }
 
-    public virtual bool checkRequiredCredentials(object error = null)
+    public virtual bool checkRequiredCredentials(bool? error = null)
     {
         /**
         * @ignore
@@ -5169,7 +5166,7 @@ public partial class BaseExchange
             bool credentialMissing = ((credentialValue == null)) || ((credentialValue == null)) || ((credentialValue is false)) || ((credentialValue is ""));
             if (((((object)((this.requiredCredentials != null && key != null && this.requiredCredentials.ContainsKey(key) ? this.requiredCredentials[key] : null))) is true)) && credentialMissing)
             {
-                if (isTrue(error))
+                if (error == true)
                 {
                     throw new AuthenticationError ((((this.id + " requires \"") + key) + "\" credential")) ;
                 } else
@@ -6645,7 +6642,7 @@ public partial class BaseExchange
         return this.handleTriggerAndParams(parameters);
     }
 
-    public virtual bool isPostOnly(object isMarketOrder, object exchangeSpecificParam, object parameters = null)
+    public virtual bool isPostOnly(bool isMarketOrder, object exchangeSpecificParam, object parameters = null)
     {
         /**
         * @ignore
@@ -6667,7 +6664,7 @@ public partial class BaseExchange
             if (ioc || fok)
             {
                 throw new InvalidOrder (((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (isTrue(isMarketOrder))
+            } else if (isMarketOrder)
             {
                 throw new InvalidOrder ((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -6680,7 +6677,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual List<object> handlePostOnly(object isMarketOrder, object exchangeSpecificPostOnlyOption, object parameters = null)
+    public virtual List<object> handlePostOnly(bool isMarketOrder, bool? exchangeSpecificPostOnlyOption, object parameters = null)
     {
         /**
         * @ignore
@@ -6695,13 +6692,13 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool po = timeInForce == "PO";
-        bool postOnly = (this.safeBool(parameters, "postOnly", false) == true) || po || isTrue(exchangeSpecificPostOnlyOption);
+        bool postOnly = (this.safeBool(parameters, "postOnly", false) == true) || po || exchangeSpecificPostOnlyOption == true;
         if (postOnly)
         {
             if (ioc || fok)
             {
                 throw new InvalidOrder (((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (isTrue(isMarketOrder))
+            } else if (isMarketOrder)
             {
                 throw new InvalidOrder ((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -6861,7 +6858,7 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
         /**
@@ -6882,14 +6879,14 @@ public partial class BaseExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "index" },
             };
-            return await this.FetchOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+            return await this.FetchOHLCV(symbol,timeframeVar, since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((this.id + " fetchIndexOHLCV () is not supported yet")) ;
         }
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
         /**
@@ -6910,7 +6907,7 @@ public partial class BaseExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "premiumIndex" },
             };
-            return await this.FetchOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+            return await this.FetchOHLCV(symbol,timeframeVar, since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((this.id + " fetchPremiumIndexOHLCV () is not supported yet")) ;
@@ -7237,28 +7234,26 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
-        int maxCalls = 10;
-        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
+        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", 10);
         Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
         IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
-        int maxRetries = 3;
-        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
+        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3);
         Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
         IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
-        IList<object> paginationDirectionparamsPaginationDirectionVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward");
-        var paginationDirection = paginationDirectionparamsPaginationDirectionVariable[0];
-        IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable[1]);
-        object paginationTimestamp = null;
-        IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated);
+        IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated);
         bool removeRepeatedOption = (bool)removeRepeatedOptionparamsRemoveRepeatedVariable[0];
         IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
+        (string?, object) paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward");
+        string? paginationDirection = paginationDirectionparamsPaginationDirectionVariable.Item1;
+        IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable.Item2);
+        object paginationTimestamp = null;
         List<object> result = new List<object>() {};
         Int64 errors = 0;
-        Int64? until = this.safeIntegerN(paramsRemoveRepeated, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
-        IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
+        Int64? until = this.safeIntegerN(paramsPaginationDirection, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
+        IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
-        if (((paginationDirection is "forward")))
+        if (((paginationDirection == "forward")))
         {
             if ((since == null))
             {
@@ -7271,7 +7266,7 @@ public partial class BaseExchange
         {
             try
             {
-                if ((paginationDirection is "backward"))
+                if ((paginationDirection == "backward"))
                 {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
@@ -7368,7 +7363,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
 
-    public async virtual Task<object> safeDeterministicCall(object method, string symbol = null, object since = null, object limit = null, string timeframe = null, object parameters = null)
+    public async virtual Task<object> safeDeterministicCall(object method, string symbol = null, Int64? since = null, Int64? limit = null, string timeframe = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxRetries = 3;
@@ -7464,7 +7459,7 @@ public partial class BaseExchange
             {
                 break;
             }
-            tasks.Add(this.safeDeterministicCall(method,((string)symbol), currentSince, maxEntriesPerRequestValue,timeframe, paramsOmitted));
+            tasks.Add(this.safeDeterministicCall(method,((string)symbol),ccxt.BaseExchange.ToInt64Arg(currentSince),ccxt.BaseExchange.ToInt64Arg(maxEntriesPerRequestValue),timeframe, paramsOmitted));
             // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
             currentSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.sum(currentSince, step), 1);
         }
@@ -7543,9 +7538,12 @@ public partial class BaseExchange
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    object cursorString = ((cursorValue == null)) ? "" : cursorValue;
-                    Int64 iteration = ((i + 1L));
-                    string cursorMessage = ((((((("Cursor pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + (cursorString));
+                    string cursorString = "";
+                    if (!(cursorValue == null))
+                    {
+                        cursorString = ((object)cursorValue).ToString();
+                    }
+                    string cursorMessage = ((((((("Cursor pagination call " + ((object)((i + 1L))).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + cursorString);
                     this.log(cursorMessage);
                 }
                 if ((responseLength == 0))
@@ -7565,7 +7563,10 @@ public partial class BaseExchange
                         Int64 index = ((responseLength - j) - 1);
                         IDictionary<string, object> entry = this.safeDict(response, index);
                         IDictionary<string, object> info = this.safeDict(entry, "info");
-                        cursorValue = ((cursorReceived == null)) ? null : this.safeValue(info, cursorReceived);
+                        if ((cursorReceived != null))
+                        {
+                            cursorValue = this.safeValue(info, cursorReceived);
+                        }
                     }
                 }
                 if ((cursorValue == null))

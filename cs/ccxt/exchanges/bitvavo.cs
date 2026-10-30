@@ -1396,32 +1396,19 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? subaccountParam = this.safeString(parameters, "subaccountId");
         string? direction = null;
-        object subaccountId = null;
+        string? subaccountId = null;
         if (((fromAccount == "master")) && ((toAccount == "master")))
         {
             throw new ArgumentsRequired ((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
         } else if ((fromAccount == "master"))
         {
             direction = "masterToSub";
-            if ((subaccountParam == null))
-            {
-                subaccountId = toAccount;
-            } else
-            {
-                subaccountId = subaccountParam;
-            }
+            subaccountId = this.safeString(parameters, "subaccountId", toAccount);
         } else if ((toAccount == "master"))
         {
             direction = "subToMaster";
-            if ((subaccountParam == null))
-            {
-                subaccountId = fromAccount;
-            } else
-            {
-                subaccountId = subaccountParam;
-            }
+            subaccountId = this.safeString(parameters, "subaccountId", fromAccount);
         } else
         {
             throw new ArgumentsRequired ((this.id + " transfer() requires either fromAccount or toAccount to be master")) ;
@@ -1862,7 +1849,7 @@ public partial class bitvavo : Exchange
         {
             request["orderId"] = id;
         }
-        object operatorId = getValue(this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId"), 0);
+        object operatorId = this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId")[0];
         if ((operatorId != null))
         {
             request["operatorId"] = this.parseToInt(operatorId);

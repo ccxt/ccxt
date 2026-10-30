@@ -118,7 +118,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribePublic(object name, string? symbols, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string name, string? symbols, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -142,7 +142,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market((marketIds != null && 0 < marketIds.Count ? marketIds[0] : null));
-            messageHash = add(messageHash, (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
+            messageHash = (messageHash + ((":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)))));
         }
         subscribe["product_ids"] = marketIds;
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -1822,7 +1822,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }));
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

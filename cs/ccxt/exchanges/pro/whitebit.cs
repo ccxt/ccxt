@@ -871,14 +871,14 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subscriptionHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, object type, string subscriptionHash)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
             client.resolve(this.balance, subscriptionHash);
         }

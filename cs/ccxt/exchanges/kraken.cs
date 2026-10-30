@@ -4023,10 +4023,10 @@ public partial class kraken : Exchange
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, object amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, double amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.Transfer(code,ccxt.BaseExchange.ToDoubleArgRequired(amount), "spot", "swap", parameters);
+        return await this.Transfer(code, amount, "spot", "swap", parameters);
     }
 
     /**

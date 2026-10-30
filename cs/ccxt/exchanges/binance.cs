@@ -4649,7 +4649,7 @@ public partial class binance : Exchange
         string? defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
         string? type = this.safeString(parameters, "type", defaultType);
         IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "type"));
-        string? subType = ((string)getValue(this.handleSubTypeAndParams("fetchTime", null, parameters), 0));
+        string? subType = ((string)this.handleSubTypeAndParams("fetchTime", null, parameters)[0]);
         Dictionary<string, object> response = null;
         if (this.isLinear(type, subType))
         {
@@ -16617,7 +16617,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> redeemGiftCode(object giftcardCode, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> redeemGiftCode(string giftcardCode, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -16647,7 +16647,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> verifyGiftCode(string? id, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> verifyGiftCode(string id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {

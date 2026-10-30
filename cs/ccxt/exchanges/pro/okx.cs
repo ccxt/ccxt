@@ -116,7 +116,7 @@ public partial class okx : ccxt.okx
         return ((url + "/private") + sandboxSuffix);
     }
 
-    public async virtual Task<object> subscribeMultiple(object access, object channel, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string access, object channel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -161,7 +161,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<object> subscribe(object access, object messageHash, object channel, object symbol, object parameters = null)
+    public async virtual Task<object> subscribe(string access, object messageHash, object channel, object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -897,7 +897,7 @@ public partial class okx : ccxt.okx
             messageHashes.Add(messageHash);
         }
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
-        string? marketType = ((string)getValue(this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters), 0));
+        string? marketType = ((string)this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters)[0]);
         string channel = "liquidation-orders";
         string? type = marketType;
         if (marketType == "spot")

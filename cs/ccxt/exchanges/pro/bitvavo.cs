@@ -70,7 +70,7 @@ public partial class bitvavo : ccxt.bitvavo
         });
     }
 
-    public async virtual Task<object> watchPublic(object name, object symbol, object parameters = null)
+    public async virtual Task<object> watchPublic(string name, object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -78,7 +78,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object messageHash = add(add(name, "@"), this.safeString(market, "id", ""));
+        string messageHash = ((name + "@") + this.safeString(market, "id", ""));
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -1014,7 +1014,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public async virtual Task<object> unWatchChannels(object topic, IList<object> channels, IList<object> subMessageHashes, IDictionary<string, object> subscriptionArgs, object parameters = null)
+    public async virtual Task<object> unWatchChannels(string topic, IList<object> channels, IList<object> subMessageHashes, IDictionary<string, object> subscriptionArgs, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");

@@ -1403,7 +1403,7 @@ public partial class kraken : ccxt.kraken
         return this.safeString(subscription, "token");
     }
 
-    public async virtual Task<IList<object>> watchPrivate(string? name, string? symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<IList<object>> watchPrivate(string name, string? symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1757,7 +1757,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

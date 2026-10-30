@@ -977,7 +977,7 @@ public partial class blofin : ccxt.blofin
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 
-    public async virtual Task<object> unsubscribeMultipleWrapper(object channelName, object callerMethodName, object symbolsArray, object parameters = null)
+    public async virtual Task<object> unsubscribeMultipleWrapper(string channelName, string callerMethodName, object symbolsArray, object parameters = null)
     {
         // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
         parameters ??= new Dictionary<string, object>();
@@ -988,7 +988,7 @@ public partial class blofin : ccxt.blofin
         IList<object> callerMethodNameOptionparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", callerMethodName);
         string? callerMethodNameOption = (string)callerMethodNameOptionparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameOptionparamsCallerMethodNameVariable[1]);
-        bool isOHLCV = ((channelName is "candle"));
+        bool isOHLCV = ((channelName == "candle"));
         IList<object> symbols = new List<object>() {};
         if (isOHLCV)
         {
@@ -1016,7 +1016,7 @@ public partial class blofin : ccxt.blofin
                 object tfArray = getValue(symbolsArray, i);
                 object tf = getValue(tfArray, 1);
                 string? interval = this.safeString(this.timeframes, tf, tf);
-                channel = add(channel, interval);
+                channel = (channel + (interval));
             }
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },

@@ -1912,7 +1912,7 @@ public partial class toobit : Exchange
             await this.loadMarkets();
         }
         object response = null;
-        string? marketType = ((string)getValue(this.handleMarketTypeAndParams("fetchBalance", null, parameters), 0));
+        string? marketType = ((string)this.handleMarketTypeAndParams("fetchBalance", null, parameters)[0]);
         if (this.inArray(marketType, new List<object>() {"swap", "future"}))
         {
             response = await this.privateGetApiV1FuturesBalance();
@@ -2584,7 +2584,7 @@ public partial class toobit : Exchange
             market = this.market(symbol);
             requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        string? marketType = ((string)getValue(this.handleMarketTypeAndParams("fetchOrders", market, paramsUntil), 0));
+        string? marketType = ((string)this.handleMarketTypeAndParams("fetchOrders", market, paramsUntil)[0]);
         List<object> response = new List<object>() {};
         if (marketType == "spot")
         {
@@ -2629,7 +2629,7 @@ public partial class toobit : Exchange
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        string? marketType = ((string)getValue(this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil), 0));
+        string? marketType = ((string)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)[0]);
         List<object> response = new List<object>() {};
         if (marketType == "spot")
         {

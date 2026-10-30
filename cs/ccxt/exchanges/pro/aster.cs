@@ -1633,7 +1633,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -1641,11 +1641,11 @@ public partial class aster : ccxt.aster
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
+            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -1809,7 +1809,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1824,9 +1824,9 @@ public partial class aster : ccxt.aster
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }

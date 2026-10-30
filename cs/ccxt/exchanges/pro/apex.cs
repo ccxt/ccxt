@@ -902,7 +902,7 @@ public partial class apex : ccxt.apex
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         List<object> fetchFunctions = new List<object> {this.FetchPositions()};
@@ -918,9 +918,9 @@ public partial class apex : ccxt.apex
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }

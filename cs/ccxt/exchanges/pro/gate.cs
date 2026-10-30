@@ -1758,11 +1758,11 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, string type)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -1773,11 +1773,11 @@ public partial class gate : ccxt.gate
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
-            client.resolve(cache, add(type, ":position"));
+            client.resolve(cache, (type + ":position"));
         }
     }
 
@@ -2700,7 +2700,7 @@ public partial class gate : ccxt.gate
         if ((subscription != null))
         {
             var client = this.client(url);
-            if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+            if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
             {
                 string tempSubscriptionHash = requestId.ToString();
                 ((IDictionary<string,object>)client.subscriptions)[tempSubscriptionHash] = messageHash;
@@ -2726,7 +2726,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unSubscribePublicMultiple(object url, object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object payload, object channel, object parameters = null)
+    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object payload, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2846,7 +2846,7 @@ public partial class gate : ccxt.gate
             request["payload"] = payloadValue;
         }
         var client = this.client(url);
-        if (!((client.subscriptions != null && messageHash is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
+        if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
         {
             string tempSubscriptionHash = requestId.ToString();
             // in case of authenticationError we will throw

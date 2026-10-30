@@ -45,14 +45,14 @@ public partial class bitopro : ccxt.bitopro
         });
     }
 
-    public async virtual Task<object> watchPublic(object path, string? messageHash, object marketId)
+    public async virtual Task<object> watchPublic(string path, string? messageHash, object marketId)
     {
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
         }
-        string url = ((((wsUrl + "/") + (path)) + "/") + (marketId));
+        string url = ((((wsUrl + "/") + path) + "/") + (marketId));
         return await this.watch(url, messageHash, null, messageHash);
     }
 

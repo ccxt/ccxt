@@ -1087,7 +1087,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1102,9 +1102,9 @@ public partial class cryptocom : ccxt.cryptocom
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -1440,7 +1440,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unWatchPublicMultiple(object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
+    public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();

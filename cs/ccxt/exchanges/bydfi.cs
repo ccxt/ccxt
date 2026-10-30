@@ -3220,7 +3220,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string type, string? code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchWithdrawals";

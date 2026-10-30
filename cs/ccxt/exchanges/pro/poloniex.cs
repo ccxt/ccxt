@@ -785,7 +785,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         // merge the snapshot into the existing balance object per currency so
@@ -814,9 +814,9 @@ public partial class poloniex : ccxt.poloniex
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
             client.resolve(this.balance, type);
         }

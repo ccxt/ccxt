@@ -813,7 +813,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         string type = "spot";
-        object typeMarketType = getValue(this.handleMarketTypeAndParams("watchBalance", null, parameters, type), 0);
+        object typeMarketType = this.handleMarketTypeAndParams("watchBalance", null, parameters, type)[0];
         string messageHash = ("balance:" + (typeMarketType));
         string? url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
@@ -849,16 +849,16 @@ public partial class hashkey : ccxt.hashkey
         this.balance[(string)type] = new Dictionary<string, object>() {};
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), ("balance:" + (type)));
+            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), ("balance:" + type));
         }
     }
 

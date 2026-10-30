@@ -45,7 +45,7 @@ public partial class bitfinex : ccxt.bitfinex
         });
     }
 
-    public async virtual Task<object> subscribe(object channel, string? symbol, object parameters = null)
+    public async virtual Task<object> subscribe(string channel, string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -56,7 +56,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? marketId = this.safeString(market, "id", "");
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         var client = this.client(url);
-        object messageHash = add(add(channel, ":"), marketId);
+        string messageHash = ((channel + ":") + marketId);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "channel", channel },
@@ -66,13 +66,13 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         bool? checksum = this.safeBool(this.options, "checksum", true);
-        if ((checksum == true) && ((channel is "book")))
+        if ((checksum == true) && ((channel == "book")))
         {
-            object sub = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey((string)messageHash) ? client.subscriptions[(string)messageHash] : null);
+            object sub = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null);
             bool? subChecksum = this.safeBool(sub, "checksum");
             if (((sub != null)) && ((subChecksum != true)))
             {
-                ((IDictionary<string,object>)(client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey((string)messageHash) ? client.subscriptions[(string)messageHash] : null))["checksum"] = true;
+                ((IDictionary<string,object>)(client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null))["checksum"] = true;
                 await client.send(new Dictionary<string, object>() {
                     { "event", "conf" },
                     { "flags", 131072 },
@@ -82,7 +82,7 @@ public partial class bitfinex : ccxt.bitfinex
         return result;
     }
 
-    public async virtual Task<object> unSubscribe(object channel, object topic, object symbol, object parameters = null)
+    public async virtual Task<object> unSubscribe(string channel, string topic, object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -93,9 +93,9 @@ public partial class bitfinex : ccxt.bitfinex
         string? marketId = this.safeString(market, "id", "");
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         var client = this.client(url);
-        object subMessageHash = add(add(channel, ":"), marketId);
-        string messageHash = ((("unsubscribe:" + (channel)) + ":") + marketId);
-        string unSubTopic = (((("unsubscribe" + ":") + (topic)) + ":") + (symbol));
+        string subMessageHash = ((channel + ":") + marketId);
+        string messageHash = ((("unsubscribe:" + channel) + ":") + marketId);
+        string unSubTopic = (((("unsubscribe" + ":") + topic) + ":") + (symbol));
         string? channelId = this.safeString(client.subscriptions, unSubTopic, "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },

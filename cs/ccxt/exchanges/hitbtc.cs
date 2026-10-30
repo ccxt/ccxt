@@ -3085,7 +3085,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> convertCurrencyNetwork(string code, double? amount, object fromNetwork, object toNetwork, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> convertCurrencyNetwork(string code, double? amount, string fromNetwork, string toNetwork, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3097,8 +3097,8 @@ public partial class hitbtc : Exchange
             throw new ExchangeError ((this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string fromNetworkUpper = ((string)fromNetwork).ToUpper();
-        string toNetworkUpper = ((string)toNetwork).ToUpper();
+        string fromNetworkUpper = fromNetwork.ToUpper();
+        string toNetworkUpper = toNetwork.ToUpper();
         string? fromNetworkValue = this.safeString(this.networkAliases, fromNetworkUpper, fromNetworkUpper);
         string? toNetworkValue = this.safeString(this.networkAliases, toNetworkUpper, toNetworkUpper);
         string? fromNetworkValue2 = this.safeString(networks, fromNetworkValue); // unified code to exchange id

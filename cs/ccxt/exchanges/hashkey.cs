@@ -4324,7 +4324,7 @@ public partial class hashkey : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4340,12 +4340,12 @@ public partial class hashkey : Exchange
         IDictionary<string, object> paramsSide = ((IDictionary<string, object>)this.omit(parameters, "side"));
         if ((sideParam == null))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (type)) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
         }
         string side = sideParam.ToUpper();
         if ((side != "LONG") && (side != "SHORT"))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (type)) + "Margin() params[\"side\"] must be either long or short")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + type) + "Margin() params[\"side\"] must be either long or short")) ;
         }
         string? amountString = this.numberToString(amount);
         if ((type == "reduce"))

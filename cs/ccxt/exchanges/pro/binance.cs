@@ -2713,7 +2713,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null, bool? isUnsubscribe = null)
+    public async virtual Task<object> watchMultiTickerHelper(string methodName, object channelName, object symbols = null, object parameters = null, bool? isUnsubscribe = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
@@ -2764,14 +2764,14 @@ public partial class binance : ccxt.binance
             rawMarketType = marketType;
         } else
         {
-            throw new NotSupported ((((this.id + " ") + (methodName)) + "() does not support options markets")) ;
+            throw new NotSupported ((((this.id + " ") + methodName) + "() does not support options markets")) ;
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
         // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         bool isOptionTicker = ((marketType == "option") && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray(marketType, new List<object>() {"swap", "future", "option"}))
         {
-            throw new NotSupported ((((((this.id + " ") + (methodName)) + "() does not support ") + marketType) + " markets yet")) ;
+            throw new NotSupported ((((((this.id + " ") + methodName) + "() does not support ") + marketType) + " markets yet")) ;
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -2840,7 +2840,7 @@ public partial class binance : ccxt.binance
                 string? underlying = this.safeStringLower(paramsSubType, "underlying");
                 if ((underlying == null))
                 {
-                    throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires either symbols or params[\"underlying\"] for eOptions")) ;
+                    throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires either symbols or params[\"underlying\"] for eOptions")) ;
                 }
                 if (isOptionTicker)
                 {
@@ -2848,7 +2848,7 @@ public partial class binance : ccxt.binance
                     string? expirationDate = this.safeString(paramsSubType, "expirationDate");
                     if ((expirationDate == null))
                     {
-                        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
+                        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
                     }
                     subscriptionArgs.Add(((underlying + "@optionTicker@") + expirationDate));
                 } else
@@ -2862,7 +2862,7 @@ public partial class binance : ccxt.binance
             {
                 if ((marketType == "spot"))
                 {
-                    throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires symbols for this channel for spot markets")) ;
+                    throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires symbols for this channel for spot markets")) ;
                 }
                 subscriptionArgs.Add(("!" + channel));
                 messageHashes.Add(((unifiedPrefix + "s:") + channel));
@@ -3669,7 +3669,7 @@ public partial class binance : ccxt.binance
         (bool?, object) isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.Item1;
         IDictionary<string, object> paramsPortfolioMargin = ((IDictionary<string, object>)isPortfolioMarginparamsPortfolioMarginVariable.Item2);
-        string? subType = ((string)getValue(this.handleSubTypeAndParams("keepAliveListenKey", null, paramsPortfolioMargin), 0));
+        string? subType = ((string)this.handleSubTypeAndParams("keepAliveListenKey", null, paramsPortfolioMargin)[0]);
         if (type != "option" && type != "stock")
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
@@ -3832,7 +3832,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, bool? isPortfolioMargin)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type, bool? isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -3844,11 +3844,11 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = client.getFuture(messageHash?.ToString());
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve();
-            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
+            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -4368,7 +4368,7 @@ public partial class binance : ccxt.binance
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(method, market, parameters);
         type = (string)typeparamsMarketTypeVariable[0];
         paramsMarketType = typeparamsMarketTypeVariable[1];
-        string? subType = ((string)getValue(this.handleSubTypeAndParams(method, market, paramsMarketType), 0));
+        string? subType = ((string)this.handleSubTypeAndParams(method, market, paramsMarketType)[0]);
         if (this.isLinear(type, subType))
         {
             type = "linear";
@@ -5929,7 +5929,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type, bool? isPortfolioMargin)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, string type, bool? isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -5940,7 +5940,7 @@ public partial class binance : ccxt.binance
         }
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -5951,11 +5951,11 @@ public partial class binance : ccxt.binance
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = client.getFuture(messageHash?.ToString());
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(cache);
-            client.resolve(cache, add(type, ":position"));
+            client.resolve(cache, (type + ":position"));
         }
     }
 

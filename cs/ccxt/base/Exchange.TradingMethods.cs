@@ -805,7 +805,7 @@ public partial class Exchange
         // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(id, symbol, parameters));
-        return ccxt.BaseExchange.ToStringValue(this.safeString(order, "status"));
+        return this.safeString(order, "status");
     }
 
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)

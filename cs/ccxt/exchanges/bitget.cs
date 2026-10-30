@@ -9052,7 +9052,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? productType = ((string)getValue(this.handleProductTypeAndParams(market, parameters), 0));
+        string? productType = ((string)this.handleProductTypeAndParams(market, parameters)[0]);
         List<object> requestList = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {

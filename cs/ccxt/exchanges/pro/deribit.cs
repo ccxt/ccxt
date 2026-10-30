@@ -1005,7 +1005,7 @@ public partial class deribit : ccxt.deribit
         return new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public async virtual Task<object> watchMultipleWrapper(object channelName, object channelDescriptor, object symbolsArray = null, object parameters = null)
+    public async virtual Task<object> watchMultipleWrapper(string channelName, object channelDescriptor, object symbolsArray = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1015,7 +1015,7 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        bool isOHLCV = ((channelName is "chart.trades"));
+        bool isOHLCV = ((channelName == "chart.trades"));
         object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, null, false);
         if ((symbolsArray == null))
@@ -1041,9 +1041,9 @@ public partial class deribit : ccxt.deribit
                 market = this.market(this.safeString(symbolsArray, i));
                 currentDescriptor = channelDescriptor;
             }
-            object message = add(add(add(add(channelName, "."), this.safeString(market, "id", "")), "."), currentDescriptor);
+            string message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + (currentDescriptor));
             rawSubscriptions.Add(message);
-            messageHashes.Add(add(add(add(add(channelName, "|"), this.safeString(market, "symbol", "")), "|"), currentDescriptor));
+            messageHashes.Add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + (currentDescriptor)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

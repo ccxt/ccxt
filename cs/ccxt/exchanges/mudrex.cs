@@ -1116,7 +1116,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(string state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1130,7 +1130,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> request = this.extend(q, parameters);
         Dictionary<string, object> response = null;
-        if ((state is "closed"))
+        if ((state == "closed"))
         {
             response = await this.privateGetFuturesOrdersHistory(request);
         } else

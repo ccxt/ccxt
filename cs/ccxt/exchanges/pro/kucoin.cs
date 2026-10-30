@@ -116,19 +116,19 @@ public partial class kucoin : ccxt.kucoin
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> negotiateHelper(object privateChannel, object connectId, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> negotiateHelper(object privateChannel, string connectId, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = null;
         try
         {
-            if ((connectId is "private"))
+            if ((connectId == "private"))
             {
                 response = await this.privatePostBulletPrivate(parameters);
-            } else if ((connectId is "public"))
+            } else if ((connectId == "public"))
             {
                 response = await this.publicPostBulletPublic(parameters);
-            } else if ((connectId is "privateFutures"))
+            } else if ((connectId == "privateFutures"))
             {
                 response = await this.futuresPrivatePostBulletPrivate(parameters);
             } else
@@ -157,7 +157,7 @@ public partial class kucoin : ccxt.kucoin
         {
             var future = this.safeValue((this.options.ContainsKey("urls") ? this.options["urls"] : null), connectId);
             ((Future)future).reject(e);
-            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove((string)connectId);
+            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove(connectId);
         }
         return null;
     }
@@ -548,7 +548,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> subscribePublicMultipleUta(IList<object> messageHashes, object channel, IList<object> symbols, IDictionary<string, object>? parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublicMultipleUta(IList<object> messageHashes, string channel, IList<object> symbols, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -576,8 +576,8 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
         var client = this.client(url);
-        object messageHashWithSymbols = add(add(channel, ":"), String.Join(",", symbols.ToArray()));
-        if (!((client.subscriptions != null && messageHashWithSymbols is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+        string messageHashWithSymbols = ((channel + ":") + String.Join(",", symbols.ToArray()));
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHashWithSymbols))))
         {
             ((IDictionary<string,object>)client.subscriptions)[requestId] = messageHashWithSymbols;
         }
@@ -2081,7 +2081,7 @@ public partial class kucoin : ccxt.kucoin
             object symbol = symbols[i];
             Int64? storedLimit = this.safeInteger(limits, symbol);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
-            if (!((this.orderbooks != null && symbol is string inOpKey3 && this.orderbooks.ContainsKey(inOpKey3))) || ((storedLimit != limit)))
+            if (!((this.orderbooks != null && symbol is string inOpKey2 && this.orderbooks.ContainsKey(inOpKey2))) || ((storedLimit != limit)))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             } else
@@ -2142,7 +2142,7 @@ public partial class kucoin : ccxt.kucoin
                 for (int i = 0; i < symbols.Count; i++)
                 {
                     object symbol = symbols[i];
-                    if ((this.fundingRates != null && symbol is string inOpKey4 && this.fundingRates.ContainsKey(inOpKey4)))
+                    if ((this.fundingRates != null && symbol is string inOpKey3 && this.fundingRates.ContainsKey(inOpKey3)))
                     {
                         this.fundingRates.Remove((string)symbol);
                     }
@@ -2993,7 +2993,7 @@ public partial class kucoin : ccxt.kucoin
                 { "privateChannel", true },
             };
             Dictionary<string, object> message = this.extend(request, paramsOmitted);
-            if (!((client.subscriptions != null && subscriptionHash is string inOpKey5 && client.subscriptions.ContainsKey(inOpKey5))))
+            if (!((client.subscriptions != null && subscriptionHash is string inOpKey4 && client.subscriptions.ContainsKey(inOpKey4))))
             {
                 ((IDictionary<string,object>)client.subscriptions)[requestId] = subscriptionHash;
             }
@@ -3003,7 +3003,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void setBalanceCache(WebSocketClient client, object type)
     {
-        if (((client.subscriptions != null && type is string inOpKey6 && client.subscriptions.ContainsKey(inOpKey6))) && ((this.balance != null && type is string inOpKey7 && this.balance.ContainsKey(inOpKey7))))
+        if (((client.subscriptions != null && type is string inOpKey5 && client.subscriptions.ContainsKey(inOpKey5))) && ((this.balance != null && type is string inOpKey6 && this.balance.ContainsKey(inOpKey6))))
         {
             return;
         }
@@ -3023,9 +3023,9 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type)
     {
-        bool uta = ((type is "unified"));
+        bool uta = ((type == "unified"));
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
             { "uta", uta },
@@ -3033,11 +3033,11 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
+            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -3336,7 +3336,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object uta)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, object uta)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();
@@ -3351,9 +3351,9 @@ public partial class kucoin : ccxt.kucoin
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -3373,18 +3373,18 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadPositionSnapshot(WebSocketClient client, object messageHash, object symbol)
+    public async virtual Task loadPositionSnapshot(WebSocketClient client, string messageHash, string symbol)
     {
-        Dictionary<string, object> position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(((string)symbol)));
+        Dictionary<string, object> position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(symbol));
         this.positions = new ArrayCacheBySymbolById();
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         cache.append(position);
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
-            client.resolve(position, ("position:" + (symbol)));
+            client.resolve(position, ("position:" + symbol));
         }
     }
 

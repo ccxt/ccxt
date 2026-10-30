@@ -2511,7 +2511,7 @@ public partial class delta : Exchange
         return await this.FetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersWithMethod(object method, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersWithMethod(string method, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2531,10 +2531,10 @@ public partial class delta : Exchange
             request["page_size"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((method is "privateGetOrders"))
+        if ((method == "privateGetOrders"))
         {
             response = await this.privateGetOrders(this.extend(request, parameters));
-        } else if ((method is "privateGetOrdersHistory"))
+        } else if ((method == "privateGetOrdersHistory"))
         {
             response = await this.privateGetOrdersHistory(this.extend(request, parameters));
         }
@@ -3088,7 +3088,7 @@ public partial class delta : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

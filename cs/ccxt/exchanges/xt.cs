@@ -3816,7 +3816,7 @@ public partial class xt : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3963,7 +3963,7 @@ public partial class xt : Exchange
                 marginOrSpotRequest = "LEVER";
             }
             request["bizType"] = marginOrSpotRequest;
-            if (!(status == "open"))
+            if ((status != "open"))
             {
                 if ((since != null))
                 {
@@ -5331,7 +5331,7 @@ public partial class xt : Exchange
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? addOrReduce, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string addOrReduce, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? positionSide = this.safeString(parameters, "positionSide");

@@ -2767,7 +2767,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2777,7 +2777,7 @@ public partial class polymarket : Exchange
         string? decimals = this.safeString(collateral, "decimals", "6");
         string? precision = this.parsePrecision(decimals);
         string amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, this.parseNumber(precision), TICK_SIZE);
-        if ((type is "reduce"))
+        if ((type == "reduce"))
         {
             amountString = ("-" + amountString);
         }

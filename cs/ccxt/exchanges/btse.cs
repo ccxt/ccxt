@@ -3139,7 +3139,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public async virtual Task<object> requestWalletHistoryRows(object methodName, object historyTypes, string code = null, object since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<object> requestWalletHistoryRows(string methodName, object historyTypes, string code = null, object since = null, Int64? limit = null, object parameters = null)
     {
         // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
@@ -3164,7 +3164,7 @@ public partial class btse : Exchange
             request["asset"] = this.safeString(currency, "id");
         } else if (walletType == "SPOT")
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a code argument for the spot wallet history")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a code argument for the spot wallet history")) ;
         }
         if ((since != null))
         {

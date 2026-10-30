@@ -3590,7 +3590,7 @@ public partial class bybit : Exchange
         if ((symbols != null))
         {
             parsedSymbols = new List<object>() {};
-            string? defaultType = ((string)getValue(this.handleMarketTypeAndParams("fetchTickers", null, parameters), 0)); // don't omit here
+            string? defaultType = ((string)this.handleMarketTypeAndParams("fetchTickers", null, parameters)[0]); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             string? currentType = null;
             for (int i = 0; i < (symbols?.Count ?? 0); i++)

@@ -357,7 +357,7 @@ public partial class btcmarkets : Exchange
         });
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsWithMethod(object method, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsWithMethod(string method, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -379,10 +379,10 @@ public partial class btcmarkets : Exchange
             currency = this.currency(code);
         }
         List<object> response = null;
-        if ((method is "privateGetTransfers"))
+        if ((method == "privateGetTransfers"))
         {
             response = await this.privateGetTransfers(this.extend(request, parameters));
-        } else if ((method is "privateGetDeposits"))
+        } else if ((method == "privateGetDeposits"))
         {
             response = await this.privateGetDeposits(this.extend(request, parameters));
         } else

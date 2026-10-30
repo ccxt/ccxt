@@ -1057,7 +1057,7 @@ public partial class bydfi : ccxt.bydfi
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", "swap" },
@@ -1093,7 +1093,7 @@ public partial class bydfi : ccxt.bydfi
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
-        Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+        Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
         (future as Future).resolve();
         client.resolve(this.balance, "balance");
     }

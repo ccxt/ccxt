@@ -2509,7 +2509,7 @@ public partial class bitstamp : Exchange
         }
         object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"client_order_id", "clientOrderId"}) : parameters;
         Dictionary<string, object> response = await this.privatePostOrderStatus(this.extend(request, paramsOmitted));
-        return ccxt.BaseExchange.ToStringValue(this.parseOrderStatus(this.safeString(response, "status")));
+        return this.parseOrderStatus(this.safeString(response, "status"));
     }
 
     /**

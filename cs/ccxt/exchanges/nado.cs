@@ -1543,12 +1543,12 @@ public partial class nado : Exchange
         return ccxt.BaseExchange.ToTransactionList(await this.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals",code, since, limit, parameters));
     }
 
-    public async virtual Task<object> queryTransactionsByEventType(object eventType, object transactionType, object methodName, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<object> queryTransactionsByEventType(string eventType, string transactionType, string methodName, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.walletAddress == null))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires walletAddress")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires walletAddress")) ;
         }
         await this.loadMarkets();
         IDictionary<string, object> currency = null;

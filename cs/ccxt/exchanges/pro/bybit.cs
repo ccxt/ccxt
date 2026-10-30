@@ -225,7 +225,7 @@ public partial class bybit : ccxt.bybit
                 url = (accessibilityUrls != null && accessibilityUrls.ContainsKey("spot") ? accessibilityUrls["spot"] : null);
             } else if ((type == "swap") || (type == "future"))
             {
-                string? subType = ((string)getValue(this.handleSubTypeAndParams(methodValue, market, parameters, "linear"), 0));
+                string? subType = ((string)this.handleSubTypeAndParams(methodValue, market, parameters, "linear")[0]);
                 url = (accessibilityUrls != null && subType != null && accessibilityUrls.ContainsKey(subType) ? accessibilityUrls[subType] : null);
             } else
             {
@@ -1772,7 +1772,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         List<object> fetchFunctions = new List<object> {this.FetchPositions(null, new Dictionary<string, object>() {
@@ -1795,9 +1795,9 @@ public partial class bybit : ccxt.bybit
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "position");
         }
@@ -2675,7 +2675,7 @@ public partial class bybit : ccxt.bybit
             for (int i = 0; i < topicsLength; i++)
             {
                 object topic = (topics != null && i < topics.Count ? topics[i] : null);
-                if (!((topic is string inOpKey1 && subscribedTopics.ContainsKey(inOpKey1))))
+                if (!((topic is string inOpKey0 && subscribedTopics.ContainsKey(inOpKey0))))
                 {
                     newTopics.Add(topic);
                 }
@@ -2701,7 +2701,7 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, IDictionary<string, object>? subExtension = null)
+    public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, IDictionary<string, object>? subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtension ??= new Dictionary<string, object>();

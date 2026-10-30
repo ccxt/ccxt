@@ -124,7 +124,7 @@ public partial class backpack : ccxt.backpack
      * @param {boolean} [unwatch] whether to unsubscribe
      * @returns {object} unified tickers
      */
-    public async virtual Task<object> subscribeWsTickers(object methodName, object symbols = null, object parameters = null, bool? bidAsk = null, bool? unwatch = null)
+    public async virtual Task<object> subscribeWsTickers(string methodName, object symbols = null, object parameters = null, bool? bidAsk = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         bidAsk ??= false;
@@ -169,11 +169,11 @@ public partial class backpack : ccxt.backpack
             {
                 if ((channel != "stockPrice") && (channel != "stockIndicativeQuote"))
                 {
-                    throw new BadRequest ((((this.id + " ") + (methodName)) + "() channel must be stockPrice or stockIndicativeQuote")) ;
+                    throw new BadRequest ((((this.id + " ") + methodName) + "() channel must be stockPrice or stockIndicativeQuote")) ;
                 }
                 if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
                 {
-                    throw new BadSymbol ((((this.id + " ") + (methodName)) + "() stock quote channels require a stock market")) ;
+                    throw new BadSymbol ((((this.id + " ") + methodName) + "() stock quote channels require a stock market")) ;
                 }
                 string? baseId = this.safeString(market, "baseId", "");
                 string ticker = baseId.Replace(".US", (string)"");
@@ -184,7 +184,7 @@ public partial class backpack : ccxt.backpack
                 {
                     if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
                     {
-                        throw new NotSupported ((((this.id + " ") + (methodName)) + "() RFQ quote streams require a stock market")) ;
+                        throw new NotSupported ((((this.id + " ") + methodName) + "() RFQ quote streams require a stock market")) ;
                     }
                     string? baseId = this.safeString(market, "baseId", "");
                     string ticker = baseId.Replace(".US", (string)"");
@@ -201,7 +201,7 @@ public partial class backpack : ccxt.backpack
                 topic = (("externalTicker." + externalBaseId) + "_USDC");
             } else if (((this.safeString(market, "executionModel") == "rfq")) && ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true)))
             {
-                throw new NotSupported ((((this.id + " ") + (methodName)) + "() RFQ venue tickers are only mapped for stock data")) ;
+                throw new NotSupported ((((this.id + " ") + methodName) + "() RFQ venue tickers are only mapped for stock data")) ;
             }
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ((((kind + ":") + symbol) + "@") + topic);
@@ -241,7 +241,7 @@ public partial class backpack : ccxt.backpack
         int symbolsResolvedLength = (symbolsResolved?.Count ?? 0);
         if ((symbolsResolvedLength == 0))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires at least one matching market")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
         }
         object payload = this.omit(query, new List<object>() {"stock", "source", "interval", "channel"});
         if (unwatch == true)

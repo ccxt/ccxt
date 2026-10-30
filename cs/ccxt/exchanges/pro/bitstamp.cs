@@ -117,7 +117,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async virtual Task<object> unWatchChannel(object channel, object subHash, object topic, object symbols, object parameters = null)
+    public async virtual Task<object> unWatchChannel(object channel, object subHash, string topic, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));

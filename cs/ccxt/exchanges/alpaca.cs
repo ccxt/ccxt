@@ -2100,7 +2100,7 @@ public partial class alpaca : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string type, string? code, object since, object limit, object parameters)
     {
         if ((this.markets == null))
         {

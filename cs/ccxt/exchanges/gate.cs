@@ -6698,7 +6698,7 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchOrder", market, parameters), 0));
+        string? type = ((string)this.handleMarketTypeAndParams("fetchOrder", market, parameters)[0]);
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = requestrequestParamsVariable[0];
@@ -6809,7 +6809,7 @@ public partial class gate : Exchange
             market = this.market(symbol);
         }
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
-        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate), 0));
+        string? type = ((string)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)[0]);
         (bool?, object) useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
         bool? useHistorical = useHistoricalparamsHistoricalVariable.Item1;
         IDictionary<string, object> paramsHistorical = ((IDictionary<string, object>)useHistoricalparamsHistoricalVariable.Item2);
@@ -6903,7 +6903,7 @@ public partial class gate : Exchange
         }
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         bool? trigger = this.safeBool2(parameters, "trigger", "stop");
-        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters), 0));
+        string? type = ((string)this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters)[0]);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, parameters);
         var request = requestrequestParamsVariable[0];

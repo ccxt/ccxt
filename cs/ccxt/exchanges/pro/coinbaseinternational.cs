@@ -1488,7 +1488,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             {
                 // drop the stale book and reject only this channels future
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
-                if ((client.subscriptions != null && channel is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
+                if ((client.subscriptions != null && channel is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(channel);
                 }
@@ -1510,9 +1510,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public async virtual Task resubscribeOrderBook(object channel)
+    public async virtual Task resubscribeOrderBook(string channel)
     {
-        List<object> channelParts = ((string)channel).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> channelParts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int channelPartsLength = channelParts.Count;
         bool isPrivate = (this.safeString(channelParts, (channelPartsLength - 1)) == "raw");
         object url = this.getWsUrl(isPrivate);
@@ -1530,9 +1530,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         };
         var client = this.client(url);
         await client.send(request);
-        if ((client.subscriptions != null && channel is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(channel)))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)channel);
+            ((IDictionary<string,object>)client.subscriptions).Remove(channel);
         }
         await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, isPrivate, new Dictionary<string, object>() {});
     }

@@ -1884,11 +1884,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         return null;
     }
 
-    public async virtual Task expirePendingUnsubscribe(WebSocketClient client, object subHash, object unsubHash)
+    public async virtual Task expirePendingUnsubscribe(WebSocketClient client, string subHash, string unsubHash)
     {
-        if ((client.subscriptions != null && unsubHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(unsubHash)))
         {
-            var error = new RequestTimeout((((this.id + " unsubscribe ") + (subHash)) + " was not acknowledged"));
+            var error = new RequestTimeout((((this.id + " unsubscribe ") + subHash) + " was not acknowledged"));
             client.reject(error, unsubHash);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }

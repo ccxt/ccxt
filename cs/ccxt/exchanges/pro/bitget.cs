@@ -917,7 +917,7 @@ public partial class bitget : ccxt.bitget
         return await this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", paramsOmitted);
     }
 
-    public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, object methodName, object parameters = null)
+    public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

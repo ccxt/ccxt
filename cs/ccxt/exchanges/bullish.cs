@@ -1506,7 +1506,7 @@ public partial class bullish : Exchange
         }, marketResolved);
     }
 
-    public async override Task<object> safeDeterministicCall(object method, string symbol = null, object since = null, object limit = null, string timeframe = null, object parameters = null)
+    public async override Task<object> safeDeterministicCall(object method, string symbol = null, Int64? since = null, Int64? limit = null, string timeframe = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (Int64?, object) maxRetriesparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(parameters, method, "maxRetries", 3);
@@ -1526,13 +1526,13 @@ public partial class bullish : Exchange
             {
                 if ((method is "fetchOHLCV"))
                 {
-                    return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted));
+                    return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe, since, limit, paramsOmitted));
                 } else if ((method is "fetchFundingRateHistory"))
                 {
-                    return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted));
+                    return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol, since, limit, paramsOmitted));
                 } else
                 {
-                    return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted));
+                    return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(symbol, since, limit, paramsOmitted));
                 }
             } catch(Exception e)
             {

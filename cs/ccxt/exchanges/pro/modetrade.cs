@@ -1207,7 +1207,7 @@ public partial class modetrade : ccxt.modetrade
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1222,7 +1222,7 @@ public partial class modetrade : ccxt.modetrade
             }
         }
         // don't remove the future from the .futures cache
-        Future future = client.getFuture(messageHash?.ToString());
+        Future future = client.getFuture(messageHash);
         if ((future != null))
         {
             (future as Future).resolve(cache);

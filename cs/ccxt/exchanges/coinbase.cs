@@ -1069,7 +1069,7 @@ public partial class coinbase : Exchange
         return this.parseTrades(buysData, null, since, limit);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsWithMethod(object method, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsWithMethod(string method, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var requestparamsValueVariable = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
@@ -1080,10 +1080,10 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = null;
-        if ((method is "v2PrivateGetAccountsAccountIdTransactions"))
+        if ((method == "v2PrivateGetAccountsAccountIdTransactions"))
         {
             response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, paramsValue));
-        } else if ((method is "v2PrivateGetAccountsAccountIdWithdrawals"))
+        } else if ((method == "v2PrivateGetAccountsAccountIdWithdrawals"))
         {
             response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, paramsValue));
         } else
@@ -5063,7 +5063,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.accountId] the id of the account to deposit into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<Dictionary<string, object>> deposit(string code, double amount, string? id, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> deposit(string code, double amount, string id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5261,7 +5261,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public async virtual Task<Dictionary<string, object>> FetchDepositMethodId(string? id, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchDepositMethodId(string id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
