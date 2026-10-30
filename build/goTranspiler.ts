@@ -4797,7 +4797,8 @@ const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMa
     'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
     'CreateOrderRequest', // only the 8 callers wrapping it: every one sits on a venue whose builder is a map
     // the ws parsers are `any` on the printer and retyped to map[string]any by the family below
-    'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder' ];
+    'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder',
+    'MergeBalanceAccount' ];
 
 // `go/v4/exchange_struct_returns.go` converters: every one returns the map it builds from a
 // parsed struct, so a `MapTyped(<converter>(..))` around one is the identity.
@@ -4874,6 +4875,8 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
 // tiers return a map literal or `this.DeepExtend(..)`, never nil. The base files bypass formatGoSource, so the
 // two base writes call this directly.
 export function retypeGoDescribe (content: string): string {
+    // mergeBalanceAccount hands its first argument back (a balance map, TS `Dict`), so its return is a map
+    content = retypeGoProvenFamily (content, [ 'MergeBalanceAccount' ], 'map[string]any', 'MapTyped', []);
     return retypeGoProvenFamily (content, [ 'Describe' ], 'map[string]any', 'MapTyped', [ 'Extend', 'DeepExtend' ]);
 }
 
