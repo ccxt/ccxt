@@ -1750,7 +1750,7 @@ const MATH_LOCAL_ENTRIES = {
     // primitive double, so the helper's Double branch runs and Math.abs returns a double
     // box. The helper is declared Object -> the declaration carries the checkcast.
     'abs':   { type: 'Double', cast: '(Double)', prefixes: [ 'Helpers.mathAbs(' ], args: [ 1 ] },
-    'pow':   { type: 'Double', prefixes: [ 'Helpers.mathPow(' ], args: [ 2 ] },
+    'pow':   { type: 'Double', prefixes: [ 'Helpers.mathPow(', 'Math.pow(', '(Math.pow(' ], args: [ 2 ] },
     'floor': { type: 'Double', prefixes: [ '(Math.floor(' ], args: [ 1 ] },
     'ceil':  { type: 'Double', prefixes: [ 'Math.ceil(' ], args: [ 1 ] },
     'round': { type: 'Long', prefixes: [ 'Math.round(' ], args: [ 1 ] },
