@@ -981,7 +981,7 @@ public class BaseExchange {
 
     private static int[] crc32Table = null;
 
-    public Object crc32(Object str, Object signed) {
+    public Object crc32(String str, boolean signed) {
         if (crc32Table == null) {
             String tableStr = "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 0EDB8832 79DCB8A4 E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 "
                 + "1DB71064 6AB020F2 F3B97148 84BE41DE 1ADAD47D 6DDDE4EB F4D4B551 83D385C7 136C9856 646BA8C0 FD62F97A 8A65C9EC 14015C4F 63066CD9 FA0F3D63 8D080DF5 "
@@ -1005,14 +1005,13 @@ public class BaseExchange {
                 crc32Table[i] = (int) Long.parseLong(parts[i], 16);
             }
         }
-        String s = (String) str;
+        String s = str;
         int crc = -1;
         for (int i = 0; i < s.length(); i++) {
             crc = (crc >>> 8) ^ crc32Table[(crc ^ s.charAt(i)) & 0xFF];
         }
         long unsigned = ((long)(crc ^ (-1))) & 0xFFFFFFFFL;
-        boolean isSigned = Helpers.isTrue(signed);
-        if (isSigned && unsigned >= 0x80000000L) {
+        if (signed && unsigned >= 0x80000000L) {
             return unsigned - 0x100000000L;
         }
         return unsigned;
