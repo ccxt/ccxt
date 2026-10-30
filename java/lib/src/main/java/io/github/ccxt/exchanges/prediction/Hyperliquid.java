@@ -1853,7 +1853,7 @@ public class Hyperliquid extends HyperliquidApi
                     }
                 }
             }
-            Object dedupedValues = new ArrayList<Object>(deduped.values());
+            List<Object> dedupedValues = new ArrayList<Object>(deduped.values());
             Object parsed = this.parsePredictionOrders(dedupedValues, (Object) null, since, (Long) null, new HashMap<String, Object>() {{}});
             String outcomeHandle = null;
             if (!java.util.Objects.equals(outcome, null))

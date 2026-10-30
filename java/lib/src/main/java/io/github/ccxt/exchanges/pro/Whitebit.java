@@ -1349,7 +1349,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // not every method stores its subscription
         // as an object so we can't do indeById here
         Map<String, Object> subs = client.subscriptions;
-        Object values = new ArrayList<Object>(subs.values());
+        List<Object> values = new ArrayList<Object>(subs.values());
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             Object subscription = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));

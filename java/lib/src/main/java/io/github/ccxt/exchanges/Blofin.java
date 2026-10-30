@@ -2657,7 +2657,7 @@ public class Blofin extends BlofinApi
             // one row per currency + chain pair, group them per currency
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> dataByCurrencyId = this.groupBy(data, "currency");
-            Object currencies = new ArrayList<Object>(dataByCurrencyId.values());
+            List<Object> currencies = new ArrayList<Object>(dataByCurrencyId.values());
             return this.parseCurrencies(currencies);
         });
 

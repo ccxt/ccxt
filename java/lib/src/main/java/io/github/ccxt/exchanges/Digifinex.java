@@ -731,7 +731,7 @@ public class Digifinex extends DigifinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> groupedById = this.groupBy(data, "currency");
-            Object values = new ArrayList<Object>(groupedById.values());
+            List<Object> values = new ArrayList<Object>(groupedById.values());
             return this.parseCurrencies(values);
         });
 

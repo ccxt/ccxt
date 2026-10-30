@@ -3943,7 +3943,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             mapLiteral7.put("lastAuthenticatedTime", time);
             Helpers.addElementToObject(this.options, type, this.extend(options, mapLiteral7));
             // whether or not to schedule another listenKey keepAlive request
-            Object clients = Helpers.objectValues(this.clients);
+            List<Object> clients = Helpers.objectValues(this.clients);
             String refreshRateKey = "listenKeyRefreshRate";
             if (Boolean.TRUE.equals(isStock))
             {

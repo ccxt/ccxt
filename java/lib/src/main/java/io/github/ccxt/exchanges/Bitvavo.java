@@ -1479,32 +1479,19 @@ public class Bitvavo extends BitvavoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            String subaccountParam = this.safeString(parameters, "subaccountId");
             String direction = null;
-            Object subaccountId = null;
+            String subaccountId = null;
             if ((java.util.Objects.equals(fromAccount, "master")) && (java.util.Objects.equals(toAccount, "master")))
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
             } else if (java.util.Objects.equals(fromAccount, "master"))
             {
                 direction = "masterToSub";
-                if (java.util.Objects.equals(subaccountParam, null))
-                {
-                    subaccountId = toAccount;
-                } else
-                {
-                    subaccountId = subaccountParam;
-                }
+                subaccountId = this.safeString(parameters, "subaccountId", toAccount);
             } else if (java.util.Objects.equals(toAccount, "master"))
             {
                 direction = "subToMaster";
-                if (java.util.Objects.equals(subaccountParam, null))
-                {
-                    subaccountId = fromAccount;
-                } else
-                {
-                    subaccountId = subaccountParam;
-                }
+                subaccountId = this.safeString(parameters, "subaccountId", fromAccount);
             } else
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires either fromAccount or toAccount to be master")) ;

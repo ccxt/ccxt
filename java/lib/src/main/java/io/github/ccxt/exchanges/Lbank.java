@@ -598,7 +598,7 @@ public class Lbank extends LbankApi
             //
             List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> grouped = this.groupBy(currenciesData, "assetCode");
-            Object values = new ArrayList<Object>(grouped.values());
+            List<Object> values = new ArrayList<Object>(grouped.values());
             return this.parseCurrencies(values);
         });
 

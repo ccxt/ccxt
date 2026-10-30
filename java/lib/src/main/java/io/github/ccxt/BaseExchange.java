@@ -5350,12 +5350,12 @@ public Map<String, Object> describe()
             {
                 if ((this.urls.get("api") instanceof String))
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", this.urls.get("api"));
+                    this.urls.put("apiBackup", this.urls.get("api"));
                     this.urls.put("api", BaseExchange.this.urls.get("test"));
                 } else
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", this.clone(this.urls.get("api")));
-                    Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("test")));
+                    this.urls.put("apiBackup", this.clone(this.urls.get("api")));
+                    this.urls.put("api", this.clone(this.urls.get("test")));
                 }
             } else
             {
@@ -5367,10 +5367,10 @@ public Map<String, Object> describe()
         {
             if ((this.urls.get("api") instanceof String))
             {
-                Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackup")));
+                this.urls.put("api", ((Object)this.urls.get("apiBackup")));
             } else
             {
-                Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("apiBackup")));
+                this.urls.put("api", this.clone(this.urls.get("apiBackup")));
             }
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
@@ -5394,10 +5394,10 @@ public Map<String, Object> describe()
         if (Boolean.TRUE.equals(enable))
         {
             this.urls.put("apiBackupDemoTrading", BaseExchange.this.urls.get("api"));
-            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
+            this.urls.put("api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackupDemoTrading")));
+            this.urls.put("api", ((Object)this.urls.get("apiBackupDemoTrading")));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
@@ -6815,7 +6815,7 @@ public Map<String, Object> describe()
         String cost = this.safeString(orderDict, "cost");
         Object average = this.omitZero(this.safeString(orderDict, "average"));
         Object price = this.omitZero(this.safeString(orderDict, "price"));
-        Object lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
+        Long lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
         String symbol = this.safeString(orderDict, "symbol");
         String side = this.safeString(orderDict, "side");
         String status = this.safeString(orderDict, "status");
@@ -6906,12 +6906,9 @@ public Map<String, Object> describe()
                     Long tradeTimestamp = this.safeInteger(trade, "timestamp");
                     if (Boolean.TRUE.equals(parseLastTradeTimeTimestamp) && (!java.util.Objects.equals(tradeTimestamp, null)))
                     {
-                        if (java.util.Objects.equals(lastTradeTimeTimestamp, null))
+                        if (java.util.Objects.equals(lastTradeTimeTimestamp, null) || (tradeTimestamp != null && (lastTradeTimeTimestamp == null || tradeTimestamp > lastTradeTimeTimestamp)))
                         {
                             lastTradeTimeTimestamp = tradeTimestamp;
-                        } else
-                        {
-                            lastTradeTimeTimestamp = (lastTradeTimeTimestamp == null || tradeTimestamp == null ? null : (((Number) lastTradeTimeTimestamp).doubleValue() > ((Number) tradeTimestamp).doubleValue() ? (Object) (lastTradeTimeTimestamp) : (Object) (tradeTimestamp)));
                         }
                     }
                     if (Boolean.TRUE.equals(shouldParseFees))
@@ -7556,10 +7553,10 @@ public Map<String, Object> describe()
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object feeValues = new ArrayList<Object>(reduced.values());
+        List<Object> feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
+            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
             result = (List<Object>) this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -11627,25 +11624,23 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            Long maxCalls = 10L;
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", 10L);
             Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            Long maxRetries = 3L;
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", 3L);
             Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
             Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> paginationDirectionparamsPaginationDirectionVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward");
-            var paginationDirection = ((List<Object>) paginationDirectionparamsPaginationDirectionVariable).get(0);
-            Map<String, Object> paramsPaginationDirection = (Map<String, Object>) ((List<Object>) paginationDirectionparamsPaginationDirectionVariable).get(1);
-            Object paginationTimestamp = null;
-            List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
+            List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
             var removeRepeatedOption = ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(0);
             Map<String, Object> paramsRemoveRepeated = (Map<String, Object>) ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(1);
+            Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
+            String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
+            Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
+            Object paginationTimestamp = null;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             long errors = 0;
-            Long until = this.safeIntegerN(paramsRemoveRepeated, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
+            Long until = this.safeIntegerN(paramsPaginationDirection, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             if ((java.util.Objects.equals(paginationDirection, "forward")))
@@ -11945,9 +11940,12 @@ public Map<String, Object> describe()
                     Integer responseLength = ((List<?>)response).size();
                     if (this.verbose)
                     {
-                        Object cursorString = (((java.util.Objects.equals(cursorValue, null)))) ? "" : cursorValue;
-                        Object iteration = ((((long) i) + 1L));
-                        String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
+                        String cursorString = "";
+                        if (!java.util.Objects.equals(cursorValue, null))
+                        {
+                            cursorString = String.valueOf(cursorValue);
+                        }
+                        String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
                         this.log(cursorMessage);
                     }
                     if (java.util.Objects.equals(responseLength, 0))
@@ -11967,7 +11965,10 @@ public Map<String, Object> describe()
                             Long index = ((((long) responseLength) - ((long) j)) - 1L);
                             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
                             Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
-                            cursorValue = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
+                            if (!java.util.Objects.equals(cursorReceived, null))
+                            {
+                                cursorValue = this.safeValue(info, cursorReceived);
+                            }
                         }
                     }
                     if (java.util.Objects.equals(cursorValue, null))
@@ -12676,10 +12677,10 @@ public Map<String, Object> describe()
             } else if (java.util.Objects.equals(topic, "positions") && (!java.util.Objects.equals(this.positions, null)))
             {
                 this.positions = null;
-                Object clients = Helpers.objectValues(this.clients);
+                List<Object> clients = Helpers.objectValues(this.clients);
                 for (var i = 0; i < ((List<?>)clients).size(); i++)
                 {
-                    Client client = (Client)Helpers.GetValue(clients, i);
+                    Client client = (Client)(clients == null || i < 0 || i >= clients.size() ? null : clients.get(i));
                     Map<String, io.github.ccxt.ws.Future> futures = client.futures;
                     if (futures.containsKey("fetchPositionsSnapshot"))
                     {

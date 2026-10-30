@@ -530,7 +530,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object subscriptions = new ArrayList<Object>(client.subscriptions.values());
+        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.values());
         Integer subscriptionsLength = ((List<?>)subscriptions).size();
         if (java.util.Objects.equals(subscriptionsLength, 0))
         {

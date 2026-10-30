@@ -3373,7 +3373,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     type = symbol;
                 }
             }
-            Object accountName = this.parseKrakenAccountName(type);
+            Object accountName = this.parseKrakenAccountName((String) (type));
             Map<String, Object> accounts = (Map<String, Object>) this.safeDict(response, "accounts", (Object) null);
             Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, accountName, (Object) null);
             if (java.util.Objects.equals(account, null))

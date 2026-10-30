@@ -3464,7 +3464,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         Object cache = ((io.github.ccxt.ws.ArrayCache)this.positions).hashmap;
         Map<String, Object> symbolCache = (Map<String, Object>) this.safeDict(cache, symbol, new HashMap<String, Object>() {{}});
-        Object values = new ArrayList<Object>(symbolCache.values());
+        List<Object> values = new ArrayList<Object>(symbolCache.values());
         return this.safeDict(values, 0, (Object) null);
     }
 

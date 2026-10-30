@@ -2310,10 +2310,10 @@ public class Bybit extends BybitApi
         if (Boolean.TRUE.equals(enable))
         {
             this.urls.put("apiBackupDemoTrading", this.urls.get("api"));
-            Helpers.addElementToObject(this.urls, "api", this.urls.get("demotrading"));
+            this.urls.put("api", this.urls.get("demotrading"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
+            this.urls.put("api", this.urls.get("apiBackupDemoTrading"));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }

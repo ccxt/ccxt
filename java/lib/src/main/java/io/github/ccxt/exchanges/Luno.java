@@ -542,7 +542,7 @@ public class Luno extends LunoApi
             //
             List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> grouped = this.groupBy(currenciesData, "native_currency");
-            Object values = new ArrayList<Object>(grouped.values());
+            List<Object> values = new ArrayList<Object>(grouped.values());
             return this.parseCurrencies(values);
         });
 
