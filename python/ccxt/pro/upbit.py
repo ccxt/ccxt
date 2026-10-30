@@ -675,6 +675,6 @@ class upbit(ccxt.async_support.upbit):
             'candle.1s': self.handle_ohlcv,
         }
         methodName = self.safe_string(message, 'type')
-        method = None if (methodName is None) else self.safe_value(methods, methodName)
+        method = self.safe_value(methods, methodName)
         if method is not None:
             method(client, message)

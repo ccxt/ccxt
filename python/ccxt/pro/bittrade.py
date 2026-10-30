@@ -605,7 +605,7 @@ class bittrade(ccxt.async_support.bittrade):
             return False
         return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

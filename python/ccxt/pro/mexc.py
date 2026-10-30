@@ -2052,16 +2052,16 @@ class mexc(ccxt.async_support.mexc):
             self.handle_order(client, message)
         return True
 
-    def handle_message(self, client: Client, message: object):
-        if isinstance(message, str):
-            if message == 'Invalid listen key':
-                error = AuthenticationError(self.id + ' invalid listen key')
-                client.reject(error)
-                return
-        if self.is_binary_message(message):
-            decodedMessage = self.decode_proto_msg(message)
-            self.handle_protobuf_message(client, decodedMessage)
-            return
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'Invalid listen key':
+            error = AuthenticationError(self.id + ' invalid listen key')
+            client.reject(error)
+
+    def handle_binary_message(self, client: Client, message: object):
+        decodedMessage = self.decode_proto_msg(message)
+        self.handle_protobuf_message(client, decodedMessage)
+
+    def handle_message(self, client: Client, message: dict):
         if 'msg' in message:
             self.handle_subscription_status(client, message)
             return

@@ -2934,7 +2934,7 @@ class lbank(Exchange, ImplicitAPI):
             }, signedQuery)))
             encoded = self.encode(auth)
             uppercaseHash = self.hash(encoded, 'md5').upper()
-            sign = None
+            sign = ''
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None

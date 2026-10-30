@@ -937,7 +937,7 @@ class apex(ccxt.async_support.apex):
                 client.reject(error, messageHash)
             return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             return
         ret_msg = self.safe_string(message, 'ret_msg')

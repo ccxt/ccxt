@@ -1323,7 +1323,7 @@ class poloniex(ccxt.async_support.poloniex):
             'cancelAllOrders': self.handle_order_request,
             'auth': self.handle_authenticate,
         }
-        method = None if (type is None) else self.safe_value(methods, type)
+        method = self.safe_value(methods, type)
         if type == 'auth':
             self.handle_authenticate(client, message)
         elif type is None:

@@ -732,7 +732,7 @@ class bullish(ccxt.async_support.bullish):
         except Exception as e:
             client.reject(e)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         dataType = self.safe_string(message, 'dataType')
         result = self.safe_dict(message, 'result')
         if result is not None:

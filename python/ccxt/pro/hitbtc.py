@@ -1328,7 +1328,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'spot_balance': self.handle_balance,
                 'futures_balance': self.handle_balance,
             }
-            method = None if (channel is None) else self.safe_value(methods, channel)
+            method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
         else:

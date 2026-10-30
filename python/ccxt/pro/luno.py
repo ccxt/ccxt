@@ -409,9 +409,7 @@ class luno(ccxt.async_support.luno):
             return False
         return True
 
-    def handle_message(self, client: Client, message: object):
-        if message == '':
-            return
+    def handle_message(self, client: Client, message: dict):
         subscriptions = list(client.subscriptions.values())
         subscriptionsLength = len(subscriptions)
         if subscriptionsLength == 0:

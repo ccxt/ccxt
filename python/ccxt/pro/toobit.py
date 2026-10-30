@@ -80,7 +80,29 @@ class toobit(ccxt.async_support.toobit):
             'ping': self.milliseconds(),
         }
 
-    def handle_message(self, client: Client, message: object):
+    def handle_list_message(self, client: Client, message: list):
+        # private streams
+        methods = {
+            'trade': self.handle_trades,
+            'kline': self.handle_ohlcv,
+            'realtimes': self.handle_tickers,
+            'depth': self.handle_order_book_partial_snapshot,
+            'diffDepth': self.handle_order_book,
+            'outboundAccountInfo': self.handle_balance,
+            'outboundContractAccountInfo': self.handle_balance,
+            'executionReport': self.handle_order,
+            'contractExecutionReport': self.handle_order,
+            'ticketInfo': self.handle_my_trade,
+            'outboundContractPositionInfo': self.handle_positions,
+        }
+        for i in range(0, len(message)):
+            item = message[i]
+            event = self.safe_string(item, 'e')
+            method = self.safe_value(methods, event)
+            if method is not None:
+                method(client, item)
+
+    def handle_message(self, client: Client, message: dict):
         #
         # public
         #
@@ -142,17 +164,9 @@ class toobit(ccxt.async_support.toobit):
             'ticketInfo': self.handle_my_trade,
             'outboundContractPositionInfo': self.handle_positions,
         }
-        method = None if (topic is None) else self.safe_value(methods, topic)
+        method = self.safe_value(methods, topic)
         if method is not None:
             method(client, message)
-        else:
-            # check private streams
-            for i in range(0, len(message)):
-                item = message[i]
-                event = self.safe_string(item, 'e')
-                method2 = None if (event is None) else self.safe_value(methods, event)
-                if method2 is not None:
-                    method2(client, item)
 
     def handle_incoming_pong(self, client: Client, pongTimestamp: Int):
         client.lastPong = pongTimestamp

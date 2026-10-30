@@ -1698,12 +1698,11 @@ class bingx(ccxt.async_support.bingx):
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')
 
-    def handle_message(self, client: Client, message: object):
-        # plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if isinstance(message, str):
-            if message == 'Ping':
-                self.spawn(self.pong, client, message)
-            return
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'Ping':
+            self.spawn(self.pong, client, message)
+
+    def handle_message(self, client: Client, message: dict):
         if not self.handle_error_message(client, message):
             return
         # public subscriptions

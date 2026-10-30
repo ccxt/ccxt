@@ -1049,7 +1049,7 @@ class polymarket(ccxt.async_support.polymarket):
             for i in range(0, len(messageHashes)):
                 self.clean_unsubscription(client, subMessageHashes[i], messageHashes[i])
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         ch = self.safe_string(message, 'ch')
         if ch is None:
             self.handle_ack(client, message)

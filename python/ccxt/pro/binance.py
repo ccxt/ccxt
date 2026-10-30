@@ -5340,7 +5340,7 @@ class binance(ccxt.async_support.binance):
             error = ExchangeError(self.id + ' user data event stream terminated ' + self.json(message))
             client.reject(error, accountType)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         # eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
         #   { "stream": "<streamName>", "data": { "e": "...", ... } }
         streamWrapper = self.safe_string(message, 'stream')

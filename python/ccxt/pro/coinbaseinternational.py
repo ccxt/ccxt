@@ -1240,7 +1240,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 'params': {},
             })
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             return
         method = self.safe_string(message, 'method')

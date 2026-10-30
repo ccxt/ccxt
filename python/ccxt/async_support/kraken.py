@@ -1338,7 +1338,7 @@ class kraken(Exchange, ImplicitAPI):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    async def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params: dict = {}) -> list[LedgerEntry]:
+    async def fetch_ledger_entries_by_ids(self, ids: list[str], code: Str = None, params: dict = {}) -> list[LedgerEntry]:
         # https://www.kraken.com/features/api#query-ledgers
         if self.markets is None:
             await self.load_markets()
@@ -2397,7 +2397,7 @@ class kraken(Exchange, ImplicitAPI):
             result = self.array_concat(result, tradesFilteredBySymbol)
         return result
 
-    async def fetch_orders_by_ids(self, ids: object, symbol: Str = None, params: dict = {}) -> list[Order]:
+    async def fetch_orders_by_ids(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         fetch orders by the list of order id
 

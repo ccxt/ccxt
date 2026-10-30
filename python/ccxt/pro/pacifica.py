@@ -1345,7 +1345,7 @@ class pacifica(ccxt.async_support.pacifica):
             elif type == 'account_trades':
                 self.handle_my_trades_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # {
         #     "channel":"subscribe",

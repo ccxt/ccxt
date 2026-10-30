@@ -838,24 +838,27 @@ class hashkey(ccxt.async_support.hashkey):
             client.reject(error)
             del self.clients[url]
 
-    def handle_message(self, client: Client, message: object):
-        messageInner = message
-        if isinstance(message, list):
-            messageInner = self.safe_dict(message, 0, {})
-        topic = self.safe_string_2(messageInner, 'topic', 'e')
+    def handle_list_message(self, client: Client, message: list):
+        self.handle_stream_message(client, self.safe_dict(message, 0, {}))
+
+    def handle_message(self, client: Client, message: dict):
+        self.handle_stream_message(client, message)
+
+    def handle_stream_message(self, client: Client, message: dict):
+        topic = self.safe_string_2(message, 'topic', 'e')
         if topic == 'kline':
-            self.handle_ohlcv(client, messageInner)
+            self.handle_ohlcv(client, message)
         elif topic == 'realtimes':
-            self.handle_ticker(client, messageInner)
+            self.handle_ticker(client, message)
         elif topic == 'trade':
-            self.handle_trades(client, messageInner)
+            self.handle_trades(client, message)
         elif topic == 'depth':
-            self.handle_order_book(client, messageInner)
+            self.handle_order_book(client, message)
         elif (topic == 'contractExecutionReport') or (topic == 'executionReport'):
-            self.handle_order(client, messageInner)
+            self.handle_order(client, message)
         elif topic == 'ticketInfo':
-            self.handle_my_trade(client, messageInner)
+            self.handle_my_trade(client, message)
         elif topic == 'outboundContractPositionInfo':
-            self.handle_position(client, messageInner)
+            self.handle_position(client, message)
         elif (topic == 'outboundAccountInfo') or (topic == 'outboundContractAccountInfo'):
-            self.handle_balance(client, messageInner)
+            self.handle_balance(client, message)

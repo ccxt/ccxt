@@ -2752,30 +2752,35 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING'
 
-    def handle_message(self, client: object, message: object):
+    def handle_text_message(self, client: Client, message: str):
         # Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         # client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         # base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if isinstance(message, str):
-            client.lastPong = self.milliseconds()
-            return
-        events = message if isinstance(message, list) else [message]
-        for i in range(0, len(events)):
-            event = events[i]
+        client.lastPong = self.milliseconds()
+
+    def handle_message(self, client: Client, message: dict):
+        self.handle_message_event(client, message)
+
+    def handle_list_message(self, client: Client, message: list):
+        for i in range(0, len(message)):
+            event = message[i]
             if (event is None) or (event is None) or (not isinstance(event, dict)):
                 continue
-            eventType = self.safe_string(event, 'event_type')
-            if eventType == 'book':
-                self.handle_order_book_snapshot(client, event)
-            elif eventType == 'price_change':
-                self.handle_order_book_delta(client, event)
-            elif eventType == 'last_trade_price':
-                self.handle_trade(client, event)
-            elif eventType == 'order':
-                self.handle_order(client, event)
-            elif eventType == 'trade':
-                self.handle_my_trade(client, event)
-            # tick_size_change events are silently ignored for now
+            self.handle_message_event(client, event)
+
+    def handle_message_event(self, client: Client, event: dict):
+        eventType = self.safe_string(event, 'event_type')
+        if eventType == 'book':
+            self.handle_order_book_snapshot(client, event)
+        elif eventType == 'price_change':
+            self.handle_order_book_delta(client, event)
+        elif eventType == 'last_trade_price':
+            self.handle_trade(client, event)
+        elif eventType == 'order':
+            self.handle_order(client, event)
+        elif eventType == 'trade':
+            self.handle_my_trade(client, event)
+        # tick_size_change events are silently ignored for now
 
     def handle_order_book_snapshot(self, client: Client, event: dict):
         tokenId = self.safe_string(event, 'asset_id')

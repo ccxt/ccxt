@@ -2007,18 +2007,18 @@ class sxbet(PredictionExchange, ImplicitAPI):
         subscribeMsg = {'subscribe': {'channel': channel}, 'id': requestId}
         return await self.watch(url, messageHash, subscribeMsg, channel)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        lines = message.split('\n')
+        linesLength = len(lines)
+        for i in range(0, linesLength):
+            line = lines[i]
+            if len(line) > 0:
+                parsed = json.loads(line)
+                self.handle_centrifugo_frame(client, parsed)
+
+    def handle_message(self, client: Client, message: dict):
         # Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         # base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if isinstance(message, str):
-            lines = message.split('\n')
-            linesLength = len(lines)
-            for i in range(0, linesLength):
-                line = lines[i]
-                if len(line) > 0:
-                    parsed = json.loads(line)
-                    self.handle_centrifugo_frame(client, parsed)
-            return
         self.handle_centrifugo_frame(client, message)
 
     def handle_centrifugo_frame(self, client: Client, msg: dict):

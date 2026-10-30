@@ -2586,7 +2586,11 @@ class bitget(ccxt.async_support.bitget):
                 client.reject(e)
             return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            self.handle_pong(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         #
         #   {
         #       "action": "snapshot",
@@ -2667,10 +2671,6 @@ class bitget(ccxt.async_support.bitget):
         #         }
         #     }
         #
-        if isinstance(message, str):
-            if message == 'pong':
-                self.handle_pong(client, message)
-            return
         if self.handle_error_message(client, message) is True:
             return
         content = self.safe_string(message, 'message')

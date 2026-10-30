@@ -560,6 +560,6 @@ class ndax(ccxt.async_support.ndax):
             'TickerDataUpdateEvent': self.handle_ohlcv,
         }
         event = self.safe_string(message, 'n')
-        method = None if (event is None) else self.safe_value(methods, event)
+        method = self.safe_value(methods, event)
         if method is not None:
             method(client, message)

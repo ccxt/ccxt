@@ -674,11 +674,11 @@ class alpaca(ccxt.async_support.alpaca):
         if method is not None:
             method(client, message)
 
-    def handle_message(self, client: Client, message: object):
-        if isinstance(message, list):
-            self.handle_crypto_message(client, message)
-            return
+    def handle_message(self, client: Client, message: dict):
         self.handle_trading_message(client, message)
+
+    def handle_list_message(self, client: Client, message: list):
+        self.handle_crypto_message(client, message)
 
     def handle_authenticate(self, client: Client, message: dict):
         #

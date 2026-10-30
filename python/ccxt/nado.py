@@ -2993,8 +2993,8 @@ class nado(Exchange, ImplicitAPI):
         if privateKey is None:
             raise ArgumentsRequired(self.id + ' signHash() requires privateKey')
         signature = self.ecdsa(hash, privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
         return '0x' + self.pad_hex(r, 64) + self.pad_hex(s, 64) + v
 

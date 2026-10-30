@@ -976,16 +976,14 @@ class bithumb(ccxt.async_support.bithumb):
             'trades': None,
         }, market)
 
-    def handle_message(self, client: Client, message: object):
-        if isinstance(message, str):
-            content = message.lower()
-            if content == 'pong':
-                self.handle_pong(client, message)
-                return
-            if content == 'ping':
-                self.handle_ping(client, message)
-                return
-            return
+    def handle_text_message(self, client: Client, message: str):
+        content = message.lower()
+        if content == 'pong':
+            self.handle_pong(client, message)
+        elif content == 'ping':
+            self.handle_ping(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         status = self.safe_string(message, 'status')
         if status == 'UP':
             self.handle_pong(client, message)

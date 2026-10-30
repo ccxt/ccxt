@@ -1173,8 +1173,39 @@ class bitfinex(ccxt.async_support.bitfinex):
             'trades': None,
         }, marketResolved)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_list_message(self, client: Client, message: list):
         channelId = self.safe_string(message, 0)
+        heartbeat = self.safe_string(message, 1)
+        if heartbeat == 'hb':
+            return  # skip heartbeats within subscription channels for now
+        subscription = self.safe_dict(client.subscriptions, channelId, {})
+        channel = self.safe_string(subscription, 'channel')
+        name = self.safe_string(message, 1)
+        publicMethods = {
+            'book': self.handle_order_book,
+            'cs': self.handle_checksum,
+            'candles': self.handle_ohlcv,
+            'ticker': self.handle_ticker,
+            'trades': self.handle_trades,
+        }
+        privateMethods = {
+            'os': self.handle_orders,
+            'ou': self.handle_orders,
+            'on': self.handle_orders,
+            'oc': self.handle_orders,
+            'wu': self.handle_balance,
+            'ws': self.handle_balance,
+            'tu': self.handle_my_trade,
+        }
+        method = None
+        if channelId == '0':
+            method = self.safe_value(privateMethods, name)
+        else:
+            method = self.safe_value_2(publicMethods, name, channel)
+        if method is not None:
+            method(client, message, subscription)
+
+    def handle_message(self, client: Client, message: dict):
         #
         #     [
         #         1231,
@@ -1200,45 +1231,14 @@ class bitfinex(ccxt.async_support.bitfinex):
         #        }
         #    }
         #
-        if isinstance(message, list):
-            heartbeat = self.safe_string(message, 1)
-            if heartbeat == 'hb':
-                return  # skip heartbeats within subscription channels for now
-            subscription = self.safe_dict(client.subscriptions, channelId, {})
-            channel = self.safe_string(subscription, 'channel')
-            name = self.safe_string(message, 1)
-            publicMethods = {
-                'book': self.handle_order_book,
-                'cs': self.handle_checksum,
-                'candles': self.handle_ohlcv,
-                'ticker': self.handle_ticker,
-                'trades': self.handle_trades,
+        event = self.safe_string(message, 'event')
+        if event is not None:
+            methods = {
+                'info': self.handle_system_status,
+                'subscribed': self.handle_subscription_status,
+                'unsubscribed': self.handle_unsubscription_status,
+                'auth': self.handle_authentication_message,
             }
-            privateMethods = {
-                'os': self.handle_orders,
-                'ou': self.handle_orders,
-                'on': self.handle_orders,
-                'oc': self.handle_orders,
-                'wu': self.handle_balance,
-                'ws': self.handle_balance,
-                'tu': self.handle_my_trade,
-            }
-            method = None
-            if channelId == '0':
-                method = self.safe_value(privateMethods, name)
-            else:
-                method = self.safe_value_2(publicMethods, name, channel)
+            method = self.safe_value(methods, event)
             if method is not None:
-                method(client, message, subscription)
-        else:
-            event = self.safe_string(message, 'event')
-            if event is not None:
-                methods = {
-                    'info': self.handle_system_status,
-                    'subscribed': self.handle_subscription_status,
-                    'unsubscribed': self.handle_unsubscription_status,
-                    'auth': self.handle_authentication_message,
-                }
-                method = self.safe_value(methods, event)
-                if method is not None:
-                    method(client, message)
+                method(client, message)

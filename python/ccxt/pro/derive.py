@@ -1034,7 +1034,7 @@ class derive(ccxt.async_support.derive):
                         event = 'mytrades'
                 else:
                     event = self.safe_string(parsedChannel, 0)
-        method = None if (event is None) else self.safe_value(methods, event)
+        method = self.safe_value(methods, event)
         if method is not None:
             method(client, message)
             return

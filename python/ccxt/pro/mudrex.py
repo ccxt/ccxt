@@ -148,7 +148,7 @@ class mudrex(ccxt.async_support.mudrex):
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.safe_string(message, 'method') == 'PONG':
             return
         error = self.safe_dict(message, 'error')

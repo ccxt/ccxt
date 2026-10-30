@@ -809,7 +809,10 @@ class gemini(ccxt.async_support.gemini):
         #
         raise ExchangeError(self.json(message))
 
-    def handle_message(self, client: Client, message: object):
+    def handle_list_message(self, client: Client, message: list):
+        self.handle_order(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         #
         #  public
         #     {
@@ -845,10 +848,6 @@ class gemini(ccxt.async_support.gemini):
         #         }
         #     ]
         #
-        isArray = isinstance(message, list)
-        if isArray:
-            self.handle_order(client, message)
-            return
         reason = self.safe_string(message, 'reason')
         if reason == 'error':
             self.handle_error(client, message)

@@ -192,7 +192,7 @@ class coincheck(ccxt.async_support.coincheck):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message: list[object]):
+    def handle_list_message(self, client: Client, message: list):
         data = self.safe_list(message, 0)
         if not isinstance(data, list):
             self.handle_order_book(client, message)

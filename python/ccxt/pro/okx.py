@@ -2424,7 +2424,11 @@ class okx(ccxt.async_support.okx):
             return False
         return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            self.handle_pong(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is not True:
             return
         #
@@ -2466,10 +2470,6 @@ class okx(ccxt.async_support.okx):
         #
         #
         #
-        if isinstance(message, str):
-            if message == 'pong':
-                self.handle_pong(client, message)
-            return
         # const table = this.safeString (message, 'table');
         # if (table === undefined) {
         event = self.safe_string_2(message, 'event', 'op')

@@ -1160,31 +1160,31 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return self.safe_string(modes, marginMode, marginMode)
 
-    def handle_message(self, client: Client, message: object):
-        if isinstance(message, str):
-            if message == 'pong':
-                self.handle_pong(client, message)
-        else:
-            m = self.safe_string(message, 'm')
-            if (m is not None) and (m != 'Success'):
-                self.handle_error_message(client, message)
-            action = self.safe_string_2(message, 'a', 'action')
-            if action == 'RecvTopicAction':
-                self.handle_subscription_status(client, message)
-            elif action == 'PO':
-                self.handle_ticker(client, message)
-            elif action == 'PMT':
-                self.handle_trades(client, message)
-            elif action == 'PK':
-                self.handle_ohlcv(client, message)
-            elif action == 'PMO':
-                self.handle_order_book(client, message)
-            elif action == 'PushTrade':
-                self.handle_my_trade(client, message)
-            elif action == 'PushOrder':
-                self.handle_order(client, message)
-            elif action == 'PushPosition':
-                self.handle_position(client, message)
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            self.handle_pong(client, message)
+
+    def handle_message(self, client: Client, message: dict):
+        m = self.safe_string(message, 'm')
+        if (m is not None) and (m != 'Success'):
+            self.handle_error_message(client, message)
+        action = self.safe_string_2(message, 'a', 'action')
+        if action == 'RecvTopicAction':
+            self.handle_subscription_status(client, message)
+        elif action == 'PO':
+            self.handle_ticker(client, message)
+        elif action == 'PMT':
+            self.handle_trades(client, message)
+        elif action == 'PK':
+            self.handle_ohlcv(client, message)
+        elif action == 'PMO':
+            self.handle_order_book(client, message)
+        elif action == 'PushTrade':
+            self.handle_my_trade(client, message)
+        elif action == 'PushOrder':
+            self.handle_order(client, message)
+        elif action == 'PushPosition':
+            self.handle_position(client, message)
 
     def handle_subscription_status(self, client: Client, message: dict):
         #

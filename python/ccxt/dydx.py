@@ -1769,7 +1769,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchLedger', code, since, limit, params)
+        response = self.fetch_transactions_helper('fetchLedger', code, since, limit, self.omit(params, 'methodName'))
         return self.parse_ledger(response, currency, since, limit)
 
     def estimate_tx_fee(self, message: dict, memo: Str, account: dict) -> dict:
@@ -1965,7 +1965,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchTransfers', code, since, limit, params)
+        response = self.fetch_transactions_helper('fetchTransfers', code, since, limit, self.omit(params, 'methodName'))
         transferIn = self.filter_by(response, 'type', 'TRANSFER_IN')
         transferOut = self.filter_by(response, 'type', 'TRANSFER_OUT')
         rows = self.array_concat(transferIn, transferOut)
@@ -2103,7 +2103,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchWithdrawals', code, since, limit, params)
+        response = self.fetch_transactions_helper('fetchWithdrawals', code, since, limit, self.omit(params, 'methodName'))
         rows = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
@@ -2126,7 +2126,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchDeposits', code, since, limit, params)
+        response = self.fetch_transactions_helper('fetchDeposits', code, since, limit, self.omit(params, 'methodName'))
         rows = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
@@ -2149,15 +2149,14 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchDepositsWithdrawals', code, since, limit, params)
+        response = self.fetch_transactions_helper('fetchDepositsWithdrawals', code, since, limit, self.omit(params, 'methodName'))
         withdrawals = self.filter_by(response, 'type', 'WITHDRAWAL')
         deposits = self.filter_by(response, 'type', 'DEPOSIT')
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_transactions_helper(self, methodName: str, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
-        paramsOmitted = self.omit(params, 'methodName')
-        userAddress, paramsPublicAddress = self.handle_public_address(methodName, paramsOmitted)
+        userAddress, paramsPublicAddress = self.handle_public_address(methodName, params)
         subAccountNumber, paramsSubAccountNumber = self.handle_option_string_and_params(paramsPublicAddress, methodName, 'subAccountNumber', '0')
         request = {
             'address': userAddress,

@@ -1389,13 +1389,17 @@ class paradex(ccxt.async_support.paradex):
                 client.reject(e)
         return False
 
-    def handle_message(self, client: Client, message: object):
-        parsedMessage = message
-        if self.is_binary_message(message):
-            parsedMessage = self.parse_sbe_message(message)
-            if parsedMessage is None:
-                return
-        if self.handle_error_message(client, parsedMessage) is not True:
+    def handle_binary_message(self, client: Client, message: object):
+        parsedMessage = self.parse_sbe_message(message)
+        if parsedMessage is None:
+            return
+        self.handle_stream_message(client, parsedMessage)
+
+    def handle_message(self, client: Client, message: dict):
+        self.handle_stream_message(client, message)
+
+    def handle_stream_message(self, client: Client, message: dict):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         # auth response
@@ -1425,11 +1429,11 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
-        result = self.safe_dict(parsedMessage, 'result')
+        result = self.safe_dict(message, 'result')
         if result is not None:
-            self.handle_request_reply(client, parsedMessage)
+            self.handle_request_reply(client, message)
             return
-        data = self.safe_dict(parsedMessage, 'params')
+        data = self.safe_dict(message, 'params')
         if data is not None:
             channel = self.safe_string(data, 'channel')
             parts = channel.split('.')
@@ -1446,4 +1450,4 @@ class paradex(ccxt.async_support.paradex):
             }
             method = self.safe_value(methods, name)
             if method is not None:
-                method(client, parsedMessage)
+                method(client, message)

@@ -1556,7 +1556,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         subscriptionKey = channel + ':' + self.safe_string(subscribeMsg, 'marketId', '')
         return await self.watch(url, messageHash, subscribeMsg, subscriptionKey)
 
-    def handle_message(self, client: object, message: object):
+    def handle_message(self, client: Client, message: dict):
         # every data payload carries its channel name in msgType; frames without one -
         # subscribe acks and heartbeat echoes - carry nothing to route
         msgType = self.safe_string(message, 'msgType')

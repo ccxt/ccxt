@@ -837,7 +837,11 @@ class blofin(ccxt.async_support.blofin):
             'args': args,
         }
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            client.lastPong = self.milliseconds()
+
+    def handle_message(self, client: Client, message: dict):
         #
         # message examples
         #
@@ -865,27 +869,23 @@ class blofin(ccxt.async_support.blofin):
             'funding-rate': self.handle_funding_rate,
         }
         method = None
-        if message == 'pong':
-            client.lastPong = self.milliseconds()
+        event = self.safe_string(message, 'event')
+        if event == 'subscribe':
             return
-        else:
-            event = self.safe_string(message, 'event')
-            if event == 'subscribe':
-                return
-            elif event == 'unsubscribe':
-                self.handle_unsubscription(client, message)
-                return
-            elif event == 'login':
-                future = self.safe_value(client.futures, 'authenticate_hash')
-                future.resolve(True)
-                return
-            elif event == 'error':
-                raise ExchangeError(self.id + ' error: ' + self.json(message))
-            arg = self.safe_dict(message, 'arg')
-            channelName = self.safe_string(arg, 'channel')
-            method = self.safe_value(methods, channelName)
-            if (method is None) and (channelName.find('candle') >= 0):
-                method = methods['candle']
+        elif event == 'unsubscribe':
+            self.handle_unsubscription(client, message)
+            return
+        elif event == 'login':
+            future = self.safe_value(client.futures, 'authenticate_hash')
+            future.resolve(True)
+            return
+        elif event == 'error':
+            raise ExchangeError(self.id + ' error: ' + self.json(message))
+        arg = self.safe_dict(message, 'arg')
+        channelName = self.safe_string(arg, 'channel')
+        method = self.safe_value(methods, channelName)
+        if (method is None) and (channelName.find('candle') >= 0):
+            method = methods['candle']
         if method is not None:
             method(client, message)
 
