@@ -2103,20 +2103,17 @@ impl BitfinexCore {
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         let mut info: Value = (match currency.get("info") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         let mut transferId: Option<String> = self.safe_string_opt(info.clone(), Value::Int(0), &[]);
-        let mut underlying: Value = self.safe_list(info, Value::Int(4), &[Value::from(vec![])]);
-        let mut currencyId: Value = Value::Null;
+        let mut underlying: Value = self.safe_list(info.clone(), Value::Int(4), &[Value::from(vec![])]);
         if (type_var.as_str() == Some("derivatives")) {
-            currencyId = self.safe_string(underlying.clone(), Value::Int(0), &[transferId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut isDerivativeCode: bool = currencyId.as_str().unwrap_or("").ends_with("F0");
-            if !isDerivativeCode {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str("F0".into())).into());
+            let mut derivativesId: Value = self.safe_string(underlying.clone(), Value::Int(0), &[self.safe_string(info, Value::Int(0), &[Value::Str("".into())])]);
+            if !(derivativesId.as_str().unwrap_or("").ends_with("F0")) {
+                return Value::Str(format!("{}{}", derivativesId, Value::Str("F0".into())).into()).as_str().map(str::to_owned);
             }
+            return derivativesId.as_str().map(str::to_owned);
         }  else if (type_var.as_str() != Some("margin")) {
-            currencyId = self.safe_string(underlying, Value::Int(1), &[transferId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        }  else {
-            currencyId = transferId.map(Value::from).unwrap_or(Value::Null);
+            return self.safe_string(underlying, Value::Int(1), &[transferId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         }
-        return currencyId.as_str().map(str::to_owned);
+        return transferId.as_deref().map(str::to_owned);
 }
 
 /*

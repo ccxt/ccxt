@@ -428,8 +428,8 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchPartialBalance`.
-    fn fetch_partial_balance<'a>(&'a mut self, part: Value, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Balances>> + Send + 'a {
-        let __args: Vec<Value> = vec![part, params.into().into_value()];
+    fn fetch_partial_balance<'a>(&'a mut self, part: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Balances>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(part), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_partial_balance", __args).await?;
             Ok(Balances::from_value(v))

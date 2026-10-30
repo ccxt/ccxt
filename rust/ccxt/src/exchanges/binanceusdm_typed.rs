@@ -486,8 +486,8 @@ impl Binanceusdm {
     }
 
     /// Typed wrapper around `fetchPartialBalance`.
-    pub async fn fetch_partial_balance(&mut self, part: Value, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_partial_balance(part, &[params.into().into_value()])).await?;
+    pub async fn fetch_partial_balance(&mut self, part: &str, params: impl Into<Params>) -> crate::Result<Balances> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_partial_balance(Value::from(part), &[params.into().into_value()])).await?;
         Ok(Balances::from_value(v))
     }
 

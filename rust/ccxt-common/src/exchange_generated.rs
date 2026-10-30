@@ -6045,7 +6045,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut balance: Value = self.fetch_balance(&[params]).await;
-        return get_value(&balance, &part);
+        return (if let (Some(__m), Some(__k)) = (balance.as_map(), part.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
 
     Value::Null
 } }
