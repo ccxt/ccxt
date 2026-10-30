@@ -4210,6 +4210,11 @@ export class RustTranspilerBuilder {
                         continue;
                     }
                 }
+                // `x.is_truthy()` on a bool local is the bool itself.
+                if (after.startsWith('.is_truthy()')) {
+                    boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + '.is_truthy()'.length, text: name });
+                    continue;
+                }
                 // `x.as_bool() == Some(true)` — the printed `x === true`. With
                 // `x` a bool the comparison is `x` (`!=`/`Some(false)`: `!x`).
                 // Bare (condition position) or the `Value::Bool(…)` box that
