@@ -2025,6 +2025,8 @@ const VENUE_RETURN_KINDS = {
     // hx11 w9 M490: nado `parseWsTimestamp (…): Int` returns parseToInt/safeInteger only
     'parseWsTimestamp': [ 'Long' ],
     'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hx11 w9: `: Dict` returning this.omit (map, keys), which binds the Map overload
+    'handleRouteAndParams': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2117,6 +2119,10 @@ function venueReturnCast (printer, node, method, javaType) {
     if ((javaType === 'String' && ts.isStringLiteralLike (expression))
         || (javaType === 'java.util.List<Object>' && ts.isArrayLiteralExpression (expression))
         || (javaType === JAVA_ARRAY_TYPE_MAP () && ts.isObjectLiteralExpression (expression))) {
+        return undefined;
+    }
+    // this.omit (<Map local>, keys) already prints the Map-returning overload
+    if (method.name?.text === 'handleRouteAndParams' && isThisOrSuperCall (expression) && expression.expression.name?.text === 'omit') {
         return undefined;
     }
     if (enclosingFunction (node) !== method) {
