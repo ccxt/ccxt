@@ -856,7 +856,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if event == 'bts:error':
             feedback = self.id + ' ' + self.json(message)
             data = self.safe_dict(message, 'data', {})
-            code = self.safe_number(data, 'code')
+            code = self.safe_string(data, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         return True
 

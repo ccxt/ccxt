@@ -473,7 +473,7 @@ class hollaex(ccxt.async_support.hollaex):
         try:
             if error is not None:
                 feedback = self.id + ' ' + self.json(message)
-                self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], error, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], self.safe_string(message, 'error'), feedback)
         except Exception as e:
             if isinstance(e, AuthenticationError):
                 return False

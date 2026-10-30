@@ -1214,7 +1214,7 @@ class bitflyer(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         errorMessage = self.safe_string(response, 'error_message')
-        statusCode = self.safe_integer(response, 'status')
+        statusCode = self.safe_string(response, 'status')
         if errorMessage is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
             raise ExchangeError(feedback)

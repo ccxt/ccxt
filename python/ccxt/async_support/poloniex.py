@@ -2844,7 +2844,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return [request, query, currency, networkEntry]
 
-    def parse_deposit_address_special(self, response: dict, currency: object, networkEntry: dict) -> DepositAddress:
+    def parse_deposit_address_special(self, response: dict, currency: Currency, networkEntry: dict) -> DepositAddress:
         address = self.safe_string(response, 'address')
         if address is None:
             address = self.safe_string(response, self.safe_string(networkEntry, 'id'))

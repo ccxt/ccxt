@@ -1682,7 +1682,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method: object, market: object, params: dict = {}) -> list:
+    def get_bybit_type(self, method: str, market: Market = None, params: dict = {}) -> list:
         type, paramsMarketType = self.handle_market_type_and_params(method, market, params)
         subType, paramsSubType = self.handle_sub_type_and_params(method, market, paramsMarketType)
         if type == 'option' or type == 'spot':

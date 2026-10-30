@@ -2901,7 +2901,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def get_currency_from_chaincode(self, networkizedCode: object, currency: object) -> CurrencyInterface:
+    def get_currency_from_chaincode(self, networkizedCode: str, currency: Currency = None) -> CurrencyInterface:
         if currency is not None:
             return currency
         else:
@@ -2990,7 +2990,7 @@ class woo(Exchange, ImplicitAPI):
         #         "confirmedNumber": null
         #     }
         #
-        networkizedCode = self.safe_string(transaction, 'token')
+        networkizedCode = self.safe_string(transaction, 'token', '')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = self.safe_string(currencyDefined, 'code')
         movementDirection = self.safe_string_lower_n(transaction, ['token_side', 'tokenSide', 'type'])

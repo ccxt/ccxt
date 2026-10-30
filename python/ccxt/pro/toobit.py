@@ -997,7 +997,7 @@ class toobit(ccxt.async_support.toobit):
             future.resolve(cache)
             client.resolve(cache, type + ':positions')
 
-    def handle_positions(self, client: Client, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         # [
         #     {
@@ -1029,15 +1029,9 @@ class toobit(ccxt.async_support.toobit):
             self.positions[accountType] = ArrayCacheBySymbolBySide()
         cache = self.positions[accountType]
         # handleMessage's fallback dispatches one item at a time
-        rawPositions = message
-        if not isinstance(message, list):
-            rawPositions = [message]
-        newPositions = []
-        for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
-            position = self.parse_ws_position(rawPosition)
-            newPositions.append(position)
-            cache.append(position)
+        position = self.parse_ws_position(message)
+        newPositions = [position]
+        cache.append(position)
         # no local may be named `positions` in this method: build/transpile.ts
         # appends `$` to every local name wherever it appears, string literals
         # included, so a local `positions` rewrites the hash prefix below to

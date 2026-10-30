@@ -6431,18 +6431,18 @@ class BaseExchange(object):
         """
         return self.handle_option_string_and_params(params, methodName, 'marginMode', defaultValue)
 
-    def throw_exactly_matched_exception(self, exact: object, string: object, message: object):
+    def throw_exactly_matched_exception(self, exact: dict, string: Str, message: Str):
         if string is None:
             return
         if string in exact:
             raise exact[string](message)
 
-    def throw_broadly_matched_exception(self, broad: object, string: object, message: object):
+    def throw_broadly_matched_exception(self, broad: dict, string: Str, message: Str):
         broadKey = self.find_broadly_matched_key(broad, string)
         if broadKey is not None:
             raise broad[broadKey](message)
 
-    def find_broadly_matched_key(self, broad: object, string: Str):
+    def find_broadly_matched_key(self, broad: dict, string: Str):
         # a helper for matching error strings exactly vs broadly
         keys = list(broad.keys())
         for i in range(0, len(keys)):
@@ -7473,7 +7473,7 @@ class BaseExchange(object):
         """
         return self.to_array(self.filter_by_array(objects, key, values, indexed))
 
-    def create_ohlcv_object(self, symbol: str, timeframe: str, data: object):
+    def create_ohlcv_object(self, symbol: str, timeframe: str, data: list[list]):
         res = {}
         res[symbol] = {}
         res[symbol][timeframe] = data
@@ -7739,7 +7739,7 @@ class BaseExchange(object):
                 break  # go turns a break inside try into a panic that only ends the iteration
         return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since, limit, 0 if (method == 'fetchOHLCV') else 'timestamp')
 
-    def sort_cursor_paginated_result(self, result: object):
+    def sort_cursor_paginated_result(self, result: list[object]):
         first = self.safe_dict(result, 0)
         if first is not None:
             if 'timestamp' in first:
@@ -7748,7 +7748,7 @@ class BaseExchange(object):
                 return self.sort_by(result, 'id', True)
         return result
 
-    def remove_repeated_elements_from_array(self, input: object, fallbackToTimestamp: bool = True):
+    def remove_repeated_elements_from_array(self, input: list[object], fallbackToTimestamp: bool = True):
         uniqueDic = {}
         uniqueResult = []
         for i in range(0, len(input)):
