@@ -3066,7 +3066,7 @@ export default class woo extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode: string, currency: Currency): CurrencyInterface {
+    getCurrencyFromChaincode (networkizedCode: string, currency: Currency = undefined): CurrencyInterface {
         if (currency !== undefined) {
             return currency;
         } else {

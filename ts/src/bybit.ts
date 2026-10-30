@@ -1683,7 +1683,7 @@ export default class bybit extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    getBybitType (method: string, market: Market, params: Dict = {}): [Str, Dict] {
+    getBybitType (method: string, market: Market = undefined, params: Dict = {}): [Str, Dict] {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams (method, market, paramsMarketType);
         if (type === 'option' || type === 'spot') {
