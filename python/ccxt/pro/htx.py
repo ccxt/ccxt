@@ -1740,8 +1740,12 @@ class htx(ccxt.async_support.htx):
         else:
             symbol = self.safe_string(paramsOmitted, 'symbol')
             currency = self.safe_string(paramsOmitted, 'currency')
-            market = self.market(symbol) if (symbol is not None) else None
-            currencyCode = self.currency(currency) if (currency is not None) else None
+            market = None
+            if symbol is not None:
+                market = self.market(symbol)
+            currencyCode = None
+            if currency is not None:
+                currencyCode = self.currency(currency)
             marginMode = self.safe_string(paramsOmitted, 'margin', 'cross')
             prefix = 'accounts'
             messageHash = prefix

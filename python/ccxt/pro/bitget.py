@@ -2841,7 +2841,7 @@ class bitget(ccxt.async_support.bitget):
         if isUta:
             messageHash = 'unsubscribe:kline:' + symbol
             subMessageHash = 'kline:' + symbol
-        else:
+        elif timeframe is not None:
             messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol
             subMessageHash = 'candles:' + timeframe + ':' + symbol
         if symbol in self.ohlcvs:
