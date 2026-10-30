@@ -445,7 +445,7 @@ export default class kraken extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseAccountType(account: Str): Str;
+    parseAccountType(account: string): Str;
     /**
      * @method
      * @name kraken#transferOut

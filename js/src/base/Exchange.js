@@ -4245,11 +4245,8 @@ export class BaseExchange {
                     }
                     const tradeTimestamp = this.safeInteger(trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
-                        if (lastTradeTimeTimestamp === undefined) {
+                        if (lastTradeTimeTimestamp === undefined || tradeTimestamp > lastTradeTimeTimestamp) {
                             lastTradeTimeTimestamp = tradeTimestamp;
-                        }
-                        else {
-                            lastTradeTimeTimestamp = Math.max(lastTradeTimeTimestamp, tradeTimestamp);
                         }
                     }
                     if (shouldParseFees) {
@@ -7842,17 +7839,15 @@ export class BaseExchange {
         return [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest];
     }
     async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
-        const maxCalls = 10;
-        const [maxCallsPaginationCalls, paramsPaginationCalls] = this.handleOptionIntegerAndParams(params, method, 'paginationCalls', maxCalls);
-        const maxRetries = 3;
-        const [maxRetriesOption, paramsMaxRetries] = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, 'maxRetries', maxRetries);
-        const [paginationDirection, paramsPaginationDirection] = this.handleOptionAndParams(paramsMaxRetries, method, 'paginationDirection', 'backward');
+        const [maxCallsPaginationCalls, paramsPaginationCalls] = this.handleOptionIntegerAndParams(params, method, 'paginationCalls', 10);
+        const [maxRetriesOption, paramsMaxRetries] = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, 'maxRetries', 3);
+        const [removeRepeatedOption, paramsRemoveRepeated] = this.handleOptionAndParams(paramsMaxRetries, method, 'removeRepeated', removeRepeated);
+        const [paginationDirection, paramsPaginationDirection] = this.handleOptionStringAndParams(paramsRemoveRepeated, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
-        const [removeRepeatedOption, paramsRemoveRepeated] = this.handleOptionAndParams(paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
         let result = [];
         let errors = 0;
-        const until = this.safeIntegerN(paramsRemoveRepeated, ['until', 'untill', 'till']); // do not omit it from params here
-        const [maxEntriesPerRequestOption, paramsMaxEntriesPerRequest] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
+        const until = this.safeIntegerN(paramsPaginationDirection, ['until', 'untill', 'till']); // do not omit it from params here
+        const [maxEntriesPerRequestOption, paramsMaxEntriesPerRequest] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
                 throw new ArgumentsRequired(this.id + ' pagination requires a since argument when paginationDirection set to forward');
@@ -8076,9 +8071,11 @@ export class BaseExchange {
                 }
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const cursorString = (cursorValue === undefined) ? '' : cursorValue;
-                    const iteration = (i + 1);
-                    const cursorMessage = 'Cursor pagination call ' + iteration.toString() + ' method ' + method + ' response length ' + responseLength.toString() + ' cursor ' + cursorString;
+                    let cursorString = '';
+                    if (cursorValue !== undefined) {
+                        cursorString = cursorValue.toString();
+                    }
+                    const cursorMessage = 'Cursor pagination call ' + (i + 1).toString() + ' method ' + method + ' response length ' + responseLength.toString() + ' cursor ' + cursorString;
                     this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -8095,7 +8092,9 @@ export class BaseExchange {
                         const index = responseLength - j - 1;
                         const entry = this.safeDict(response, index);
                         const info = this.safeDict(entry, 'info');
-                        cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue(info, cursorReceived);
+                        if (cursorReceived !== undefined) {
+                            cursorValue = this.safeValue(info, cursorReceived);
+                        }
                     }
                 }
                 if (cursorValue === undefined) {

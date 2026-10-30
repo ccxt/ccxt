@@ -1257,7 +1257,6 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const subaccountParam = this.safeString(params, 'subaccountId');
         let direction = undefined;
         let subaccountId = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
@@ -1265,21 +1264,11 @@ export default class bitvavo extends Exchange {
         }
         else if (fromAccount === 'master') {
             direction = 'masterToSub';
-            if (subaccountParam === undefined) {
-                subaccountId = toAccount;
-            }
-            else {
-                subaccountId = subaccountParam;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', toAccount);
         }
         else if (toAccount === 'master') {
             direction = 'subToMaster';
-            if (subaccountParam === undefined) {
-                subaccountId = fromAccount;
-            }
-            else {
-                subaccountId = subaccountParam;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', fromAccount);
         }
         else {
             throw new ArgumentsRequired(this.id + ' transfer() requires either fromAccount or toAccount to be master');
