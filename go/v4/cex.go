@@ -1513,12 +1513,12 @@ func (this *Cex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Cex) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1558,12 +1558,12 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Cex) FetchClosedOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchClosedOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

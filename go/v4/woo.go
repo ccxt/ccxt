@@ -3938,11 +3938,13 @@ func (this *Woo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Woo) GetCurrencyFromChaincode(networkizedCode any, currency any) any {
-	if !IsEqual(currency, nil) {
+func (this *Woo) GetCurrencyFromChaincode(networkizedCode *string, optionalArgs ...any) any {
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	if currency != nil {
 		return currency
 	} else {
-		var parts []string = Split(networkizedCode, "_")
+		var parts []string = strings.Split(*networkizedCode, "_")
 		var partsLength int = len(parts)
 		var firstPart *string = this.SafeString(parts, 0)
 		var currencyId any
@@ -4079,8 +4081,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3855, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3855
+	listRecv3857, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3857
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -4110,9 +4112,9 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	//         "confirmedNumber": null
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var networkizedCode *string = this.SafeString(transaction, "token")
+	var networkizedCode *string = this.SafeString(transaction, "token", "")
 	var currencyDefined map[string]any = MapTyped(this.GetCurrencyFromChaincode(networkizedCode, currency))
 	var code *string = this.SafeString(currencyDefined, "code")
 	var movementDirection *string = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})

@@ -11074,12 +11074,12 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -17432,15 +17432,15 @@ func (this *Binance) GetExceptionsByUrl(url string, exactOrBroad string) any {
 	if !IsEqual(this.Hostname, nil) {
 		hostname = this.Hostname
 	}
-	if StartsWith(url, "https://api."+hostname+"/") || strings.HasPrefix(url, "https://demo-api") || strings.HasPrefix(url, "https://testnet.binance.vision") {
+	if strings.HasPrefix(url, "https://api."+hostname+"/") || strings.HasPrefix(url, "https://demo-api") || strings.HasPrefix(url, "https://testnet.binance.vision") {
 		marketType = "spot"
-	} else if StartsWith(url, "https://dapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-dapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/dapi") {
+	} else if strings.HasPrefix(url, "https://dapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-dapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/dapi") {
 		marketType = "inverse"
-	} else if StartsWith(url, "https://fapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-fapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/fapi") {
+	} else if strings.HasPrefix(url, "https://fapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-fapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/fapi") {
 		marketType = "linear"
-	} else if StartsWith(url, "https://eapi."+hostname+"/") {
+	} else if strings.HasPrefix(url, "https://eapi."+hostname+"/") {
 		marketType = "option"
-	} else if StartsWith(url, "https://papi."+hostname+"/") {
+	} else if strings.HasPrefix(url, "https://papi."+hostname+"/") {
 		marketType = "portfolioMargin"
 	}
 	if marketType != nil {

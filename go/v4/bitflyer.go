@@ -1863,7 +1863,7 @@ func (this *Bitflyer) HandleErrors(code int64, reason string, url string, method
 	var feedback string = this.Id + " " + body
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
-	var statusCode *int64 = this.SafeInteger(response, "status")
+	var statusCode *string = this.SafeString(response, "status")
 	if errorMessage != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], statusCode, feedback)
 		panic(ExchangeError(feedback))

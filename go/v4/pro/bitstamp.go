@@ -1194,7 +1194,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message map[string]any) boo
 	if event != nil && *event == "bts:error" {
 		var feedback string = this.Id + " " + this.Json(message)
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
-		var code *float64 = this.SafeNumber(data, "code")
+		var code *string = this.SafeString(data, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}
 	return true

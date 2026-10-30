@@ -3851,12 +3851,12 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
  * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Backpack) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3894,7 +3894,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, opt
 				return nil
 			}
 		}
-		panic(OrderNotFound(Add(Add(this.Id+" fetchOpenOrder() RFQ ", id), " not found")))
+		panic(OrderNotFound(this.Id + " fetchOpenOrder() RFQ " + id + " not found"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":  market["id"],

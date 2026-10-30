@@ -2838,12 +2838,12 @@ func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitfinex) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2861,7 +2861,7 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, opt
 	var orders []any = OrdersToList(r.Value)
 	var order map[string]any = SafeMapTyped(orders, 0)
 	if order == nil {
-		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
+		panic(OrderNotFound(this.Id + " order " + id + " not found"))
 	}
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -2879,12 +2879,12 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitfinex) FetchClosedOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchClosedOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2902,7 +2902,7 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, o
 	var orders []any = OrdersToList(r.Value)
 	var order map[string]any = SafeMapTyped(orders, 0)
 	if order == nil {
-		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
+		panic(OrderNotFound(this.Id + " order " + id + " not found"))
 	}
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}

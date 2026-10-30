@@ -2183,12 +2183,12 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bydfi) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bydfi) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bydfi) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2210,9 +2210,9 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, option
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	if (IsEqual(id, nil)) && (clientOrderId == nil) {
+	if (false) && (clientOrderId == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter"))
-	} else if !IsEqual(id, nil) {
+	} else if true {
 		request["orderId"] = id
 	}
 	var wallet string = "W001"

@@ -1465,7 +1465,7 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	return nil
 }
-func (this *Toobit) HandlePositions(client any, message any) {
+func (this *Toobit) HandlePositions(client any, message map[string]any) {
 	//
 	// [
 	//     {
@@ -1499,17 +1499,9 @@ func (this *Toobit) HandlePositions(client any, message any) {
 	}
 	var cache any = ccxt.GetValue(this.Positions, accountType)
 	// handleMessage's fallback dispatches one item at a time
-	var rawPositions any = message
-	if !ccxt.IsArray(message) {
-		rawPositions = []any{message}
-	}
-	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
-		var position any = this.ParseWsPosition(rawPosition)
-		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
-	}
+	var position any = this.ParseWsPosition(message)
+	var newPositions []any = []any{position}
+	cache.(ccxt.Appender).Append(position)
 	// no local may be named `positions` in this method: build/transpile.ts
 	// appends `$` to every local name wherever it appears, string literals
 	// included, so a local `positions` rewrites the hash prefix below to
@@ -1532,7 +1524,7 @@ func (this *Toobit) HandlePositions(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
 }
-func (this *Toobit) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Toobit) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")

@@ -2450,12 +2450,12 @@ func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) FetchClosedOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchClosedOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2546,12 +2546,12 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) FetchOpenOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2582,7 +2582,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, opt
 	var data []any = SafeListTyped(response, "data")
 	var length int = len(data)
 	if length == 0 {
-		panic(OrderNotFound(Add(this.Id+" fetchOpenOrder() could not find order id ", id)))
+		panic(OrderNotFound(this.Id + " fetchOpenOrder() could not find order id " + id))
 	}
 	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
