@@ -2907,7 +2907,11 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                symbolResolved = this.symbol(symbol);
+            }
             // todo: lastFillTime: this.iso8601(end)
             Map<String, Object> response = (this.privateGetFills(parameters)).join();
             //
@@ -3373,7 +3377,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     type = symbol;
                 }
             }
-            Object accountName = this.parseKrakenAccountName((String) (type));
+            Object accountName = this.parseKrakenAccountName(type);
             Map<String, Object> accounts = (Map<String, Object>) this.safeDict(response, "accounts", (Object) null);
             Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, accountName, (Object) null);
             if (java.util.Objects.equals(account, null))

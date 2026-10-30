@@ -3602,9 +3602,8 @@ public class Hashkey extends HashkeyApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String methodName = "fetchOpenSpotOrders";
-            List<Object> methodNameOptionparamsMethodNameVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
-            String methodNameOption = (String) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(0);
-            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(1);
+            String methodNameOption = this.safeString(parameters, "methodName", methodName);
+            Map<String, Object> paramsMethodName = this.omit(parameters, "methodName");
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = null;
@@ -3656,9 +3655,8 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
 
             String methodName = "fetchOpenSwapOrders";
-            List<Object> methodNameOptionparamsMethodNameVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
-            String methodNameOption = (String) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(0);
-            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(1);
+            String methodNameOption = this.safeString(parameters, "methodName", methodName);
+            Map<String, Object> paramsMethodName = this.omit(parameters, "methodName");
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodNameOption) + "() requires a symbol argument for swap market orders")) ;
@@ -4300,9 +4298,8 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> market = this.market(symbol);
             String methodName = "fetchPosition";
-            List<Object> methodNameOptionparamsMethodNameVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
-            String methodNameOption = (String) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(0);
-            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameOptionparamsMethodNameVariable).get(1);
+            String methodNameOption = this.safeString(parameters, "methodName", methodName);
+            Map<String, Object> paramsMethodName = this.omit(parameters, "methodName");
             if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((((this.id + " ") + methodNameOption) + "() supports swap markets only")) ;

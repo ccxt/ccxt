@@ -2109,7 +2109,11 @@ public class Gemini extends GeminiApi
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stop_price", "stopPrice")));
             // timeInForce and postOnly are consumed only by non-trigger orders
             List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"));
-            List<Object> optionKeys = (((java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")) : new ArrayList<Object>(Arrays.asList());
+            List<Object> optionKeys = new ArrayList<Object>(Arrays.asList());
+            if (java.util.Objects.equals(triggerPrice, null))
+            {
+                optionKeys = new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly"));
+            }
             Map<String, Object> paramsOmitted = this.omit(parameters, this.arrayConcat(omitKeys, optionKeys));
             if (java.util.Objects.equals(typeValue, "stopLimit"))
             {
@@ -2589,7 +2593,6 @@ public class Gemini extends GeminiApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        Map<String, Object> headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : null;
         String bodyResolved = null;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
@@ -2600,7 +2603,7 @@ public class Gemini extends GeminiApi
             h2kMap1.put("url", fullUrl);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
             h2kMap1.put("body", bodyResolved);
-            h2kMap1.put("headers", headersResolved);
+            h2kMap1.put("headers", headersSigned);
             return h2kMap1;
         }
     }

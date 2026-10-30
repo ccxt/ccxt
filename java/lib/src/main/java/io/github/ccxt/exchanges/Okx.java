@@ -10120,7 +10120,7 @@ public class Okx extends OkxApi
         Long effectiveLimit = this.parseToInt(100);
         if ((!java.util.Objects.equals(limit, null)) && ((100 > limit)))
         {
-            effectiveLimit = limit;
+            effectiveLimit = this.parseToInt(limit);
         }
         if (!java.util.Objects.equals(limit, null))
         {
