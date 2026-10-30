@@ -2929,11 +2929,7 @@ export default class krakenfutures extends Exchange {
                 type = symbol;
             }
         }
-        let accountType: string = 'flex';
-        if (type !== undefined) {
-            accountType = type;
-        }
-        const accountName = this.parseKrakenAccountName (accountType);
+        const accountName = this.parseKrakenAccountName (type);
         const accounts = this.safeDict (response, 'accounts');
         const account = this.safeDict (accounts, accountName);
         if (account === undefined) {
