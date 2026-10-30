@@ -11078,9 +11078,9 @@ export function hx4C17NativeHelperCalls (content: string): string {
         if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6)) return false;
         const writeLines = [];
         for (let k = region.start + 1; k < region.end; k++) if (writesName (region.lines[k], name)) writeLines.push (k);
-        if ((writeLines.length !== 1) || !new RegExp ('^[ ]*\\(string\\?, object\\)[ ]+' + name + '[ ]*=').test (region.lines[writeLines[0]])) return false;
+        if ((writeLines.length !== 1) || !new RegExp ('^[ ]*(?:\\(string\\?, object\\)|IList<object>|List<object>|var)[ ]+' + name + '[ ]*=').test (region.lines[writeLines[0]])) return false;
         const decls = [ { line: writeLines[0] } ];
-        const text = lines[decls[0].line].replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*$/, '').trim ();
+        const text = lines[decls[0].line].replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*(?:\/\/.*)?$/, '').replace (/^\(IList<object>\)/, '').trim ();
         const m = csharpHelperMaskLine (text);
         const call = /^this\.(handleOptionStringAndParams2?)\(/.exec (m);
         if ((call === null) || ownMember (call[1]) || (ownReturns[call[1]] !== undefined) || (csharpHelperCallEnd (m, call[0].length - 1) !== m.length - 1)) return false;
@@ -11104,8 +11104,8 @@ export function hx4C17NativeHelperCalls (content: string): string {
             if ((d.type === 'string') || (d.type === 'string?')) return nullGuarded (region, t, line) || ((d.kind === 'local') && singleWriteNonNull (region, t, depth + 1));
             return (d.kind === 'local') && (d.type === 'object') && (nonNullStringLocal (region, t, depth + 1) || nonNullStringAt (region, t, line, depth + 1));
         }
-        // Item1 of a handleOption*StringAndParams tuple whose literal default is a non-null string
-        const item = /^([A-Za-z_]\w*)\.Item1$/.exec (t);
+        // element 0 of a handleOption*StringAndParams holder (pre-tuple `(string)H[0]` or `H.Item1`) with a non-null default
+        const item = /^\(*(?:\(string\)\(?)?([A-Za-z_]\w*)(?:\.Item1|\[0\]| != null && 0 < \1\.Count \? \1\[0\] : null)\)*$/.exec (t);
         if (item !== null) return optionTupleNonNull (region, item[1], depth + 1);
         if (wrapped (m)) {
             const parts = plusOperands (m.slice (1, -1), t.slice (1, -1));
@@ -11270,6 +11270,8 @@ export function hx4C17SelfTest (): string[] {
     check ('isTrue on bool? call', 'if (isTrue(this.safeBool(a, "k"))) {}', 'if ((this.safeBool(a, "k") == true)) {}');
     check ('isTrue on object keeps helper', 'if (isTrue(a)) {}', 'isTrue(a)');
     check ('option string tuple literal default', 'IList<object> q = null;\n(string?, object) mVariable = this.handleOptionStringAndParams2(a, \"f\", \"method\", \"spotMethod\", \"/t\");\nstring? sm = mVariable.Item1;\nobject m = sm;\nobject r = add(add(m, \":\"), b);', '((m + \":\") + b)');
+    check ('option string holder (pre-tuple) literal default', 'IList<object> hVariable = (IList<object>)this.handleOptionStringAndParams2(a, \"f\", \"method\", \"spotMethod\", \"/t\");\nstring? sm = ((string)(hVariable != null && 0 < hVariable.Count ? hVariable[0] : null));\nobject m = sm;\nobject r = add(add(m, \":\"), b);', '((m + \":\") + b)');
+    check ('option string holder (pre-tuple) null default keeps helper', 'IList<object> hVariable = (IList<object>)this.handleOptionStringAndParams(a, \"f\", \"method\", c);\nstring? sm = (string)hVariable[0];\nobject m = sm;\nobject r = add(m, b);', 'add(m, b)');
     check ('option string tuple null default keeps helper', '(string?, object) mVariable = this.handleOptionStringAndParams(a, \"f\", \"method\", c);\nobject m = mVariable.Item1;\nobject r = add(m, b);', 'add(m, b)');
     check ('object concat as List<object>.Add argument', 'List<object> xs = new List<object>() {};\nobject w = \"d\";\nxs.Add(add(add(w, \":\"), b));', 'xs.Add(((w + \":\") + b));');
     check ('object concat as object-param Add argument keeps helper', 'object w = \"d\";\na.Add(add(add(w, \":\"), b));', 'a.Add(add(add(w, \":\"), b));');
