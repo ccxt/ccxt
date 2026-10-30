@@ -369,8 +369,8 @@ export default class upbit extends upbitRest {
         const request: Dict = {
             'type': channel,
         };
-        let messageHashResolved = messageHash;
-        let channelKey = channel;
+        let messageHashResolved: string = messageHash;
+        let channelKey: string = channel;
         if (symbol !== undefined) {
             await this.loadMarkets ();
             const market = this.market (symbol);
