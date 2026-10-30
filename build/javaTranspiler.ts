@@ -9275,6 +9275,9 @@ function j35Member (member: string, content: string): string {
     const operand = (raw: string): { prim: string, boxed: string } | undefined => {
         const e = j26Strip (raw);
         if (INT.test (e)) return { prim: `${e}L`, boxed: `${e}L` };
+        // `Integer - 1L` unboxes to a primitive long (same NPE on null as the helper's argument)
+        const sub = /^([A-Za-z_]\w*) - (\d+L)$/.exec (e);
+        if (sub !== null && [ 'p', 'L', 'N' ].includes (nameKind (sub[1]) ?? '')) return { prim: `(${e})`, boxed: `(${e})` };
         if (!/^[A-Za-z_]\w*$/.test (e)) return undefined;
         const k = nameKind (e);
         if (k === 'p') return { prim: `((long) ${e})`, boxed: `((long) ${e})` };
