@@ -3390,6 +3390,35 @@ class NewTranspiler {
         }
     }
 
+    // `Dictionary<string, object> x = FromOHLCVDict(await this.core(...))` -> the core's own typed
+    // dictionary when every read of x is a null check, ContainsKey or an indexer read; any other
+    // consumer (safeDict / getValue on x itself) keeps the reboxing helper.
+    declareOHLCVDictLocals (lines: string[], bodyStart: number, bodyEnd: number, predictionTier: boolean): void {
+        const declRe = /^(\s*)Dictionary<string, object> (\w+) = ccxt\.BaseExchange\.FromOHLCVDict\((await this\.(\w+)\(.*\))\);$/;
+        for (let j = bodyStart + 1; j < bodyEnd; j++) {
+            const decl = lines[j] === null ? null : declRe.exec (lines[j]);
+            if (decl === null || this.typedCoreType (decl[4], predictionTier) !== OHLCV_DICT_TYPE) {
+                continue;
+            }
+            const name = decl[2];
+            const nameRe = new RegExp ('\\b' + name + '\\b');
+            const allowed = new RegExp ('\\b' + name + ' != null|\\b' + name + '\\.ContainsKey\\(|\\b' + name + '\\[[^\\]=]*\\](?!\\s*=[^=])', 'g');
+            let sound = true;
+            for (let k = j + 1; k < bodyEnd && sound; k++) {
+                const text = lines[k];
+                if (text === null || !nameRe.test (text) || text.trim ().startsWith ('//')) {
+                    continue;
+                }
+                if (nameRe.test (text.replace (allowed, '')) || new RegExp ('\\b' + name + ' = ').test (text)) {
+                    sound = false;
+                }
+            }
+            if (sound) {
+                lines[j] = decl[1] + this.qualifyTypedCoreType (OHLCV_DICT_TYPE) + ' ' + name + ' = ' + decl[3] + ';';
+            }
+        }
+    }
+
     typeCores (content: string, predictionTier = this.isPrediction): string {
         const names = this.typedCoreNames ();
         if (!names.some (name => content.includes (' ' + name + '('))) {
@@ -3519,6 +3548,7 @@ class NewTranspiler {
                 lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
             }
             this.declareDictListLocals (lines, bodyStart, bodyEnd);
+            this.declareOHLCVDictLocals (lines, bodyStart, bodyEnd, predictionTier);
             i = bodyEnd;
         }
         return lines.filter (line => line !== null).join ('\n');
