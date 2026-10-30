@@ -3378,7 +3378,7 @@ public class Sxbet extends SxbetApi
         Boolean sendAsQuery = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            sendAsQuery = !((switch ((Object)(query)) { case List<?> j39v12 -> j39v12.contains("orders"); case Map<?, ?> j39v11 -> j39v11.containsKey("orders"); case null, default -> false; }));
+            sendAsQuery = !(((Map<?, ?>)query).containsKey("orders"));
         }
         String bodyValue = null;
         if (Boolean.TRUE.equals(sendAsQuery))
@@ -3390,7 +3390,7 @@ public class Sxbet extends SxbetApi
             }
         } else
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 bodyValue = this.json(query);
             }

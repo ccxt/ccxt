@@ -3712,7 +3712,7 @@ public class Bitfinex extends BitfinexApi
         Map<String, Object> requestHeaders = null;
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4453,7 +4453,7 @@ public class Bitfinex extends BitfinexApi
         //         0.0025               // funding payment cap
         //     ]
         //
-        Integer interestLength = (switch ((Object)(interest)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; });
+        Integer interestLength = (switch ((Object)(interest)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
         Integer openInterestIndex = ((((interestLength != null && interestLength == 23)))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);

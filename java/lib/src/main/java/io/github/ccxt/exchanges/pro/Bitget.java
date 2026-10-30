@@ -641,8 +641,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), isStockOrUta, paramsStock);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-            var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
-            Object paramsRequest = paramsInstType;
+            Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+            Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(isStockOrUta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
@@ -664,7 +664,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("instId", market.get("id"));
                 messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
             }
-            List<Object> ohlcv = (List<Object>) (this.watchPublic(isStockOrUta, messageHash, (Map<String, Object>) (args), ((Map<String, Object>) (switch ((Object) (paramsRequest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(isStockOrUta, messageHash, (Map<String, Object>) (args), paramsRequest)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -710,8 +710,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), isStockOrUta, paramsStock);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-            var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
-            Object paramsRequest = paramsInstType;
+            Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+            Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(isStockOrUta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
@@ -736,7 +736,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("instId", market.get("id"));
                 messageHash = ("candles:" + interval);
             }
-            return (this.unWatchChannel((String) (symbol), (String) (channel), messageHash, "watchOHLCV", ((Map<String, Object>) (switch ((Object) (paramsRequest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+            return (this.unWatchChannel((String) (symbol), (String) (channel), messageHash, "watchOHLCV", paramsRequest)).join();
         });
 
     }

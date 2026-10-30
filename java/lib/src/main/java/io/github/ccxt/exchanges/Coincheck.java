@@ -1244,7 +1244,7 @@ public class Coincheck extends CoincheckApi
         }
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
+        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
         if (java.util.Objects.equals(apiName, "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))

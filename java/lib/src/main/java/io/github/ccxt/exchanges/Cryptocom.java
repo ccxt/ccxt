@@ -4408,7 +4408,7 @@ public class Cryptocom extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

@@ -2861,7 +2861,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }};
                 if (java.util.Objects.equals(symbolResolved, null))
                 {
-                    String suffix = this.getMyTradesMessageHashSuffix(topic);
+                    String suffix = this.getMyTradesMessageHashSuffix((String) (topic));
                     messageHash = (messageHash + suffix);
                 }
                 trades = (this.subscribe((String) (url), messageHash, (String) (topic), this.extend(request, paramsTopic), (Object) null)).join();
@@ -2876,10 +2876,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public String getMyTradesMessageHashSuffix(Object topic)
+    public String getMyTradesMessageHashSuffix(String topic)
     {
         String suffix = "-spot";
-        if (Helpers.getIndexOf(topic, "contractMarket") >= 0)
+        if (((String)topic).indexOf("contractMarket") >= 0)
         {
             suffix = "-contract";
         }
@@ -2926,8 +2926,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         myTrades.append(parsed);
         String messageHash = "myTrades";
-        String topic = this.safeString(message, "topic");
-        String suffix = this.getMyTradesMessageHashSuffix(topic);
+        String topic = this.safeString(message, "topic", "");
+        String suffix = this.getMyTradesMessageHashSuffix((String) (topic));
         String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(this.myTrades, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + this.safeString(parsed, "symbol", ""));

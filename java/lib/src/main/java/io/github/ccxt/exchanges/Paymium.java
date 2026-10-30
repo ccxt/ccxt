@@ -798,7 +798,7 @@ public class Paymium extends PaymiumApi
         String baseUrl = baseApiUrl;
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
+        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
         if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))

@@ -3196,7 +3196,7 @@ public class Ndax extends NdaxApi
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3253,7 +3253,7 @@ public class Ndax extends NdaxApi
                 bodySigned = this.json(query);
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

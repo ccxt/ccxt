@@ -2220,7 +2220,7 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
         if (!Boolean.TRUE.equals(isMarket))
         {
             if (Boolean.TRUE.equals(postOnly))

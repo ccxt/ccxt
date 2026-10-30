@@ -2911,7 +2911,7 @@ public class Upbit extends UpbitApi
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        Integer numQueryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
+        Integer numQueryKeys = ((Map<String, Object>)query).size();
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             if ((numQueryKeys != null && numQueryKeys > 0))

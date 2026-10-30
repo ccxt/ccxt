@@ -3144,7 +3144,7 @@ public class Mexc extends MexcApi
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 List<Object> triggerDirectionparamsTriggerDirectionVariable = (List<Object>) this.handleTriggerDirectionAndParams((Map<String, Object>) (paramsOmitted), "triggerType", true);
                 String triggerDirection = (String) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(0);
-                var paramsTriggerDirection = ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(1);
+                Map<String, Object> paramsTriggerDirection = (Map<String, Object>) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(1);
                 Long triggerType = this.safeInteger(paramsTriggerDirection, "triggerType", 1);
                 if (java.util.Objects.equals(triggerDirection, "ascending"))
                 {

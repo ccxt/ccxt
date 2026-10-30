@@ -2263,7 +2263,7 @@ public class Bigone extends BigoneApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "webExchange") || java.util.Objects.equals(apiName, "contractPublic"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2280,7 +2280,7 @@ public class Bigone extends BigoneApi
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

@@ -1780,7 +1780,7 @@ public class Indodax extends IndodaxApi
             Object query = this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
             url = (apiUrl + requestPath);
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (((apiUrl + requestPath) + "?") + this.urlencodeWithArrayRepeat(query));
             }
@@ -1847,7 +1847,7 @@ public class Indodax extends IndodaxApi
         if (java.util.Objects.equals(this.safeInteger(response, "success", 0), 1L))
         {
             // { success: 1, return: { orders: [] }}
-            if (!((switch ((Object)(response)) { case List<?> j39v4 -> j39v4.contains("return"); case Map<?, ?> j39v3 -> j39v3.containsKey("return"); case null, default -> false; })))
+            if (!((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("return"); case Map<?, ?> j39v2 -> j39v2.containsKey("return"); case null, default -> false; })))
             {
                 throw new ExchangeError(((this.id + ": malformed response: ") + this.json(response))) ;
             } else

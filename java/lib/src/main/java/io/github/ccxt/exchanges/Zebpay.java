@@ -2390,7 +2390,7 @@ public class Zebpay extends ZebpayApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if ((((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() != 0))
+                if ((((Map<String, Object>)query).size() != 0))
                 {
                     suffix = ("?" + this.urlencode(query));
                 }

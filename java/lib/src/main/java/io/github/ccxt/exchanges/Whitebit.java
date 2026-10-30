@@ -5152,7 +5152,7 @@ public class Whitebit extends WhitebitApi
         String url = (apiUrl + pathWithParams);
         if (java.util.Objects.equals(accessibility, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

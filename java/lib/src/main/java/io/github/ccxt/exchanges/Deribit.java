@@ -2639,7 +2639,7 @@ public class Deribit extends DeribitApi
             Boolean isStopOrder = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
             Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
-            Object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
+            Boolean exchangeSpecificPostOnly = (Boolean) this.safeBool(parameters, "post_only", (Object) null);
             Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
             if (Boolean.TRUE.equals(isLimitOrder))
             {

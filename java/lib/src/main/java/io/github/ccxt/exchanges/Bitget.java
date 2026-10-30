@@ -5509,7 +5509,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsStock = this.omit(paramsProductType, "stock");
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchOrderBook", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
-            var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
+            Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Boolean isStockSpot = Boolean.TRUE.equals(isStock) && (java.util.Objects.equals(market.get("spot"), true));
             Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
             if (Boolean.TRUE.equals(isStockSpot))
@@ -5754,7 +5754,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsStock = this.omit(paramsProductType, "stock");
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchTicker", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
-            var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
+            Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Boolean isStockOrUta = (((Boolean.TRUE.equals(isStock) && (java.util.Objects.equals(market.get("spot"), true)))) || (java.util.Objects.equals(uta, true)));
             if (Boolean.TRUE.equals(isStockOrUta))
             {
@@ -15122,7 +15122,7 @@ public class Bitget extends BitgetApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Boolean.TRUE.equals(signed) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = ((url + "?") + this.urlencode(query));
             }

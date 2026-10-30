@@ -2029,7 +2029,7 @@ public class Backpack extends BackpackApi
             }};
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
@@ -2063,7 +2063,7 @@ public class Backpack extends BackpackApi
                 request.put("endTime", this.parseToInt(minTimestamp)); // default to current time in seconds if until is not specified
             }
             String price = this.safeString(paramsUntil, "price");
-            Object paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("priceType", this.capitalize(price));
@@ -3370,7 +3370,7 @@ public class Backpack extends BackpackApi
         }
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(query, omitKeys));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);

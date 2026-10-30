@@ -3152,7 +3152,7 @@ public class Extended extends ExtendedApi
             }
             String amountString = this.amountToPrecision(symbol, amount);
             String priceString = this.priceToPrecision(symbol, price);
-            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), null, parameters);
+            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), (Boolean) (null), parameters);
             Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             if (java.util.Objects.equals(timeInForce, null))
@@ -4234,7 +4234,7 @@ public class Extended extends ExtendedApi
             }
         }
         String url = (((this.implodeHostname(baseApiUrl) + "/api/") + (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0))) + endpoint);
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((Map<String, Object>)query).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }

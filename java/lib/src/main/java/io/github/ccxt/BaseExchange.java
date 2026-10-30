@@ -5778,7 +5778,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v39 -> (List<String>) hx4J40v39; case Object hx4J40v39 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v39.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v38 -> (List<String>) hx4J40v38; case Object hx4J40v38 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v38.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -8118,7 +8118,7 @@ public Map<String, Object> describe()
         return ohlcv;
     }
 
-    public Object safeNetwork(Object network)
+    public Object safeNetwork(Map<String, Object> network)
     {
         Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", (Object) null);
         Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", (Object) null);
@@ -8132,7 +8132,7 @@ public Map<String, Object> describe()
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", Helpers.GetValue(network, "info"));
+            h2kMap2.put("info", network.get("info"));
             h2kMap2.put("id", this.safeString(network, "id"));
             h2kMap2.put("name", this.safeString(network, "name"));
             h2kMap2.put("network", this.safeString(network, "network"));
@@ -8331,7 +8331,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v33 -> (Map<String, Object>) hx4J40v33; case Object hx4J40v33 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v33.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v32 -> (Map<String, Object>) hx4J40v32; case Object hx4J40v32 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v32.getClass().getName()); }))));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));
@@ -9233,7 +9233,7 @@ public Map<String, Object> describe()
                     {
                         fetchData.put("request", request);
                     }
-                    this.setLastRequest(request);
+                    this.setLastRequest((Map<String, Object>) (request));
                     Object response = (this.fetch(request.get("url"), request.get("method"), request.get("headers"), request.get("body"))).join();
                     if (!java.util.Objects.equals(fetchData, null))
                     {
@@ -9760,7 +9760,7 @@ public Map<String, Object> describe()
             {
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
-            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v22 -> (Map<String, Object>) hx4J40v22; case Object hx4J40v22 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v22.getClass().getName()); })))).join();
+            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v21 -> (Map<String, Object>) hx4J40v21; case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v21.getClass().getName()); })))).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, code, (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -10862,7 +10862,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v16 -> hx4J40v16; case Number hx4J40v16 -> Long.valueOf(hx4J40v16.longValue()); case Object hx4J40v16 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v16.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v15 -> hx4J40v15; case Number hx4J40v15 -> Long.valueOf(hx4J40v15.longValue()); case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v15.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v15 -> hx4J40v15; case Number hx4J40v15 -> Long.valueOf(hx4J40v15.longValue()); case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v15.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v14 -> hx4J40v14; case Number hx4J40v14 -> Long.valueOf(hx4J40v14.longValue()); case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v14.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
@@ -11017,7 +11017,7 @@ public Map<String, Object> describe()
         return this.handleTriggerAndParams(parameters);
     }
 
-    public Boolean isPostOnly(Object isMarketOrder, Object exchangeSpecificParam, Map<String, Object> parameters)
+    public Boolean isPostOnly(Object isMarketOrder, Boolean exchangeSpecificParam, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -11032,7 +11032,7 @@ public Map<String, Object> describe()
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean timeInForcePostOnly = java.util.Objects.equals(timeInForce, "PO");
-        Boolean postOnly = Boolean.TRUE.equals(this.safeBool2(parameters, "postOnly", "post_only", false)) || Boolean.TRUE.equals(timeInForcePostOnly) || Helpers.isTrue(exchangeSpecificParam);
+        Boolean postOnly = Boolean.TRUE.equals(this.safeBool2(parameters, "postOnly", "post_only", false)) || Boolean.TRUE.equals(timeInForcePostOnly) || Boolean.TRUE.equals(exchangeSpecificParam);
         if (Boolean.TRUE.equals(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))

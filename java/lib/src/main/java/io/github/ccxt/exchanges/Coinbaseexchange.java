@@ -2656,7 +2656,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }
@@ -2674,7 +2674,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String payload = "";
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     payload = this.json(query);
                     requestBody = payload;
@@ -2735,7 +2735,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             if (!(response instanceof String))
             {
-                if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("message"); case Map<?, ?> j39v4 -> j39v4.containsKey("message"); case null, default -> false; }))
+                if ((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("message"); case Map<?, ?> j39v2 -> j39v2.containsKey("message"); case null, default -> false; }))
                 {
                     throw new ExchangeError(((this.id + " ") + this.json(response))) ;
                 }

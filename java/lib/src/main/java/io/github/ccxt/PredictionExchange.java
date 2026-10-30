@@ -758,7 +758,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             String key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-            Helpers.addElementToObject(stored, key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
+            ((Map<String, Object>)stored).put(key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
         }
         this.populateOutcomes();
         return stored;

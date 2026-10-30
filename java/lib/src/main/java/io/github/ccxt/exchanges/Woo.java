@@ -1838,7 +1838,7 @@ public class Woo extends WooApi
             Boolean isConditional = Boolean.TRUE.equals(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeList(paramsMarginMode, "childOrders", (Object) null), null));
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
             String timeInForce = this.safeStringLower(paramsMarginMode, "timeInForce");
-            Boolean postOnly = this.isPostOnly(isMarket, null, paramsMarginMode);
+            Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsMarginMode);
             String clientOrderIdKey = "clientOrderId";
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -1867,7 +1867,7 @@ public class Woo extends WooApi
                 request.put("price", this.priceToPrecision(symbol, price));
             }
             Boolean isMarketNotConditional = Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional);
-            Object paramsCost = paramsMarginMode;
+            Map<String, Object> paramsCost = paramsMarginMode;
             if (Boolean.TRUE.equals(isMarketNotConditional))
             {
                 paramsCost = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
@@ -1966,7 +1966,7 @@ public class Woo extends WooApi
                 }};
                 request.put("childOrders", new ArrayList<Object>(Arrays.asList(outterOrder)));
             }
-            Object paramsRequest = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
+            Map<String, Object> paramsRequest = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {

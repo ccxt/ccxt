@@ -2303,7 +2303,7 @@ public class Bitso extends BitsoApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -2323,7 +2323,7 @@ public class Bitso extends BitsoApi
             String request = ((nonce + java.util.Objects.requireNonNullElse(method, "GET")) + endpoint);
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     String jsonBody = this.json(query);
                     requestBody = jsonBody;
@@ -2352,7 +2352,7 @@ public class Bitso extends BitsoApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("success"); case Map<?, ?> j39v4 -> j39v4.containsKey("success"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("success"); case Map<?, ?> j39v2 -> j39v2.containsKey("success"); case null, default -> false; }))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

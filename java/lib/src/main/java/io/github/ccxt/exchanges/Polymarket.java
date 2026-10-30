@@ -3379,7 +3379,7 @@ public class Polymarket extends PolymarketApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<String> keys = new ArrayList<String>(((Map<String, Object>)query).keySet());
                 Integer keysLength = ((List<?>)keys).size();
                 if ((keysLength != null && keysLength > 0))
                 {

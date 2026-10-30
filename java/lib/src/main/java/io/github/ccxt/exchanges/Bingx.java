@@ -1768,7 +1768,7 @@ public class Bingx extends BingxApi
                 // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
                 List<Object> timeZoneparamsTimeZoneVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0L);
                 Long timeZone = (Long) ((List<Object>) timeZoneparamsTimeZoneVariable).get(0);
-                var paramsTimeZone = ((List<Object>) timeZoneparamsTimeZoneVariable).get(1);
+                Map<String, Object> paramsTimeZone = (Map<String, Object>) ((List<Object>) timeZoneparamsTimeZoneVariable).get(1);
                 if (!java.util.Objects.equals(timeZone, null))
                 {
                     request.put("timeZone", timeZone);

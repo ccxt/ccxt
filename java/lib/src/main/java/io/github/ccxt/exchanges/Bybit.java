@@ -2598,7 +2598,7 @@ public class Bybit extends BybitApi
         return amountString;
     }
 
-    public Object getPrice(String symbol, Object price)
+    public Object getPrice(String symbol, String price)
     {
         if (java.util.Objects.equals(price, null))
         {
@@ -5512,7 +5512,7 @@ public class Bybit extends BybitApi
         }};
         Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
-        Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -5795,9 +5795,9 @@ public class Bybit extends BybitApi
         {
             if (Boolean.TRUE.equals(hasStopLoss))
             {
-                Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
+                String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                 request.put("stopLoss", this.getPrice(symbolValue, slTriggerPrice));
-                Object slLimitPrice = this.safeValue(stopLoss, "price");
+                String slLimitPrice = this.safeString(stopLoss, "price");
                 if (!java.util.Objects.equals(slLimitPrice, null))
                 {
                     request.put("tpslMode", "Partial");
@@ -5819,9 +5819,9 @@ public class Bybit extends BybitApi
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
-                Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
+                String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 request.put("takeProfit", this.getPrice(symbolValue, tpTriggerPrice));
-                Object tpLimitPrice = this.safeValue(takeProfit, "price");
+                String tpLimitPrice = this.safeString(takeProfit, "price");
                 if (!java.util.Objects.equals(tpLimitPrice, null))
                 {
                     request.put("tpslMode", "Partial");
@@ -6235,7 +6235,7 @@ public class Bybit extends BybitApi
         Map<String, Object> paramsOmitted = (((java.util.Objects.equals(market.get("spot"), true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger"))) : parameters;
         var categoryparamsCategoryVariable = this.getBybitType("cancelOrderRequest", market, paramsOmitted);
         String category = (String) ((List<Object>) categoryparamsCategoryVariable).get(0);
-        var paramsCategory = ((List<Object>) categoryparamsCategoryVariable).get(1);
+        Map<String, Object> paramsCategory = (Map<String, Object>) ((List<Object>) categoryparamsCategoryVariable).get(1);
         request.put("category", category);
         return this.extend(request, paramsCategory);
     }

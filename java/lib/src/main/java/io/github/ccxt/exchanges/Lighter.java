@@ -1076,7 +1076,7 @@ public class Lighter extends LighterApi
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
-        Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOrderExpiry);
+        Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOrderExpiry);
         Map<String, Object> paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;

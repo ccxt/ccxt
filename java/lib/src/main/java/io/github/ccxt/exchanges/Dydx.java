@@ -1618,7 +1618,7 @@ public class Dydx extends DydxApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
-        Boolean postOnly = this.isPostOnly(isMarket, null, paramsSubAccountId);
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsSubAccountId);
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -2218,9 +2218,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
-                put( "methodName", "fetchLedger" );
-            }}))).join();
+            Object response = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, parameters)).join();
             return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -2478,9 +2476,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
-                put( "methodName", "fetchTransfers" );
-            }}))).join();
+            Object response = (this.fetchTransactionsHelper("fetchTransfers", code, since, limit, parameters)).join();
             List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
             List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
             List<Object> rows = (List<Object>) this.arrayConcat(transferIn, transferOut);
@@ -2647,9 +2643,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
-                put( "methodName", "fetchWithdrawals" );
-            }}))).join();
+            Object response = (this.fetchTransactionsHelper("fetchWithdrawals", code, since, limit, parameters)).join();
             List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
             return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2683,9 +2677,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
-                put( "methodName", "fetchDeposits" );
-            }}))).join();
+            Object response = (this.fetchTransactionsHelper("fetchDeposits", code, since, limit, parameters)).join();
             List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
             return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2719,9 +2711,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
-                put( "methodName", "fetchDepositsWithdrawals" );
-            }}))).join();
+            Object response = (this.fetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, parameters)).join();
             List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
             List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
             List<Object> rows = (List<Object>) this.arrayConcat(withdrawals, deposits);
@@ -2730,17 +2720,16 @@ public class Dydx extends DydxApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String methodName = this.safeString(parameters, "methodName");
             Map<String, Object> paramsOmitted = this.omit(parameters, "methodName");
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress(methodName, (Map<String, Object>) (paramsOmitted));
+            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress((String) (methodName), (Map<String, Object>) (paramsOmitted));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), methodName, "subAccountNumber", "0");
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), (String) (methodName), "subAccountNumber", "0");
             String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
             Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{

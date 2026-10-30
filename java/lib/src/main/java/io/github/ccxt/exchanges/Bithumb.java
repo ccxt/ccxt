@@ -1237,12 +1237,12 @@ public class Bithumb extends BithumbApi
                         tickers = response;
                     } else if (Boolean.TRUE.equals(this.isDictionary(response)))
                     {
-                        if (((switch ((Object)(response)) { case List<?> j39v13 -> j39v13.contains("market"); case Map<?, ?> j39v12 -> j39v12.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v11 -> j39v11.contains("trade_date"); case Map<?, ?> j39v10 -> j39v10.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v9 -> j39v9.contains("trade_timestamp"); case Map<?, ?> j39v8 -> j39v8.containsKey("trade_timestamp"); case null, default -> false; })))
+                        if (((switch ((Object)(response)) { case List<?> j39v12 -> j39v12.contains("market"); case Map<?, ?> j39v11 -> j39v11.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v10 -> j39v10.contains("trade_date"); case Map<?, ?> j39v9 -> j39v9.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("trade_timestamp"); case Map<?, ?> j39v7 -> j39v7.containsKey("trade_timestamp"); case null, default -> false; })))
                         {
                             tickers = new ArrayList<Object>(Arrays.asList(response));
                         } else
                         {
-                            List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                            List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
                             for (var j = 0; j < ((List<?>)ids).size(); j++)
                             {
                                 Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
@@ -1310,12 +1310,12 @@ public class Bithumb extends BithumbApi
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
-                    List<Object> currencyIds = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                    List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                        String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
-                        String base = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                        String base = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (java.util.Objects.equals(base, null))
                         {
                             continue;
@@ -1938,7 +1938,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
         Object paramsOrder = paramsPostOnly;
         if (Boolean.TRUE.equals(isPostOnly))
@@ -2071,13 +2071,13 @@ public class Bithumb extends BithumbApi
             {
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                j39v14.put("info", response);
-                j39v14.put("symbol", symbol);
-                j39v14.put("type", type);
-                j39v14.put("side", side);
-                j39v14.put("id", id);
-                yield j39v14; } }));
+            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
+                j39v13.put("info", response);
+                j39v13.put("symbol", symbol);
+                j39v13.put("type", type);
+                j39v13.put("side", side);
+                j39v13.put("id", id);
+                yield j39v13; } }));
         }).thenApply(Order::new);
 
     }
@@ -3816,7 +3816,7 @@ public class Bithumb extends BithumbApi
         }
         String url = (this.implodeHostname(apiUrl) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
-        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> queryKeys = new ArrayList<String>(((Map<String, Object>)query).keySet());
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
         if (java.util.Objects.equals(apiName, "public"))

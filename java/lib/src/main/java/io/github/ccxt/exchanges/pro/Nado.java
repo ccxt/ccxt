@@ -309,7 +309,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Object symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String messageHash = ("orderbook:" + market.get("symbol"));
                 ((List<Object>)markets).add(market);

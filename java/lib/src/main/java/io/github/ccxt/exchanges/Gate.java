@@ -8936,7 +8936,7 @@ public class Gate extends GateApi
         String url = (baseUrl + entirePath);
         if (java.util.Objects.equals(authentication, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -8954,7 +8954,7 @@ public class Gate extends GateApi
             }
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || Boolean.TRUE.equals(requiresURLEncoding) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH")))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
                     // sort explicitly (true) so the signed order matches the url order in Go,

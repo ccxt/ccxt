@@ -2537,7 +2537,7 @@ public class Grvt extends GrvtApi
             orderRequest.put("post_only", false);
             orderRequest.put("reduce_only", isReduceOnly);
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-            Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
+            Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOmitted3);
             if (Boolean.TRUE.equals(postOnly))
             {
                 orderRequest.put("post_only", true);
@@ -3967,7 +3967,7 @@ public class Grvt extends GrvtApi
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));
