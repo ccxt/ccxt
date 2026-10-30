@@ -1334,25 +1334,16 @@ class bitvavo extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $subaccountParam = $this->safe_string($params, 'subaccountId');
         $direction = null;
         $subaccountId = null;
         if (($fromAccount === 'master') && ($toAccount === 'master')) {
             throw new ArgumentsRequired($this->id . ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         } elseif ($fromAccount === 'master') {
             $direction = 'masterToSub';
-            if ($subaccountParam === null) {
-                $subaccountId = $toAccount;
-            } else {
-                $subaccountId = $subaccountParam;
-            }
+            $subaccountId = $this->safe_string($params, 'subaccountId', $toAccount);
         } elseif ($toAccount === 'master') {
             $direction = 'subToMaster';
-            if ($subaccountParam === null) {
-                $subaccountId = $fromAccount;
-            } else {
-                $subaccountId = $subaccountParam;
-            }
+            $subaccountId = $this->safe_string($params, 'subaccountId', $fromAccount);
         } else {
             throw new ArgumentsRequired($this->id . ' transfer() requires either fromAccount or toAccount to be master');
         }

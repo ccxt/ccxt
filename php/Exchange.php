@@ -5178,10 +5178,8 @@ class BaseExchange {
                     }
                     $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
-                        if ($lastTradeTimeTimestamp === null) {
+                        if ($lastTradeTimeTimestamp === null || $tradeTimestamp > $lastTradeTimeTimestamp) {
                             $lastTradeTimeTimestamp = $tradeTimestamp;
-                        } else {
-                            $lastTradeTimeTimestamp = max($lastTradeTimeTimestamp, $tradeTimestamp);
                         }
                     }
                     if ($shouldParseFees) {
@@ -8871,17 +8869,15 @@ class BaseExchange {
     }
 
     public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
-        $maxCalls = 10;
-        list($maxCallsPaginationCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
-        $maxRetries = 3;
-        list($maxRetriesOption, $paramsMaxRetries) = $this->handle_option_integer_and_params($paramsPaginationCalls, $method, 'maxRetries', $maxRetries);
-        list($paginationDirection, $paramsPaginationDirection) = $this->handle_option_and_params($paramsMaxRetries, $method, 'paginationDirection', 'backward');
+        list($maxCallsPaginationCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', 10);
+        list($maxRetriesOption, $paramsMaxRetries) = $this->handle_option_integer_and_params($paramsPaginationCalls, $method, 'maxRetries', 3);
+        list($removeRepeatedOption, $paramsRemoveRepeated) = $this->handle_option_and_params($paramsMaxRetries, $method, 'removeRepeated', $removeRepeated);
+        list($paginationDirection, $paramsPaginationDirection) = $this->handle_option_string_and_params($paramsRemoveRepeated, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
-        list($removeRepeatedOption, $paramsRemoveRepeated) = $this->handle_option_and_params($paramsPaginationDirection, $method, 'removeRepeated', $removeRepeated);
         $result = array();
         $errors = 0;
-        $until = $this->safe_integer_n($paramsRemoveRepeated, array( 'until', 'untill', 'till' )); // do not omit it from params here
-        list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $paramsRemoveRepeated);
+        $until = $this->safe_integer_n($paramsPaginationDirection, array( 'until', 'untill', 'till' )); // do not omit it from params here
+        list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $paramsPaginationDirection);
         if (($paginationDirection === 'forward')) {
             if ($since === null) {
                 throw new ArgumentsRequired($this->id . ' pagination requires a since argument when paginationDirection set to forward');
@@ -9097,9 +9093,11 @@ class BaseExchange {
                 }
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $cursorString = ($cursorValue === null) ? '' : $cursorValue;
-                    $iteration = ($i + 1);
-                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' method ' . $method . ' response length ' . (string) $responseLength . ' cursor ' . $cursorString;
+                    $cursorString = '';
+                    if ($cursorValue !== null) {
+                        $cursorString = (string) $cursorValue;
+                    }
+                    $cursorMessage = 'Cursor pagination call ' . ($i . (string) 1) . ' method ' . $method . ' response length ' . (string) $responseLength . ' cursor ' . $cursorString;
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
@@ -9116,7 +9114,9 @@ class BaseExchange {
                         $index = $responseLength - $j - 1;
                         $entry = $this->safe_dict($response, $index);
                         $info = $this->safe_dict($entry, 'info');
-                        $cursorValue = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
+                        if ($cursorReceived !== null) {
+                            $cursorValue = $this->safe_value($info, $cursorReceived);
+                        }
                     }
                 }
                 if ($cursorValue === null) {

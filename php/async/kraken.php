@@ -3761,7 +3761,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function parse_account_type(?string $account): ?string {
+    public function parse_account_type(string $account): ?string {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',
