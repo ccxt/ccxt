@@ -162,7 +162,7 @@ function w3box (text, ctx, self, depth) {
     if (/^[A-Za-z_]\w*$/.test (t)) {
         if ((self !== undefined) && (t === self)) return ctx.selfBox;
         // a copy of another proven-string object local reads that local's box at this line
-        const copied = (ctx.objectLocals?.has (t) === true) ? ctx.boxAt?.get (t + ':' + ctx.line) : undefined;
+        const copied = (ctx.tracking === true && ctx.objectLocals?.has (t) === true) ? ctx.boxAt?.get (t + ':' + ctx.line) : undefined;
         if ((copied !== undefined) && (copied.kind === 'string')) return copied;
         const known = ctx.types.get (t);
         if (known === undefined) return undefined;
@@ -380,13 +380,14 @@ export function hx10w3C02CandidateReads (content) {
                 depth += w3delta (masked[k]);
             }
         }
-        const ctx = { types, selfBox: undefined, objectLocals, boxAt: undefined, line: 0 };
+        const ctx = { types, selfBox: undefined, objectLocals, boxAt: undefined, line: 0, tracking: false };
         // the box joined over the initialiser and every write before each line: an unrecognised
         // write, a `+=`/`??=` or a null write ends the proof for every later read
         const boxAt = new Map ();
         ctx.boxAt = boxAt;
         for (const [ name, declLine ] of objectLocals) {
             ctx.line = declLine;
+            ctx.tracking = true;
             const decl = new RegExp ('^[ \\t]*object[ \\t]+' + name + '[ \\t]*=[ \\t]*(.*);[ \\t]*$').exec (lines[declLine]);
             const startBox = (decl === null) ? undefined : w3box (decl[1].replace (/\/\/.*$/, ''), ctx, undefined, 0);
             let box = (startBox === undefined) ? { kind: 'unknown', nonNull: false } : startBox;
@@ -413,6 +414,7 @@ export function hx10w3C02CandidateReads (content) {
                     ? { kind: written.kind, nonNull: written.nonNull === true } : { kind: 'unknown', nonNull: false };
             }
         }
+        ctx.tracking = false;
         for (let k = start; k <= end; k++) {
             const line = masked[k];
             if (!/(?<![\w.])(?:getValue|getArrayLength|inOp|add)\s*\(/.test (line)) continue;
