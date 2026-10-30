@@ -3464,7 +3464,7 @@ export default class extended extends Exchange {
         if (isTestnet) {
             defaultChainId = 'SN_SEPOLIA';
         }
-        const chainId = this.safeString (this.options, 'chainId', defaultChainId);
+        const chainId: string = this.safeString (this.options, 'chainId', defaultChainId);
         return this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             domainTypeHash,
             this.getExtendedStringToFelt ('Perpetuals'),
