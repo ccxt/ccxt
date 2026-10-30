@@ -566,7 +566,7 @@ class bitget extends \ccxt\async\bitget {
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         $isStock = $market['stock'];
         $paramsStock = $this->omit($paramsUta, 'stock');
-        $isStockSpot = $isStock && $market['spot'];
+        $isStockSpot = $isStock && ($market['spot'] === true);
         $isStockOrUta = ($isStockSpot || ($uta === true));
         list($instType, $paramsInstType) = $this->get_inst_type('watchOHLCV', $market, $isStockOrUta, $paramsStock);
         $paramsRequest = $paramsInstType;
@@ -922,7 +922,7 @@ class bitget extends \ccxt\async\bitget {
         if ($symbolsLength > 0) {
             $market = $this->market($symbolsNormalized[0]);
             $isStock = $market['stock'];
-            $isStockSpot = $isStock && $market['spot'];
+            $isStockSpot = $isStock && ($market['spot'] === true);
         }
         $paramsStock = $this->omit($params, 'stock');
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsStock, 'watchOrderBookForSymbols', 'uta', false);

@@ -3322,7 +3322,8 @@ class hashkey extends Exchange {
             $this->load_markets();
         }
         $methodName = 'fetchOpenSpotOrders';
-        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
+        $methodNameOption = $this->safe_string($params, 'methodName', $methodName);
+        $paramsMethodName = $this->omit($params, 'methodName');
         $market = null;
         $request = array();
         $response = null;
@@ -3390,7 +3391,8 @@ class hashkey extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchOpenSwapOrders';
-        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
+        $methodNameOption = $this->safe_string($params, 'methodName', $methodName);
+        $paramsMethodName = $this->omit($params, 'methodName');
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodNameOption . '() requires a symbol argument for swap market orders');
         }
@@ -4021,7 +4023,8 @@ class hashkey extends Exchange {
         }
         $market = $this->market($symbol);
         $methodName = 'fetchPosition';
-        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
+        $methodNameOption = $this->safe_string($params, 'methodName', $methodName);
+        $paramsMethodName = $this->omit($params, 'methodName');
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' ' . $methodNameOption . '() supports swap markets only');
         }

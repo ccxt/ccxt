@@ -1683,7 +1683,10 @@ class gemini extends Exchange {
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
         // timeInForce and postOnly are consumed only by non-trigger orders
         $omitKeys = array( 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' );
-        $optionKeys = ($triggerPrice === null) ? array( 'timeInForce', 'postOnly' ) : array();
+        $optionKeys = array();
+        if ($triggerPrice === null) {
+            $optionKeys = array( 'timeInForce', 'postOnly' );
+        }
         $paramsOmitted = $this->omit($params, $this->array_concat($omitKeys, $optionKeys));
         if ($typeValue === 'stopLimit') {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' . $typeValue . ' orders');
@@ -2078,12 +2081,11 @@ class gemini extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $fullUrl = $apiUrl . $url;
-        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
         $bodyResolved = null;
         if (($method === 'POST') || ($method === 'DELETE')) {
             $bodyResolved = $this->json($query);
         }
-        return array( 'url' => $fullUrl, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $fullUrl, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersSigned );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

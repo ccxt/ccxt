@@ -2584,7 +2584,10 @@ class krakenfutures extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         $response = Async\await($this->privateGetFills($params));
         //

@@ -2492,7 +2492,10 @@ class krakenfutures extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         $response = $this->privateGetFills($params);
         //

@@ -2727,7 +2727,7 @@ class kalshi extends Exchange {
         $apiGroup = $api[0];
         $access = $api[1];
         $baseUrls = $this->urls['api'];
-        $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['kalshi']);
+        $baseUrl = $this->safe_string($baseUrls, $apiGroup, $this->safe_string($baseUrls, 'kalshi', ''));
         $implodedPath = $this->implode_params($path, $params);
         $url = $baseUrl . '/' . $implodedPath;
         $query = $this->omit($params, $this->extract_params($path));

@@ -8313,7 +8313,7 @@ class okx extends Exchange {
         $maxLimit = 100;
         $effectiveLimit = $this->parse_to_int(100);
         if (($limit !== null) && (100 > $limit)) {
-            $effectiveLimit = $limit;
+            $effectiveLimit = $this->parse_to_int($limit);
         }
         if ($limit !== null) {
             $request['limit'] = $effectiveLimit;
