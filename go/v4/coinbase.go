@@ -7069,7 +7069,7 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) []any {
  */
 func (this *Coinbase) IsEddsaApiKey() bool {
 	// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-	return (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || strings.HasSuffix(this.Secret, "=")
+	return (len(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || strings.HasSuffix(this.Secret, "=")
 }
 func (this *Coinbase) CreateAuthToken(seconds any, url string, optionalArgs ...any) string {
 	// v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2

@@ -2361,18 +2361,14 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	} else {
 		var symbol *string = this.SafeString(paramsOmitted, "symbol")
 		var currency *string = this.SafeString(paramsOmitted, "currency")
-		var market any = func() any {
-			if symbol != nil {
-				return this.Market(symbol)
-			}
-			return nil
-		}()
-		var currencyCode any = func() any {
-			if currency != nil {
-				return this.Currency(currency)
-			}
-			return nil
-		}()
+		var market map[string]any = nil
+		if symbol != nil {
+			market = this.Market(symbol)
+		}
+		var currencyCode map[string]any = nil
+		if currency != nil {
+			currencyCode = this.Currency(currency)
+		}
 		marginMode = this.SafeString(paramsOmitted, "margin", "cross")
 		var prefix string = "accounts"
 		messageHash = prefix
@@ -2390,7 +2386,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 				messageHash = prefix
 				if marginMode != nil && *marginMode == "isolated" {
 					// isolated margin only allows filtering by symbol3
-					if (symbol != nil) && (!ccxt.IsEqual(market, nil)) {
+					if (symbol != nil) && (market != nil) {
 						messageHash = ccxt.Add(messageHash, "."+*this.SafeString(market, "id", ""))
 						channel = messageHash
 					} else {
@@ -2399,7 +2395,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 					}
 				} else {
 					// cross margin
-					if !ccxt.IsEqual(currencyCode, nil) {
+					if currencyCode != nil {
 						channel = prefix + "." + *this.SafeString(currencyCode, "id", "")
 						messageHash = channel
 					} else {
@@ -2410,7 +2406,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 			}
 		} else if typeVar != nil && *typeVar == "future" {
 			// inverse futures account
-			if !ccxt.IsEqual(currencyCode, nil) {
+			if currencyCode != nil {
 				messageHash = ccxt.Add(messageHash, "."+*this.SafeString(currencyCode, "id", ""))
 				channel = messageHash
 			} else {
@@ -2419,7 +2415,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 			}
 		} else {
 			// inverse swaps account
-			if !ccxt.IsEqual(market, nil) {
+			if market != nil {
 				messageHash = ccxt.Add(messageHash, "."+*this.SafeString(market, "id", ""))
 				channel = messageHash
 			} else {

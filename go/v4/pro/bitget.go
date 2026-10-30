@@ -3805,9 +3805,9 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	if isUta == true {
 		messageHash = "unsubscribe:kline:" + *symbol
 		subMessageHash = "kline:" + *symbol
-	} else {
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", timeframe), ":"), symbol)
-		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	} else if timeframe != nil {
+		messageHash = "unsubscribe:candles:" + *timeframe + ":" + *symbol
+		subMessageHash = "candles:" + *timeframe + ":" + *symbol
 	}
 	if _, ok := this.Ohlcvs[*symbol]; ok {
 		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {

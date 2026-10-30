@@ -1992,7 +1992,7 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var lastBlockHeight *int64 = Int64PtrTyped(r2.Value)
+	var lastBlockHeight *int64 = r2.Value
 	// params['latestBlockHeight'] = lastBlockHeight;
 	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,

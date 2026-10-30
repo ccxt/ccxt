@@ -11303,10 +11303,10 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "currency"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "currency"))
 			if baseCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base)))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if quoteCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote)))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
 		}
 	} else if cross {
@@ -11571,7 +11571,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan AsyncResult[Balances], optionalA
 				var currencyId *string = this.SafeString(currencyEntry, "currency")
 				var currencyCode *string = this.SafeCurrencyCode(currencyId)
 				if currencyCode != nil {
-					result = MapTyped(this.MergeBalanceAccount(result, currencyCode, this.ParseBalanceHelper(currencyEntry)))
+					result = this.MergeBalanceAccount(result, currencyCode, this.ParseBalanceHelper(currencyEntry))
 				}
 			}
 		}

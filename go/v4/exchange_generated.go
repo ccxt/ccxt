@@ -6638,10 +6638,10 @@ func (this *BaseExchange) Account() map[string]any {
  * @param {object} account a balance account with string free/used/total/debt
  * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
  */
-func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any) any {
+func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any) map[string]any {
 	if !(InOp(result, code)) {
 		AddElementToObject(result, code, account)
-		return result
+		return MapTyped(result)
 	}
 	var fields []string = []string{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
@@ -6654,7 +6654,7 @@ func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any)
 			AddElementToObject(GetValue(result, code), field, Precise.StringAdd(current, incoming))
 		}
 	}
-	return result
+	return MapTyped(result)
 }
 func (this *BaseExchange) CommonCurrencyCode(code any) any {
 	if !this.SubstituteCommonCurrencyCodes {

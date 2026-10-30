@@ -530,7 +530,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 	}
 	var privateKeyIsSet bool = (this.PrivateKey != "")
 	if privateKeyIsSet && (!IsEqual(apiKeyIndex, nil)) && (!IsEqual(accountIndex, nil)) {
-		if GetLength(this.PrivateKey) > 66 {
+		if len(this.PrivateKey) > 66 {
 			panic(NotSupported(this.Id + " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt"))
 		}
 		// load lighter library without creating lighter client
@@ -674,7 +674,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan AsyncResult[[]any], params a
 	if IsEqual(accountIndex, nil) {
 		var walletAddress any = this.WalletAddress
 		if this.PrivateKey != "" {
-			if GetLength(this.PrivateKey) > 66 {
+			if len(this.PrivateKey) > 66 {
 				panic(NotSupported(this.Id + " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt"))
 			}
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
@@ -753,7 +753,7 @@ func (this *Lighter) createSubAccountBody(ch chan AsyncResult[map[string]any], n
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r1.Value)
+	var nonce *int64 = &r1.Value
 	var signRaw map[string]any = map[string]any{
 		"nonce":         nonce,
 		"api_key_index": apiKeyIndex,
@@ -1002,7 +1002,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan AsyncResult[map[string]any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r1.Value)
+	var nonce *int64 = &r1.Value
 	var expiry int64 = this.Milliseconds() + (365 * 864000)
 	var signRaw map[string]any = map[string]any{
 		"integrator_account_index": builder,
@@ -1066,7 +1066,7 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r1.Value)
+	var nonce *int64 = &r1.Value
 	var signRaw map[string]any = map[string]any{
 		"pubkey":        this.Encode(publicKey),
 		"nonce":         nonce,
@@ -1608,7 +1608,7 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"index":         this.ParseToInt(id),
@@ -3569,7 +3569,7 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"to_account_index": toAccountIndex,
 		"asset_index":      this.ParseToInt(currency["id"]),
@@ -4113,7 +4113,7 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"asset_index":   this.ParseToInt(currency["id"]),
 		"route_type":    routeType,
@@ -4584,7 +4584,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
@@ -4662,7 +4662,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan AsyncResult[[]map[string]any
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"nonce":         nonce,
@@ -4773,7 +4773,7 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan AsyncResult[[]map[string
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"time_in_force": 0,
 		"time":          0,
@@ -4894,7 +4894,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var timeInForce int = 2 // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
 	var cancelTime any = 0
 	if isScheduled {
@@ -5051,7 +5051,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var nonce *int64 = Int64PtrTyped(r3.Value)
+	var nonce *int64 = &r3.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"usdc_amount":   this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision("USDC", amount))),

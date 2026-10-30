@@ -5136,10 +5136,10 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) map[string]an
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base)))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if quoteCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote)))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
 		}
 		return this.SafeBalance(result).(map[string]any)

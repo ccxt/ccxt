@@ -5922,7 +5922,7 @@ func (this *Aster) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any
 		ch <- AsyncResult[any]{Value: false}
 		return nil
 	}
-	if GetLength(this.PrivateKey) > 66 {
+	if len(this.PrivateKey) > 66 {
 		panic(NotSupported(this.Id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials."))
 	}
 

@@ -4901,8 +4901,8 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			var quote map[string]any = this.SafeDictMap(entry, "quote", map[string]any{})
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "currency"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "currency"))
-			result = MapTyped(this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base)))
-			result = MapTyped(this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote)))
+			result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
+			result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 		} else {
 			var code *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
 			AddElementToObject(result, code, this.ParseBalanceHelper(entry))

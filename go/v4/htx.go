@@ -5123,7 +5123,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				}
 				for j := 0; j < len(subCodes); j++ {
 					var subCode string = subCodes[j]
-					result = MapTyped(this.MergeBalanceAccount(result, subCode, subResult[subCode]))
+					result = this.MergeBalanceAccount(result, subCode, subResult[subCode])
 				}
 			}
 			result = MapTyped(this.SafeBalance(result))

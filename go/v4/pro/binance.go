@@ -3817,7 +3817,7 @@ func (this *Binance) SignParams(optionalArgs ...any) any {
 	var query string = this.Rawencode(extendedParams)
 	var signature string
 	if strings.Index(this.Secret, "PRIVATE KEY") > -1 {
-		if ccxt.GetLength(this.Secret) > 120 {
+		if len(this.Secret) > 120 {
 			signature = ccxt.Rsa(query, this.Secret, ccxt.Sha256)
 		} else {
 			signature = ccxt.Eddsa(this.Encode(query), this.Secret, ccxt.Ed25519)

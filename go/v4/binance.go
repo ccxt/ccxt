@@ -5639,10 +5639,10 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base)))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if quoteCode != nil {
-				result = MapTyped(this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote)))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
 		}
 	} else if typeVar != nil && *typeVar == "savings" {
@@ -17393,7 +17393,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var signature string
 		if strings.Index(this.Secret, "PRIVATE KEY") > -1 {
-			if GetLength(this.Secret) > 120 {
+			if len(this.Secret) > 120 {
 				signature = this.EncodeURIComponent(Rsa(query, this.Secret, sha256))
 			} else {
 				signature = this.EncodeURIComponent(Eddsa(this.Encode(query), this.Secret, ed25519))

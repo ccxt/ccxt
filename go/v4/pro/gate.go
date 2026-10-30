@@ -3459,7 +3459,7 @@ func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url any, m
 	this.CheckRequiredCredentials()
 	// uid is required for some subscriptions only so it's not a part of required credentials
 	if requiresUid == true {
-		if (this.Uid == "") || (ccxt.GetLength(this.Uid) == 0) {
+		if (this.Uid == "") || (len(this.Uid) == 0) {
 			panic(ccxt.ArgumentsRequired(this.Id + " requires uid to subscribe"))
 		}
 	}

@@ -4123,7 +4123,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 			"api_key": this.ApiKey,
 		}, paramsOmitted)
 		var signatureMethod string
-		if GetLength(this.Secret) > 32 {
+		if len(this.Secret) > 32 {
 			signatureMethod = "RSA"
 		} else {
 			signatureMethod = "HmacSHA256"

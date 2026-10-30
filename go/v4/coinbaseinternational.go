@@ -4352,7 +4352,7 @@ func (this *Coinbaseinternational) IsEddsaSecret() bool {
 		return false
 	}
 	var useV2CloudApiKey *bool = this.SafeBool(this.Options, "v2CloudAPiKey", false)
-	return (GetLength(this.Secret) == 88) || (useV2CloudApiKey != nil && *useV2CloudApiKey) || strings.HasSuffix(this.Secret, "=")
+	return (len(this.Secret) == 88) || (useV2CloudApiKey != nil && *useV2CloudApiKey) || strings.HasSuffix(this.Secret, "=")
 }
 
 /**
@@ -4430,7 +4430,7 @@ func (this *Coinbaseinternational) ResolveRoute(optionalArgs ...any) bool {
 	if (strings.Index(this.ApiKey, "organizations/") >= 0) || (strings.Index(this.Secret, "BEGIN") >= 0) || this.IsEddsaSecret() {
 		return false
 	}
-	return (GetLength(this.ApiKey) == 8) && (GetLength(this.Secret) == 43)
+	return (len(this.ApiKey) == 8) && (len(this.Secret) == 43)
 }
 func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
