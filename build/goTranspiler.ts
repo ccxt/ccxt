@@ -11078,7 +11078,14 @@ function h2kG08FieldNilCompares (content: string): string {
     return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
+// BaseExchange.Id (string) and .RateLimit (float64) can never be nil, so the helper is constant.
+function hx11w8TypedFieldNilFold (content: string): string {
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(RateLimit|Id), nil\)/g, ((_m: string, not: string) => (not === '!') ? 'true' : 'false') as any)
+        .replace (/\bfalse \|\| \(true && (\([^()\n]*\))\)/g, '$1');
+}
+
 export function h2kG08NativeEquality (content: string): string {
+    content = hx11w8TypedFieldNilFold (content);
     content = h2kG08FieldNilCompares (content);
     content = goTypedNativeNilCompares (content, 'IsEqual(');
     content = goProvenParamNativeNilCompares (content, 'IsEqual(');
@@ -11113,6 +11120,9 @@ function h2kG08SelfTest (): string[] {
     ok (fields.indexOf ('if (this.Orders == nil) || (this.Positions != nil) || IsEqual(this.ApiKey, nil) || (this.Balance == nil) {') >= 0, 'cache fields only: ' + fields);
     const entry = goBalanceEntryNilCompares ('\tif ccxt.IsEqual(this.Balance[accountType], nil) || !IsEqual(this.Balance[k], nil) || IsEqual(this.Options[k], nil) {\n');
     ok (entry === '\tif (this.Balance[accountType] == nil) || (this.Balance[k] != nil) || IsEqual(this.Options[k], nil) {\n', 'Balance entries compare natively: ' + entry);
+    const folded = f ('\tif IsEqual(this.RateLimit, nil) || (!IsEqual(this.Id, nil) && (this.RateLimit == -1)) {\n\t}\n');
+    ok (folded.indexOf ('if (this.RateLimit == -1) {') >= 0, 'typed RateLimit/Id fields fold: ' + folded);
+    ok (f ('\tif IsEqual(this.ApiKey, nil) || IsEqual(this.Name, nil) {\n\t}\n').indexOf ('IsEqual(this.ApiKey, nil)') >= 0, 'other fields keep the helper');
     ok (h2kG08NativeEquality (typed) === typed, 'second application is a no-op');
     ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
     return problems;
