@@ -3379,9 +3379,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = (if (isOptionMarkPrice) { Value::Str("optionMarket".into()) } else { Value::Str("option".into()) });
-        }  else if is_true(&self.parent.is_linear(marketType.clone(), &[subType.clone()])) {
+        }  else if self.parent.is_linear(marketType.clone(), &[subType.clone()]).as_bool() == Some(true) {
             rawMarketType = Value::Str("linear".into());
-        }  else if is_true(&self.parent.is_inverse(marketType.clone(), &[subType])) {
+        }  else if self.parent.is_inverse(marketType.clone(), &[subType]).as_bool() == Some(true) {
             rawMarketType = Value::Str("inverse".into());
         }  else if (marketType.as_str() == Some("spot")) {
             rawMarketType = marketType.clone();
@@ -4329,9 +4329,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
-            if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
+            if self.parent.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
                 type_var = Value::Str("linear".into());
-            }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType])) {
+            }  else if self.parent.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
         }
@@ -5077,9 +5077,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = marketType;
         if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
-            if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
+            if self.parent.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
                 type_var = Value::Str("linear".into());
-            }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType.clone()])) {
+            }  else if self.parent.is_inverse(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
         }
@@ -5100,9 +5100,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut subType: Value = self.handle_sub_type_and_params(method, &[market, paramsMarketType]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        if is_true(&self.parent.is_linear(type_var.clone(), &[subType.clone()])) {
+        if self.parent.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
             type_var = Value::Str("linear".into());
-        }  else if is_true(&self.parent.is_inverse(type_var.clone(), &[subType])) {
+        }  else if self.parent.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
             type_var = Value::Str("inverse".into());
         }
         return type_var.as_str().map(str::to_owned);

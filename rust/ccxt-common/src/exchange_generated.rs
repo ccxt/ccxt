@@ -3067,10 +3067,8 @@ pub trait ExchangeBase:
                     }
                     let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                     if parseLastTradeTimeTimestamp && (tradeTimestamp != Value::Null) {
-                        if (lastTradeTimeTimestamp == Value::Null) {
-                            lastTradeTimeTimestamp = tradeTimestamp.clone();
-                        }  else {
-                            lastTradeTimeTimestamp = crate::runtime::Math::max(&lastTradeTimeTimestamp, &tradeTimestamp);
+                        if (lastTradeTimeTimestamp == Value::Null) || tradeTimestamp.as_f64().unwrap_or(f64::NAN) > lastTradeTimeTimestamp.as_f64().unwrap_or(f64::NAN) {
+                            lastTradeTimeTimestamp = tradeTimestamp;
                         }
                     }
                     if shouldParseFees {
@@ -8617,25 +8615,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 4, Value::Null);
         let mut removeRepeated = get_arg(optional_args, 5, Value::Bool(true));
-        let mut maxCalls: Value = Value::Int(10);
-        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[maxCalls]).as_array().cloned().unwrap_or_default();
+        let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::Int(10)]).as_array().cloned().unwrap_or_default();
         let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut maxRetries: Value = Value::Int(3);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[maxRetries]).as_array().cloned().unwrap_or_default();
+        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
         let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_and_params(paramsMaxRetries, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
+        let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
+        let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_string_and_params(paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
         let mut paginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paginationTimestamp: Value = Value::Null;
-        let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(paramsPaginationDirection, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
-        let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut result: Value = Value::from(vec![]);
         let mut errors: Value = Value::Int(0);
-        let mut until: Value = self.safe_integer_n(paramsRemoveRepeated.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("untill".into()), Value::Str("till".into())]), &[]); // do not omit it from params here
-        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsRemoveRepeated]).as_array().cloned().unwrap_or_default();
+        let mut until: Value = self.safe_integer_n(paramsPaginationDirection.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("untill".into()), Value::Str("till".into())]), &[]); // do not omit it from params here
+        let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationDirection]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
         if (paginationDirection.as_str() == Some("forward")) {
@@ -8920,9 +8916,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 let mut responseLength: Value = Value::Int(response.len() as i64);
                 if is_true(&self.verbose) {
-                    let mut cursorString: Value = (if (cursorValue == Value::Null) { Value::Str("".into()) } else { cursorValue.clone() });
-                    let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
-                    let mut cursorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cursor pagination call ".into()), Value::Str(format!("{}", iteration).into())).into()),
+                    let mut cursorString: Value = Value::Str("".into());
+                    if (cursorValue != Value::Null) {
+                        cursorString = Value::Str(format!("{}", cursorValue).into());
+                    }
+                    let mut cursorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cursor pagination call ".into()), Value::Str(format!("{}", ((match (&(i),
+                        &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into())).into()),
                         Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()), Value::Str(format!("{}", responseLength).into())).into()), Value::Str(" cursor ".into())).into()), cursorString).into());
                     self.log(cursorMessage);
                 }
@@ -8943,7 +8942,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                             &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                         let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
                         let mut info: Value = self.safe_dict_k(entry, "info", &[]);
-                        cursorValue = (if (cursorReceived == Value::Null) { Value::Null } else { self.safe_value(info, cursorReceived.clone(), &[]) });
+                        if (cursorReceived != Value::Null) {
+                            cursorValue = self.safe_value(info, cursorReceived.clone(), &[]);
+                        }
                     }
                 }
                 }

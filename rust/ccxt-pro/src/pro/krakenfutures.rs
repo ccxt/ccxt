@@ -2295,7 +2295,7 @@ impl KrakenfuturesCore {
             let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            if self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(false) {
+            if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
                 rawSubs.push(market.get("id").cloned().unwrap_or(Value::Null));
             }
         }

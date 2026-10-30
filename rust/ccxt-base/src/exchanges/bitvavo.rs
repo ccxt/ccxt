@@ -1709,25 +1709,16 @@ impl BitvavoCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut subaccountParam: Option<String> = self.safe_string_k_opt(params.clone(), "subaccountId", &[]);
         let mut direction: Value = Value::Null;
         let mut subaccountId: Value = Value::Null;
         if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".into()))));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Value::Str("masterToSub".into());
-            if (subaccountParam.is_none()) {
-                subaccountId = toAccount.clone();
-            }  else {
-                subaccountId = subaccountParam.clone().map(Value::from).unwrap_or(Value::Null);
-            }
+            subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[toAccount.clone()]);
         }  else if (toAccount.as_str() == Some("master")) {
             direction = Value::Str("subToMaster".into());
-            if (subaccountParam.is_none()) {
-                subaccountId = fromAccount;
-            }  else {
-                subaccountId = subaccountParam.map(Value::from).unwrap_or(Value::Null);
-            }
+            subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[fromAccount]);
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".into()))));
         }
