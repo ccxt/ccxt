@@ -8340,7 +8340,7 @@ export default class okx extends Exchange {
         const maxLimit = 100;
         let effectiveLimit = this.parseToInt (100);
         if ((limit !== undefined) && (100 > limit)) {
-            effectiveLimit = limit;
+            effectiveLimit = this.parseToInt (limit);
         }
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
