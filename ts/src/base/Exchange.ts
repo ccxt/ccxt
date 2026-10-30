@@ -8651,7 +8651,7 @@ export class BaseExchange {
         return this.toArray (this.filterByArray (objects, key, values, indexed)) as ADL[];
     }
 
-    createOHLCVObject (symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>> {
+    createOHLCVObject (symbol: string, timeframe: string, data: OHLCV[]): Dictionary<Dictionary<OHLCV[]>> {
         const res: Dict = {};
         res[symbol] = {};
         res[symbol][timeframe] = data;
@@ -8984,7 +8984,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (this.sortCursorPaginatedResult (result), since, limit, (method === 'fetchOHLCV') ? 0 : 'timestamp');
     }
 
-    sortCursorPaginatedResult (result: any) {
+    sortCursorPaginatedResult (result: any[]): any[] {
         const first = this.safeDict (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
@@ -8997,7 +8997,7 @@ export class BaseExchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input: any, fallbackToTimestamp: boolean = true) {
+    removeRepeatedElementsFromArray (input: any[], fallbackToTimestamp: boolean = true): any[] {
         const uniqueDic: Dict = {};
         const uniqueResult: Dict[] = [];
         for (let i = 0; i < input.length; i++) {
