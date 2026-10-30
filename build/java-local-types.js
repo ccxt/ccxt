@@ -2940,6 +2940,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
     if (venue !== undefined) {
         // `x as string` on a String-declared local prints the identity checkcast `((String)x)`
+        if (venue === JAVA_ARRAY_TYPE_MAP () && name === 'handleRouteAndParams') {
+            // async callees take the Dict parameter, so the argument already prints as a Map
+            return { type: venue, skipInheritedAsyncGuard: true };
+        }
         return venue === 'String' ? { type: venue, stringAsCast: true } : { type: venue };
     }
     const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
