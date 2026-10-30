@@ -1147,7 +1147,6 @@ impl BitfinexCore {
                     let mut size: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(delta2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { delta2.clone() });
                     let mut side: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
-                    let mut bookside: Value = get_value(&orderbook, &side);
                     let mut idString: Option<String> = self.safe_string_opt(delta.clone(), Value::Int(0), &[]);
                     let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
                     bookside.store_array(Value::from(vec![price.clone(), size.clone(), idString.map(Value::from).unwrap_or(Value::Null)]));
@@ -1169,7 +1168,6 @@ impl BitfinexCore {
                     let mut size: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltaAmount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltaAmount.clone() });
                     let mut side: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
-                    let mut bookside: Value = get_value(&orderbook, &side);
                     bookside.store_array(Value::from(vec![price.clone(), size.clone(), counter.clone()]));
                 }
                 }
@@ -1186,7 +1184,6 @@ impl BitfinexCore {
                 let mut size: Value = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltas2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltas2.clone() });
                 let mut side: Value = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                 let mut bookside: Value = get_value(&orderbookItem, &side);
-                let mut bookside: Value = get_value(&orderbookItem, &side);
                 // price = 0 means that you have to remove the order from your book
                 let mut amount: Value = (if crate::precise::Precise::stringGt(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { size.clone() } else { Value::Str("0".into()) });
                 let mut idString: Option<String> = self.safe_string_opt(deltas.clone(), Value::Int(0), &[]);
@@ -1197,7 +1194,6 @@ impl BitfinexCore {
                 let mut price: Option<String> = self.safe_string_opt(deltas, Value::Int(0), &[]);
                 let mut size: Value = (if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
                 let mut side: Value = (if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
-                let mut bookside: Value = get_value(&orderbookItem, &side);
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 bookside.store_array(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(size, &[]), self.parse_number(counter.map(Value::from).unwrap_or(Value::Null), &[])]));
             }

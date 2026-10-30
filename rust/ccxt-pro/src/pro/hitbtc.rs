@@ -662,7 +662,6 @@ impl HitbtcCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market]);
             let mut item: Value = get_value(&data, &marketId);
-            let mut item: Value = get_value(&data, &marketId);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbooks::".into()), symbol).into());
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({

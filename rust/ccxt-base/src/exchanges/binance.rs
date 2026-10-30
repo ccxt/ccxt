@@ -15145,7 +15145,6 @@ impl BinanceCore {
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbols.len() as i64) } {
                 let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = get_value(&markets, &symbol);
-                let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     if let Value::Dict(__d) = &mut linearFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15191,7 +15190,6 @@ impl BinanceCore {
                 let mut __for_first_299: bool = true;
                 while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (symbols.len() as i64) } {
                 let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: Value = get_value(&markets, &symbol);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                     if let Value::Dict(__d) = &mut inverseFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({

@@ -11761,7 +11761,6 @@ impl OkxCore {
             let mut __for_first_1027: bool = true;
             while { if !__for_first_1027 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1027 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut feeInfo: Value = get_value(&response, &i);
-            let mut feeInfo: Value = get_value(&response, &i);
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {

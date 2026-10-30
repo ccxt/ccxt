@@ -1457,7 +1457,6 @@ impl BlofinCore {
             let mut channel: Value = channelName.clone();
             if isOHLCV {
                 let mut tfArray: Value = get_value(&symbolsArray, &i);
-                let mut tfArray: Value = get_value(&symbolsArray, &i);
                 let mut tf: Value = get_value(&tfArray, &Value::Int(1));
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
                 channel = Value::Str(format!("{}{}", channel, interval).into());

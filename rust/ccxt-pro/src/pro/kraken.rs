@@ -1666,7 +1666,6 @@ impl KrakenCore {
                 while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
-                let mut bookside: Value = get_value(&orderbook, &key);
                 let mut deltas: Value = self.safe_list(first.clone(), key, &[Value::from(vec![])]);
                 let mut deltasLength: f64 = ((deltas.len() as i64) as f64);
                 if deltasLength > ((0i64) as f64) {

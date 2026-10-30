@@ -690,7 +690,6 @@ impl LunoCore {
             let mut __for_first_491: bool = true;
             while { if !__for_first_491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&orderSide, &i);
-            let mut order: Value = get_value(&orderSide, &i);
             let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
             if (entryId.as_deref() == orderId.as_str()) {
                 let mut price: Value = self.safe_number(order.clone(), Value::Int(0), &[]);

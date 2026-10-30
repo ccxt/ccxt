@@ -754,7 +754,7 @@ impl BittradeCore {
         snapshot.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+        let mut messages: Value = orderbook.book_field("cache");
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_143: bool = true;

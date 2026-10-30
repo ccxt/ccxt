@@ -2259,7 +2259,6 @@ pub trait ExchangeBase:
             while { if !__for_first_84 { i += 1; } __for_first_84 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
-            let mut featureBlock: Value = get_value(&featuresObj, &key);
             if !(self.in_array(key.clone(), Value::from(vec![Value::Str("sandbox".into())])).as_bool() == Some(true)) && (featureBlock != Value::Null) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
                 if !(in_op(&featureBlock, &Value::Str("symbolRequired".into()))) {
@@ -2345,7 +2344,6 @@ pub trait ExchangeBase:
         if !(matches!((&methodsContainer, &methodName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
-        let mut methodDict: Value = get_value(&methodsContainer, &methodName);
         let mut methodDict: Value = get_value(&methodsContainer, &methodName);
         if (methodDict == Value::Null) {
             return defaultValue;
@@ -2831,7 +2829,6 @@ pub trait ExchangeBase:
                     let mut __for_first_89: bool = true;
                     while { if !__for_first_89 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_89 = false; j.as_f64().unwrap_or(f64::NAN) < ((groupedCurrenciesCode.len() as i64) as f64) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
-                    let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     let mut currentPrecision: Value = self.safe_number_k(currentCurrency.clone(), "precision", &[]);
                     let mut highestPrecision: Value = self.safe_number_k(highestPrecisionCurrency.clone(), "precision", &[]);
                     if (currentPrecision == Value::Null) || (highestPrecision == Value::Null) {
@@ -3204,7 +3201,6 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_97: bool = true;
             while { if !__for_first_97 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_97 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut entry: Value = get_value(&trades, &i);
             let mut entry: Value = get_value(&trades, &i);
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); };
             { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); };
@@ -3603,7 +3599,6 @@ pub trait ExchangeBase:
             while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut item: Value = get_value(&obj, &key);
-            let mut item: Value = get_value(&obj, &key);
             if (item == Value::Null) {
                 continue;
             }
@@ -3631,7 +3626,6 @@ pub trait ExchangeBase:
             let mut __for_first_103: bool = true;
             while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
             if matches!(&value, Value::Str(_)) {
                 reversed.insert(crate::runtime::stringify_param(&value), key);
@@ -3703,7 +3697,6 @@ pub trait ExchangeBase:
                         let mut i: Value = Value::Int(0);
             let mut __for_first_104: bool = true;
             while { if !__for_first_104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_104 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&fees).as_f64().unwrap_or(f64::NAN) } {
-            let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut code: Value = self.safe_string_k(fee.clone(), "currency", &[]);
             let mut feeCurrencyCode: Value = (if (code != Value::Null) { code.clone() } else { Value::Str(format!("{}", i).into()) });
@@ -4726,7 +4719,6 @@ pub trait ExchangeBase:
                     let mut __for_first_122: bool = true;
                     while { if !__for_first_122 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_122 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
                     let mut symbol: Value = get_value(&symbolsArray, &i);
-                    let mut symbol: Value = get_value(&symbolsArray, &i);
                     { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); };
                 }
                 }
@@ -5563,7 +5555,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.enableRateLimit) {
+        if self.enableRateLimit.as_bool() == Some(true) {
             let mut cost: Value = self.calculate_rate_limiter_cost(api.clone(), method.clone(), path.clone(), params.clone(), &[config]);
             self.throttle(&[cost]).await;
         }
@@ -5618,7 +5610,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 if is_instance(&e, &Value::Str("OperationFailed".into())) {
                     if i.as_f64().unwrap_or(f64::NAN) < retriesMaxRetriesOnFailure.as_f64().unwrap_or(f64::NAN) {
-                        if is_true(&self.verbose) {
+                        if self.verbose.as_bool() == Some(true) {
                             let mut index: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                             self.log(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Request failed with the error: ".into()), to_string_val(&e)).into()), Value::Str(", retrying ".into())).into()), Value::Str(format!("{}",
                                 index).into())).into()), Value::Str(" of ".into())).into()), Value::Str(format!("{}", retriesMaxRetriesOnFailure).into())).into()), Value::Str("...".into())).into()));
@@ -7185,13 +7177,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return get_value(&markets, &symbol);
         }  else if (marketsById != Value::Null) && (matches!((&marketsById, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut marketsList: Value = get_value(&marketsById, &symbol);
-            let mut marketsList: Value = get_value(&marketsById, &symbol);
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("defaultSubType".into()), &[Value::Str("spot".into())]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_140: bool = true;
                 while { if !__for_first_140 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketsList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut market: Value = get_value(&marketsList, &i);
                 let mut market: Value = get_value(&marketsList, &i);
                 if (self.safe_bool(market.clone(), defaultType.clone(), &[]).as_bool() == Some(true)) {
                     return market;
@@ -7747,7 +7737,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_153: bool = true;
             while { if !__for_first_153 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_153 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
             rates.push(<Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry, &[market.clone()]));
         }
         }
@@ -7789,7 +7778,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_154: bool = true;
             while { if !__for_first_154 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_154 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, entry, &[]);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 fundingRates.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), parsed);
@@ -7817,7 +7805,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_155: bool = true;
             while { if !__for_first_155 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             rates.push(self.parse_long_short_ratio(entry, &[market.clone()]));
         }
@@ -8048,7 +8035,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_156: bool = true;
             while { if !__for_first_156 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_156 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, &[]);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), parsed);
@@ -8069,7 +8055,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_157: bool = true;
             while { if !__for_first_157 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, &[market.clone()]);
             interests.push(interest);
@@ -8356,7 +8341,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_158: bool = true;
             while { if !__for_first_158 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_158 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&responseKeys).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&responseKeys, &i);
-            let mut entry: Value = get_value(&responseKeys, &i);
             let mut dictionary: Value = (if isArray { entry.clone() } else { get_value(&response, &entry) });
             let mut currencyId: Value = entry;
             if isArray {
@@ -8475,7 +8459,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_160: bool = true;
             while { if !__for_first_160 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_160 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&incomes).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&incomes, &i);
             let mut entry: Value = get_value(&incomes, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, entry, &[market.clone()]);
             result.push(parsed);
@@ -8655,7 +8638,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
-                    if is_true(&self.verbose) {
+                    if self.verbose.as_bool() == Some(true) {
                         let mut backwardMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
                             (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()),
                             Value::Str(format!("{}", responseLength).into())).into());
@@ -8684,7 +8667,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     // do it forwards, starting from the since
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
-                    if is_true(&self.verbose) {
+                    if self.verbose.as_bool() == Some(true) {
                         let mut forwardMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
                             (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()),
                             Value::Str(format!("{}", responseLength).into())).into());
@@ -8915,7 +8898,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() returned empty response".into()))));
                 }
                 let mut responseLength: Value = Value::Int(response.len() as i64);
-                if is_true(&self.verbose) {
+                if self.verbose.as_bool() == Some(true) {
                     let mut cursorString: Value = Value::Str("".into());
                     if (cursorValue != Value::Null) {
                         cursorString = Value::Str(format!("{}", cursorValue).into());
@@ -9008,7 +8991,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                 errors = Value::Int(0);
                 let mut responseLength: Value = get_array_length(&response);
-                if is_true(&self.verbose) {
+                if self.verbose.as_bool() == Some(true) {
                     let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                     let mut incrementalMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), Value::Str(format!("{}", iteration).into())).into()), Value::Str(" method ".into())).into()), method).into()),
                         Value::Str(" response length ".into())).into()), Value::Str(format!("{}", responseLength).into())).into());
@@ -9056,7 +9039,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_168 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = (if fallbackToTimestamp.as_bool() == Some(true) { self.safe_string_n(entry.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("timestamp".into()), Value::Int(0)]), &[]) } else { self.safe_string_k(entry.clone(), "id", &[]) });
             if (uniqValue != Value::Null) && !(matches!((&uniqueDic, &uniqValue), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

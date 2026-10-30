@@ -2305,7 +2305,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut __for_first_98: bool = true;
                         while { if !__for_first_98 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_98 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&stored).as_f64().unwrap_or(f64::NAN) } {
                         let mut previousOrder: Value = get_value(&stored, &i);
-                        let mut previousOrder: Value = get_value(&stored, &i);
                         if (self.safe_string_k(previousOrder.clone(), "id", &[]).as_str() == orderId.as_deref()) && (self.safe_string_k(previousOrder.clone(), "symbol", &[]).as_str() == self.safe_string_k(parsedOrder.clone(), "symbol", &[]).as_str()) {
                             let mut previousTimestamp: Value = self.safe_integer_k(previousOrder, "lastUpdateTimestamp", &[]);
                             if (previousTimestamp != Value::Null) && (updateTimestamp.as_f64().unwrap_or(f64::NAN) < previousTimestamp.as_f64().unwrap_or(f64::NAN)) {

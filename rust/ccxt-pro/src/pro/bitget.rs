@@ -961,7 +961,7 @@ impl BitgetCore {
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = self.omit(paramsUta, Value::Str("stock".into()), &[]);
-        let mut isStockSpot: bool = is_true(&isStock) && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true));
+        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true));
         let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1030,7 +1030,7 @@ impl BitgetCore {
         let mut uta: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = self.omit(params, Value::Str("stock".into()), &[]);
-        let mut isStockSpot: bool = is_true(&isStock) && is_true(&market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null));
+        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && is_true(&market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null));
         let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1550,13 +1550,11 @@ impl BitgetCore {
                     while { if !__for_first_115 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_115 = false; i.as_f64().unwrap_or(f64::NAN) < ((25i64) as f64) } {
                     if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                         let mut bidLevel: Value = get_value(&storedBids, &i);
-                        let mut bidLevel: Value = get_value(&storedBids, &i);
                         let mut bidParts: Value = get_value(&bidLevel, &Value::Int(2));
                         payloadArray.push(get_value(&bidParts, &Value::Int(0)));
                         payloadArray.push(get_value(&bidParts, &Value::Int(1)));
                     }
                     if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
-                        let mut askLevel: Value = get_value(&storedAsks, &i);
                         let mut askLevel: Value = get_value(&storedAsks, &i);
                         let mut askParts: Value = get_value(&askLevel, &Value::Int(2));
                         payloadArray.push(get_value(&askParts, &Value::Int(0)));
@@ -1838,7 +1836,6 @@ impl BitgetCore {
             while { if !__for_first_118 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_118 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: Value = get_value(&data, &index);
             let mut rawTrade: Value = get_value(&data, &index);
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[market.clone()]);
             stored.append(parsed);

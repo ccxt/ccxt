@@ -1311,7 +1311,6 @@ impl KrakenfuturesCore {
                     let mut __for_first_444: bool = true;
                     while { if !__for_first_444 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_444 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
                     let mut currentOrder: Value = get_value(&orders, &i);
-                    let mut currentOrder: Value = get_value(&orders, &i);
                     let mut currentOrderId: Value = self.safe_string_k(currentOrder.clone(), "id", &[]);
                     if (currentOrderId == cancelledOrderId) {
                         let __ws_arg_0 = self.safe_dict_k(currentOrder.clone(), "info", &[Value::Map({

@@ -688,12 +688,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             orderbook.reset(snapshot);
-            let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+            let mut messages: Value = orderbook.book_field("cache");
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_697: bool = true;
                 while { if !__for_first_697 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_697 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageItem: Value = get_value(&messages, &i);
                 let mut messageItem: Value = get_value(&messages, &i);
                 let mut ts: Value = self.safe_integer_k(messageItem.clone(), "ts", &[]);
                 if (ts == Value::Null) {

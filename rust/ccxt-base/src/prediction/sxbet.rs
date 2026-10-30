@@ -1151,7 +1151,6 @@ impl SxbetCore {
             let mut __for_first_1495: bool = true;
             while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
-            let mut ch: Value = get_value(&lowerHex, &i);
             let mut digitValue: Value = self.parse_to_int(Value::Int(digits.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
             let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             result = self.parse_to_int(self.sum(&[shifted, digitValue]));

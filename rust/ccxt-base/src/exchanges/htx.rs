@@ -10119,7 +10119,6 @@ impl HtxCore {
                 let mut __for_first_788: bool = true;
                 while { if !__for_first_788 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_788 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&data, &i);
-                let mut entry: Value = get_value(&data, &i);
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "contract_code", &[]);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
                 let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_time", &[]);

@@ -1629,7 +1629,7 @@ impl BinanceCore {
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
             orderbook.reset(snapshot);
             // unroll the accumulated deltas
-            let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+            let mut messages: Value = orderbook.book_field("cache");
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             {
                                 let mut i: Value = Value::Int(0);

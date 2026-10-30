@@ -3280,7 +3280,6 @@ impl BybitCore {
                 let mut __for_first_211: bool = true;
                 while { if !__for_first_211 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_211 = false; i.as_f64().unwrap_or(f64::NAN) < topicsLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut topic: Value = get_value(&topics, &i);
-                let mut topic: Value = get_value(&topics, &i);
                 if !(matches!(&topic, Value::Str(__k) if subscribedTopics.contains_key(__k.as_ref()))) {
                     newTopics.push(topic.clone());
                 }

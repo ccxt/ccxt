@@ -447,7 +447,6 @@ impl ToobitCore {
                 let mut __for_first_647: bool = true;
                 while { if !__for_first_647 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_647 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&message).as_f64().unwrap_or(f64::NAN) } {
                 let mut item: Value = get_value(&message, &i);
-                let mut item: Value = get_value(&message, &i);
                 let mut event: Option<String> = self.safe_string_k_opt(item.clone(), "e", &[]);
                 let mut method2: Value = (if (event.is_none()) { Value::Null } else { self.safe_value(Value::Map(methods.clone()), event.map(Value::from).unwrap_or(Value::Null), &[]) });
                 if (method2 != Value::Null) {
@@ -1689,7 +1688,6 @@ impl ToobitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_659: bool = true;
             while { if !__for_first_659 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawPositions).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition, &[]);
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }

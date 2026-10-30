@@ -996,7 +996,7 @@ impl HtxCore {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-            let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+            let mut messages: Value = orderbook.book_field("cache");
             let mut firstMessage: Value = self.safe_dict(messages.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

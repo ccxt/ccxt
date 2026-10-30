@@ -1452,12 +1452,11 @@ impl BitvavoCore {
         snapshot.set_book_meta("nonce", self.safe_integer_k(response.clone(), "nonce", &[]));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+        let mut messages: Value = orderbook.book_field("cache");
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_157: bool = true;
             while { if !__for_first_157 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-            let mut messageItem: Value = get_value(&messages, &i);
             let mut messageItem: Value = get_value(&messages, &i);
             self.handle_order_book_message(client.clone(), messageItem, orderbook.clone());
         }

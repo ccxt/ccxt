@@ -894,7 +894,6 @@ impl BithumbCore {
         }
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("quantity".into())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
-        let mut orderbookSide: Value = get_value(&orderbook, &side);
         orderbookSide.store_array(bidAsk);
 }
 

@@ -5332,7 +5332,6 @@ if _try_result.is_err() {
                 let mut __for_first_698: bool = true;
                 while { if !__for_first_698 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_698 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&response, &i);
-                let mut entry: Value = get_value(&response, &i);
                 let mut entryName: Value = self.safe_string_k(entry.clone(), "name", &[]);
                 if (entryName == optionMarketId) {
                     ticker = entry;
@@ -5852,7 +5851,6 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_700: bool = true;
             while { if !__for_first_700 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_700 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if isolated {
                 let mut base: Value = self.safe_dict_k(entry.clone(), "base", &[Value::Map({

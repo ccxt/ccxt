@@ -4844,7 +4844,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut key: Value = self.safe_string(paramsKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
             returnString = Value::Str(format!("{}{}", returnString, key).into());
             let mut value: Value = get_value(&object, &key);
-            let mut value: Value = get_value(&object, &key);
             if (value.as_str() == Some("undefined")) {
                 returnString = Value::Str(format!("{}{}", returnString, Value::Str("null".into())).into());
             }  else if (matches!(&value, Value::Arr(_))) {

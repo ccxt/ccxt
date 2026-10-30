@@ -8525,7 +8525,6 @@ impl BingxCore {
             while { if !__for_first_328 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
             let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&sortedParams, &key);
-            let mut value: Value = get_value(&sortedParams, &key);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {

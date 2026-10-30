@@ -1677,7 +1677,6 @@ impl PhemexCore {
                 let mut __for_first_615: bool = true;
                 while { if !__for_first_615 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < messageLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut update: Value = get_value(&message, &i);
-                let mut update: Value = get_value(&message, &i);
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
                     // order + trade info together

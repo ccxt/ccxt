@@ -1291,7 +1291,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) });
         let mut snapshot: Value = self.parse_order_book(Value::Map(orderedEntries), symbol.clone(), &[timestamp]);
         orderbook.reset(snapshot);
-        let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".into()));
+        let mut cachedMessages: Value = orderbook.book_field("cache");
         {
                         let mut j: i64 = 0;
             let mut __for_first_297: bool = true;

@@ -9700,7 +9700,6 @@ impl BybitCore {
             let mut __for_first_516: bool = true;
             while { if !__for_first_516 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_516 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut rawPosition: Value = get_value(&positions, &i);
-            let mut rawPosition: Value = get_value(&positions, &i);
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
                 rawPosition = self.safe_dict_k(rawPosition.clone(), "data", &[]);
@@ -12316,7 +12315,6 @@ impl BybitCore {
             let mut __for_first_522: bool = true;
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entry: Value = get_value(&grouped, &marketId);
             let mut entry: Value = get_value(&grouped, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
