@@ -120,6 +120,7 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'convertCurrencyNetwork': [ 0 ], 'transferBetweenMainAndSubAccount': [ 0 ], 'transferBetweenSubAccounts': [ 0 ],
     'deposit': [ 0, 2 ], 'fetchWithdrawAddresses': [ 0 ],
     'fetchOpenOrder': [ 0 ], 'fetchClosedOrder': [ 0 ],
+    'mergeBalanceAccount': [ 1 ],  // hx11 w9 M517: required code string; callers pass string codes
 };
 
 // hx10w9 GP13: the slice mirror of the string table below. These six ws methods take their
