@@ -2024,6 +2024,7 @@ const VENUE_RETURN_KINDS = {
     'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
     // hx11 w9 M490: nado `parseWsTimestamp (…): Int` returns parseToInt/safeInteger only
     'parseWsTimestamp': [ 'Long' ],
+    'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2124,7 +2125,26 @@ function venueReturnCast (printer, node, method, javaType) {
     if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
         return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
     }
+    // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
+    if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
+        return undefined;
+    }
     return '(' + javaType + ')';
+}
+
+function constMapCallLocal (printer, expression) {
+    if (!ts.isIdentifier (expression)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? unwrapParens (declaration.initializer) : undefined;
+    return init !== undefined && isThisCall (init) && JAVA_MAP_RETURN_METHODS.has (init.expression.name.text)
+        && resolvesToMethodNamed (printer, init, init.expression.name.text);
 }
 
 // `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
