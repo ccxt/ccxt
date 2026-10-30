@@ -23,6 +23,8 @@ test('FromDict is the identity, its siblings are not', () => {
     assert.equal(cp06FromIsIdentity('ccxt.BaseExchange.ToDict'), false);
     assert.equal(cp06FromIsIdentity('ccxt.BaseExchange.FromDictList'), false);
     assert.equal(cp06FromIsIdentity('ccxt.BaseExchange.FromInt64'), true);
+    assert.equal(cp06FromIsIdentity('ccxt.BaseExchange.FromStringValue'), true);
+    assert.equal(cp06FromIsIdentity('ccxt.BaseExchange.FromStringList'), false);
 });
 
 test('FromDict funnel wrap collapses to the bare operand', () => {

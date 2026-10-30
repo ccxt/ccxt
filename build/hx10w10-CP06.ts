@@ -152,6 +152,14 @@ export function cp06FromIsIdentity (helper: string): boolean {
             && (int64Def.params.trim () === 'Int64 value')
             && /^\{\s*return value;\s*\}$/.test (int64Def.body)
     }
+    if (helper === 'ccxt.BaseExchange.FromStringValue') {
+        // `string FromStringValue(string value) { return value; }` -- the awaited Task<string> is already string
+        const strDef = cp06DefinitionIndex ().get ('FromStringValue')
+        return (strDef !== undefined)
+            && (strDef.ret === 'string')
+            && (strDef.params.trim () === 'string value')
+            && /^\{\s*return value;\s*\}$/.test (strDef.body)
+    }
     if (helper !== 'ccxt.BaseExchange.FromDict') {
         return false
     }
@@ -360,6 +368,9 @@ export function cp06SnippetChecks (): string[] {
     }
     if (cp06FromIsIdentity ('ccxt.BaseExchange.ToDict') || cp06FromIsIdentity ('ccxt.BaseExchange.FromDictList')) {
         problems.push ('[CP06] only FromDict is the identity')
+    }
+    if (!cp06FromIsIdentity ('ccxt.BaseExchange.FromStringValue') || cp06FromIsIdentity ('ccxt.BaseExchange.FromStringList')) {
+        problems.push ('[CP06] FromStringValue is the only string identity')
     }
     printf ('snapshot-limit', cp06SnapshotCopyExpression ('(orderbook as IOrderBook).limit()'), '(orderbook as IOrderBook).limit().Copy()')
     printf ('snapshot-bare', cp06SnapshotCopyExpression ('orderbook'), '')
