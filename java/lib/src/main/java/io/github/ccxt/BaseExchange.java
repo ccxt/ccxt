@@ -1112,7 +1112,7 @@ public class BaseExchange {
         return Encode.binaryConcatArray(arrays2);
     }
 
-    public Object exceptionMessage(Object exc, Object includeStackArg) {
+    public String exceptionMessage(Object exc, Object includeStackArg) {
         boolean includeStack = !Boolean.FALSE.equals(includeStackArg);
         if (exc instanceof Throwable t) {
             // Walk the cause chain and include each level's class+message. Without
