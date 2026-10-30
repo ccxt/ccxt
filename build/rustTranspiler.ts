@@ -9247,6 +9247,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
                 rustContent = narrowStrSinkLocals(rustContent);
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
+                rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9998,6 +9999,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r08DictReads(finalFile); // hx10w3 R08
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
+        finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12919,7 +12921,6 @@ impl std::ops::DerefMut for ${coreName} {
     r31Str(content: string): string {
         content = this.x39Affix(content); // hx5 X39
         content = this.nativeLiteralAffixTest(content);
-        content = this.nativeDictKeyRead(content);
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
         const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
