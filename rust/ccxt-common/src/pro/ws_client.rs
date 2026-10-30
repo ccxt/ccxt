@@ -73,6 +73,25 @@ pub struct ClientState {
     mock: Mutex<bool>,
     mock_sent: Mutex<Vec<Value>>,
     ws_test_completed: Mutex<bool>,
+    /// When the exchange's own keep-alive message is next due, see
+    /// `app_ping_wait`.
+    app_ping: Mutex<AppPing>,
+}
+
+/// Schedule of the exchange-level keep-alive: the frame the venue's `ping`
+/// method builds (TS `Client.onPingInterval` sends `this.ping (this)` every
+/// `keepAlive` ms). Some venues close a socket that sends only protocol Pings,
+/// e.g. bitget expects the text `"ping"` and disconnects after ~2 minutes
+/// without it. The frame is built by the exchange drive loop, which owns the
+/// venue, so the connection only tracks when it is due.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum AppPing {
+    /// No watch has asked yet, the first ping is one interval after that.
+    Unarmed,
+    Due(std::time::Instant),
+    /// The venue has no `ping` method: the protocol Ping task alone keeps
+    /// the connection alive.
+    Disabled,
 }
 
 /// One single-flight slot. `settled` stays populated after the flight closes so
@@ -370,6 +389,49 @@ impl ClientState {
 
     pub fn on_pong(&self) {
         *self.last_pong_ms.lock().unwrap() = now_ms();
+    }
+
+    /// Time left until the exchange keep-alive message is due at `now`,
+    /// `Duration::ZERO` once it is, `None` when the venue has none. The first
+    /// call arms the schedule one `keep_alive` interval ahead, like the TS
+    /// `setInterval`.
+    pub fn app_ping_wait(
+        &self,
+        now: std::time::Instant,
+        keep_alive: std::time::Duration,
+    ) -> Option<std::time::Duration> {
+        let mut state = self.app_ping.lock().unwrap();
+        match *state {
+            AppPing::Disabled => None,
+            AppPing::Unarmed => {
+                *state = AppPing::Due(now + keep_alive);
+                Some(keep_alive)
+            }
+            AppPing::Due(at) => Some(at.saturating_duration_since(now)),
+        }
+    }
+
+    /// Claim the keep-alive message due at `now`: `true` re-arms the schedule
+    /// one `keep_alive` interval ahead under the same lock, so two loops
+    /// driving one connection send it at most once per interval.
+    pub fn try_claim_app_ping(&self, now: std::time::Instant, keep_alive: std::time::Duration) -> bool {
+        let mut state = self.app_ping.lock().unwrap();
+        match *state {
+            AppPing::Due(at) if at <= now => {
+                *state = AppPing::Due(now + keep_alive);
+                true
+            }
+            AppPing::Unarmed => {
+                *state = AppPing::Due(now + keep_alive);
+                false
+            }
+            _ => false,
+        }
+    }
+
+    /// The venue builds no keep-alive message, stop asking for one.
+    pub fn disable_app_ping(&self) {
+        *self.app_ping.lock().unwrap() = AppPing::Disabled;
     }
 
     /// Drop resolved/rejected/subscription/future state,
@@ -685,6 +747,7 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
         mock: Mutex::new(false),
         mock_sent: Mutex::new(Vec::new()),
         ws_test_completed: Mutex::new(false),
+        app_ping: Mutex::new(AppPing::Unarmed),
     });
     reg.insert(url.to_string(), state.clone());
     state
@@ -1013,6 +1076,33 @@ mod tests {
         format!("ws://{addr}")
     }
 
+    // The exchange keep-alive schedule mirrors the TS `setInterval`: the
+    // first ping is one interval after the first watch, the next one an
+    // interval after each send, and a venue without `ping` is never asked
+    // again.
+    #[test]
+    fn app_ping_schedule() {
+        let url = "ws://app-ping.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let keep_alive = std::time::Duration::from_secs(30);
+        let t0 = std::time::Instant::now();
+        assert_eq!(client.app_ping_wait(t0, keep_alive), Some(keep_alive));
+        let t1 = t0 + std::time::Duration::from_secs(10);
+        assert_eq!(client.app_ping_wait(t1, keep_alive), Some(std::time::Duration::from_secs(20)));
+        let t2 = t0 + std::time::Duration::from_secs(31);
+        assert_eq!(client.app_ping_wait(t2, keep_alive), Some(std::time::Duration::ZERO));
+        assert!(!client.try_claim_app_ping(t1, keep_alive), "not due yet");
+        assert!(client.try_claim_app_ping(t2, keep_alive));
+        assert!(!client.try_claim_app_ping(t2, keep_alive), "claimed once per interval");
+        assert_eq!(client.app_ping_wait(t2, keep_alive), Some(keep_alive));
+        client.disable_app_ping();
+        assert_eq!(client.app_ping_wait(t2 + keep_alive, keep_alive), None);
+        assert!(!client.try_claim_app_ping(t2 + keep_alive, keep_alive));
+        assert_eq!(client.app_ping_wait(t2 + keep_alive, keep_alive), None);
+        drop_client(url);
+    }
+
     // The transpiled `client.reset(error)` path (`value_reset` →
     // `reset_with_error`): a pending watch hash must observe the error (not
     // hang), a delivered-but-not-taken value must survive the reset, and an
@@ -1176,6 +1266,101 @@ mod tests {
         // First streamed ticker.
         assert_eq!(result, Value::Str("100.5".into()));
         drop_client(&url);
+    }
+
+    // A Core with an optional venue `ping`, for the exchange keep-alive. Its
+    // `handle_message` resolves "ticker" like `TestWsCore`, so a watch returns
+    // once a frame is injected.
+    struct PingCore {
+        exchange: crate::exchange::Exchange,
+        ping: Option<&'static str>,
+    }
+    impl std::ops::Deref for PingCore {
+        type Target = crate::exchange::Exchange;
+        fn deref(&self) -> &Self::Target {
+            &self.exchange
+        }
+    }
+    impl std::ops::DerefMut for PingCore {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.exchange
+        }
+    }
+    impl crate::exchange::DerivedExchange for PingCore {}
+    impl crate::exchange_generated::ExchangeBase for PingCore {
+        fn call_dynamic<'a>(
+            &'a mut self,
+            method: &'a str,
+            args: Vec<Value>,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>> {
+            Box::pin(async move {
+                match (method, self.ping) {
+                    ("ping", Some(frame)) => Value::Str(frame.into()),
+                    ("handle_message", _) => {
+                        let client = args.get(0).cloned().unwrap_or(Value::Null);
+                        let message = args.get(1).cloned().unwrap_or(Value::Null);
+                        let last = crate::get_value(&message, &Value::Str("last".into()));
+                        client.resolve(&[last, Value::Str("ticker".into())]);
+                        Value::Null
+                    }
+                    _ => self.call_dynamic_base(method, args).await,
+                }
+            })
+        }
+    }
+
+    // Watch a mock connection that stays quiet for 180 ms with a 50 ms
+    // `keepAlive`, then return what the drive loop sent.
+    async fn sent_while_quiet(url: &str, ping: Option<&'static str>) -> Vec<Value> {
+        use crate::exchange::ExchangeRuntime;
+        mock_setup(url);
+        let mut core = PingCore { exchange: crate::exchange::Exchange::new(None), ping };
+        let mut streaming = indexmap::IndexMap::new();
+        streaming.insert("keepAlive".to_string(), Value::Int(50));
+        core.exchange.streaming = Value::Map(streaming);
+        let injector = {
+            let url = url.to_string();
+            tokio::spawn(async move {
+                tokio::time::sleep(std::time::Duration::from_millis(180)).await;
+                let mut frame = indexmap::IndexMap::new();
+                frame.insert("last".to_string(), Value::Str("1".into()));
+                mock_inject(&url, Value::Map(frame));
+            })
+        };
+        let result = ExchangeRuntime::watch(
+            &mut core,
+            Value::Str(url.to_string().into()),
+            Value::Str("ticker".into()),
+            &[Value::Str("subscribe".into()), Value::Str("ticker".into()), Value::Null],
+        )
+        .await;
+        injector.await.unwrap();
+        assert_eq!(result, Value::Str("1".into()));
+        mock_sent_messages(url).as_array().cloned().expect("sent messages")
+    }
+
+    // TS `Client.onPingInterval`: the drive loop sends the venue's own ping
+    // every `keepAlive` ms while the stream is quiet.
+    #[tokio::test]
+    async fn drive_loop_sends_the_venue_ping() {
+        let url = "ws://app-ping-drive.test";
+        let sent = sent_while_quiet(url, Some("ping")).await;
+        assert_eq!(sent.first(), Some(&Value::Str("subscribe".into())));
+        let pings = sent.iter().filter(|m| **m == Value::Str("ping".into())).count();
+        assert!((2..=3).contains(&pings), "{sent:?}");
+        drop_client(url);
+    }
+
+    // A venue on the base `ping` stub builds nothing: the loop sends no frame
+    // and stops asking for one on that connection.
+    #[tokio::test]
+    async fn drive_loop_disables_a_venue_without_ping() {
+        let url = "ws://app-ping-none.test";
+        let sent = sent_while_quiet(url, None).await;
+        assert_eq!(sent, vec![Value::Str("subscribe".into())]);
+        let client = get_client(url).expect("mock client");
+        assert_eq!(client.app_ping_wait(std::time::Instant::now(), std::time::Duration::from_millis(50)), None);
+        drop_client(url);
     }
 
     // ── single-flight (client.future / client.reusableFuture) ───────────────
