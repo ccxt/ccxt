@@ -3696,7 +3696,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) map[string]any {
 	var apiGroup string = api[0]
 	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "kalshi"))
+	var baseUrl *string = this.SafeString(baseUrls, apiGroup, this.SafeString(baseUrls, "kalshi", ""))
 	var implodedPath string = this.ImplodeParams(path, params)
 	var url string = *baseUrl + "/" + implodedPath
 	var query any = this.Omit(params, this.ExtractParams(path))

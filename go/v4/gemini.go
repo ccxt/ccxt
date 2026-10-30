@@ -2309,12 +2309,10 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
 	// timeInForce and postOnly are consumed only by non-trigger orders
 	var omitKeys []any = []any{"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"}
-	var optionKeys any = func() any {
-		if triggerPrice == nil {
-			return []any{"timeInForce", "postOnly"}
-		}
-		return []any{}
-	}()
+	var optionKeys []any = []any{}
+	if triggerPrice == nil {
+		optionKeys = []any{"timeInForce", "postOnly"}
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, this.ArrayConcat(omitKeys, optionKeys))
 	if typeValue != nil && *typeValue == "stopLimit" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *typeValue + " orders"))
@@ -2493,11 +2491,11 @@ func (this *Gemini) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp2404 := <-this.PrivatePostV1Mytrades(this.Extend(request, params))
-	if listEp2404.Err != nil {
-		panic(listEp2404.Err)
+	listEp2402 := <-this.PrivatePostV1Mytrades(this.Extend(request, params))
+	if listEp2402.Err != nil {
+		panic(listEp2402.Err)
 	}
-	var response []any = listEp2404.Value
+	var response []any = listEp2402.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -2628,11 +2626,11 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 		request["timestamp"] = since
 	}
 
-	listEp2527 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
-	if listEp2527.Err != nil {
-		panic(listEp2527.Err)
+	listEp2525 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
+	if listEp2525.Err != nil {
+		panic(listEp2525.Err)
 	}
-	var response []any = listEp2527.Value
+	var response []any = listEp2525.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response))}
 	return nil
@@ -2801,11 +2799,11 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		"network": networkId,
 	}
 
-	listEp2688 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
-	if listEp2688.Err != nil {
-		panic(listEp2688.Err)
+	listEp2686 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
+	if listEp2686.Err != nil {
+		panic(listEp2686.Err)
 	}
-	var response []any = listEp2688.Value
+	var response []any = listEp2686.Value
 	var results []any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,
@@ -2826,7 +2824,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 	var apiName string = api[0]
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		if strings.Index(this.ApiKey, "account") < 0 {
@@ -2859,12 +2857,6 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	var headersResolved any = func() any {
-		if apiName == "private" {
-			return headersSigned
-		}
-		return nil
-	}()
 	var bodyResolved *string = nil
 	if (method == "POST") || (method == "DELETE") {
 		jsonText := this.Json(query)
@@ -2874,7 +2866,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 		"url":     fullUrl,
 		"method":  method,
 		"body":    bodyResolved,
-		"headers": headersResolved,
+		"headers": headersSigned,
 	}
 }
 func (this *Gemini) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

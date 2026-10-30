@@ -670,7 +670,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
 	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
 	var paramsStock map[string]any = this.OmitDict(paramsUta, "stock")
-	var isStockSpot bool = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || (uta == true))
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
@@ -1134,7 +1134,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	if symbolsLength > 0 {
 		var market map[string]any = this.Market(symbolsNormalized[0])
 		var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
-		isStockSpot = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
+		isStockSpot = (isStock != nil && *isStock) && (market["spot"] == true)
 	}
 	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false)

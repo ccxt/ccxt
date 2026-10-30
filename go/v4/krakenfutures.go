@@ -3140,12 +3140,10 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
+	}
 	// todo: lastFillTime: this.iso8601(end)
 
 	r1 := <-this.PrivateGetFills(params)
@@ -3658,7 +3656,7 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 			typeVar = symbol
 		}
 	}
-	var accountName any = this.ParseKrakenAccountName(typeVar)
+	var accountName any = this.ParseKrakenAccountName(*typeVar)
 	var accounts map[string]any = SafeMapTyped(response, "accounts")
 	var account map[string]any = SafeMapTyped(accounts, accountName)
 	if account == nil {
@@ -4467,7 +4465,7 @@ func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) Tran
 		"status":      this.SafeString(transfer, "result"),
 	})
 }
-func (this *Krakenfutures) ParseKrakenAccountName(account any) any {
+func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
 	var accountByType map[string]any = map[string]any{
 		"main":                         "cash",
 		"funding":                      "cash",
@@ -4478,8 +4476,8 @@ func (this *Krakenfutures) ParseKrakenAccountName(account any) any {
 		"multiCollateral":              "flex",
 		"multiCollateralMargin":        "flex",
 	}
-	if InOp(accountByType, account) {
-		return GetValue(accountByType, account)
+	if _, ok := accountByType[account]; ok {
+		return accountByType[account]
 	} else if (this.Markets() != nil) && (InOp(this.Markets(), account)) {
 		var market map[string]any = this.Market(account)
 		var marketId *string = this.SafeString(market, "id", "")

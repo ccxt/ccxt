@@ -11146,9 +11146,9 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var maxLimit int = 100
-	var effectiveLimit any = this.ParseToInt(100)
+	var effectiveLimit int64 = this.ParseToInt(100)
 	if (limit != nil) && (100 > *limit) {
-		effectiveLimit = limit
+		effectiveLimit = this.ParseToInt(limit)
 	}
 	if limit != nil {
 		request["limit"] = effectiveLimit
@@ -11178,10 +11178,10 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 			// all entries in it are requested and the caller keeps the earliest limit of them
 			var months int64 = this.ParseToInt(Slice(unitPeriod, 0, int64(-1)))
 			var day int = 86400000
-			windowDuration = mathMin(Multiply(Multiply(Multiply(effectiveLimit, months), 31), day), (int64(maxLimit)*months)*28*int64(day))
+			windowDuration = mathMin((effectiveLimit*months)*31*int64(day), (int64(maxLimit)*months)*28*int64(day))
 			request["limit"] = maxLimit
 		} else {
-			windowDuration = Multiply(Multiply(effectiveLimit, this.ParseTimeframe(ToLower(unitPeriod))), 1000)
+			windowDuration = effectiveLimit * this.ParseTimeframe(ToLower(unitPeriod)) * 1000
 		}
 		var windowEnd any = this.Sum(since, windowDuration)
 		end = func() any {
