@@ -8331,8 +8331,8 @@ function nonNullSliceReceiver (csharp, scope, before, ident, depth) {
 
 function nonNullSliceValue (csharp, scope, before, node, depth) {
     const current = stripParens (node);
-    if (isStringLiteral (current)) {
-        return true;
+    if (isStringLiteral (current) || nonNullStringDefaultCall (csharp, current, undefined)) {
+        return true; // a literal or `this.safeString (x, k, '<literal>')`: never null
     }
     if (current.kind === ts.SyntaxKind.BinaryExpression) {
         return current.operatorToken.kind === ts.SyntaxKind.PlusToken && nonNullSliceValue (csharp, scope, before, current.left, depth + 1);
