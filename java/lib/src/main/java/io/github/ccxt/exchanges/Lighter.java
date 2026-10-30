@@ -745,7 +745,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object createAuth(Map<String, Object> parameters)
+    public String createAuth(Map<String, Object> parameters)
     {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         String apiKeyIndex = this.safeString2(parameters, "apiKeyIndex", "api_key_index");
@@ -774,7 +774,7 @@ public class Lighter extends LighterApi
         request.put("deadline", deadline);
         request.put("api_key_index", this.parseToInt(apiKeyIndex));
         request.put("account_index", this.parseToInt(accountIndex));
-        Object token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, "signer"), request);
+        String token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, "signer"), request);
         this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), new HashMap<String, Object>() {{
             put( "deadline", deadline );
             put( "token", token );

@@ -856,7 +856,7 @@ public class Cryptocom extends CryptocomApi
                 response = (this.v1PrivatePostPrivateGetCurrencyNetworks(paramsSkipFetchCurrencies)).join();
             } catch(Exception e)
             {
-                Object erString = this.exceptionMessage(e, true);
+                String erString = this.exceptionMessage(e, true);
                 if (((String)erString).indexOf("SYS_ERROR") >= 0)
                 {
                     // sub-accounts can't access this endpoint

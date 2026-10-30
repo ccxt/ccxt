@@ -2274,7 +2274,7 @@ public class Grvt extends GrvtApi
                 response = (this.privateTradingPostFullV1Transfer(this.extend(this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency, (String) null), paramsFundingAccountId))).join();
             } catch(Exception error)
             {
-                Object msg = this.exceptionMessage(error, true);
+                String msg = this.exceptionMessage(error, true);
                 Boolean isFromFundingAccount = java.util.Objects.equals(fromSubAccount, "funding");
                 if (Boolean.TRUE.equals(isFromFundingAccount) && (((String)msg).indexOf("You are not authorized") >= 0))
                 {

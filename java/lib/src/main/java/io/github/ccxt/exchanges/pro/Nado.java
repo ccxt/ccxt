@@ -1580,7 +1580,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public Object parseWsTimestamp(Map<String, Object> message, String key)
+    public Long parseWsTimestamp(Map<String, Object> message, String key)
     {
         String value = this.safeString(message, key);
         if (java.util.Objects.equals(value, null))
@@ -1612,7 +1612,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.parseWsTimestamp(trade, "timestamp");
+        Long timestamp = this.parseWsTimestamp(trade, "timestamp");
         Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
@@ -1659,7 +1659,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.parseWsTimestamp(trade, "timestamp");
+        Long timestamp = this.parseWsTimestamp(trade, "timestamp");
         Boolean isBid = (Boolean) this.safeBool(trade, "is_bid", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isBid, null))
@@ -1672,7 +1672,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
-        Object feeCost = this.parseX18(this.safeString(trade, "fee"));
+        Double feeCost = this.parseX18(this.safeString(trade, "fee"));
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -1790,7 +1790,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         String marketId = this.safeString(order, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.parseWsTimestamp(order, "timestamp");
+        Long timestamp = this.parseWsTimestamp(order, "timestamp");
         String id = this.safeString(order, "digest");
         String amountString = this.safeString(order, "amount");
         Object remaining = null;
@@ -1798,8 +1798,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             remaining = this.parseX18((String) (amountString));
         }
-        Object filled = this.parseX18(this.safeString(order, "filled_qty"));
-        Object average = this.parseX18(this.safeString(order, "filled_price"));
+        Double filled = this.parseX18(this.safeString(order, "filled_qty"));
+        Double average = this.parseX18(this.safeString(order, "filled_price"));
         String reason = this.safeString(order, "reason");
         String status = null;
         if (java.util.Objects.equals(reason, "placed"))
@@ -1873,7 +1873,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         String marketId = this.safeString(position, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.parseWsTimestamp(position, "timestamp");
+        Long timestamp = this.parseWsTimestamp(position, "timestamp");
         String amountString = this.safeString(position, "amount");
         String vQuoteAmount = this.safeString(position, "v_quote_amount");
         String side = null;
@@ -1969,7 +1969,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         String marketId = this.safeString(bidask, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.parseWsTimestamp(bidask, "timestamp");
+        Long timestamp = this.parseWsTimestamp(bidask, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
@@ -2115,7 +2115,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-        Object timestamp = this.parseWsTimestamp(message, "max_timestamp");
+        Long timestamp = this.parseWsTimestamp(message, "max_timestamp");
         ((Map<String, Object>)orderbook).put("symbol", symbol);
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));

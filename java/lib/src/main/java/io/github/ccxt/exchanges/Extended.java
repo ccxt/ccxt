@@ -3047,8 +3047,8 @@ public class Extended extends ExtendedApi
         settlement.put("salt", nonce);
         Object msgHash = this.getExtendedOrderMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
-        Object r = this.getExtendedSignatureHex(this.safeString(sig, 0));
-        Object s = this.getExtendedSignatureHex(this.safeString(sig, 1));
+        String r = this.getExtendedSignatureHex(this.safeString(sig, 0, "0"));
+        String s = this.getExtendedSignatureHex(this.safeString(sig, 1, "0"));
         settlement.put("r", r);
         settlement.put("s", s);
         return settlement;
@@ -3082,8 +3082,8 @@ public class Extended extends ExtendedApi
         Object msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
-    put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0)) );
-    put( "s", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 1)) );
+    put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0, "0")) );
+    put( "s", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 1, "0")) );
 }});
         return settlement;
     }
@@ -3115,8 +3115,8 @@ public class Extended extends ExtendedApi
         Object msgHash = this.getExtendedTransferMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
-    put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0)) );
-    put( "s", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 1)) );
+    put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0, "0")) );
+    put( "s", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 1, "0")) );
 }});
         return settlement;
     }
@@ -4085,16 +4085,9 @@ public class Extended extends ExtendedApi
         return value;
     }
 
-    public Object getExtendedDecimalToBase16(Object value)
+    public Object getExtendedDecimalToBase16(String value)
     {
-        Object decimalString = "";
-        if ((value instanceof String))
-        {
-            decimalString = value;
-        } else
-        {
-            decimalString = this.numberToString(value);
-        }
+        String decimalString = value;
         List<String> hexChars = new ArrayList<String>(Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
         Object result = "";
         while (Precise.stringGt(decimalString, "0"))
@@ -4111,22 +4104,13 @@ public class Extended extends ExtendedApi
         return result;
     }
 
-    public Object getExtendedSignatureHex(Object signature)
+    public String getExtendedSignatureHex(String signature)
     {
-        if ((signature instanceof String))
+        if ((((String)signature).indexOf("0x") == 0))
         {
-            if ((((String)signature).indexOf("0x") == 0))
-            {
-                return signature;
-            }
-            return ("0x" + this.getExtendedDecimalToBase16(signature));
+            return signature;
         }
-        String signatureString = this.numberToString(signature);
-        if ((((String)signatureString).indexOf("0x") == 0))
-        {
-            return signatureString;
-        }
-        return ("0x" + this.getExtendedDecimalToBase16(signatureString));
+        return ("0x" + this.getExtendedDecimalToBase16(signature));
     }
 
     public Object getExtendedDomainHash()

@@ -1445,7 +1445,7 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object rate = this.safeValue(data, i);
+                Map<String, Object> rate = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Long timestamp = this.safeInteger(rate, "fundingTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );

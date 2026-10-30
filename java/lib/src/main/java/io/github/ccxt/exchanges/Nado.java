@@ -2028,9 +2028,9 @@ public class Nado extends NadoApi
                 }
                 String tradingStatus = this.safeString(market, "trading_status");
                 Boolean active = (!java.util.Objects.equals(tradingStatus, "not_tradable"));
-                Object priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
-                Object amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
-                Object minCost = this.parseX18(this.safeString(market, "min_size"));
+                Double priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
+                Double amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
+                Double minCost = this.parseX18(this.safeString(market, "min_size"));
                 ((List<Object>)markets).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                     j39v2.put("id", id);
                     j39v2.put("lowercaseId", null);
@@ -3053,7 +3053,7 @@ public class Nado extends NadoApi
         Map<String, Object> postSpotBalance = (Map<String, Object>) this.safeDict(postSpot, "balance", new HashMap<String, Object>() {{}});
         String preAmount = this.safeString(preSpotBalance, "amount", "0");
         String postAmount = this.safeString(postSpotBalance, "amount", "0");
-        Object amount = this.parseX18(Precise.stringAbs(Precise.stringSub(postAmount, preAmount)));
+        Double amount = this.parseX18(Precise.stringAbs(Precise.stringSub(postAmount, preAmount)));
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Nado.this.safeString(transaction, "submission_idx") );
@@ -3290,7 +3290,7 @@ public class Nado extends NadoApi
                     status = "closed";
                 }
             }
-            Object feeCost = this.parseX18(this.safeString(order, "fee"));
+            Double feeCost = this.parseX18(this.safeString(order, "fee"));
             if (!java.util.Objects.equals(feeCost, null))
             {
                 {
@@ -3411,7 +3411,7 @@ public class Nado extends NadoApi
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
 
-    public Object parseX18(String value)
+    public Double parseX18(String value)
     {
         if (java.util.Objects.equals(value, null))
         {
