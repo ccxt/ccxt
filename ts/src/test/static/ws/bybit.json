@@ -3,6 +3,103 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchLiquidations": [
+            {
+                "description": "linear swap liquidations: S is the side of the liquidated position, side is the side of the liquidation order",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "d9tc9d83r8h4ejgu2cu0-ctw7",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "allLiquidation.BTCUSDT",
+                        "type": "snapshot",
+                        "ts": 1793086534062,
+                        "data": [
+                            {
+                                "T": 1793086533715,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.150",
+                                "p": "79210.40"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "allLiquidation.BTCUSDT",
+                        "type": "snapshot",
+                        "ts": 1793086616562,
+                        "data": [
+                            {
+                                "T": 1793086616174,
+                                "s": "BTCUSDT",
+                                "S": "Sell",
+                                "v": "0.042",
+                                "p": "80655.10"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "allLiquidation.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "T": 1793086533715,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.150",
+                                "p": "79210.40"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "contracts": 0.15,
+                            "contractSize": null,
+                            "price": 79210.4,
+                            "side": "sell",
+                            "baseValue": null,
+                            "quoteValue": null,
+                            "timestamp": 1793086533715,
+                            "datetime": "2026-10-27T07:35:33.715Z"
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "T": 1793086616174,
+                                "s": "BTCUSDT",
+                                "S": "Sell",
+                                "v": "0.042",
+                                "p": "80655.10"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "contracts": 0.042,
+                            "contractSize": null,
+                            "price": 80655.1,
+                            "side": "buy",
+                            "baseValue": null,
+                            "quoteValue": null,
+                            "timestamp": 1793086616174,
+                            "datetime": "2026-10-27T07:36:56.174Z"
+                        }
+                    ]
+                ]
+            }
+        ],
         "watchBidsAsks": [
             {
                 "description": "spot bids asks",
