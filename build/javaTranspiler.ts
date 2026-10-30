@@ -43,6 +43,7 @@ import { installHx10J04StringHelpers } from './hx10w2-J04.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
+import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
@@ -2450,6 +2451,7 @@ class NewTranspiler {
         installJ10Types(this.transpiler); // hx4 J10
         installJ11MapLocals(this.transpiler); // hx4 J11
         installJ12ParamTypes(this.transpiler); // hx4 J12
+        installJavaMapArgAlreadyTyped(this.transpiler); // hx11 r43
         installJ13ListLocals(this.transpiler); // hx4 J13
         installJ14ScalarLocals(this.transpiler); // hx4 J14
         installJ15J12PreScan(this.transpiler); // hx4 J15

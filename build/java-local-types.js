@@ -17919,6 +17919,36 @@ function j12SlotArgumentDeclared (printer, arg, type) {
     }
 }
 
+// ===== hx11 w8-r43: an identifier already declared `Map<String, Object>` passes bare into a Map slot =====
+// The call-argument checkcast `(Map<String, Object>) (request)` exists because generated locals are
+// Object; once the local prints its own Map declaration (base-setlastrequest-request-dict retyped
+// setLastRequest to Dict) the cast is a no-op. Identifier arguments only, exact declared-type match.
+const MAP_SLOT_TYPE = 'Map<String,Object>';
+
+export function installJavaMapArgAlreadyTyped (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeArgumentAlreadyTyped !== 'function' || printer._javaMapArgTypedPatched) {
+        return;
+    }
+    printer._javaMapArgTypedPatched = true;
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (upstreamTyped (arg, type)) {
+            return true;
+        }
+        if (String (type).replace (/java\.util\./g, '').replace (/\s/g, '') !== MAP_SLOT_TYPE
+            || arg === undefined || !ts.isIdentifier (arg) || printer.printNode (arg, 0) !== arg.text) {
+            return false;
+        }
+        try {
+            const declared = String (printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').replace (/java\.util\./g, '').replace (/\s/g, '');
+            return declared === MAP_SLOT_TYPE;
+        } catch (e) {
+            return false;
+        }
+    };
+}
+
 // ===== hx4 J13: Object locals that only ever hold a List print java.util.List<Object> =====
 // Init and every write are proven lists (literal, base safeList* with a list default, Object.keys, collection
 // helpers, sync List<Object> cores, fresh-list methods); published so length/element reads see a declared List.
