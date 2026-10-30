@@ -77,7 +77,32 @@ export default class toobit extends toobitRest {
         };
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleListMessage (client: Client, message: List) {
+        // private streams
+        const methods: Dict = {
+            'trade': this.handleTrades,
+            'kline': this.handleOHLCV,
+            'realtimes': this.handleTickers,
+            'depth': this.handleOrderBookPartialSnapshot,
+            'diffDepth': this.handleOrderBook,
+            'outboundAccountInfo': this.handleBalance,
+            'outboundContractAccountInfo': this.handleBalance,
+            'executionReport': this.handleOrder,
+            'contractExecutionReport': this.handleOrder,
+            'ticketInfo': this.handleMyTrade,
+            'outboundContractPositionInfo': this.handlePositions,
+        };
+        for (let i = 0; i < message.length; i++) {
+            const item = message[i];
+            const event = this.safeString (item, 'e');
+            const method = (event === undefined) ? undefined : this.safeValue (methods, event);
+            if (method !== undefined) {
+                method.call (this, client, item);
+            }
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         //
         // public
         //
@@ -141,19 +166,9 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
+        const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
-        } else {
-            // check private streams
-            for (let i = 0; i < message.length; i++) {
-                const item = message[i];
-                const event = this.safeString (item, 'e');
-                const method2 = (event === undefined) ? undefined : this.safeValue (methods, event);
-                if (method2 !== undefined) {
-                    method2.call (this, client, item);
-                }
-            }
         }
     }
 

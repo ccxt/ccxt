@@ -2226,19 +2226,19 @@ export default class mexc extends mexcRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (typeof message === 'string') {
-            if (message === 'Invalid listen key') {
-                const error = new AuthenticationError (this.id + ' invalid listen key');
-                client.reject (error);
-                return;
-            }
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'Invalid listen key') {
+            const error = new AuthenticationError (this.id + ' invalid listen key');
+            client.reject (error);
         }
-        if (this.isBinaryMessage (message)) {
-            const decodedMessage = this.decodeProtoMsg (message);
-            this.handleProtobufMessage (client, decodedMessage);
-            return;
-        }
+    }
+
+    override handleBinaryMessage (client: Client, message: unknown) {
+        const decodedMessage = this.decodeProtoMsg (message);
+        this.handleProtobufMessage (client, decodedMessage);
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         if ('msg' in message) {
             this.handleSubscriptionStatus (client, message);
             return;

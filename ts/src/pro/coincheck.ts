@@ -202,7 +202,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: any[]) {
+    override handleListMessage (client: Client, message: List) {
         const data = this.safeList (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

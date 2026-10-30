@@ -1781,7 +1781,7 @@ export default class backpack extends backpackRest {
         });
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }

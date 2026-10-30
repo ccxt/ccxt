@@ -804,7 +804,7 @@ export default class bullish extends bullishRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result');
         if (result !== undefined) {

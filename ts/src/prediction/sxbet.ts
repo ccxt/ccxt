@@ -2213,21 +2213,21 @@ export default class sxbet extends Exchange {
         return await this.watch (url, messageHash, subscribeMsg, channel);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        const lines = message.split ('\n');
+        const linesLength = lines.length;
+        for (let i = 0; i < linesLength; i++) {
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse (line);
+                this.handleCentrifugoFrame (client, parsed);
+            }
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split ('\n');
-            const linesLength = lines.length;
-            for (let i = 0; i < linesLength; i++) {
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse (line);
-                    this.handleCentrifugoFrame (client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame (client, message);
     }
 

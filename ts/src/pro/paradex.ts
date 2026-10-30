@@ -1545,15 +1545,20 @@ export default class paradex extends paradexRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: any) {
-        let parsedMessage: Dict = message;
-        if (this.isBinaryMessage (message)) {
-            parsedMessage = this.parseSbeMessage (message);
-            if (parsedMessage === undefined) {
-                return;
-            }
+    override handleBinaryMessage (client: Client, message: unknown) {
+        const parsedMessage: Dict = this.parseSbeMessage (message);
+        if (parsedMessage === undefined) {
+            return;
         }
-        if (this.handleErrorMessage (client, parsedMessage) !== true) {
+        this.handleStreamMessage (client, parsedMessage);
+    }
+
+    override handleMessage (client: Client, message: Dict) {
+        this.handleStreamMessage (client, message);
+    }
+
+    handleStreamMessage (client: Client, message: Dict) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //
@@ -1584,12 +1589,12 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const result = this.safeDict (parsedMessage, 'result');
+        const result = this.safeDict (message, 'result');
         if (result !== undefined) {
-            this.handleRequestReply (client, parsedMessage);
+            this.handleAuthenticationMessage (client, message);
             return;
         }
-        const data = this.safeDict (parsedMessage, 'params');
+        const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
             const parts = (channel as string).split ('.');
@@ -1606,7 +1611,7 @@ export default class paradex extends paradexRest {
             };
             const method = this.safeValue (methods, name);
             if (method !== undefined) {
-                method.call (this, client, parsedMessage);
+                method.call (this, client, message);
             }
         }
     }

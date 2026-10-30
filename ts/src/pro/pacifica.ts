@@ -1481,7 +1481,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // {
         //     "channel":"subscribe",

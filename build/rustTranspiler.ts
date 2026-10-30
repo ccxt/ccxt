@@ -8312,7 +8312,7 @@ ${isBase
     /// `call_dynamic_base` default (base exchange). This replaces the old
     /// inherent `call_dynamic` + the `bind()`/pointer trampoline — dispatch is
     /// now a static trait method (review #1).
-    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false): string {
+    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false, frameHandlers: string[] = []): string {
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds, isVoid } of sigs) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
@@ -8336,6 +8336,11 @@ ${isBase
         // `dispatch_to_derived("handle_message", …)`, so add a void-wrapping arm.
         if (hasHandleMessage) {
             arms.push(`                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },`);
+        }
+        // the frame-shape handlers the base `routeMessage` splits a frame into (text, json array,
+        // raw bytes) are void sync methods too, reached by name from the same drive loop
+        for (const frameHandler of frameHandlers) {
+            arms.push(`                "${frameHandler}" => { self.${frameHandler}(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },`);
         }
         arms.sort();
         const fallthrough = parentCore
@@ -8984,7 +8989,9 @@ ${proImport}${predImport}`;
         const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs, parentCore);
         // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
         const hasHandleMessage = /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
-        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage);
+        const frameHandlers = [ 'handle_text_message', 'handle_list_message', 'handle_binary_message' ]
+            .filter((name) => content.includes('fn ' + name + '('));
+        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage, frameHandlers);
         // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
         // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
         // emitting it there would be dead code (and needless churn).
@@ -9247,6 +9254,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
                 rustContent = narrowStrSinkLocals(rustContent);
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
+                rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -13226,6 +13234,24 @@ impl std::ops::DerefMut for ${coreName} {
             at = r.end;
         }
         return out + content.slice(at);
+    }
+
+    // The printed integer read of a typed-dict handler argument is one three-arm `match`; when its
+    // line passes 400 chars, put each arm on its own line.
+    splitLongIntegerRead(content: string): string {
+        const head = /^(\s*)(let mut \w+: Value = )\(match (__pro_\w+\.get\("[^"]*"\)\.cloned\(\)) \{ (Some\(Value::Int\(__n\)\) => Value::Int\(__n\)), (Some\(Value::Float\(__f\)\) => Value::Int\(__f as i64\)), (Some\(Value::Str\(__s\)\) if .*)$/;
+        return content.split('\n').map((line) => {
+            if (line.length <= 400 || !line.endsWith(' });')) return line;
+            const m = head.exec(line);
+            if (m === null) return line;
+            const [ , indent, decl, recv, intArm, floatArm, rest ] = m;
+            const cut = rest.lastIndexOf(', _ => ');
+            if (cut < 0) return line;
+            const strArm = rest.slice(0, cut);
+            const fallback = rest.slice(cut + 2, rest.length - ' });'.length);
+            const pad = indent + '    ';
+            return [ `${indent}${decl}(match ${recv} {`, `${pad}${intArm},`, `${pad}${floatArm},`, `${pad}${strArm},`, `${pad}${fallback}`, `${indent}});` ].join('\n');
+        }).join('\n');
     }
 
     // hx5 X46 — `for (let i = 0; ...; i++)` over a `Value` counter. The ast

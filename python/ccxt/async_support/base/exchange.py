@@ -434,7 +434,7 @@ class BaseExchange(SyncExchange):
         self.clients = self.clients or {}
         self.ws_dial_backoff = getattr(self, 'ws_dial_backoff', None) or {}
         if url not in self.clients:
-            on_message = self.handle_message
+            on_message = self.route_message
             on_error = self.on_error
             on_close = self.on_close
             on_connected = self.on_connected
@@ -462,6 +462,26 @@ class BaseExchange(SyncExchange):
 
     def handle_message(self, client, message):
         raise NotSupported(self.id + '.handle_message() not implemented yet')
+
+    # a venue overrides the handler that takes the frame shape it receives, see route_message
+    def handle_text_message(self, client, message):
+        pass
+
+    def handle_list_message(self, client, message):
+        pass
+
+    def handle_binary_message(self, client, message):
+        pass
+
+    def route_message(self, client, message):
+        # hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
+        if isinstance(message, str):
+            return self.handle_text_message(client, message)
+        if isinstance(message, list):
+            return self.handle_list_message(client, message)
+        if isinstance(message, (bytes, bytearray)):
+            return self.handle_binary_message(client, message)
+        return self.handle_message(client, message)
 
     def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context

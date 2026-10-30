@@ -2664,7 +2664,13 @@ export default class okx extends okxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
@@ -2707,12 +2713,6 @@ export default class okx extends okxRest {
         //
         //
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong (client, message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         const event = this.safeString2 (message, 'event', 'op');

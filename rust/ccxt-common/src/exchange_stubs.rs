@@ -68,7 +68,7 @@ pub(crate) fn bytes_to_value(bytes: &[u8]) -> Value {
 
 /// True when `v` is a `Value::Array` whose elements are all integer
 /// byte values (0..=255) — the port's stand-in for a binary buffer.
-fn is_byte_array(v: &Value) -> bool {
+pub(crate) fn is_byte_array(v: &Value) -> bool {
     match v {
         Value::Arr(a) => a
             .iter()

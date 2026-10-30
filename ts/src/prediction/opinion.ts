@@ -1697,7 +1697,7 @@ export default class opinion extends Exchange {
         return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
         const msgType = this.safeString (message, 'msgType');

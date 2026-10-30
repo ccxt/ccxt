@@ -43,9 +43,33 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
+    // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json
+    // object. A venue declares only the handlers for the shapes it receives (no typed stubs here: the
+    // prediction venues use their own Client class), a frame it declares no handler for is dropped
+    public function route_message($client, $message) {
+        if (is_string($message)) {
+            // a binary frame arrives as a string that is not printable text
+            if ($this->is_binary_message($message) && method_exists($this, 'handle_binary_message')) {
+                return $this->handle_binary_message($client, $message);
+            }
+            if (method_exists($this, 'handle_text_message')) {
+                return $this->handle_text_message($client, $message);
+            }
+            return null;
+        }
+        // an empty json object decodes to the empty array, which stays a dict frame
+        if (is_array($message) && $message !== array() && array_is_list($message)) {
+            if (method_exists($this, 'handle_list_message')) {
+                return $this->handle_list_message($client, $message);
+            }
+            return null;
+        }
+        return $this->handle_message($client, $message);
+    }
+
     public function client($url) : Client {
         if (!array_key_exists($url, $this->clients)) {
-            $on_message = array($this, 'handle_message');
+            $on_message = array($this, 'route_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
             $on_connected = array($this, 'on_connected');

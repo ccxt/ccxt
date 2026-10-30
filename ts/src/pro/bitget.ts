@@ -2814,7 +2814,13 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         //
         //   {
         //       "action": "snapshot",
@@ -2895,12 +2901,6 @@ export default class bitget extends bitgetRest {
         //         }
         //     }
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong (client, message);
-            }
-            return;
-        }
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }

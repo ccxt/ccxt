@@ -163,7 +163,7 @@ export default class mudrex extends mudrexRest {
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }

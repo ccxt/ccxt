@@ -3,7 +3,7 @@
 
 import hashkeyRest from '../hashkey.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { List, Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -910,28 +910,32 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
-        let messageInner = message;
-        if (Array.isArray (message)) {
-            messageInner = this.safeDict (message, 0, {});
-        }
-        const topic = this.safeString2 (messageInner, 'topic', 'e');
+    override handleListMessage (client: Client, message: List) {
+        this.handleStreamMessage (client, this.safeDict (message, 0, {}));
+    }
+
+    override handleMessage (client: Client, message: Dict) {
+        this.handleStreamMessage (client, message);
+    }
+
+    handleStreamMessage (client: Client, message: Dict) {
+        const topic = this.safeString2 (message, 'topic', 'e');
         if (topic === 'kline') {
-            this.handleOHLCV (client, messageInner);
+            this.handleOHLCV (client, message);
         } else if (topic === 'realtimes') {
-            this.handleTicker (client, messageInner);
+            this.handleTicker (client, message);
         } else if (topic === 'trade') {
-            this.handleTrades (client, messageInner);
+            this.handleTrades (client, message);
         } else if (topic === 'depth') {
-            this.handleOrderBook (client, messageInner);
+            this.handleOrderBook (client, message);
         } else if ((topic === 'contractExecutionReport') || (topic === 'executionReport')) {
-            this.handleOrder (client, messageInner);
+            this.handleOrder (client, message);
         } else if (topic === 'ticketInfo') {
-            this.handleMyTrade (client, messageInner);
+            this.handleMyTrade (client, message);
         } else if (topic === 'outboundContractPositionInfo') {
-            this.handlePosition (client, messageInner);
+            this.handlePosition (client, message);
         } else if ((topic === 'outboundAccountInfo') || (topic === 'outboundContractAccountInfo')) {
-            this.handleBalance (client, messageInner);
+            this.handleBalance (client, message);
         }
     }
 }

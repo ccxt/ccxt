@@ -39,25 +39,50 @@ type wsFrame struct {
 	message any
 }
 
-// wsFrameHandler binds a venue's HandleMessage to the frame shape it declares: an object-framed
-// venue takes map[string]any (GP12), an array/text-framed venue the untyped frame. Resolved once
-// per exchange, so dispatching a frame costs one call and no interface lookup.
+// wsFrameHandler routes a decoded frame to the venue handler that takes its shape, mirroring the
+// base routeMessage of ts/src/base/Exchange.ts: a text frame goes to HandleTextMessage, a json array
+// to HandleListMessage, raw bytes to HandleBinaryMessage and a json object to HandleMessage. An
+// object-framed venue declares map[string]any (GP12), any other venue the untyped frame. Resolved
+// once per exchange, so dispatching a frame costs one call and no interface lookup; a frame whose
+// handler the venue does not declare is dropped, as the base stubs would.
 func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
+	text, _ := this.DerivedExchange.(interface {
+		HandleTextMessage(client any, message any)
+	})
+	list, _ := this.DerivedExchange.(interface {
+		HandleListMessage(client any, message any)
+	})
+	binary, _ := this.DerivedExchange.(interface {
+		HandleBinaryMessage(client any, message any)
+	})
+	object := func(client any, message map[string]any) {}
 	if venue, ok := this.DerivedExchange.(interface {
 		HandleMessage(client any, message map[string]any)
 	}); ok {
-		return func(client any, message any) {
-			if frame, isObject := message.(map[string]any); isObject {
-				venue.HandleMessage(client, frame)
-			}
-		}
-	}
-	if venue, ok := this.DerivedExchange.(interface {
+		object = venue.HandleMessage
+	} else if venue, ok := this.DerivedExchange.(interface {
 		HandleMessage(client any, message any)
 	}); ok {
-		return func(client any, message any) { venue.HandleMessage(client, message) }
+		object = func(client any, message map[string]any) { venue.HandleMessage(client, message) }
 	}
-	return func(client any, message any) {}
+	return func(client any, message any) {
+		switch frame := message.(type) {
+		case string:
+			if text != nil {
+				text.HandleTextMessage(client, frame)
+			}
+		case []any:
+			if list != nil {
+				list.HandleListMessage(client, frame)
+			}
+		case []byte:
+			if binary != nil {
+				binary.HandleBinaryMessage(client, frame)
+			}
+		case map[string]any:
+			object(client, frame)
+		}
+	}
 }
 
 // wsCacheRead carries the comma-ok answer of a read, so the caller learns both the value and

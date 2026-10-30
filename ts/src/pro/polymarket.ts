@@ -1159,7 +1159,7 @@ export default class polymarket extends polymarketRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             this.handleAck (client, message);

@@ -1405,8 +1405,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         message: Value,
     ) -> std::pin::Pin<Box<dyn ::std::future::Future<Output = ()> + Send + 'a>> {
         Box::pin(async move {
+            // the base routeMessage of ts/src/base/Exchange.ts: the frame goes to the handler that
+            // takes its shape. The port carries raw bytes as an array of byte values, so a
+            // non-empty array of them is the binary frame (no venue's json array frame is one).
+            let method = match &message {
+                Value::Str(_) => "handle_text_message",
+                Value::Arr(a) if !a.is_empty() && crate::exchange_stubs::is_byte_array(&message) => "handle_binary_message",
+                Value::Arr(_) => "handle_list_message",
+                _ => "handle_message",
+            };
             let _ = self
-                .dispatch_to_derived("handle_message", vec![client.as_value(), message])
+                .dispatch_to_derived(method, vec![client.as_value(), message])
                 .await;
         })
     }

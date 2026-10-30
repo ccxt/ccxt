@@ -1857,14 +1857,14 @@ export default class bingx extends bingxRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    override handleMessage (client: Client, message: any) {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if (typeof message === 'string') {
-            if (message === 'Ping') {
-                this.spawn (this.pong, client, message);
-            }
-            return;
+    // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'Ping') {
+            this.spawn (this.pong, client, message);
         }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

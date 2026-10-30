@@ -1253,34 +1253,34 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (modes, marginMode, marginMode);
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong (client, message);
-            }
-        } else {
-            const m = this.safeString (message, 'm');
-            if ((m !== undefined) && (m !== 'Success')) {
-                this.handleErrorMessage (client, message);
-            }
-            const action = this.safeString2 (message, 'a', 'action');
-            if (action === 'RecvTopicAction') {
-                this.handleSubscriptionStatus (client, message);
-            } else if (action === 'PO') {
-                this.handleTicker (client, message);
-            } else if (action === 'PMT') {
-                this.handleTrades (client, message);
-            } else if (action === 'PK') {
-                this.handleOHLCV (client, message);
-            } else if (action === 'PMO') {
-                this.handleOrderBook (client, message);
-            } else if (action === 'PushTrade') {
-                this.handleMyTrade (client, message);
-            } else if (action === 'PushOrder') {
-                this.handleOrder (client, message);
-            } else if (action === 'PushPosition') {
-                this.handlePosition (client, message);
-            }
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
+        const m = this.safeString (message, 'm');
+        if ((m !== undefined) && (m !== 'Success')) {
+            this.handleErrorMessage (client, message);
+        }
+        const action = this.safeString2 (message, 'a', 'action');
+        if (action === 'RecvTopicAction') {
+            this.handleSubscriptionStatus (client, message);
+        } else if (action === 'PO') {
+            this.handleTicker (client, message);
+        } else if (action === 'PMT') {
+            this.handleTrades (client, message);
+        } else if (action === 'PK') {
+            this.handleOHLCV (client, message);
+        } else if (action === 'PMO') {
+            this.handleOrderBook (client, message);
+        } else if (action === 'PushTrade') {
+            this.handleMyTrade (client, message);
+        } else if (action === 'PushOrder') {
+            this.handleOrder (client, message);
+        } else if (action === 'PushPosition') {
+            this.handlePosition (client, message);
         }
     }
 

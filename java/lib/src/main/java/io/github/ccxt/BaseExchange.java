@@ -2201,7 +2201,7 @@ public class BaseExchange {
                     }
 
                     Client created = new Client(u, proxy,
-                            (client, msg) -> this.handleMessage((Client) client, msg),
+                            (client, msg) -> this.routeMessage((Client) client, msg),
                             (client) -> this.ping((Client) client),
                             (client, err) -> this.onClose((Client) client, err),
                             (client, err) -> this.onError((Client) client, err),
@@ -2314,8 +2314,34 @@ public class BaseExchange {
         return (CompletableFuture<T>) raceFuture.getFuture();
     }
 
-    public void handleMessage(Client client, Object message) {
+    public void handleMessage(Client client, Map<String, Object> message) {
         // Base implementation — overridden by pro exchange classes
+    }
+
+    public void handleTextMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive text frames
+    }
+
+    public void handleListMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive json array frames
+    }
+
+    public void handleBinaryMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive raw binary frames
+    }
+
+    /** Hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object. */
+    @SuppressWarnings("unchecked")
+    public void routeMessage(Client client, Object message) {
+        if (message instanceof String) {
+            this.handleTextMessage(client, message);
+        } else if (message instanceof List<?>) {
+            this.handleListMessage(client, message);
+        } else if (message instanceof byte[]) {
+            this.handleBinaryMessage(client, message);
+        } else if (message instanceof Map<?, ?>) {
+            this.handleMessage(client, (Map<String, Object>) message);
+        }
     }
 
     public Object ping(Client client) {

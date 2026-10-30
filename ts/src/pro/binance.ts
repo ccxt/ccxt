@@ -5896,7 +5896,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
         //   { "stream": "<streamName>", "data": { "e": "...", ... } }
         const streamWrapper = this.safeString (message, 'stream');

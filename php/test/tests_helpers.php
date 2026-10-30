@@ -479,7 +479,7 @@ function inject_ws_message($exchange, $url, $message) {
     // feed one already-json-parsed frame into the exchange's ws message
     // handler - the same entry point the real transport invokes
     $client = $exchange->client($url);
-    $exchange->handle_message($client, $message);
+    $exchange->route_message($client, $message);
 }
 
 function get_ws_sent_messages($exchange, $url) {

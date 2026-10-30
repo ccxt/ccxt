@@ -156,6 +156,40 @@ public partial class BaseExchange
         // Console.WriteLine(messageContent);
     }
 
+    // a venue overrides the handler that takes the frame shape it receives, see routeMessage
+    public virtual void handleTextMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    public virtual void handleListMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    public virtual void handleBinaryMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
+    public void routeMessage(WebSocketClient client, object messageContent)
+    {
+        if (messageContent is string)
+        {
+            handleTextMessage(client, messageContent);
+        }
+        else if (messageContent is IList<object>)
+        {
+            handleListMessage(client, messageContent);
+        }
+        else if (messageContent is byte[])
+        {
+            handleBinaryMessage(client, messageContent);
+        }
+        else
+        {
+            handleMessage(client, messageContent);
+        }
+    }
+
     public virtual object ping(WebSocketClient client)
     {
         // Console.WriteLine("ping");
@@ -201,7 +235,7 @@ public partial class BaseExchange
             // every callback of this client enters through that same owner
             this.bindWsCaches();
             var client = new WebSocketClient(url, proxy,
-                (c, message) => this.wsOwnerState.Ask(() => { handleMessage(c, message); return null; }),
+                (c, message) => this.wsOwnerState.Ask(() => { routeMessage(c, message); return null; }),
                 (c) => this.wsOwnerState.Ask(() => ping(c)),
                 (c, error) => this.wsOwnerState.Ask(() => { onClose(c, error); return null; }),
                 (c, error) => this.wsOwnerState.Ask(() => { onError(c, error); return null; }),

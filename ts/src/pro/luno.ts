@@ -451,10 +451,7 @@ export default class luno extends lunoRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (message === '') {
-            return;
-        }
+    override handleMessage (client: Client, message: Dict) {
         const subscriptions = Object.values (client.subscriptions);
         const subscriptionsLength = subscriptions.length;
         if (subscriptionsLength === 0) {

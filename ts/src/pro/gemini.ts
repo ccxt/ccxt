@@ -4,7 +4,7 @@ import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
+import type { List, Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -880,7 +880,11 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleListMessage (client: Client, message: List) {
+        this.handleOrder (client, message);
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         //
         //  public
         //     {
@@ -916,11 +920,6 @@ export default class gemini extends geminiRest {
         //         }
         //     ]
         //
-        const isArray = Array.isArray (message);
-        if (isArray) {
-            this.handleOrder (client, message);
-            return;
-        }
         const reason = this.safeString (message, 'reason');
         if (reason === 'error') {
             this.handleError (client, message);

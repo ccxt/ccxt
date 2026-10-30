@@ -3,7 +3,7 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool , Market } from '../base/types.js';
+import type { List, Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -727,12 +727,12 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (Array.isArray (message)) {
-            this.handleCryptoMessage (client, message);
-            return;
-        }
+    override handleMessage (client: Client, message: Dict) {
         this.handleTradingMessage (client, message);
+    }
+
+    override handleListMessage (client: Client, message: List) {
+        this.handleCryptoMessage (client, message);
     }
 
     handleAuthenticate (client: Client, message: Dict) {

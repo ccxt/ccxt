@@ -1435,7 +1435,7 @@ export default class hitbtc extends hitbtcRest {
                 'spot_balance': this.handleBalance,
                 'futures_balance': this.handleBalance,
             };
-            const method = (channel === undefined) ? undefined : this.safeValue (methods, channel);
+            const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

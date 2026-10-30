@@ -1059,19 +1059,16 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (typeof message === 'string') {
-            const content = message.toLowerCase ();
-            if (content === 'pong') {
-                this.handlePong (client, message);
-                return;
-            }
-            if (content === 'ping') {
-                this.handlePing (client, message);
-                return;
-            }
-            return;
+    override handleTextMessage (client: Client, message: string) {
+        const content = message.toLowerCase ();
+        if (content === 'pong') {
+            this.handlePong (client, message);
+        } else if (content === 'ping') {
+            this.handlePing (client, message);
         }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         const status = this.safeString (message, 'status');
         if (status === 'UP') {
             this.handlePong (client, message);

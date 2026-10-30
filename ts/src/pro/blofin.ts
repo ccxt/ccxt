@@ -933,7 +933,13 @@ export default class blofin extends blofinRest {
         };
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            client.lastPong = this.milliseconds ();
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         //
         // message examples
         //
@@ -961,29 +967,21 @@ export default class blofin extends blofinRest {
             'funding-rate': this.handleFundingRate,
         };
         let method: any = undefined;
-        if (message === 'pong') {
-            client.lastPong = this.milliseconds ();
+        const event = this.safeString (message, 'event');
+        if (event === 'subscribe') {
             return;
-        } else {
-            const event = this.safeString (message, 'event');
-            if (event === 'subscribe') {
-                return;
-            } else if (event === 'unsubscribe') {
-                this.handleUnsubscription (client, message);
-                return;
-            } else if (event === 'login') {
-                const future = this.safeValue (client.futures, 'authenticate_hash');
-                future.resolve (true);
-                return;
-            } else if (event === 'error') {
-                throw new ExchangeError (this.id + ' error: ' + this.json (message));
-            }
-            const arg = this.safeDict (message, 'arg');
-            const channelName = this.safeString (arg, 'channel');
-            method = this.safeValue (methods, channelName);
-            if ((method === undefined) && ((channelName as string).indexOf ('candle') >= 0)) {
-                method = methods['candle'];
-            }
+        } else if (event === 'login') {
+            const future = this.safeValue (client.futures, 'authenticate_hash');
+            future.resolve (true);
+            return;
+        } else if (event === 'error') {
+            throw new ExchangeError (this.id + ' error: ' + this.json (message));
+        }
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        method = this.safeValue (methods, channelName);
+        if ((method === undefined) && ((channelName as string).indexOf ('candle') >= 0)) {
+            method = methods['candle'];
         }
         if (method !== undefined) {
             method.call (this, client, message);
