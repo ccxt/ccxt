@@ -3809,11 +3809,28 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         // a venue-own async callee that overrides nothing has no typed wrapper overload to capture the argument
         if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)
-            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
+            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)
+            && !(info?.stringListElement === true && feedsFetchOrderBookSymbol (printer, n))) {
             return false;
         }
     }
     return true;
+}
+
+// hx11: `fetchOrderBook (symbol, limit)` always prints the 3-arg `(Object, Long, Map)` call and the only
+// 3-arg overload takes Object, so a String symbol argument cannot move onto a typed wrapper overload.
+function feedsFetchOrderBookSymbol (printer, n) {
+    const call = n.parent;
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.indexOf (n) !== 0
+        || !isThisCall (call) || String (call.expression.name.text) !== 'fetchOrderBook') {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        return declaration !== undefined && ts.isMethodDeclaration (declaration) && declaration.parameters.length === 3;
+    } catch (e) {
+        return false;
+    }
 }
 
 function javaLocalTypeOf (printer, declaration, narrowed) {
@@ -12039,7 +12056,7 @@ function javaTypedListElementLocalType (printer, declaration) {
     if (element !== 'String' && !javaDtoElementUsesAreMapOnly (declaration)) {
         return undefined;
     }
-    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true } : { type: element };
+    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true, stringListElement: true } : { type: element };
     if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info)) {
         return undefined;
     }
