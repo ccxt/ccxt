@@ -893,9 +893,9 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (text === 'this.MyTrades') {
         return true;
     }
-    // the only cache-object field WsCacheObjGet serves is Positions: every write is an ArrayCache* constructor,
+    // Exchange.Positions (and its WsCacheObjGet owner read) is only ever written with an ArrayCache* constructor,
     // a map literal or untyped nil, so the answer is never a typed nil
-    if (text === 'this.WsCacheObjGet("Positions")') {
+    if ((text === 'this.Positions') || (text === 'this.WsCacheObjGet("Positions")')) {
         return true;
     }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
