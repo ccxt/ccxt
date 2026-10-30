@@ -2045,13 +2045,24 @@ public partial class bybit : ccxt.bybit
         string? marketId = this.safeString2(liquidation, "symbol", "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "", "contract");
         Int64? timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        string? positionSide = this.safeStringLower2(liquidation, "side", "S");
+        string? side = null;
+        if (positionSide == "buy")
+        {
+            side = "sell";
+        } else if (positionSide == "sell")
+        {
+            side = "buy";
+        }
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
-            { "side", this.safeStringLower2(liquidation, "side", "S") },
+            { "side", side },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
