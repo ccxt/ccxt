@@ -867,7 +867,7 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
+    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         const [ userAux, paramsUser ] = this.handleOptionStringAndParams (params, methodName, 'user');
         const [ user, paramsAddress ] = this.handleOptionStringAndParams (paramsUser, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
@@ -1870,7 +1870,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchLedger' }));
+        const response = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, params);
         return this.parseLedger (response, currency, since, limit);
     }
 
@@ -2086,7 +2086,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
+        const response = await this.fetchTransactionsHelper ('fetchTransfers', code, since, limit, params);
         const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN');
         const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat (transferIn, transferOut);
@@ -2234,7 +2234,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
+        const response = await this.fetchTransactionsHelper ('fetchWithdrawals', code, since, limit, params);
         const rows = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2260,7 +2260,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
+        const response = await this.fetchTransactionsHelper ('fetchDeposits', code, since, limit, params);
         const rows = this.filterBy (response, 'type', 'DEPOSIT') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2286,15 +2286,14 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
+        const response = await this.fetchTransactionsHelper ('fetchDepositsWithdrawals', code, since, limit, params);
         const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL');
         const deposits: List = this.filterBy (response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat (withdrawals, deposits);
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
-        const methodName = this.safeString (params, 'methodName');
+    async fetchTransactionsHelper (methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         const paramsOmitted = this.omit (params, 'methodName');
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress (methodName, paramsOmitted);
         const [ subAccountNumber, paramsSubAccountNumber ] = this.handleOptionStringAndParams (paramsPublicAddress, methodName, 'subAccountNumber', '0');
