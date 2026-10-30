@@ -161,6 +161,9 @@ function w3box (text, ctx, self, depth) {
     if (t === 'null') return { kind: 'unknown', nonNull: false };
     if (/^[A-Za-z_]\w*$/.test (t)) {
         if ((self !== undefined) && (t === self)) return ctx.selfBox;
+        // a copy of another proven-string object local reads that local's box at this line
+        const copied = (ctx.objectLocals?.has (t) === true) ? ctx.boxAt?.get (t + ':' + ctx.line) : undefined;
+        if ((copied !== undefined) && (copied.kind === 'string')) return copied;
         const known = ctx.types.get (t);
         if (known === undefined) return undefined;
         if (w3isstr (known)) return { kind: 'string', nonNull: false };
@@ -169,6 +172,12 @@ function w3box (text, ctx, self, depth) {
         return undefined;
     }
     const masked = w3mask (t);
+    // this pass's own null-propagating concat: null exactly when the named string is
+    const nullSafe = /^\(\(object\)\(([A-Za-z_]\w*) == null \? null : \1 \+ [^;]*\)\)$/.exec (masked);
+    if (nullSafe !== null) {
+        const source = w3box (nullSafe[1], ctx, self, depth + 1);
+        return ((source !== undefined) && (source.kind === 'string')) ? { kind: 'string', nonNull: false } : undefined;
+    }
     if (/^new (?:I?Dictionary)<string, ?object>/.test (masked)) return { kind: 'dict', nonNull: true };
     if (/^new List<object>/.test (masked)) return { kind: 'list', nonNull: true };
     if (/^String\.Join\s*\(/.test (masked)) return { kind: 'string', nonNull: true };
@@ -278,6 +287,36 @@ function w3rep (kind, name, box, texts, ctx, self, tick) {
     return undefined;
 }
 
+// add(<L + lit>, right) where the left is add(local, lit) or this pass's `((object)(local == null ? null :
+// local + lit))`, local a string-box object local and right a string: add's string branch is `a + b` and
+// a null left answers null, so one null test on `local` carries the chain
+function w3foldChain (masked, text, args, objectLocals, boxAt, k, ctx) {
+    const first = masked.substring (args[0].start, args[0].end);
+    const lead = first.length - first.trimStart ().length;
+    const base = args[0].start + lead;
+    const trimmed = first.trim ();
+    let local;
+    let literal;
+    const inner = w3call (trimmed, 'add');
+    if ((inner !== undefined) && (inner.length === 2)) {
+        local = text.substring (base + inner[0].start, base + inner[0].end).trim ();
+        literal = text.substring (base + inner[1].start, base + inner[1].end).trim ();
+    } else {
+        const guarded = /^\(\(object\)\(([A-Za-z_]\w*) == null \? null : \1 \+ ("(?:[^"\\]|\\.)*")\)\)$/.exec (text.substring (base, base + trimmed.length));
+        if (guarded === null) return undefined;
+        local = guarded[1];
+        literal = guarded[2];
+    }
+    if (!objectLocals.has (local) || !/^"([^"\\]|\\.)*"$/.test (literal)) return undefined;
+    const box = boxAt.get (local + ':' + k);
+    if ((box === undefined) || (box.kind !== 'string')) return undefined;
+    const right = text.substring (args[1].start, args[1].end).trim ();
+    const rightBox = w3box (right, ctx, undefined, 0);
+    if ((rightBox === undefined) || (rightBox.kind !== 'string')) return undefined;
+    const core = local + ' + ' + literal + ' + ' + right;
+    return '((object)(' + ((box.nonNull === true) ? core : local + ' == null ? null : ' + core) + '))';
+}
+
 export function hx10w3C02CandidateReads (content) {
     if (!/(?<![\w.])(?:getValue|getArrayLength|inOp|add)\s*\(/.test (content)) return content;
     const lines = content.split ('\n');
@@ -341,11 +380,13 @@ export function hx10w3C02CandidateReads (content) {
                 depth += w3delta (masked[k]);
             }
         }
-        const ctx = { types, selfBox: undefined };
+        const ctx = { types, selfBox: undefined, objectLocals, boxAt: undefined, line: 0 };
         // the box joined over the initialiser and every write before each line: an unrecognised
         // write, a `+=`/`??=` or a null write ends the proof for every later read
         const boxAt = new Map ();
+        ctx.boxAt = boxAt;
         for (const [ name, declLine ] of objectLocals) {
+            ctx.line = declLine;
             const decl = new RegExp ('^[ \\t]*object[ \\t]+' + name + '[ \\t]*=[ \\t]*(.*);[ \\t]*$').exec (lines[declLine]);
             const startBox = (decl === null) ? undefined : w3box (decl[1].replace (/\/\/.*$/, ''), ctx, undefined, 0);
             let box = (startBox === undefined) ? { kind: 'unknown', nonNull: false } : startBox;
@@ -362,6 +403,7 @@ export function hx10w3C02CandidateReads (content) {
                 }
                 const rhs = masked[k].substring (found.index + found[0].length).split (';')[0];
                 ctx.selfBox = box;
+                ctx.line = k;
                 const written = w3box (rhs, ctx, name, 0);
                 ctx.selfBox = undefined;
                 if (written === undefined) box = { kind: 'unknown', nonNull: false };
@@ -377,13 +419,24 @@ export function hx10w3C02CandidateReads (content) {
             const call = /\b(getValue|getArrayLength|inOp|add)\s*\(/g;
             const edits = [];
             let m;
+            let skipUntil = 0;
+            ctx.line = k;
             while ((m = call.exec (line)) !== null) {
+                if (m.index < skipUntil) continue;
                 if ((m.index > 0) && /[\w.]/.test (line[m.index - 1])) continue;
                 const kind = m[1];
                 const args = w3args (line, m.index + m[0].length - 1);
                 if (args === undefined) continue;
                 if (kind === 'getArrayLength' ? (args.length !== 1) : (args.length !== 2)) continue;
                 const name = line.substring (args[0].start, args[0].end).trim ();
+                if ((kind === 'add') && !objectLocals.has (name)) {
+                    const folded = w3foldChain (line, lines[k], args, objectLocals, boxAt, k, ctx);
+                    if (folded !== undefined) {
+                        edits.push ({ start: m.index, end: args[1].end + 1, text: folded });
+                        skipUntil = args[1].end + 1;
+                    }
+                    continue;
+                }
                 if (!objectLocals.has (name)) continue;
                 const box = boxAt.get (name + ':' + k);
                 if (box === undefined) continue;
@@ -439,6 +492,8 @@ export function w3checks () {
         '(rows is IList<object> w3l1 && i < w3l1.Count ? w3l1[i] : null)');
     runs ('string length', 'object response', 'object text = "abc";\nreturn getArrayLength(text);', '(text is string w3s1 ? w3s1.Length : 0)');
     runs ('string concat', 'object response', 'object id = "a";\nreturn add(id, "-");', '(id + "-")');
+    runs ('chained concat over a copied string local', 'string? prefix, string? code', 'object mp = prefix;\nif (code == "x")\n{\n    mp = ((object)(prefix == null ? null : prefix + "_x"));\n}\nreturn add(add(mp, "."), code);',
+        '((object)(mp == null ? null : mp + "." + code))', 'add(add(');
     runs ('nullable string concat', 'object response', 'object id = this.safeString(response, "id");\nreturn add(id, "-");', '((object)(id == null ? null : id + "-"))');
     runs ('safeString2 keys are not a default', 'object response', 'object id = this.safeString2(response, "a", "b");\nreturn add(id, "-");', '((object)(id == null ? null : id + "-"))');
     runs ('later write joins', 'object response', 'object rows = null;\nrows = new List<object>() {};\nreturn getArrayLength(rows);',
