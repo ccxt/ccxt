@@ -664,7 +664,7 @@ export default class poloniex extends poloniexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const name = 'balances';
+        const name: string = 'balances';
         await this.authenticate ();
         // the balances channel only streams per-event deltas, so seed the
         // balance from a rest snapshot once per subscription - otherwise the
