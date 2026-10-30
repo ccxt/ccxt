@@ -456,7 +456,7 @@ export default class binance extends Exchange {
      * @param {string} method HTTP method
      * @returns {object} params with the injected client order id
      */
-    handleClientOrderId(params: Dict, api: Str, path: Str, method: string): Dict;
+    handleClientOrderId(params: Dict, api: string, path: string, method: string): Dict;
     /**
      * @method
      * @ignore
