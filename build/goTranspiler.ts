@@ -5341,6 +5341,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     content = emitHx10w2G07Native (content);  // hx10w2 G07
+    content = path.endsWith ('.go') ? hx11w8StringAnyLocals (content) : content;  // hx11 w8: `var x any` only ever written strings is a string
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
     content = path.endsWith ('.go') ? hx11w8AsyncInt64Value (content) : content;  // hx11 w8: typed async int64 value
     content = path.endsWith ('.go') ? hx11w8AnySliceToList (content) : content;  // hx11 w8: ToList-fed []any locals
@@ -10076,7 +10077,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8EthEncodeBytesCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8EthEncodeBytesCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11821,6 +11822,82 @@ function goNativeStringAdds (content: string): string {
         cursor = range.end;
     }
     return out + content.slice (cursor);
+}
+
+// hx11 w8: a func-local `var X any = <string>` whose every later write is a proven string (a literal, a []string
+// element, or an Add chain that goNativeStringAdds prints natively once X is a string) holds a plain string, as in TS
+// (`let x = ''`): it is `string`, and the Add chains over it print `+`. X must never be nil-compared, asserted or indexed.
+function hx11w8StringAnyLocals (content: string): string {
+    if (content.indexOf ('Add(') < 0) { return content; }
+    const fileMasked = goTextMaskLiteralsAndComments (content);
+    const overridden = new Set<string> ();
+    const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
+    let d: RegExpExecArray | null;
+    while ((d = defRe.exec (fileMasked)) !== null) { if (d[2] !== 'string') { overridden.add (d[1]); } hx4G19RecordMethod (overridden, d[1], d[2]); }
+    let out = '';
+    let cursor = 0;
+    for (const range of goFuncBlockRanges (content)) {
+        let fn = content.slice (range.start, range.end);
+        const masked0 = fileMasked.slice (range.start, range.end);
+        const cands = new Set<string> ([ ...masked0.matchAll (/^[ \t]*var (\w+) any = (.+)$/gm) ].filter ((m) => H2K_G16_STR_LIT ().test (m[2].trim ())).map ((m) => m[1]));
+        for (const name of cands) {
+            if (h2kG16DeclaredType (masked0, name) !== 'any') { cands.delete (name); }
+        }
+        if (cands.size === 0) { out += content.slice (cursor, range.start) + fn; cursor = range.end; continue; }
+        const masked = masked0;
+        const strLocals = goAddStringLocals (fn, masked, fileMasked);
+        const sane = (name: string): boolean => {
+            const n = name.replace (/\$/g, '\\$');
+            const w = '(?<![\\w.])' + n + '(?![\\w])';
+            if (new RegExp ('&' + n + '\\b|\\b' + n + '\\s*(?:\\.\\(|\\[|==\\s*nil|!=\\s*nil|\\+=|,\\s*\\w+\\s*:?=)|(?:nil\\s*[=!]=\\s*)' + n + '\\b|\\.' + n + '\\b').test (masked)) { return false; }
+            for (const line of masked.split ('\n')) {
+                const asg = /^\s*([^=!<>:\n]*?)\s=\s/.exec (line);
+                if (asg !== null && new RegExp (w).test (asg[1]) && asg[1].trim () !== name) { return false; }
+            }
+            return true;
+        };
+        for (const name of [ ...cands ]) { if (!sane (name)) { cands.delete (name); } }
+        let changed = true;
+        while (changed && cands.size > 0) {
+            changed = false;
+            const locals = new Set (strLocals);
+            cands.forEach ((c) => locals.add (c));
+            for (const name of [ ...cands ]) {
+                const n = name.replace (/\$/g, '\\$');
+                let good = true;
+                for (const m of masked.matchAll (new RegExp ('^([ \\t]*)' + n + ' = (.+)$', 'gm'))) {
+                    const at = m.index + m[0].length - m[2].length;
+                    const rhs = fn.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
+                    const mrhs = masked.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
+                    const leaf = g10kStrOperand (rhs, fn, masked, fileMasked);
+                    const isStr = (leaf !== undefined) && (leaf.kind === 'string') && (leaf.text === rhs);
+                    const add = goAddNative (rhs, mrhs, hx4G19GuardedLocals (masked, at, locals), overridden);
+                    if (!isStr && add === null) { good = false; break; }
+                }
+                if (!good) { cands.delete (name); changed = true; }
+            }
+        }
+        for (const name of cands) {
+            fn = fn.replace (new RegExp ('^([ \\t]*var ' + name.replace (/\$/g, '\\$') + ' )any( = )', 'm'), '$1string$2');
+        }
+        out += content.slice (cursor, range.start) + fn;
+        cursor = range.end;
+    }
+    return out + content.slice (cursor);
+}
+
+function hx11w8StringAnyLocalsCheck (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('hx11 w8 string any locals: ' + msg); } };
+    const f = (body: string, sig = '') => goNativeStringAdds (hx11w8StringAnyLocals ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n'));
+    const pos = f ('\tvar u string = \"a\"\n\tvar b any = strings.ToUpper(u)\n\tif u != \"\" {\n\t\tb = Add(Add(b, \"_\"), u)\n\t}\n\treturn Add(b, \":\")\n');
+    ok (pos.includes ('var b string = strings.ToUpper(u)') && pos.includes ('b = b + \"_\" + u') && pos.includes ('return b + \":\"'), 'string-only any local goes native');
+    ok (f ('\tvar b any = \"\"\n\tb = 1\n\treturn Add(b, \":\")\n').includes ('var b any'), 'number write stays any');
+    ok (f ('\tvar b any = \"\"\n\tb = nil\n\treturn Add(b, \":\")\n').includes ('var b any'), 'nil write stays any');
+    ok (f ('\tvar b any = \"\"\n\tb = p\n\treturn Add(b, \":\")\n', 'p any').includes ('var b any'), 'any write stays any');
+    ok (f ('\tvar b any = \"\"\n\tif b == nil {\n\t\tb = \"x\"\n\t}\n\treturn b\n').includes ('var b any'), 'nil compare stays any');
+    ok (f ('\tvar b any = \"\"\n\tb = Add(b, p)\n\treturn b\n', 'p any').includes ('var b any'), 'any operand stays any');
+    return problems;
 }
 
 function goNativeStringAddSelfTest (): string[] {
