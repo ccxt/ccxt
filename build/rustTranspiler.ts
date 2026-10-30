@@ -5537,7 +5537,7 @@ export class RustTranspilerBuilder {
                 if (proven.has(name)) continue;
                 const initEnd = this.endOfRustStatement(region, dm.index + dm[0].length);
                 const initRhs = region.slice(dm.index + dm[0].length, initEnd);
-                if (initEnd < 0 || !(this.isBoolValuedRhs(initRhs) || this.isMarketBoolFieldRead(initRhs, region))) continue;
+                if (initEnd < 0 || !(this.isBoolValuedRhs(initRhs) || this.isMarketBoolFieldRead(content.slice(from + dm.index + dm[0].length, from + initEnd), region))) continue;
                 // One declaration only: a second `let` of the name makes the
                 // variant unprovable at the read (D2).
                 if ((region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length !== 1) continue;
