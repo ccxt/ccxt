@@ -18540,10 +18540,27 @@ function j17IndexSource (files, fileName, text) {
     files.set (fileName, { parent, methods, hazards, stringHazards });
 }
 
+// `cond ? undefined : <box>` prints `cond ? null : <box>`, typed as the box itself, so it never unboxes
+function j17UnboxingUse (n) {
+    if (!j14UnboxingUse (n)) {
+        return false;
+    }
+    let child = n;
+    while (ts.isParenthesizedExpression (child.parent)) {
+        child = child.parent;
+    }
+    const parent = child.parent;
+    if (!ts.isConditionalExpression (parent)) {
+        return true;
+    }
+    const other = parent.whenTrue === child ? parent.whenFalse : parent.whenTrue;
+    return !isNullishInitializer (other);
+}
+
 // a Long/Double result here would unbox (ternary arm, unary operand) or meet a reference `==`;
 // a `const|let x = <call>` local is checked through every read of x in its function
 function j17NumericUseHazard (call) {
-    if (j14UnboxingUse (call)) {
+    if (j17UnboxingUse (call)) {
         return true;
     }
     let child = call;
@@ -18559,7 +18576,7 @@ function j17NumericUseHazard (call) {
         return false;
     }
     const scope = enclosingFunction (call);
-    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && j14UnboxingUse (n));
+    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && j17UnboxingUse (n));
 }
 
 // a String result on the left of `+` moves Helpers.add to its (String, Object) overload, which prints
