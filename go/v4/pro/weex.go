@@ -743,9 +743,9 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 	}
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trade::" + *symbol
-	if _, ok := this.Trades[*symbol]; !ok {
+	if symbol != nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if symbol != nil {
+		if _, ok := this.Trades[*symbol]; !ok {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}

@@ -2111,7 +2111,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)

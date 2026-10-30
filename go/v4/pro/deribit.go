@@ -176,7 +176,7 @@ func (this *Deribit) HandleBalance(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
 	var balance map[string]any = this.ParseBalance(data)

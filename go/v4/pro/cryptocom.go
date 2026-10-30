@@ -370,9 +370,9 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data any = this.SafeDict(this.SafeList(message, "data"), 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if symbol != nil {
 		var limit *int64 = this.SafeInteger(message, "depth")
-		if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
 		}
 	}

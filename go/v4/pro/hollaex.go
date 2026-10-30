@@ -590,7 +590,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var timestamp *int64 = this.SafeTimestamp(message, "time")
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	for i := 0; i < len(keys); i++ {

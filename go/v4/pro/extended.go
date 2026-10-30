@@ -343,7 +343,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	var balance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	if balance != nil {
 		var currencyId *string = this.SafeString(balance, "collateralName")

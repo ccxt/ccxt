@@ -981,7 +981,7 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(message, "TS"))
 	var datetime *string = this.Iso8601(timestamp)
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
 	var currencyId *string = this.SafeString(data, "assetCode")

@@ -2665,13 +2665,13 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	var cost *string = this.SafeString(orderDict, "cost")
 	var average any = this.OmitZero(this.SafeString(orderDict, "average"))
 	var price any = this.OmitZero(this.SafeString(orderDict, "price"))
-	var lastTradeTimeTimestamp any = this.SafeInteger(orderDict, "lastTradeTimestamp")
+	var lastTradeTimeTimestamp *int64 = this.SafeInteger(orderDict, "lastTradeTimestamp")
 	var symbol *string = this.SafeString(orderDict, "symbol")
 	var side *string = this.SafeString(orderDict, "side")
 	var status *string = this.SafeString(orderDict, "status")
 	var parseFilled bool = (IsEqual(filled, nil))
 	var parseCost bool = (cost == nil)
-	var parseLastTradeTimeTimestamp bool = (IsEqual(lastTradeTimeTimestamp, nil))
+	var parseLastTradeTimeTimestamp bool = (lastTradeTimeTimestamp == nil)
 	var fee any = this.SafeValue(orderDict, "fee")
 	var parseFee bool = (fee == nil)
 	var parseFees bool = IsEqual(this.SafeValue(orderDict, "fees"), nil)
@@ -2739,10 +2739,8 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 				}
 				var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
 				if parseLastTradeTimeTimestamp && (tradeTimestamp != nil) {
-					if IsEqual(lastTradeTimeTimestamp, nil) {
+					if (lastTradeTimeTimestamp == nil) || (*tradeTimestamp > *lastTradeTimeTimestamp) {
 						lastTradeTimeTimestamp = tradeTimestamp
-					} else {
-						lastTradeTimeTimestamp = mathMax(lastTradeTimeTimestamp, tradeTimestamp)
 					}
 				}
 				if shouldParseFees {
@@ -5672,11 +5670,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705315 map[string]any = r.Value
-	if retRes705315 == nil {
+	var retRes705115 map[string]any = r.Value
+	if retRes705115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705315}
+		ch <- AsyncResult[map[string]any]{Value: retRes705115}
 	}
 	return nil
 }
@@ -8011,35 +8009,27 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	_ = maxEntriesPerRequest
 	var removeRepeated bool = GetArgBool(optionalArgs, 5, true)
 	_ = removeRepeated
-	var maxCalls int = 10
-	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
-	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
-	var maxRetries int = 3
-	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
-	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
-	var paginationDirectionparamsPaginationDirectionVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward")
-	paginationDirection := GetValue(paginationDirectionparamsPaginationDirectionVariable, 0)
-	paramsPaginationDirection := paginationDirectionparamsPaginationDirectionVariable[1]
-	var paginationTimestamp any = nil
-	var removeRepeatedOptionparamsRemoveRepeatedVariable []any = this.HandleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated)
+	maxCallsPaginationCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, method, "paginationCalls", 10)
+	maxRetriesOption, paramsMaxRetries := this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3)
+	var removeRepeatedOptionparamsRemoveRepeatedVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated)
 	removeRepeatedOption := GetValue(removeRepeatedOptionparamsRemoveRepeatedVariable, 0)
 	paramsRemoveRepeated := removeRepeatedOptionparamsRemoveRepeatedVariable[1]
+	paginationDirection, paramsPaginationDirection := this.HandleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward")
+	var paginationTimestamp any = nil
 	var result []any = []any{}
 	var errors any = 0
-	var until *int64 = this.SafeIntegerN(paramsRemoveRepeated, []any{"until", "untill", "till"}) // do not omit it from params here
-	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated)
+	var until *int64 = this.SafeIntegerN(paramsPaginationDirection, []any{"until", "untill", "till"}) // do not omit it from params here
+	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
-	if paginationDirection == "forward" {
+	if paginationDirection != nil && *paginationDirection == "forward" {
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " pagination requires a since argument when paginationDirection set to forward"))
 		}
 		paginationTimestamp = since
 	}
 	var shouldBreak bool = false
-	for i := 0; maxCallsPaginationCalls.(*int64) != nil && int64(i) < *maxCallsPaginationCalls.(*int64); i++ {
+	for i := 0; int64(i) < maxCallsPaginationCalls; i++ {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8051,7 +8041,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
 							errors = Add(errors, 1)
-							if maxRetriesOption.(*int64) == nil || int64(errors.(int)) > *maxRetriesOption.(*int64) {
+							if int64(errors.(int)) > maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8059,7 +8049,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					}
 				}()
 				// try block:
-				if paginationDirection == "backward" {
+				if paginationDirection != nil && *paginationDirection == "backward" {
 					// do it backwards, starting from the last
 					// UNTIL filtering is required in order to work
 					if !IsEqual(paginationTimestamp, nil) {
@@ -8440,14 +8430,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 				}
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
-					var cursorString any = func() any {
-						if IsEqual(cursorValue, nil) {
-							return ""
-						}
-						return cursorValue
-					}()
-					var iteration any = (i + 1)
-					var cursorMessage *string = SafeStringPtr(Add(Add(Add(Add(Add("Cursor pagination call "+ToString(iteration)+" method ", method), " response length "), strconv.Itoa(responseLength)), " cursor "), cursorString))
+					var cursorString string = ""
+					if !IsEqual(cursorValue, nil) {
+						cursorString = ToString(cursorValue)
+					}
+					var cursorMessage *string = SafeStringPtr(Add(Add(Add(Add(Add("Cursor pagination call "+strconv.Itoa((i+1))+" method ", method), " response length "), strconv.Itoa(responseLength)), " cursor "), cursorString))
 					this.Log(cursorMessage)
 				}
 				if responseLength == 0 {
@@ -8464,12 +8451,9 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 						var index int64 = (int64(responseLength) - int64(j)) - 1
 						var entry map[string]any = SafeMapTyped(response, index)
 						var info map[string]any = SafeMapTyped(entry, "info")
-						cursorValue = func() any {
-							if cursorReceived == nil {
-								return nil
-							}
-							return this.SafeValue(info, cursorReceived)
-						}()
+						if cursorReceived != nil {
+							cursorValue = this.SafeValue(info, cursorReceived)
+						}
 					}
 				}
 				if IsEqual(cursorValue, nil) {
@@ -11541,8 +11525,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11165, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046515 []any = listRecv11165
+	listRecv11149, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1046515 []any = listRecv11149
 	if retRes1046515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

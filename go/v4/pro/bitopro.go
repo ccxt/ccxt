@@ -638,7 +638,7 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
 	for i := 0; i < len(currencies); i++ {

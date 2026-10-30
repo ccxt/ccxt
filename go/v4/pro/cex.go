@@ -135,7 +135,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	var currencyIds []string = nil
 	if freeBalance != nil {
 		currencyIds = make([]string, 0, len(freeBalance))

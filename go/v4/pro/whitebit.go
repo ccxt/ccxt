@@ -272,9 +272,9 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if symbol != nil {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = ob
 		}
 	}
@@ -1079,7 +1079,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "params")
 	for i := 0; i < len(data); i++ {
 		var balanceDict map[string]any = ccxt.SafeMapTyped(data, i)
-		ccxt.AddElementToObject(this.Balance, "info", this.SafeDict(data, i, map[string]any{}))
+		this.Balance["info"] = this.SafeDict(data, i, map[string]any{})
 		if isMargin {
 			var currencyId *string = this.SafeString(balanceDict, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)

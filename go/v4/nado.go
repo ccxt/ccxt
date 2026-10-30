@@ -768,12 +768,12 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_and_place execute
  */
-func (this *Nado) EditOrderRequestAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Nado) EditOrderRequestAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.editOrderRequestBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Nado) editOrderRequestBody(ch chan AsyncResult[map[string]any], id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Nado) editOrderRequestBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

@@ -2943,12 +2943,12 @@ func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Polymarket) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], orders any, optionalArgs ...any) any {
+func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2961,7 +2961,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 	// requested outcomes first (one gamma request for all uncached token ids)
 	var orderOutcomes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var o map[string]any = ccxt.SafeMapTyped(orders, i)
 		var __oc *string = this.SafeString(o, "outcome")
 		if __oc != nil {
@@ -2976,7 +2976,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var bodies []any = []any{}
 	var outcomes []any = []any{}
 	var requests []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var o map[string]any = ccxt.SafeMapTyped(orders, i)
 		var orderParams any = this.SafeDict(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
@@ -4662,9 +4662,9 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	if !this.WsCacheHas("Orderbooks", *outcomeValue) {
+	if outcomeValue != nil {
 		var seededBook any = this.OrderBook(map[string]any{})
-		if outcomeValue != nil {
+		if !this.WsCacheHas("Orderbooks", *outcomeValue) {
 			this.WsCacheSet("Orderbooks", *outcomeValue, seededBook)
 		}
 	}

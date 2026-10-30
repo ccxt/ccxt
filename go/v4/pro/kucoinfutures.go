@@ -90,12 +90,12 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan ccxt.AsyncResult[map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.TransferEntry] {
+func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.TransferEntry] {
 	ch := make(chan ccxt.AsyncResult[ccxt.TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

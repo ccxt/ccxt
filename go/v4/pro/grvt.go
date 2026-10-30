@@ -479,9 +479,9 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if _, ok := this.Trades[*symbol]; !ok {
+	if symbol != nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if symbol != nil {
+		if _, ok := this.Trades[*symbol]; !ok {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}

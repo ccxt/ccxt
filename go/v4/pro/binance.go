@@ -5340,7 +5340,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	var isSwap bool = ((ccxt.IsEqual(marketType, "linear")) || (ccxt.IsEqual(marketType, "inverse")))
 	var payload any = map[string]any{}
 	if ccxt.IsEqual(marketType, "spot") {
-		payload = this.EditSpotOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+		payload = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	} else {
 		payload = this.EditContractOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
 	}

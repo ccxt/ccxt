@@ -1878,7 +1878,7 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance, "info", this.SafeList(message, "data", []any{}))
+	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)

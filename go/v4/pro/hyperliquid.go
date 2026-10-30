@@ -513,9 +513,9 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "time")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if symbol != nil {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if symbol != nil {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = ob
 		}
 	}

@@ -2696,12 +2696,12 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Extended) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Extended) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2723,7 +2723,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		account = r1.Value
 	}
 	var currentAccountId *string = this.SafeString(account, "accountId", "")
-	if (!IsEqual(fromAccount, nil)) && (!IsEqual(fromAccount, currentAccountId)) {
+	if (true) && (currentAccountId == nil || *currentAccountId != fromAccount) {
 		panic(BadRequest(this.Id + " transfer() can only transfer from the authenticated account"))
 	}
 	var toVault *string = this.SafeString2(params, "toVault", "receiverPositionId")

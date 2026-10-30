@@ -1649,7 +1649,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var ts *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
 	this.Balance["datetime"] = this.Iso8601(ts)
 	for i := 0; i < len(keys); i++ {

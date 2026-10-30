@@ -1865,12 +1865,12 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
  * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Polymarket) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1884,7 +1884,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders an
 	var entries []any = []any{}
 	var ordersMarkets []any = []any{}
 	var ordersEntries []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(symbol)

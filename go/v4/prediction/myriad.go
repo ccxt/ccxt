@@ -1419,17 +1419,17 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Myriad) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], orders any, optionalArgs ...any) any {
+func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	var orderOutcomes []any = []any{}
 	for i := 0; i < ordersLength; i++ {
 		var __oc *string = this.SafeString(ccxt.GetValue(orders, i), "outcome")

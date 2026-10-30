@@ -2575,12 +2575,12 @@ func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Dydx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Dydx) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2597,9 +2597,9 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var fromSubaccountId *int64 = this.SafeInteger(params, "fromSubaccountId")
 	var toSubaccountId *int64 = this.SafeInteger(params, "toSubaccountId")
-	if !IsEqual(fromAccount, "main") {
+	if fromAccount != "main" {
 		// throw error if from subaccount id is undefined
-		if IsEqual(fromAccount, nil) {
+		if false {
 			panic(NotSupported(this.Id + " transfer only support main > subaccount and subaccount <> subaccount."))
 		}
 		if (fromSubaccountId == nil) || (toSubaccountId == nil) {
@@ -2619,7 +2619,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
 	var payload map[string]any = nil
 	var signingPayload map[string]any = nil
-	if IsEqual(fromAccount, "main") {
+	if fromAccount == "main" {
 		// deposit to subaccount
 		if toSubaccountId == nil {
 			panic(ArgumentsRequired(this.Id + " transfer() requeire toSubaccoutnId."))

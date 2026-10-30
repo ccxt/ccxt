@@ -662,9 +662,9 @@ func (this *Deepcoin) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if symbol != nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if symbol != nil {
+		if _, ok := this.Trades[*symbol]; !ok {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}

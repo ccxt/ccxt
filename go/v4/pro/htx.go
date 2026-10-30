@@ -2566,7 +2566,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "changeTime", this.SafeInteger(message, "ts"))
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	this.Balance["datetime"] = this.Iso8601(timestamp)
-	ccxt.AddElementToObject(this.Balance, "info", this.SafeList(message, "data", []any{}))
+	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	if channel != nil {
 		// spot balance
 		var currencyId *string = this.SafeString(data, "currency")
