@@ -1864,8 +1864,14 @@ class htx extends htx$1["default"] {
         else {
             const symbol = this.safeString(paramsOmitted, 'symbol');
             const currency = this.safeString(paramsOmitted, 'currency');
-            const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-            const currencyCode = (currency !== undefined) ? this.currency(currency) : undefined;
+            let market = undefined;
+            if (symbol !== undefined) {
+                market = this.market(symbol);
+            }
+            let currencyCode = undefined;
+            if (currency !== undefined) {
+                currencyCode = this.currency(currency);
+            }
             marginMode = this.safeString(paramsOmitted, 'margin', 'cross');
             let prefix = 'accounts';
             messageHash = prefix;

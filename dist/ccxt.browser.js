@@ -543651,7 +543651,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         if (isUta) {
             messageHash = 'unsubscribe:kline:' + symbol;
             subMessageHash = 'kline:' + symbol;
-        } else {
+        } else if (timeframe !== undefined) {
             messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol;
             subMessageHash = 'candles:' + timeframe + ':' + symbol;
         }
@@ -579089,8 +579089,14 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         } else {
             const symbol = this.safeString(paramsOmitted, 'symbol');
             const currency = this.safeString(paramsOmitted, 'currency');
-            const market = symbol !== undefined ? this.market(symbol) : undefined;
-            const currencyCode = currency !== undefined ? this.currency(currency) : undefined;
+            let market = undefined;
+            if (symbol !== undefined) {
+                market = this.market(symbol);
+            }
+            let currencyCode = undefined;
+            if (currency !== undefined) {
+                currencyCode = this.currency(currency);
+            }
             marginMode = this.safeString(paramsOmitted, 'margin', 'cross');
             let prefix = 'accounts';
             messageHash = prefix;

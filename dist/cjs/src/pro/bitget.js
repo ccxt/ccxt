@@ -3077,7 +3077,7 @@ class bitget extends bitget$1["default"] {
             messageHash = 'unsubscribe:kline:' + symbol;
             subMessageHash = 'kline:' + symbol;
         }
-        else {
+        else if (timeframe !== undefined) {
             messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol;
             subMessageHash = 'candles:' + timeframe + ':' + symbol;
         }
