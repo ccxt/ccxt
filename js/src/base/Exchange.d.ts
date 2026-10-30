@@ -547,7 +547,7 @@ export declare class BaseExchange {
     lighterGenerateApiKey(signer: any): any[];
     lighterSignChangePubkey(signer: any, request: any): any[];
     setLastRestRequestTimestamp(): void;
-    setLastRequest(request: any): void;
+    setLastRequest(request: Dict): void;
     describe(): Dict;
     cleanRestData(): void;
     cleanWsData(): void;
@@ -751,7 +751,7 @@ export declare class BaseExchange {
     filterByKey(objects: any, key: IndexType, value?: Str): any;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    safeNetwork(network: any): {
+    safeNetwork(network: Dict): {
         info: any;
         id: Str;
         name: Str;
@@ -972,7 +972,7 @@ export declare class BaseExchange {
     handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: any): [Bool, Dict];
     isTriggerOrder(params: any): [Bool, Dict];
-    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: Dict): boolean;
+    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: Bool, params?: Dict): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: Dict): [boolean, Dict];
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
     fetchTradingFees(params?: Dict): Promise<TradingFees>;

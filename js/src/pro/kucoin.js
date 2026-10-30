@@ -2477,7 +2477,7 @@ export default class kucoin extends kucoinRest {
         const myTrades = this.myTrades;
         myTrades.append(parsed);
         const messageHash = 'myTrades';
-        const topic = this.safeString(message, 'topic');
+        const topic = this.safeString(message, 'topic', '');
         const suffix = this.getMyTradesMessageHashSuffix(topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve(this.myTrades, typeSpecificMessageHash);

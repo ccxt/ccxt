@@ -282,7 +282,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    getMyTradesMessageHashSuffix(topic: any): string;
+    getMyTradesMessageHashSuffix(topic: string): string;
     handleMyTrade(client: Client, message: Dict): void;
     handleUtaMyTrade(client: Client, message: Dict): void;
     parseWsTrade(trade: any, market?: Market): Trade;

@@ -66,7 +66,7 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    handlePublicAddress(methodName: Str, params: Dict): [Str, Dict];
+    handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
@@ -322,7 +322,7 @@ export default class dydx extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
+    fetchTransactionsHelper(methodName: string, code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name dydx#fetchAccounts

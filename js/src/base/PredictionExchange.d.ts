@@ -35,7 +35,7 @@ export default class PredictionExchange extends BaseExchange {
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
     slugToOutcomeSymbol(eventSlug: Str, marketSlug: Str, outcome: Str): string;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: undefined): Dict;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;

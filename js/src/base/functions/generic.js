@@ -144,7 +144,7 @@ const flatten = function flatten(x, out = []) {
     return out;
 };
 const pluck = (x, k) => values(x).filter((v) => k in v).map((v) => v[k]);
-const omit = (x, ...args) => {
+function omit(x, ...args) {
     if (x === undefined) {
         return x;
     }
@@ -163,7 +163,7 @@ const omit = (x, ...args) => {
         return out;
     }
     return x;
-};
+}
 const sum = (...xs) => {
     const ns = xs.filter(isNumber); // leave only numbers
     return (ns.length > 0) ? ns.reduce((a, b) => a + b, 0) : undefined;

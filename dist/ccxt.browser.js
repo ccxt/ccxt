@@ -193825,7 +193825,7 @@ const flatten = function flatten(x, out = []) {
     return out;
 };
 const pluck = (x, k)=>values(x).filter((v)=>k in v).map((v)=>v[k]);
-const omit = (x, ...args)=>{
+function omit(x, ...args) {
     if (x === undefined) {
         return x;
     }
@@ -193843,7 +193843,7 @@ const omit = (x, ...args)=>{
         return out;
     }
     return x;
-};
+}
 const sum = (...xs)=>{
     const ns = xs.filter(_type_js__rspack_import_0/* .isNumber */.Et); // leave only numbers
     return ns.length > 0 ? ns.reduce((a, b)=>a + b, 0) : undefined;
@@ -193896,6 +193896,7 @@ const merge = (target, ...args)=>{
 
 
 __webpack_require__.d(__webpack_exports__, {
+  cJ: () => (omit)
 }, {
   $r: toArray,
   $z: groupBy,
@@ -193912,7 +193913,6 @@ __webpack_require__.d(__webpack_exports__, {
   WP: filterBy,
   X$: extend,
   ax: arrayConcat,
-  cJ: omit,
   cz: sum,
   di: sort,
   h1: merge,
@@ -293960,7 +293960,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         const hedged = this.safeBool(params, 'hedged', false);
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
@@ -294182,9 +294182,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         }
         if ((hasStopLoss || hasTakeProfit) && !endpointIsTradingStop) {
             if (hasStopLoss) {
-                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.getPrice(symbolValue, slTriggerPrice);
-                const slLimitPrice = this.safeValue(stopLoss, 'price');
+                const slLimitPrice = this.safeString(stopLoss, 'price');
                 if (slLimitPrice !== undefined) {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
@@ -294201,9 +294201,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 }
             }
             if (hasTakeProfit) {
-                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.getPrice(symbolValue, tpTriggerPrice);
-                const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                const tpLimitPrice = this.safeString(takeProfit, 'price');
                 if (tpLimitPrice !== undefined) {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
@@ -339915,7 +339915,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         const isStopOrder = isStopLossOrder || isTakeProfitOrder;
         const isLimitOrder = type === 'limit' || isStopLimit || isTakeLimit;
         const isMarketOrder = type === 'market' || isStopMarket || isTakeMarket;
-        const exchangeSpecificPostOnly = this.safeValue(params, 'post_only');
+        const exchangeSpecificPostOnly = this.safeBool(params, 'post_only');
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
@@ -353421,9 +353421,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, {
-            'methodName': 'fetchLedger'
-        }));
+        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, params);
         return this.parseLedger(response, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
@@ -353635,9 +353633,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, {
-            'methodName': 'fetchTransfers'
-        }));
+        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, params);
         const transferIn = this.filterBy(response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy(response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat(transferIn, transferOut);
@@ -353780,9 +353776,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, {
-            'methodName': 'fetchWithdrawals'
-        }));
+        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, params);
         const rows = this.filterBy(response, 'type', 'WITHDRAWAL');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -353806,9 +353800,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, {
-            'methodName': 'fetchDeposits'
-        }));
+        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, params);
         const rows = this.filterBy(response, 'type', 'DEPOSIT');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -353832,16 +353824,13 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, {
-            'methodName': 'fetchDepositsWithdrawals'
-        }));
+        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, params);
         const withdrawals = this.filterBy(response, 'type', 'WITHDRAWAL');
         const deposits = this.filterBy(response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat(withdrawals, deposits);
         return this.parseTransactions(rows, currency, since, limit);
     }
-    async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const methodName = this.safeString(params, 'methodName');
+    async fetchTransactionsHelper(methodName, code = undefined, since = undefined, limit = undefined, params = {}) {
         const paramsOmitted = this.omit(params, 'methodName');
         const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, paramsOmitted);
         const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, methodName, 'subAccountNumber', '0');
@@ -588745,7 +588734,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         const myTrades = this.myTrades;
         myTrades.append(parsed);
         const messageHash = 'myTrades';
-        const topic = this.safeString(message, 'topic');
+        const topic = this.safeString(message, 'topic', '');
         const suffix = this.getMyTradesMessageHashSuffix(topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve(this.myTrades, typeSpecificMessageHash);

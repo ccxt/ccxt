@@ -39,7 +39,7 @@ export default class bybit extends Exchange {
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     getBybitType(method: string, market?: Market, params?: Dict): [Str, Dict];
     getAmount(symbol: Str, amount: number | undefined): Str;
-    getPrice(symbol: Str, price: any): any;
+    getPrice(symbol: Str, price: Str): Str;
     getCost(symbol: Str, cost: Str): Str;
     /**
      * @method
