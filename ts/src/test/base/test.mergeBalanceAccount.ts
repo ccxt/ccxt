@@ -13,13 +13,13 @@ function testMergeBalanceAccount () {
     // passed by value, so mutating the argument alone is invisible there.
     // the local is seeded from the helper itself so the Go port infers the
     // helper's own return type instead of a map literal it cannot assign back to
-    const btcAccount = exchange.account ();
+    const btcAccount: Dict = exchange.account ();
     btcAccount['free'] = '1';
     btcAccount['used'] = '0.5';
     btcAccount['debt'] = '0.1';
-    let result = exchange.mergeBalanceAccount ({}, 'BTC', btcAccount);
+    let result: Dict = exchange.mergeBalanceAccount ({}, 'BTC', btcAccount);
     assert (exchange.safeString (result['BTC'], 'free') === '1');
-    const btcAccount2 = exchange.account ();
+    const btcAccount2: Dict = exchange.account ();
     btcAccount2['free'] = '2';
     btcAccount2['used'] = '0.25';
     btcAccount2['total'] = '2.25';
@@ -28,7 +28,7 @@ function testMergeBalanceAccount () {
     assert (exchange.safeString (result['BTC'], 'used') === '0.75');
     assert (exchange.safeString (result['BTC'], 'total') === '2.25');
     assert (exchange.safeString (result['BTC'], 'debt') === '0.1');
-    const usdtAccount = exchange.account ();
+    const usdtAccount: Dict = exchange.account ();
     usdtAccount['free'] = '5';
     result = exchange.mergeBalanceAccount (result, 'USDT', usdtAccount);
     assert (exchange.safeString (result['USDT'], 'free') === '5');
