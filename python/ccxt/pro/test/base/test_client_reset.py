@@ -304,14 +304,24 @@ async def test_retired_client_preserves_replacement():
     retired = make_client()
     replacement = make_client()
     owner.clients[retired.url] = replacement
+    owner.ws_dial_backoff = {}
+    replacement.error = NetworkError('replacement')
     retired.error = NetworkError('retired')
-    owner.on_error(retired, retired.error)
-    owner.on_close(retired, 1000)
-    assert owner.clients[retired.url] is replacement
-    await retired.close()
-    await replacement.close()
-    assert owner.client(replacement.url) is not replacement
-    await owner.close()
+    retired.dial_failed = True
+    try:
+        owner.on_error(retired, retired.error)
+        assert owner.clients.get(retired.url) is replacement
+        assert not owner.ws_dial_backoff
+        retired.error = None
+        owner.on_close(retired, 1000)
+        assert owner.clients.get(retired.url) is replacement
+        assert not owner.ws_dial_backoff
+        await replacement.close()
+        assert owner.client(replacement.url) is not replacement
+    finally:
+        await retired.close()
+        await replacement.close()
+        await owner.close()
 
 
 async def test_close_during_ws_throttle(watch_multiple):
