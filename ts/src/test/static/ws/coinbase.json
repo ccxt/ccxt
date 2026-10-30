@@ -554,6 +554,139 @@
                     "symbol": "BTC/USD"
                 }
             }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot 5m candles snapshot then same-timestamp update",
+                "input": [
+                    "BTC/USD",
+                    "5m"
+                ],
+                "url": "wss://advanced-trade-ws.coinbase.com",
+                "messages": [
+                    {
+                        "channel": "candles",
+                        "timestamp": "2026-10-28T08:09:11.145274437Z",
+                        "sequence_num": 0,
+                        "events": [
+                            {
+                                "type": "snapshot",
+                                "candles": [
+                                    {
+                                        "start": "1793174100",
+                                        "high": "80975.89",
+                                        "low": "80890.02",
+                                        "open": "80923.71",
+                                        "close": "80969.36",
+                                        "volume": "33.65013355",
+                                        "product_id": "BTC-USD"
+                                    },
+                                    {
+                                        "start": "1793174400",
+                                        "high": "81055.1",
+                                        "low": "80962.99",
+                                        "open": "80969.36",
+                                        "close": "81046.69",
+                                        "volume": "27.03662047",
+                                        "product_id": "BTC-USD"
+                                    },
+                                    {
+                                        "start": "1793174700",
+                                        "high": "81086.82",
+                                        "low": "81025.26",
+                                        "open": "81046.69",
+                                        "close": "81036.88",
+                                        "volume": "7.53125105",
+                                        "product_id": "BTC-USD"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "subscriptions",
+                        "timestamp": "2026-10-28T08:09:11.145317462Z",
+                        "sequence_num": 1,
+                        "events": [
+                            {
+                                "subscriptions": {
+                                    "candles": [
+                                        "BTC-USD"
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "candles",
+                        "timestamp": "2026-10-28T08:09:12.586542242Z",
+                        "sequence_num": 2,
+                        "events": [
+                            {
+                                "type": "update",
+                                "candles": [
+                                    {
+                                        "start": "1793174700",
+                                        "high": "81086.82",
+                                        "low": "81025.26",
+                                        "open": "81046.69",
+                                        "close": "81030.81",
+                                        "volume": "9.70152481",
+                                        "product_id": "BTC-USD"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "product_ids": [
+                            "BTC-USD"
+                        ],
+                        "channel": "candles"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1793174100000,
+                            80923.71,
+                            80975.89,
+                            80890.02,
+                            80969.36,
+                            33.65013355
+                        ],
+                        [
+                            1793174400000,
+                            80969.36,
+                            81055.1,
+                            80962.99,
+                            81046.69,
+                            27.03662047
+                        ],
+                        [
+                            1793174700000,
+                            81046.69,
+                            81086.82,
+                            81025.26,
+                            81036.88,
+                            7.53125105
+                        ]
+                    ],
+                    [
+                        [
+                            1793174700000,
+                            81046.69,
+                            81086.82,
+                            81025.26,
+                            81030.81,
+                            9.70152481
+                        ]
+                    ]
+                ]
+            }
         ]
     }
 }
