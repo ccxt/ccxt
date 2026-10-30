@@ -13080,10 +13080,7 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     if (helper === undefined || scope === undefined) {
         return undefined;
     }
-    let type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.text, csharp);
-    if (context.nonNullString === true && type === 'string?') {
-        type = 'string'; // hx11 w9: the argument prover asks for the non-null spelling
-    }
+    const type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.text, csharp);
     const stringSlots = Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) && STRING_TYPES.includes (type);
     const slots = stringSlots ? stringElementIndexes (helper) : [ 0 ];
     const element = declaration.name.elements?.[slot];
@@ -13098,7 +13095,13 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     }
     context.stack.add (element);
     try {
-        return csharpLocalIsSafeToRetype (csharp, scope, element, target.text, type, { scope, stack: context.stack, depth: context.depth + 1 }) ? type : undefined;
+        const nested = { scope, stack: context.stack, depth: context.depth + 1 };
+        if (csharpLocalIsSafeToRetype (csharp, scope, element, target.text, type, nested)) {
+            return type;
+        }
+        // hx11 w9: a `string?` slot whose `+` reads need the non-null left operand takes the
+        // non-null spelling (the `(string)` read cast is the same identity)
+        return (type === 'string?' && csharpLocalIsSafeToRetype (csharp, scope, element, target.text, 'string', nested)) ? 'string' : undefined;
     } finally {
         context.stack.delete (element);
     }
@@ -16460,7 +16463,7 @@ function hx11w9DestructuredSlotArgumentType (csharp, declaration, argument) {
     try {
         const scope = csharp.csharpEnclosingFunction (argument);
         const slot = pattern.elements.indexOf (declaration);
-        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, holder, slot, { scope, 'stack': new Set (), 'depth': 0, 'nonNullString': true });
+        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, holder, slot, { scope, 'stack': new Set (), 'depth': 0 });
     } catch (e) {
         return undefined;
     }
