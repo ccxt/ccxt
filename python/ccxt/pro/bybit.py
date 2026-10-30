@@ -1718,13 +1718,21 @@ class bybit(ccxt.async_support.bybit):
         marketId = self.safe_string_2(liquidation, 'symbol', 's')
         marketResolved = self.safe_market(marketId, market, '', 'contract')
         timestamp = self.safe_integer_2(liquidation, 'updatedTime', 'T')
+        # bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        # the unified side is the side of the liquidation order, as on binance and okx
+        positionSide = self.safe_string_lower_2(liquidation, 'side', 'S')
+        side = None
+        if positionSide == 'buy':
+            side = 'sell'
+        elif positionSide == 'sell':
+            side = 'buy'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'price': self.safe_number_2(liquidation, 'price', 'p'),
-            'side': self.safe_string_lower_2(liquidation, 'side', 'S'),
+            'side': side,
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
