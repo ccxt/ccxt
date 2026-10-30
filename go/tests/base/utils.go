@@ -637,7 +637,7 @@ func DetypeForComparison(value any) any {
 }
 
 // coerceArgs converts fixture string args to int64 where the method's parameter is int64
-// and the string is exactly an integer; the library itself rejects strings.
+// and the string is exactly an integer, and numeric args to text where it is a string.
 func coerceArgs(exchange any, methodName string, args []any) []any {
 	name := ccxt.Capitalize(methodName)
 	method := reflect.ValueOf(exchange).MethodByName(name + "Async")
@@ -654,6 +654,17 @@ func coerceArgs(exchange any, methodName string, args []any) []any {
 	}
 	result := append([]any{}, args...)
 	for k := 0; k < fixed && k < len(result); k++ {
+		if methodType.In(k).Kind() == reflect.String {
+			switch num := result[k].(type) {
+			case float64:
+				result[k] = strconv.FormatFloat(num, 'f', -1, 64)
+			case int:
+				result[k] = strconv.Itoa(num)
+			case int64:
+				result[k] = strconv.FormatInt(num, 10)
+			}
+			continue
+		}
 		str, isString := result[k].(string)
 		if !isString || methodType.In(k).Kind() != reflect.Int64 {
 			continue
