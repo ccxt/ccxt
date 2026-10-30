@@ -1902,8 +1902,8 @@ export default class whitebit extends Exchange {
         const paramsOmitted = this.omit (params, 'until');
         if ((since !== undefined) || (until !== undefined)) {
             // the exchange ignores a start alone: it returns the last candles that closed by the end.
-            // It refuses an end past its own clock, so an end reaching the present is left out, and
-            // the latest candles it then returns cover the range
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
             const duration = this.parseTimeframe (timeframe);
             let endTime: Int = undefined;
             if (until !== undefined) {
@@ -1917,7 +1917,7 @@ export default class whitebit extends Exchange {
                     endTime = rangeEnd;
                 }
             }
-            if ((endTime !== undefined) && (endTime < this.seconds ())) {
+            if ((endTime !== undefined) && (this.sum (endTime, duration) < this.seconds ())) {
                 request['end'] = endTime;
             }
         }
