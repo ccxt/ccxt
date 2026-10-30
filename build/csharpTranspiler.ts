@@ -9469,6 +9469,11 @@ export function hx4C05NativeArithmetic (content: string): string {
 // (true for null vs null). The lifted operator is false for any null: guard the side that differs.
 function csharpNullableIntegerComparisonText (helper: string, left, right, leftText: string, rightText: string): string | undefined {
     const token = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' }[helper];
+    // `double(?) < N`: the helper is !GT && !EQ (true for null and NaN); `!(x >= N)` is the same
+    // answer for every box, where a plain `<` is false for both
+    if ((token === '<') && (left.kind === 'name') && [ 'double', 'double?' ].includes (left.type) && (right.kind === 'integer-literal')) {
+        return `(!(${leftText} >= ${rightText}))`;
+    }
     const nullable = (o) => (o.kind === 'name') && [ 'Int64?', 'long?' ].includes (o.type);
     const integer = (o) => nullable (o) || (o.kind === 'integer-literal') || ((o.kind === 'name') && [ 'int', 'Int64', 'long' ].includes (o.type));
     if ((token === undefined) || !integer (left) || !integer (right) || (!nullable (left) && !nullable (right))) {
@@ -9794,7 +9799,7 @@ export function csharpHx4SelfTest (): string[] {
         has ('if (isLessThan(5, limit)) { }', '((5 < limit))');
 
         // negatives: doubles, object, expressions, rebinding with another type
-        keeps ('double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }');
+        has ('double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }', '((!(x >= 0)))');
         keeps ('object x = this.safeValue(parameters, "x");\nif (isLessThan(x, limit)) { }');
         keeps ('if (isLessThan(this.safeInteger(parameters, \"a\"), limit)) { }');
         keeps ('if (isLessThan(limit, 1.5)) { }');
