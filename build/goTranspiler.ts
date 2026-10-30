@@ -12952,6 +12952,17 @@ function g10kStrOperand (arg: string, func: string, masked: string, file: string
     if (arg === 'this.Id') {
         return { kind: 'string', text: arg };
     }
+    // a `name string` parameter that no `var`, `:=`, closure param or range rebinds
+    if ((g16 === undefined) && /^[A-Za-z_]\w*$/.test (arg)) {
+        const sig = masked.substring (0, masked.indexOf ('{'));
+        const n = arg.replace (/\$/g, '\\$');
+        const isParam = new RegExp ('[(,]\\s*' + n + ' string(?=[,)])').test (sig);
+        const body = masked.substring (masked.indexOf ('{'));
+        const rebound = new RegExp ('\\bvar ' + n + '\\b|\\b' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + n + '\\b|\\brange\\b[^\\n]*\\b' + n + '\\b').test (body);
+        if (isParam && !rebound) {
+            return { kind: 'string', text: arg };
+        }
+    }
     // an already-dereferenced pointer ident is the string its proven-non-nil operand prints as `*x`
     const deref = /^\*([A-Za-z_]\w*)$/.exec (arg);
     if (deref !== null) {
