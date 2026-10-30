@@ -10958,6 +10958,7 @@ export function hx4C17NativeHelperCalls (content: string): string {
     // every write of an `object` local in the method stores a non-null string (or a self-concat)
     const objectConcats = new Set<string> ();
     const banned = new Set<string> ();
+    let objectListAt: { region: any, line: number } | undefined = undefined;
     // an object-left concat now prints `string` where the helper printed `object`: keep it only where
     // the static type picks nothing (assignment / return / string cast / concat or add operand)
     const objectConcatContextsBad = (text: string): string | undefined => {
@@ -10981,6 +10982,12 @@ export function hx4C17NativeHelperCalls (content: string): string {
                 if (ok && (/\breturn$/.test (before) || /(?<![=!<>])=$/.test (before)) && !/^[;)]/.test (after)) ok = /^\+/.test (after);
                 // the left operand of a native concat (that concat proved its right a string)
                 if (!ok && before.endsWith ('(') && !/[\w.]\($/.test (before) && /^\+ /.test (after)) ok = true;
+                // the sole argument of Add on a List<object> local (Add(object) takes either type)
+                const adder = /(?<![\w.])([A-Za-z_]\w*)\.Add\($/.exec (before);
+                if (!ok && (adder !== null) && /^\)/.test (after) && (objectListAt !== undefined)) {
+                    const d = csharpHelperReceiverType (objectListAt.region, adder[1], objectListAt.line, objectListAt.region.params);
+                    ok = (d !== undefined) && (d.kind === 'local') && [ 'List<object>', 'IList<object>' ].includes (d.type.replace (/\s+/g, ''));
+                }
                 if (!ok) return e;
                 at = text.indexOf (e, at + 1);
             }
@@ -11057,6 +11064,33 @@ export function hx4C17NativeHelperCalls (content: string): string {
         }
         return false;
     };
+    // a string local written once, by its declaration, with a non-null string value
+    const singleWriteNonNull = (region, name: string, depth: number): boolean => {
+        if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6)) return false;
+        const decls = region.declarations.filter ((x) => x.name === name);
+        let writes = 0;
+        for (let k = region.start + 1; k < region.end; k++) if (writesName (region.lines[k], name)) writes++;
+        if ((decls.length !== 1) || (writes !== 1) || (decls[0].value === undefined)) return false;
+        return nonNullString (region, decls[0].line, lines[decls[0].line].replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*(?:\/\/.*)?$/, ''), '\u0000', depth + 1);
+    };
+    // handleOptionStringAndParams(2) answers its default for a missing option and throws on a non-string
+    const optionTupleNonNull = (region, name: string, depth: number): boolean => {
+        if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6)) return false;
+        const writeLines = [];
+        for (let k = region.start + 1; k < region.end; k++) if (writesName (region.lines[k], name)) writeLines.push (k);
+        if ((writeLines.length !== 1) || !new RegExp ('^[ ]*\\(string\\?, object\\)[ ]+' + name + '[ ]*=').test (region.lines[writeLines[0]])) return false;
+        const decls = [ { line: writeLines[0] } ];
+        const text = lines[decls[0].line].replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*$/, '').trim ();
+        const m = csharpHelperMaskLine (text);
+        const call = /^this\.(handleOptionStringAndParams2?)\(/.exec (m);
+        if ((call === null) || ownMember (call[1]) || (ownReturns[call[1]] !== undefined) || (csharpHelperCallEnd (m, call[0].length - 1) !== m.length - 1)) return false;
+        const args = [];
+        let from = call[0].length - 1;
+        let at = csharpHelperTopLevelComma (m, from, m.length - 1);
+        while (at !== undefined) { args.push (text.substring (from + 1, at)); from = at; at = csharpHelperTopLevelComma (m, at, m.length - 1); }
+        args.push (text.substring (from + 1, m.length - 1));
+        return (args.length === ((call[1] === 'handleOptionStringAndParams') ? 4 : 5)) && nonNullString (region, decls[0].line, args[args.length - 1], '\u0000', depth + 1);
+    };
     const nonNullString = (region, line: number, text: string, self: string, depth: number): boolean => {
         const t = text.trim ();
         const m = csharpHelperMaskLine (t);
@@ -11067,9 +11101,12 @@ export function hx4C17NativeHelperCalls (content: string): string {
             if (region.bound.has (t)) return false;
             const d = csharpHelperReceiverType (region, t, line, region.params);
             if (d === undefined) return false;
-            if ((d.type === 'string') || (d.type === 'string?')) return nullGuarded (region, t, line);
+            if ((d.type === 'string') || (d.type === 'string?')) return nullGuarded (region, t, line) || ((d.kind === 'local') && singleWriteNonNull (region, t, depth + 1));
             return (d.kind === 'local') && (d.type === 'object') && (nonNullStringLocal (region, t, depth + 1) || nonNullStringAt (region, t, line, depth + 1));
         }
+        // Item1 of a handleOption*StringAndParams tuple whose literal default is a non-null string
+        const item = /^([A-Za-z_]\w*)\.Item1$/.exec (t);
+        if (item !== null) return optionTupleNonNull (region, item[1], depth + 1);
         if (wrapped (m)) {
             const parts = plusOperands (m.slice (1, -1), t.slice (1, -1));
             // a C# string concatenation is never null
@@ -11182,6 +11219,7 @@ export function hx4C17NativeHelperCalls (content: string): string {
         };
         const original = code;
         banned.clear ();
+        objectListAt = { region, line: i };
         code = fixpoint (code);
         for (let round = 0; round < 20; round++) {
             const bad = objectConcatContextsBad (code);
@@ -11231,6 +11269,10 @@ export function hx4C17SelfTest (): string[] {
     check ('bool? safeBool vs literal', 'if (isEqual(this.safeBool(a, "k"), true)) {}', '(this.safeBool(a, "k") == true)');
     check ('isTrue on bool? call', 'if (isTrue(this.safeBool(a, "k"))) {}', 'if ((this.safeBool(a, "k") == true)) {}');
     check ('isTrue on object keeps helper', 'if (isTrue(a)) {}', 'isTrue(a)');
+    check ('option string tuple literal default', 'IList<object> q = null;\n(string?, object) mVariable = this.handleOptionStringAndParams2(a, \"f\", \"method\", \"spotMethod\", \"/t\");\nstring? sm = mVariable.Item1;\nobject m = sm;\nobject r = add(add(m, \":\"), b);', '((m + \":\") + b)');
+    check ('option string tuple null default keeps helper', '(string?, object) mVariable = this.handleOptionStringAndParams(a, \"f\", \"method\", c);\nobject m = mVariable.Item1;\nobject r = add(m, b);', 'add(m, b)');
+    check ('object concat as List<object>.Add argument', 'List<object> xs = new List<object>() {};\nobject w = \"d\";\nxs.Add(add(add(w, \":\"), b));', 'xs.Add(((w + \":\") + b));');
+    check ('object concat as object-param Add argument keeps helper', 'object w = \"d\";\na.Add(add(add(w, \":\"), b));', 'a.Add(add(add(w, \":\"), b));');
     check ('own string member shadow keeps helper', 'object q = add(this.id, a);\n    }\n    public object id;\n    public void g()\n    {', 'add(this.id, a)');
     const tests = hx4C17NativeHelperCalls ('namespace Tests;\npublic partial class t\n{\n    public void f(string b)\n    {\n        object q = add(b, 1);\n    }\n}\n');
     if (!tests.includes ('add(b, 1)')) problems.push ('hx4 C17 tests namespace rewritten');
