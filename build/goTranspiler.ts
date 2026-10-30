@@ -3693,7 +3693,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = gb08Pass (content, filePath);  // hx10 w8 GB08: prediction-tier element reads inside a len(list) loop
     content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
     content = hx11w8TM01Pass (content);  // hx11 w8 TM01: the typed forward hands r.Value over, no map round trip
-    content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
     content = hx10w8GO04Pass (content);  // hx10 w8 GO04: a coercion feeding one typed FromMap builder goes, the builder takes the box
     content = gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     content = hx10w9GO05Pass (content);  // hx10 w9 GO05: no *sync.Map producer is left, so the coercion's last arm goes
@@ -3703,6 +3702,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = hx11w8TickerReadPass (content);  // hx11 w8: TickerMapFromMap(snapshot) sends read the typed cache
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
+    content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
     return goGofmtSplicedText (content);
 }
 

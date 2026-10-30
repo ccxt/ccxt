@@ -6,7 +6,7 @@
 
 const WT01 = new RegExp (
     '^([ \\t]*)var (\\w+) map\\[string\\]any = (?:ccxt\\.)?StructResultMap\\((\\w+\\.Value), (?:ccxt\\.)?TickerMapToMap\\)\\n'
-    + '([ \\t]*\\n)?'
+    + '((?:[ \\t]*\\n)*)'
     + '\\1ch <- ((?:ccxt\\.)?)AsyncResult\\[(?:ccxt\\.)?Ticker\\]\\{Value: (?:ccxt\\.)?TickerFromMap\\((?:ccxt\\.)?GetValue\\(\\2, (\\w+)\\)\\)\\}\\n', 'gm');
 
 function wt01Uses (fn: string, name: string): number {
