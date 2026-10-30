@@ -3189,7 +3189,7 @@ class bitget extends \ccxt\async\bitget {
         if ($isUta) {
             $messageHash = 'unsubscribe:kline:' . $symbol;
             $subMessageHash = 'kline:' . $symbol;
-        } else {
+        } elseif ($timeframe !== null) {
             $messageHash = 'unsubscribe:candles:' . $timeframe . ':' . $symbol;
             $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         }

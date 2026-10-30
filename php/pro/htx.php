@@ -1930,8 +1930,14 @@ class htx extends \ccxt\async\htx {
         } else {
             $symbol = $this->safe_string($paramsOmitted, 'symbol');
             $currency = $this->safe_string($paramsOmitted, 'currency');
-            $market = ($symbol !== null) ? $this->market($symbol) : null;
-            $currencyCode = ($currency !== null) ? $this->currency($currency) : null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $currencyCode = null;
+            if ($currency !== null) {
+                $currencyCode = $this->currency($currency);
+            }
             $marginMode = $this->safe_string($paramsOmitted, 'margin', 'cross');
             $prefix = 'accounts';
             $messageHash = $prefix;
