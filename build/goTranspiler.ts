@@ -5376,6 +5376,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = hx5X26CaseAffix (content);  // hx5 X26
         content = hx5X27StringHelpers (hx11w8JoinStringLocals (content));  // hx5 X27, hx11 w8 r18: string-only []any locals are []string first
         content = goNativeStringAdds (hx11w8StringAnyLocals (content));  // hx11 w8: string-only `any` locals are strings, their Add chains native
+        content = g10kStrNativeStringHelpers (path, content);  // the Add chains are `+` sums only from here: StartsWith/EndsWith of one go native
         content = hx5X29ParseNative (content);  // hx5 X29
         content = hx4G42InlineTypeChecks (content, hx4G36Aligner ());  // hx4 G42
         content = hx4G40InlineIsEqual (content, hx4G36Aligner ());  // hx4 G40: last, after every typed IsEqual pass
