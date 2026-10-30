@@ -7261,7 +7261,7 @@ class binance extends Exchange {
         return $brokerId . $this->uuid22();
     }
 
-    public function handle_client_order_id(array $params, ?string $api, ?string $path, string $method): array {
+    public function handle_client_order_id(array $params, string $api, string $path, string $method): array {
         /**
          * @ignore
          * @param {array} $params request $params
