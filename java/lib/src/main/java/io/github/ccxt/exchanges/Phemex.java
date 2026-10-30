@@ -1462,7 +1462,7 @@ public class Phemex extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Object valueScale = JsParse.parseInt(valueScaleString);
+        Long valueScale = JsParse.parseInt(valueScaleString);
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Double minAmount = null;

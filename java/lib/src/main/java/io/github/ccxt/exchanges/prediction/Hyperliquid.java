@@ -260,7 +260,7 @@ public class Hyperliquid extends HyperliquidApi
             if ((((Integer) colonIndex) > -1))
             {
                 String key = (part == null ? null : part.substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? part.length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), part.length())));
-                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v6 -> (Object) (hx4J40v6 + 1L); case Integer hx4J40v6 -> (Object) (hx4J40v6.longValue() + 1L); case Double hx4J40v6 -> (Object) (hx4J40v6 + ((double) 1L)); case String hx4J40v6 -> (Object) (hx4J40v6 + "1"); default -> (Object) null; })), null);
+                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v5 -> (Object) (hx4J40v5 + 1L); case Integer hx4J40v5 -> (Object) (hx4J40v5.longValue() + 1L); case Double hx4J40v5 -> (Object) (hx4J40v5 + ((double) 1L)); case String hx4J40v5 -> (Object) (hx4J40v5 + "1"); default -> (Object) null; })), null);
                 result.put(key, value);
             }
         }
@@ -290,7 +290,7 @@ public class Hyperliquid extends HyperliquidApi
             expiryDate = (expiryParts == null || 0 >= expiryParts.size() ? null : expiryParts.get(0));
         }
         String label = "NO";
-        if (Helpers.isEqual(side, 0))
+        if ((side != null && ((Number) side).doubleValue() == 0))
         {
             label = "YES";
         }

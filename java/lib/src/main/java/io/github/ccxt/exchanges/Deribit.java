@@ -4212,8 +4212,8 @@ public class Deribit extends DeribitApi
                 Map<String, Object> last = (Map<String, Object>) this.safeDict(data, (((long) dataLength) - 1L), new HashMap<String, Object>() {{}});
                 first.put("continuation", cursor);
                 last.put("continuation", cursor);
-                Helpers.addElementToObject(data, 0, first);
-                Helpers.addElementToObject(data, (((long) dataLength) - 1L), last);
+                ((List<Object>) data).set(0, first);
+                ((List<Object>) data).set((int) (((long) dataLength) - 1L), last);
             }
         }
         return data;

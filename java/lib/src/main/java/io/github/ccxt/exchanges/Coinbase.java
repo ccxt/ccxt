@@ -2877,9 +2877,9 @@ public class Coinbase extends CoinbaseApi
         String futuresBuyingPower = this.safeString(futuresBuyingPowerData, "value");
         if ((!java.util.Objects.equals(totalUsdBalance, null)) || (!java.util.Objects.equals(futuresBuyingPower, null)))
         {
-            Object total = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
+            String total = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
             Object free = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : total;
-            Object used = Precise.stringSub(total, free);
+            String used = Precise.stringSub(total, free);
             Map<String, Object> balanceResult = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
@@ -2908,7 +2908,7 @@ public class Coinbase extends CoinbaseApi
                     String currencyId = this.safeString(value, "currency");
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     String total = this.safeString(value, "amount");
-                    Object free = total;
+                    String free = total;
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                     if (java.util.Objects.equals(account, null))
                     {
@@ -2938,7 +2938,7 @@ public class Coinbase extends CoinbaseApi
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     String used = this.safeString(hold, "value");
                     String free = this.safeString(available, "value");
-                    Object total = Precise.stringAdd(used, free);
+                    String total = Precise.stringAdd(used, free);
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                     if (java.util.Objects.equals(account, null))
                     {

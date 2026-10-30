@@ -658,18 +658,18 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        Object parsed = super.parseTrade((Object) (trade), (Map<String, Object>) null);
+        Map<String, Object> parsed = super.parseTrade((Object) (trade), (Map<String, Object>) null);
         String feeRate = null;
         Boolean isMaker = false;
         String makerFeeRate = this.safeString(trade, "maker_fee_rate");
         if (!java.util.Objects.equals(makerFeeRate, null))
         {
             isMaker = true;
-            Helpers.addElementToObject(parsed, "takerOrMaker", "maker");
+            parsed.put("takerOrMaker", "maker");
             feeRate = makerFeeRate;
         } else
         {
-            Helpers.addElementToObject(parsed, "takerOrMaker", "taker");
+            parsed.put("takerOrMaker", "taker");
             feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
@@ -684,7 +684,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             idKey = "maker_order_id";
         }
-        Helpers.addElementToObject(parsed, "order", this.safeString(trade, idKey));
+        parsed.put("order", this.safeString(trade, idKey));
         String parsedSymbol = (String) ((Map<String, Object>)parsed).get("symbol");
         Map<String, Object> marketResolved = this.market(parsedSymbol);
         String feeCurrency = (String) marketResolved.get("quote");
@@ -698,7 +698,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         mapLiteral1.put("rate", this.parseNumber(feeRate));
         mapLiteral1.put("cost", this.parseNumber(feeCost));
         mapLiteral1.put("currency", feeCurrency);
-        Helpers.addElementToObject(parsed, "fee", mapLiteral1);
+        parsed.put("fee", mapLiteral1);
         return (Trade) parsed;
     }
 

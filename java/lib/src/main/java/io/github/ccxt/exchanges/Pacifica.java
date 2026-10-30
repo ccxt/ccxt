@@ -2959,7 +2959,7 @@ public class Pacifica extends PacificaApi
                 Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
                 ((Map<String, Object>)first).put("next_cursor", paginationCursor);
                 ((Map<String, Object>)first).put("has_more", hasMore);
-                Helpers.addElementToObject(data, 0, first);
+                data.set(0, first);
             }
         }
         return data;

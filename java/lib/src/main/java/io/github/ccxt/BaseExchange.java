@@ -7013,7 +7013,7 @@ public Map<String, Object> describe()
         {
             if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)) && Precise.stringGt(filled, "0"))
             {
-                Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+                String filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (Boolean.TRUE.equals(inverse))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
@@ -7041,7 +7041,7 @@ public Map<String, Object> describe()
                 multiplyPrice = average;
             }
             // contract trading
-            Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+            String filledTimesContractSize = Precise.stringMul(filled, contractSize);
             if (Boolean.TRUE.equals(inverse))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
@@ -8431,7 +8431,7 @@ public Map<String, Object> describe()
         String marginMode = this.safeString(position, "marginMode");
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         String initialMarginString = this.safeString(position, "initialMargin");
-        Object maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         String collateralString = this.safeString(position, "collateral");
         String entryPriceString = this.safeString(position, "entryPrice");
         String liquidationPriceString = this.safeString(position, "liquidationPrice");
@@ -8479,7 +8479,7 @@ public Map<String, Object> describe()
             {
                 if (Boolean.TRUE.equals(isInverse))
                 {
-                    Object invEntry = Precise.stringDiv("1", entryPriceString);
+                    String invEntry = Precise.stringDiv("1", entryPriceString);
                     String invLiq = Precise.stringDiv("1", liquidationPriceString);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8508,8 +8508,8 @@ public Map<String, Object> describe()
             Boolean hasPriceDiff = (!java.util.Objects.equals(priceDiff, null)) && Precise.stringGt(priceDiff, "0");
             if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
-                Object derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                String lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
                 if (Precise.stringGt(derivedMm, "0"))
                 {
                     maintenanceMarginString = derivedMm;
@@ -8517,7 +8517,7 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
                 String derivedEntryMargin = Precise.stringAdd(maintenanceMarginString, lossFromEntry);
                 if (Precise.stringGt(derivedEntryMargin, "0"))
                 {
@@ -8538,11 +8538,11 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(liquidationPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
-                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
                     String derivedLp = Precise.stringAdd(entryPriceString, bufferPerUnit);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8550,7 +8550,7 @@ public Map<String, Object> describe()
                     }
                     if (Boolean.TRUE.equals(isInverse))
                     {
-                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invEntry = Precise.stringDiv("1", entryPriceString);
                         String invDerivedLp = Precise.stringSub(invEntry, bufferPerUnit);
                         if (java.util.Objects.equals(side, "long"))
                         {
@@ -8568,11 +8568,11 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(entryPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasLiqPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
-                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
                     String derivedEp = Precise.stringSub(liquidationPriceString, bufferPerUnit);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8598,8 +8598,8 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object denom = Precise.stringMul(priceDiff, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String denom = Precise.stringMul(priceDiff, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
                 {
                     String derivedContracts = Precise.stringDiv(marginBuffer, denom);
@@ -8611,8 +8611,8 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object denom = Precise.stringMul(priceDiff, contractsString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String denom = Precise.stringMul(priceDiff, contractsString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
                 {
                     String derivedContractSize = Precise.stringDiv(marginBuffer, denom);
@@ -8640,7 +8640,7 @@ public Map<String, Object> describe()
             // 1. notional <-> markPrice / contracts / contractSize
             if ((java.util.Objects.equals(notionalString, null)) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 String derivedNotional = Precise.stringMul(totalSize, markPriceString);
                 if (Boolean.TRUE.equals(isInverse))
                 {
@@ -8653,7 +8653,7 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(markPriceString, null)) && (java.util.Objects.equals(entryPriceString, null)) && (java.util.Objects.equals(lastPriceString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 String derivedMark = Precise.stringDiv(notionalString, totalSize);
                 if (Boolean.TRUE.equals(isInverse))
                 {
@@ -8694,11 +8694,11 @@ public Map<String, Object> describe()
             {
                 if (Precise.stringGt(entryPriceString, "0") && Precise.stringGt(markPriceString, "0") && Precise.stringGt(contractsString, "0") && Precise.stringGt(contractSizeString, "0"))
                 {
-                    Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                    String totalSize = Precise.stringMul(contractsString, contractSizeString);
                     String pnlDiff = null;
                     if (Boolean.TRUE.equals(isInverse))
                     {
-                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invEntry = Precise.stringDiv("1", entryPriceString);
                         String invMark = Precise.stringDiv("1", markPriceString);
                         if (java.util.Objects.equals(side, "long"))
                         {
@@ -8779,7 +8779,7 @@ public Map<String, Object> describe()
             Boolean hasValidMmp = (!java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Precise.stringGt(maintenanceMarginPercentageString, "0");
             if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMmp))
             {
-                Object derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+                String derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
                 if (Precise.stringGt(derivedMm, "0"))
                 {
                     maintenanceMarginString = derivedMm;
@@ -10599,15 +10599,15 @@ public Map<String, Object> describe()
         {
             return null;
         }
-        Object precisionNumber = Helpers.parseInt(precision);
-        if (java.util.Objects.equals((precisionNumber == null ? null : ((Number) precisionNumber).longValue()), 0L))
+        Long precisionNumber = Helpers.parseInt(precision);
+        if ((precisionNumber != null && precisionNumber == 0))
         {
             return "1";
         }
-        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(precisionNumber, 0))
+        if ((precisionNumber != null && precisionNumber > 0))
         {
             String parsedPrecision = "0.";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(precisionNumber, 1)); i++)
+            for (var i = 0; i < (precisionNumber - 1L); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10646,9 +10646,9 @@ public Map<String, Object> describe()
             {
                 return null;
             }
-            Object positivePrecision = JsParse.parseInt(positivePrecisionString);
+            Long positivePrecision = JsParse.parseInt(positivePrecisionString);
             String parsedPrecision = "1";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(positivePrecision, 1)); i++)
+            for (var i = 0; i < (positivePrecision - 1L); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }

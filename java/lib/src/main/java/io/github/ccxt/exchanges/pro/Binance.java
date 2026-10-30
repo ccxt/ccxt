@@ -6685,7 +6685,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 if (java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
                                 {
                                     Object feeCost = this.sum(tradeFee.get("cost"), Helpers.GetValue(orderFee, "cost"));
-                                    Object feeCostString = this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
+                                    String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
                                     if (java.util.Objects.equals(feeCostString, null))
                                     {
                                         feeCostString = "0";
@@ -6704,7 +6704,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             if (java.util.Objects.equals(this.safeString(fee, "currency"), this.safeString(tradeFee, "currency")))
                             {
                                 Object feeCost = this.sum(fee.get("cost"), tradeFee.get("cost"));
-                                Object feeCostString = this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
+                                String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
                                 if (java.util.Objects.equals(feeCostString, null))
                                 {
                                     feeCostString = "0";

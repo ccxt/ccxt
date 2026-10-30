@@ -695,7 +695,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object ohlcv = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                Object channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+                String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
                 ohlcv = (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
             } else
             {
@@ -2152,7 +2152,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
-                Object channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+                String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
                 parameters.put("unsubscribed", true);
                 this.spawn(() -> { try { this.watchSpotPublic((String) (channel), messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else

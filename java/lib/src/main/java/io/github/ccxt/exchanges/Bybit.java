@@ -2334,8 +2334,8 @@ public class Bybit extends BybitApi
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
         {
             Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-            Helpers.addElementToObject(first, "nextPageCursor", paginationCursor);
-            Helpers.addElementToObject(data, 0, first);
+            ((Map<String, Object>)first).put("nextPageCursor", paginationCursor);
+            data.set(0, first);
         }
         return data;
     }
@@ -5693,7 +5693,7 @@ public class Bybit extends BybitApi
                     orderCost = cost;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(amountString, priceString);
+                    String quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
                 request.put("qty", this.getCost(symbolValue, (String) (orderCost)));
@@ -5717,8 +5717,8 @@ public class Bybit extends BybitApi
                     throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(this.numberToString(amountValue), priceString);
-                    Object costRequest = quoteAmount;
+                    String quoteAmount = Precise.stringMul(this.numberToString(amountValue), priceString);
+                    String costRequest = quoteAmount;
                     if (!java.util.Objects.equals(cost, null))
                     {
                         costRequest = cost;
@@ -8717,7 +8717,7 @@ public class Bybit extends BybitApi
                 {
                     price = markPrice;
                 }
-                Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
+                String difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
                 positionMarginString = null; // derived from collateral by safePosition
             } else
@@ -8752,7 +8752,7 @@ public class Bybit extends BybitApi
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
                     if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
                     {
-                        Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                        String difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
                         String multiply = Precise.stringMul(bustPrice, liquidationPrice);
                         maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     }

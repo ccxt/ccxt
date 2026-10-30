@@ -3176,16 +3176,16 @@ public class Myriad extends MyriadApi
         for (var i = 0; i < ((List<?>)rawBids).size(); i++)
         {
             List<Object> row = (List<Object>) this.safeList(rawBids, i, (Object) null);
-            Object rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
-            Object rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
+            String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
+            String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
         {
             List<Object> row = (List<Object>) this.safeList(rawAsks, i, (Object) null);
-            Object rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
-            Object rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
+            String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
+            String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
         }
         return new HashMap<String, Object>() {{

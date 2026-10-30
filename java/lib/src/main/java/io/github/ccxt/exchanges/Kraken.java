@@ -3827,8 +3827,8 @@ public class Kraken extends KrakenApi
         if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))
         {
             Object last = (data == null || ((int) (((long) dataLength) - 1L)) < 0 || ((int) (((long) dataLength) - 1L)) >= data.size() ? null : data.get(((int) (((long) dataLength) - 1L))));
-            Helpers.addElementToObject(last, "next_cursor", cursor);
-            Helpers.addElementToObject(data, (((long) dataLength) - 1L), last);
+            ((Map<String, Object>)last).put("next_cursor", cursor);
+            data.set((int) (((long) dataLength) - 1L), last);
         }
         return data;
     }

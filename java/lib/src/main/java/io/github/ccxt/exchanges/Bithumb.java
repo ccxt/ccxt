@@ -3913,7 +3913,7 @@ public class Bithumb extends BithumbApi
         {
             String errorName = this.safeString(error, "name");
             String message = this.safeString(error, "message");
-            Object feedback = ((this.id + " ") + message);
+            String feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
                 this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
@@ -3940,7 +3940,7 @@ public class Bithumb extends BithumbApi
                 // https://github.com/ccxt/ccxt/issues/9017
                 return null;  // no error
             }
-            Object feedback = ((this.id + " ") + message);
+            String feedback = ((this.id + " ") + message);
             this.throwExactlyMatchedException(this.exceptions, status, feedback);
             this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError((String)feedback) ;

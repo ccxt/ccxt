@@ -2631,7 +2631,7 @@ public class Gemini extends GeminiApi
         {
             String reasonInner = this.safeString(response, "reason");
             String message = this.safeString(response, "message");
-            Object feedback = ((this.id + " ") + message);
+            String feedback = ((this.id + " ") + message);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
