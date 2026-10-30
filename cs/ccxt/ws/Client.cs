@@ -56,6 +56,8 @@ public partial class BaseExchange
 
         public object keepAlive = 30000;
 
+        public object connectionTimeout = 10000; // milliseconds, false or 0 to disable
+
         public int maxPingPongMisses = 3;
 
         public Int64? connectionEstablished;
@@ -224,7 +226,6 @@ public partial class BaseExchange
             this.isConnected = true;
             // Awaiters can resume inline in SetResult: publish the ready state first.
             this.connected.SetResult(true);
-            // this.clearConnectionTimeout();
             Task.Run(async () =>
             {
                 PingLoop();
@@ -382,7 +383,25 @@ public partial class BaseExchange
                     return;
                 }
 
-                await webSocket.ConnectAsync(new Uri(url), cancellationToken);
+                // Bound the handshake, excluding reconnect backoff and the wait
+                // for another client's dial. Dispose the timer before onOpen so
+                // it cannot cancel an established connection.
+                using (var handshakeCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                {
+                    var timeout = Convert.ToInt32(this.connectionTimeout);
+                    if (timeout > 0)
+                    {
+                        handshakeCancellation.CancelAfter(timeout);
+                    }
+                    try
+                    {
+                        await webSocket.ConnectAsync(new Uri(url), handshakeCancellation.Token);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && handshakeCancellation.IsCancellationRequested)
+                    {
+                        throw new RequestTimeout("Connection to " + this.url + " failed due to a connection timeout");
+                    }
+                }
                 if (this.verbose)
                 {
                     Console.WriteLine("WebSocket connected to " + url);
