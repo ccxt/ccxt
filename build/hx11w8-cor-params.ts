@@ -60,7 +60,13 @@ export function installHx11w8CorParams (goTranspiler: any) {
             const printed = upstreamPrinted.call (this, arg);
             if ((printed !== undefined) || (arg?.kind !== ts.SyntaxKind.Identifier) || (typeof this.goGetArgParameterType !== 'function')) { return printed; }
             const decl = this.checkerOrUndefined ()?.getSymbolAtLocation (arg)?.valueDeclaration?.resolve?.();
-            return ((decl?.kind === ts.SyntaxKind.Parameter) && (this.goGetArgParameterType (decl) === 'string')) ? 'string' : printed;
+            if (decl?.kind === ts.SyntaxKind.Parameter) { return (this.goGetArgParameterType (decl) === 'string') ? 'string' : printed; }
+            // `const [ marketType, query ] = this.handleMarketTypeAndParams (...)`: slot 0 is the *string tuple result
+            const isSlot0 = (decl?.kind === ts.SyntaxKind.BindingElement) && (decl.parent?.kind === ts.SyntaxKind.ArrayBindingPattern) && (decl.parent.elements[0] === decl);
+            const holder = isSlot0 ? decl.parent.parent : undefined;
+            const init = holder?.initializer;
+            const constant = ((holder?.parent?.flags ?? 0) & ts.NodeFlags.Const) !== 0;
+            return (constant && (init?.kind === ts.SyntaxKind.CallExpression) && (init.expression?.name?.text === 'handleMarketTypeAndParams')) ? '*string' : printed;
         };
     }
     const upstream = goTranspiler.goParameterCallSitesPassType;
