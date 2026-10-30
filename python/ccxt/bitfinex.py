@@ -1142,17 +1142,14 @@ class bitfinex(Exchange, ImplicitAPI):
         info = self.safe_list(currency, 'info')
         transferId = self.safe_string(info, 0)
         underlying = self.safe_list(info, 4, [])
-        currencyId = None
         if type == 'derivatives':
-            currencyId = self.safe_string(underlying, 0, transferId)
-            isDerivativeCode = currencyId.endswith('F0')
-            if not isDerivativeCode:
-                currencyId = currencyId + 'F0'
+            derivativesId = self.safe_string(underlying, 0, self.safe_string(info, 0, ''))
+            if not derivativesId.endswith('F0'):
+                return derivativesId + 'F0'
+            return derivativesId
         elif type != 'margin':
-            currencyId = self.safe_string(underlying, 1, transferId)
-        else:
-            currencyId = transferId
-        return currencyId
+            return self.safe_string(underlying, 1, transferId)
+        return transferId
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

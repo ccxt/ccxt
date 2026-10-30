@@ -1065,7 +1065,7 @@ class BaseExchange(SyncExchange):
     async def watch_balance(self, params: dict = {}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
 
-    async def fetch_partial_balance(self, part: object, params: dict = {}):
+    async def fetch_partial_balance(self, part: str, params: dict = {}):
         balance = await self.fetch_balance(params)
         return balance[part]
 

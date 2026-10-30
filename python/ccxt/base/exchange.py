@@ -6232,7 +6232,7 @@ class BaseExchange(object):
     def watch_balance(self, params: dict = {}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
 
-    def fetch_partial_balance(self, part: object, params: dict = {}):
+    def fetch_partial_balance(self, part: str, params: dict = {}):
         balance = self.fetch_balance(params)
         return balance[part]
 
