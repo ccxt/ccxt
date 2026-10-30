@@ -4094,7 +4094,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseBalanceHelper (entry: Dict) {
+    parseBalanceHelper (entry: Dict): Dict {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');

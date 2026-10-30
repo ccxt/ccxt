@@ -8179,7 +8179,7 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseBalanceHelper (entry: Dict) {
+    parseBalanceHelper (entry: Dict): Dict {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
         account['free'] = this.safeString2 (entry, 'availableBalance', 'available');
