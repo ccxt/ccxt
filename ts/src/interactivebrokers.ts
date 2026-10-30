@@ -592,9 +592,9 @@ export default class interactivebrokers extends Exchange {
                     '503': OperationFailed, // {"error":"Service Unavailable","statusCode":503}
                 },
                 'broad': {
-                    'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please <a href=\"sso://action=TransferFunds&service=AM.LOGIN&webaccess=true?&type=INTERNAL?method=CRYPTO_CASH_TRANSFERS\">transfer funds to your Crypto account</a> to trade this product."}'
+                    'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please transfer funds to your Crypto account to trade this product."}'
                     ' doesn\'t exist"}': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
-                    'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}, retried in request ()
+                    'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}
                     'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
                 },
             },
