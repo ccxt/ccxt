@@ -3657,8 +3657,8 @@ impl ExtendedCore {
         });
         let mut msgHash: Value = self.get_extended_order_msg_hash(Value::Map(settlement.clone())).map(Value::from).unwrap_or(Value::Null);
         let mut sig: Value = json_parse(&self.extended_starknet_sign(msgHash, self.privateKey.clone()));
-        let mut r: Value = self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut s: Value = self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut r: Value = self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null);
+        let mut s: Value = self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null);
         settlement.insert("r".into(), r);
         settlement.insert("s".into(), s);
         return Value::Map(settlement);
@@ -3712,8 +3712,8 @@ impl ExtendedCore {
         let mut sig: Value = json_parse(&self.extended_starknet_sign(msgHash, self.privateKey.clone()));
         settlement.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null));
-        m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("r".to_string(), self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null));
     m
 }));
         return Value::Map(settlement);
@@ -3763,8 +3763,8 @@ impl ExtendedCore {
         let mut sig: Value = json_parse(&self.extended_starknet_sign(msgHash, self.privateKey.clone()));
         settlement.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null));
-        m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("r".to_string(), self.get_extended_signature_hex(self.safe_string(sig.clone(), Value::Int(0), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).map(Value::from).unwrap_or(Value::Null));
     m
 }));
         return Value::Map(settlement);
@@ -4815,12 +4815,7 @@ impl ExtendedCore {
 }
 
     pub fn get_extended_decimal_to_base16(&self, mut value: Value) -> Option<String> {
-        let mut decimalString: Value = Value::Str("".into());
-        if matches!(&value, Value::Str(_)) {
-            decimalString = value.clone();
-        }  else {
-            decimalString = self.number_to_string(value);
-        }
+        let mut decimalString: Value = value;
         let mut hexChars: Value = Value::from(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
         let mut result: Value = Value::Str("".into());
@@ -4837,17 +4832,10 @@ impl ExtendedCore {
 }
 
     pub fn get_extended_signature_hex(&self, mut signature: Value) -> Option<String> {
-        if matches!(&signature, Value::Str(_)) {
-            if (Value::Int(signature.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                return signature.as_str().map(str::to_owned);
-            }
-            return Value::Str(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature.clone()).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        if (Value::Int(signature.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+            return signature.as_str().map(str::to_owned);
         }
-        let mut signatureString: Value = self.number_to_string(signature);
-        if (Value::Int(signatureString.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            return signatureString.as_str().map(str::to_owned);
-        }
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signatureString).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
 }
 
     pub fn get_extended_domain_hash(&self) -> Value {

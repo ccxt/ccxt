@@ -1960,7 +1960,10 @@ impl BlofinCore {
                         let mut i: i64 = 0;
             let mut __for_first_459: bool = true;
             while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (data.len() as i64) } {
-            let mut rate: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
+            let mut rate: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
