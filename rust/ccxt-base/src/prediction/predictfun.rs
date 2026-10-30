@@ -3654,8 +3654,8 @@ impl PredictfunCore {
         let mut gasLimit: Value = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0x186a0".into())]);
         // which of the four exchanges settles a market is a property of the market, so an
         // approval granted for one of them is worth nothing on the others
-        let mut isNegRisk: Value = Value::Bool(false);
-        let mut isYieldBearing: Value = Value::Bool(false);
+        let mut isNegRisk: bool = false;
+        let mut isYieldBearing: bool = false;
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
@@ -3668,11 +3668,11 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            isNegRisk = (Value::Bool(self.safe_bool_k(marketRow.clone(), "isNegRisk", &[Value::Bool(false)]).as_bool() == Some(true)));
-            isYieldBearing = (Value::Bool(self.safe_bool_k(marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true)));
+            isNegRisk = self.safe_bool_k(marketRow.clone(), "isNegRisk", &[Value::Bool(false)]).as_bool() == Some(true);
+            isYieldBearing = self.safe_bool_k(marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
         }
         if (side.as_deref() == Some("sell")) {
-            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(Value::from).unwrap_or(Value::Null)]);
+            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);
             let mut operators: Value = Value::from(vec![]);
             let mut explicitOperator: Option<String> = self.safe_string_k_opt(params.clone(), "spender", &[]);
             if (explicitOperator.is_some()) {
@@ -3680,11 +3680,11 @@ impl PredictfunCore {
             }  else if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter".into()))));
             }  else {
-                if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.exchange_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(Value::from).unwrap_or(Value::Null)); }
+                if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)); }
                 // a neg risk match mints and merges through the adapter, which moves the seller's
                 // shares itself, so approving the exchange alone leaves the sell side half open
-                if isNegRisk.as_bool() == Some(true) {
-                    if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.adapter_address(isYieldBearing.is_truthy()).map(Value::from).unwrap_or(Value::Null)); }
+                if isNegRisk {
+                    if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null)); }
                 }
             }
             if (rpcUrl == Value::Null) || (ctfToken == Value::Null) {
@@ -3726,7 +3726,7 @@ impl PredictfunCore {
             if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter".into()))));
             }
-            spender = self.exchange_address(isNegRisk.is_truthy(), isYieldBearing.is_truthy()).map(Value::from).unwrap_or(Value::Null);
+            spender = self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null);
         }
         if (rpcUrl == Value::Null) || (token == Value::Null) || (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ".into())).into()), chainKey)));

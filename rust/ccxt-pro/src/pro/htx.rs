@@ -2468,8 +2468,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             let mut symbol: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "symbol", &[]);
             let mut currency: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "currency", &[]);
-            let mut market: Value = (if (symbol.is_some()) { self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null)) } else { Value::Null });
-            let mut currencyCode: Value = (if (currency.is_some()) { self.currency(currency.map(Value::from).unwrap_or(Value::Null)) } else { Value::Null });
+            let mut market: Value = Value::Null;
+            if (symbol.is_some()) {
+                market = self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            }
+            let mut currencyCode: Value = Value::Null;
+            if (currency.is_some()) {
+                currencyCode = self.currency(currency.map(Value::from).unwrap_or(Value::Null));
+            }
             marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]);
             let mut prefix: Value = Value::Str("accounts".into());
             messageHash = prefix.clone();

@@ -3942,7 +3942,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if isUta.as_bool() == Some(true) {
             messageHash = Value::Str(format!("{}{}", Value::Str("unsubscribe:kline:".into()), symbol).into());
             subMessageHash = Value::Str(format!("{}{}", Value::Str("kline:".into()), symbol).into());
-        }  else {
+        }  else if (timeframe != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
         }
