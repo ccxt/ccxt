@@ -1363,6 +1363,8 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'eipDefinitions': 'Dictionary<string, object>', 'eipDomainData': 'Dictionary<string, object>', 'eipMessageForOrder': 'Dictionary<string, object>', 'fetchDepositsRequest': 'Dictionary<string, object>',
     'fetchMyTradesRequest': 'Dictionary<string, object>', 'fetchOHLCVRequest': 'Dictionary<string, object>', 'fetchOrdersRequest': 'Dictionary<string, object>', 'fetchWithdrawalsRequest': 'Dictionary<string, object>',
     'getDefaultOptions': 'Dictionary<string, object>', 'getDescribeForExtendedWsExchange': 'Dictionary<string, object>', 'getMarketFromClientAndMessage': 'Dictionary<string, object>', 'getMarketFromOrder': 'Dictionary<string, object>',
+    // polymarket#sendSubscription: one declaration, both returns are this.extend (request, params)
+    'sendSubscription': 'Dictionary<string, object>',
     'getSubscriptionRequest': 'Dictionary<string, object>', 'hardcodedCurrencies': 'Dictionary<string, object>', 'indexPositionBreakList': 'Dictionary<string, object>', 'invertFlatStringDictionary': 'Dictionary<string, object>',
     // base-only (1 declaration, no venue override): two `return undefined` paths (printed
     // `return null`) and `return market`, the local `this.market(...)` fills (the same
