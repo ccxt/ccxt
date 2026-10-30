@@ -2,6 +2,8 @@ import asyncio
 import os
 import sys
 
+from aiohttp import WSMessage, WSMsgType
+
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
@@ -179,6 +181,175 @@ async def test_ws_client_reset():
     await test_reset_with_a_string_payload()
     await test_reset_preserves_the_original_exception_type()
     await test_reset_with_an_unserializable_payload()
+    for retirement in ('error', 'close', 'exchange_close'):
+        for suppress_cancellation in (False, True):
+            for watch_multiple in (False, True):
+                await test_pending_handshake_retirement(retirement, suppress_cancellation, watch_multiple)
+    await test_pending_handshake_retirement('close', True, False, cancel_close=True)
+    await test_close_prevents_a_later_connect()
+    await test_retired_client_preserves_replacement()
+    for watch_multiple in (False, True):
+        await test_close_during_ws_throttle(watch_multiple)
+
+
+async def test_pending_handshake_retirement(retirement, suppress_cancellation, watch_multiple, cancel_close=False):
+    from ccxt.async_support.base.exchange import Exchange
+
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    close_entered = asyncio.Event()
+    finish_close = asyncio.Event()
+    messages = asyncio.Queue()
+    callbacks = []
+
+    class Connection:
+        closed = False
+
+        async def receive(self):
+            return await messages.get()
+
+        async def send_str(self, message):
+            callbacks.append('send')
+
+        async def close(self):
+            if cancel_close:
+                close_entered.set()
+                await finish_close.wait()
+            self.closed = True
+            messages.put_nowait(WSMessage(WSMsgType.CLOSED, None, None))
+
+    connection = Connection()
+
+    class GatedClient(Client):
+        @property
+        def buffer(self):
+            return None
+
+        async def create_connection(self, session):
+            entered.set()
+            try:
+                await release.wait()
+            except asyncio.CancelledError:
+                if not suppress_cancellation:
+                    raise
+                await release.wait()
+            return connection
+
+    owner = Exchange()
+    owner.enableRateLimit = False
+    client = GatedClient('ws://example.invalid', noop, owner.on_error, owner.on_close,
+                         lambda unused: callbacks.append('connected'),
+                         {'asyncio_loop': asyncio.get_running_loop(), 'keepAlive': 0})
+    owner.clients[client.url] = client
+    if watch_multiple:
+        watcher = owner.watch_multiple(client.url, ['ticker'], {'op': 'subscribe'}, ['ticker'])
+    else:
+        watcher = owner.watch(client.url, 'ticker', {'op': 'subscribe'}, 'ticker')
+    await asyncio.wait_for(entered.wait(), 1)
+    try:
+        if retirement == 'error':
+            client.on_error(NetworkError('handshake retired'))
+        close_task = asyncio.create_task(owner.close_ws_clients() if retirement == 'exchange_close' else client.close())
+        asyncio.get_running_loop().call_soon(release.set)
+        if cancel_close:
+            await asyncio.wait_for(close_entered.wait(), 1)
+            close_task.cancel()
+            asyncio.get_running_loop().call_soon(finish_close.set)
+            try:
+                await asyncio.wait_for(close_task, 1)
+                raise AssertionError('close cancellation is swallowed')
+            except asyncio.CancelledError:
+                pass
+        else:
+            await asyncio.wait_for(close_task, 1)
+        try:
+            await asyncio.wait_for(asyncio.shield(client.connected), 1)
+            raise AssertionError('retired handshake resolves connected')
+        except NetworkError:
+            pass
+        assert not callbacks, 'retired handshake starts connected callbacks'
+        assert client.connection is None or client.connection.closed
+        if suppress_cancellation:
+            assert connection.closed, 'late connection remains open'
+    finally:
+        release.set()
+        finish_close.set()
+        for unused in range(3):
+            barrier = asyncio.get_running_loop().create_future()
+            asyncio.get_running_loop().call_soon(barrier.set_result, None)
+            await barrier
+        await client.close()
+        await asyncio.gather(watcher, return_exceptions=True)
+        if not client.connected.done():
+            client.connected.cancel()
+        else:
+            client.connected.exception()
+        await owner.close()
+
+
+async def test_close_prevents_a_later_connect():
+    client = make_client()
+    await client.close()
+    try:
+        await client.connect(None)
+        raise AssertionError('closed client starts another connection')
+    except NetworkError:
+        pass
+
+
+async def test_retired_client_preserves_replacement():
+    from ccxt.async_support.base.exchange import Exchange
+
+    owner = Exchange()
+    retired = make_client()
+    replacement = make_client()
+    owner.clients[retired.url] = replacement
+    retired.error = NetworkError('retired')
+    owner.on_error(retired, retired.error)
+    owner.on_close(retired, 1000)
+    assert owner.clients[retired.url] is replacement
+    await retired.close()
+    await replacement.close()
+    assert owner.client(replacement.url) is not replacement
+    await owner.close()
+
+
+async def test_close_during_ws_throttle(watch_multiple):
+    from ccxt.async_support.base.exchange import Exchange
+
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    resumed = asyncio.Event()
+    sent = []
+    owner = Exchange()
+    client = make_client()
+
+    async def throttle(cost):
+        entered.set()
+        await release.wait()
+        resumed.set()
+
+    async def send(message):
+        sent.append(message)
+
+    client.throttle = throttle
+    client.send = send
+    client.connected.resolve(client.url)
+    owner.clients[client.url] = client
+    try:
+        if watch_multiple:
+            watcher = owner.watch_multiple(client.url, ['ticker'], {'op': 'subscribe'}, ['ticker'])
+        else:
+            watcher = owner.watch(client.url, 'ticker', {'op': 'subscribe'}, 'ticker')
+        await asyncio.wait_for(entered.wait(), 1)
+        await client.close()
+        release.set()
+        await asyncio.wait_for(resumed.wait(), 1)
+        assert not sent, 'retired client sends after throttle'
+        await asyncio.gather(watcher, return_exceptions=True)
+    finally:
+        release.set()
+        await owner.close()
 
 
 if __name__ == '__main__':
