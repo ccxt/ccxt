@@ -156,7 +156,9 @@ public partial class BaseExchange
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
+            // permessage-deflate is offered unless options['ws']['compress'] is 0, as in python
+            var compress = this.safeInteger(wsOptions, "compress", this.safeInteger(ws, "compress", 15)) ?? 15;
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary, compress != 0);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
