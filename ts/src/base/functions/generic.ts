@@ -156,7 +156,9 @@ const flatten = function flatten (x: any[], out: any[] = []): any[] {
 
 const pluck = (x: Dictionary<any>, k: any): any[] => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any> | undefined, ...args: any): any => {
+function omit<T extends Dictionary<any>> (x: T, ...args: any): T;
+function omit (x: any, ...args: any): any;
+function omit (x: Dictionary<any> | undefined, ...args: any): any {
     if (x === undefined) {
         return x;
     }
@@ -178,7 +180,7 @@ const omit = (x: Dictionary<any> | undefined, ...args: any): any => {
     }
 
     return x;
-};
+}
 
 const sum = (...xs: any[]) => {
 

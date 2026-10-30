@@ -594,7 +594,7 @@ export default class PredictionExchange extends BaseExchange {
             copy['symbol'] = this.safeString2 (row, 'market', 'symbol');
             aliased.push (copy);
         }
-        const stored = super.setMarkets (aliased, currencies);
+        const stored: Dict = super.setMarkets (aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
