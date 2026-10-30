@@ -371852,10 +371852,13 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
             'stop_price',
             'stopPrice'
         ];
-        const optionKeys = triggerPrice === undefined ? [
-            'timeInForce',
-            'postOnly'
-        ] : [];
+        let optionKeys = [];
+        if (triggerPrice === undefined) {
+            optionKeys = [
+                'timeInForce',
+                'postOnly'
+            ];
+        }
         const paramsOmitted = this.omit(params, this.arrayConcat(omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
@@ -372250,7 +372253,6 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = apiName === 'private' ? headersSigned : undefined;
         let bodyResolved = undefined;
         if (method === 'POST' || method === 'DELETE') {
             bodyResolved = this.json(query);
@@ -372259,7 +372261,7 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
             'url': fullUrl,
             'method': method,
             'body': bodyResolved,
-            'headers': headersResolved
+            'headers': headersSigned
         };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -379605,7 +379607,8 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const methodName = 'fetchOpenSpotOrders';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         let market = undefined;
         const request = {};
         let response = undefined;
@@ -379671,7 +379674,8 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOpenSwapOrders';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         if (symbol === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodNameOption + '() requires a symbol argument for swap market orders');
         }
@@ -380304,7 +380308,8 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const methodName = 'fetchPosition';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         if (market['swap'] !== true) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodNameOption + '() supports swap markets only');
         }
@@ -415651,7 +415656,10 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //
@@ -469811,7 +469819,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const maxLimit = 100;
         let effectiveLimit = this.parseToInt(100);
         if (limit !== undefined && 100 > limit) {
-            effectiveLimit = limit;
+            effectiveLimit = this.parseToInt(limit);
         }
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
@@ -504168,7 +504176,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
         const apiGroup = api[0];
         const access = api[1];
         const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['kalshi']);
+        const baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, 'kalshi', ''));
         const implodedPath = this.implodeParams(path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit(params, this.extractParams(path));
@@ -541070,7 +541078,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'uta', false);
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsUta, 'stock');
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && market['spot'] === true;
         const isStockOrUta = isStockSpot || uta === true;
         const [instType, paramsInstType] = this.getInstType('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
@@ -541410,7 +541418,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         if (symbolsLength > 0) {
             const market = this.market(symbolsNormalized[0]);
             const isStock = market['stock'];
-            isStockSpot = isStock && market['spot'];
+            isStockSpot = isStock && market['spot'] === true;
         }
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'watchOrderBookForSymbols', 'uta', false);

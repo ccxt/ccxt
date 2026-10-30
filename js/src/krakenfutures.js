@@ -2495,7 +2495,10 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //

@@ -537,7 +537,7 @@ class bitget extends bitget$1["default"] {
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'uta', false);
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsUta, 'stock');
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const isStockOrUta = (isStockSpot || (uta === true));
         const [instType, paramsInstType] = this.getInstType('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
@@ -869,7 +869,7 @@ class bitget extends bitget$1["default"] {
         if (symbolsLength > 0) {
             const market = this.market(symbolsNormalized[0]);
             const isStock = market['stock'];
-            isStockSpot = isStock && market['spot'];
+            isStockSpot = isStock && (market['spot'] === true);
         }
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'watchOrderBookForSymbols', 'uta', false);

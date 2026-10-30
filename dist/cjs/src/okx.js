@@ -8336,7 +8336,7 @@ class okx extends okx$1["default"] {
         const maxLimit = 100;
         let effectiveLimit = this.parseToInt(100);
         if ((limit !== undefined) && (100 > limit)) {
-            effectiveLimit = limit;
+            effectiveLimit = this.parseToInt(limit);
         }
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;

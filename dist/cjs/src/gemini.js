@@ -1678,7 +1678,10 @@ class gemini extends gemini$1["default"] {
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
         // timeInForce and postOnly are consumed only by non-trigger orders
         const omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice'];
-        const optionKeys = (triggerPrice === undefined) ? ['timeInForce', 'postOnly'] : [];
+        let optionKeys = [];
+        if (triggerPrice === undefined) {
+            optionKeys = ['timeInForce', 'postOnly'];
+        }
         const paramsOmitted = this.omit(params, this.arrayConcat(omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
@@ -2066,12 +2069,11 @@ class gemini extends gemini$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json(query);
         }
-        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

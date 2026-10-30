@@ -3314,7 +3314,8 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const methodName = 'fetchOpenSpotOrders';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         let market = undefined;
         const request = {};
         let response = undefined;
@@ -3382,7 +3383,8 @@ export default class hashkey extends Exchange {
      */
     async fetchOpenSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOpenSwapOrders';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' ' + methodNameOption + '() requires a symbol argument for swap market orders');
         }
@@ -4007,7 +4009,8 @@ export default class hashkey extends Exchange {
         }
         const market = this.market(symbol);
         const methodName = 'fetchPosition';
-        const [methodNameOption, paramsMethodName] = this.handleParamString(params, 'methodName', methodName);
+        const methodNameOption = this.safeString(params, 'methodName', methodName);
+        const paramsMethodName = this.omit(params, 'methodName');
         if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' ' + methodNameOption + '() supports swap markets only');
         }
