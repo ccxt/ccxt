@@ -2158,7 +2158,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         return this.safePosition(mapLiteral6);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -2168,34 +2168,34 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String eventVar = this.safeString(data, "e");
         if ((java.util.Objects.equals(eventVar, "stockPrice")) || (java.util.Objects.equals(eventVar, "stockIndicativeQuote")))
         {
-            this.handleStockTicker(client, (Map<String, Object>) (message));
+            this.handleStockTicker(client, message);
         } else if (java.util.Objects.equals(eventVar, "balanceUpdate"))
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
         } else if ((java.util.Objects.equals(eventVar, "rfqAccepted")) || (java.util.Objects.equals(eventVar, "rfqCandidate")) || (java.util.Objects.equals(eventVar, "rfqAcceptedBinding")) || (java.util.Objects.equals(eventVar, "rfqFilled")) || (java.util.Objects.equals(eventVar, "rfqCancelled")) || (java.util.Objects.equals(eventVar, "quoteAccepted")) || (java.util.Objects.equals(eventVar, "quoteCancelled")))
         {
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
         } else if ((java.util.Objects.equals(eventVar, "ticker")) || (java.util.Objects.equals(eventVar, "externalTicker")))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
         } else if (java.util.Objects.equals(eventVar, "bookTicker"))
         {
-            this.handleBidAsk(client, (Map<String, Object>) (message));
+            this.handleBidAsk(client, message);
         } else if (java.util.Objects.equals(eventVar, "kline"))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
         } else if (java.util.Objects.equals(eventVar, "trade"))
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
         } else if (java.util.Objects.equals(eventVar, "depth"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(eventVar, "orderAccepted") || java.util.Objects.equals(eventVar, "orderUpdate") || java.util.Objects.equals(eventVar, "orderFill") || java.util.Objects.equals(eventVar, "orderCancelled") || java.util.Objects.equals(eventVar, "orderExpired") || java.util.Objects.equals(eventVar, "orderModified") || java.util.Objects.equals(eventVar, "triggerPlaced") || java.util.Objects.equals(eventVar, "triggerFailed"))
         {
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
         } else if (java.util.Objects.equals(eventVar, "positionAdjusted") || java.util.Objects.equals(eventVar, "positionOpened") || java.util.Objects.equals(eventVar, "positionClosed") || java.util.Objects.equals(eventVar, "positionUpdated"))
         {
-            this.handlePositions(client, (Map<String, Object>) (message));
+            this.handlePositions(client, message);
         }
     }
 

@@ -983,38 +983,38 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        if (((Map<?, ?>)message).containsKey("channel"))
+        if (message.containsKey("channel"))
         {
             String channel = this.safeString(message, "channel");
             if (((String)channel).indexOf("_depth_step") > -1)
             {
-                this.handleOrderBook(client, (Map<String, Object>) (message));
+                this.handleOrderBook(client, message);
             } else if (((String)channel).indexOf("_trade_ticker") > -1)
             {
-                this.handleTrades(client, (Map<String, Object>) (message));
+                this.handleTrades(client, message);
             } else if (((String)channel).indexOf("_kline_") > -1)
             {
-                this.handleOHLCV(client, (Map<String, Object>) (message));
+                this.handleOHLCV(client, message);
             } else if (((String)channel).indexOf("_ticker") > -1)
             {
-                this.handleTicker(client, (Map<String, Object>) (message));
+                this.handleTicker(client, message);
             }
-        } else if (((Map<?, ?>)message).containsKey("ping"))
+        } else if (message.containsKey("ping"))
         {
-            this.handlePing(client, (Map<String, Object>) (message));
+            this.handlePing(client, message);
         } else
         {
             String eventVar = this.safeString(message, "e");
-            Map<String, Object> handlers = new HashMap<String, Object>() {{
-                put( "BALANCE", "handleBalance");
-                put( "ORDER", "handleOrder");
+            Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("BALANCE", Bitrue.this::handleBalance);
+                put("ORDER", Bitrue.this::handleOrder);
             }};
-            Object handler = this.safeValue(handlers, eventVar);
+            io.github.ccxt.Handler handler = handlers.get(eventVar);
             if (!java.util.Objects.equals(handler, null))
             {
-                Helpers.callDynamically(this, handler, new Object[] {client, message});
+                handler.handle(client, message);
             }
         }
     }

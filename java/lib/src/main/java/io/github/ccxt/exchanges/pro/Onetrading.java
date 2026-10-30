@@ -1393,7 +1393,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         throw new ExchangeError(((this.id + " ") + this.json(message))) ;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
@@ -1402,36 +1402,36 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             return;
         }
         String type = this.safeString(message, "type");
-        Map<String, Object> handlers = new HashMap<String, Object>() {{
-            put( "ORDER_BOOK_UPDATE", "handleOrderBook");
-            put( "ORDER_BOOK_SNAPSHOT", "handleOrderBook");
-            put( "ACTIVE_ORDERS_SNAPSHOT", "handleOrders");
-            put( "INACTIVE_ORDERS_SNAPSHOT", "handleOrders");
-            put( "ACCOUNT_UPDATE", "handleAccountUpdate");
-            put( "BALANCES_SNAPSHOT", "handleBalanceSnapshot");
-            put( "SUBSCRIPTIONS", "handleSubscriptions");
-            put( "SUBSCRIPTION_UPDATED", "handleSubscriptions");
-            put( "PRICE_TICK", "handleTicker");
-            put( "PRICE_TICK_HISTORY", "handleSubscriptions");
-            put( "HEARTBEAT", "handleHeartbeat");
-            put( "MARKET_TICKER_UPDATES", "handleTicker");
-            put( "PRICE_POINT_UPDATES", "handlePricePointUpdates");
-            put( "CANDLESTICK_SNAPSHOT", "handleOHLCV");
-            put( "CANDLESTICK", "handleOHLCV");
-            put( "AUTHENTICATED", "handleAuthenticationMessage");
-            put( "FILL", "handleTrading");
-            put( "DONE", "handleTrading");
-            put( "BOOKED", "handleTrading");
-            put( "UPDATE", "handleTrading");
-            put( "TRACKED", "handleTrading");
-            put( "TRIGGERED", "handleTrading");
-            put( "STOP_TRACKED", "handleTrading");
-            put( "STOP_TRIGGERED", "handleTrading");
+        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("ORDER_BOOK_UPDATE", Onetrading.this::handleOrderBook);
+            put("ORDER_BOOK_SNAPSHOT", Onetrading.this::handleOrderBook);
+            put("ACTIVE_ORDERS_SNAPSHOT", Onetrading.this::handleOrders);
+            put("INACTIVE_ORDERS_SNAPSHOT", Onetrading.this::handleOrders);
+            put("ACCOUNT_UPDATE", Onetrading.this::handleAccountUpdate);
+            put("BALANCES_SNAPSHOT", Onetrading.this::handleBalanceSnapshot);
+            put("SUBSCRIPTIONS", Onetrading.this::handleSubscriptions);
+            put("SUBSCRIPTION_UPDATED", Onetrading.this::handleSubscriptions);
+            put("PRICE_TICK", Onetrading.this::handleTicker);
+            put("PRICE_TICK_HISTORY", Onetrading.this::handleSubscriptions);
+            put("HEARTBEAT", Onetrading.this::handleHeartbeat);
+            put("MARKET_TICKER_UPDATES", Onetrading.this::handleTicker);
+            put("PRICE_POINT_UPDATES", Onetrading.this::handlePricePointUpdates);
+            put("CANDLESTICK_SNAPSHOT", Onetrading.this::handleOHLCV);
+            put("CANDLESTICK", Onetrading.this::handleOHLCV);
+            put("AUTHENTICATED", Onetrading.this::handleAuthenticationMessage);
+            put("FILL", Onetrading.this::handleTrading);
+            put("DONE", Onetrading.this::handleTrading);
+            put("BOOKED", Onetrading.this::handleTrading);
+            put("UPDATE", Onetrading.this::handleTrading);
+            put("TRACKED", Onetrading.this::handleTrading);
+            put("TRIGGERED", Onetrading.this::handleTrading);
+            put("STOP_TRACKED", Onetrading.this::handleTrading);
+            put("STOP_TRIGGERED", Onetrading.this::handleTrading);
         }};
-        Object handler = this.safeValue(handlers, type);
+        io.github.ccxt.Handler handler = handlers.get(type);
         if (!java.util.Objects.equals(handler, null))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            handler.handle(client, message);
         }
     }
 

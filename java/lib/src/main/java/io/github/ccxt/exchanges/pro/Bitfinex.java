@@ -1497,9 +1497,49 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return this.safeOrder(mapLiteral2, marketResolved);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleListMessage(Client client, Object message)
     {
         String channelId = this.safeString(message, 0);
+        String heartbeat = this.safeString(message, 1);
+        if (java.util.Objects.equals(heartbeat, "hb"))
+        {
+            return;  // skip heartbeats within subscription channels for now
+        }
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, channelId, new HashMap<String, Object>() {{}});
+        String channel = this.safeString(subscription, "channel");
+        String name = this.safeString(message, 1);
+        Map<String, Object> publicMethods = new HashMap<String, Object>() {{
+            put( "book", "handleOrderBook");
+            put( "cs", "handleChecksum");
+            put( "candles", "handleOHLCV");
+            put( "ticker", "handleTicker");
+            put( "trades", "handleTrades");
+        }};
+        Map<String, Object> privateMethods = new HashMap<String, Object>() {{
+            put( "os", "handleOrders");
+            put( "ou", "handleOrders");
+            put( "on", "handleOrders");
+            put( "oc", "handleOrders");
+            put( "wu", "handleBalance");
+            put( "ws", "handleBalance");
+            put( "tu", "handleMyTrade");
+        }};
+        Object method = null;
+        if (java.util.Objects.equals(channelId, "0"))
+        {
+            method = this.safeValue(privateMethods, name);
+        } else
+        {
+            method = this.safeValue2(publicMethods, name, channel);
+        }
+        if (!java.util.Objects.equals(method, null))
+        {
+            Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
         //
         //     [
         //         1231,
@@ -1525,60 +1565,19 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //        }
         //    }
         //
-        if ((message instanceof List))
+        String eventVar = this.safeString(message, "event");
+        if (!java.util.Objects.equals(eventVar, null))
         {
-            String heartbeat = this.safeString(message, 1);
-            if (java.util.Objects.equals(heartbeat, "hb"))
-            {
-                return;  // skip heartbeats within subscription channels for now
-            }
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, channelId, new HashMap<String, Object>() {{}});
-            String channel = this.safeString(subscription, "channel");
-            String name = this.safeString(message, 1);
-            Map<String, Object> publicMethods = new HashMap<String, Object>() {{
-                put( "book", "handleOrderBook");
-                put( "cs", "handleChecksum");
-                put( "candles", "handleOHLCV");
-                put( "ticker", "handleTicker");
-                put( "trades", "handleTrades");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("info", Bitfinex.this::handleSystemStatus);
+                put("subscribed", Bitfinex.this::handleSubscriptionStatus);
+                put("unsubscribed", Bitfinex.this::handleUnsubscriptionStatus);
+                put("auth", Bitfinex.this::handleAuthenticationMessage);
             }};
-            Map<String, Object> privateMethods = new HashMap<String, Object>() {{
-                put( "os", "handleOrders");
-                put( "ou", "handleOrders");
-                put( "on", "handleOrders");
-                put( "oc", "handleOrders");
-                put( "wu", "handleBalance");
-                put( "ws", "handleBalance");
-                put( "tu", "handleMyTrade");
-            }};
-            Object method = null;
-            if (java.util.Objects.equals(channelId, "0"))
-            {
-                method = this.safeValue(privateMethods, name);
-            } else
-            {
-                method = this.safeValue2(publicMethods, name, channel);
-            }
+            io.github.ccxt.Handler method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
-            }
-        } else
-        {
-            String eventVar = this.safeString(message, "event");
-            if (!java.util.Objects.equals(eventVar, null))
-            {
-                Map<String, Object> methods = new HashMap<String, Object>() {{
-                    put( "info", "handleSystemStatus");
-                    put( "subscribed", "handleSubscriptionStatus");
-                    put( "unsubscribed", "handleUnsubscriptionStatus");
-                    put( "auth", "handleAuthenticationMessage");
-                }};
-                Object method = this.safeValue(methods, eventVar);
-                if (!java.util.Objects.equals(method, null))
-                {
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
-                }
+                method.handle(client, message);
             }
         }
     }

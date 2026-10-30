@@ -627,20 +627,20 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         client.resolve(this.balance, eventVar);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "TRADE", "handleTrade");
-            put( "TICKER", "handleTicker");
-            put( "ORDER_BOOK", "handleOrderBook");
-            put( "ACCOUNT_BALANCE", "handleBalance");
-            put( "USER_TRADE", "handleMyTrade");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("TRADE", Bitopro.this::handleTrade);
+            put("TICKER", Bitopro.this::handleTicker);
+            put("ORDER_BOOK", Bitopro.this::handleOrderBook);
+            put("ACCOUNT_BALANCE", Bitopro.this::handleBalance);
+            put("USER_TRADE", Bitopro.this::handleMyTrade);
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
     }
 }

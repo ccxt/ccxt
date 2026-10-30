@@ -1313,20 +1313,20 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "orderbook", "handleOrderBook");
-            put( "ticker", "handleTicker");
-            put( "ticker_slim", "handleTicker");
-            put( "trades", "handleTrade");
-            put( "orders", "handleOrder");
-            put( "mytrades", "handleMyTrade");
-            put( "balances", "handleBalance");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("orderbook", Derive.this::handleOrderBook);
+            put("ticker", Derive.this::handleTicker);
+            put("ticker_slim", Derive.this::handleTicker);
+            put("trades", Derive.this::handleTrade);
+            put("orders", Derive.this::handleOrder);
+            put("mytrades", Derive.this::handleMyTrade);
+            put("balances", Derive.this::handleBalance);
         }};
         String eventVar = null;
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
@@ -1350,13 +1350,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
             }
         }
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
             return;
         }
-        if (((Map<?, ?>)message).containsKey("id"))
+        if (message.containsKey("id"))
         {
             String id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
@@ -1372,10 +1372,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     String subscriptionMethod = this.safeString(subscription, "method");
                     if (java.util.Objects.equals(subscriptionMethod, "public/login"))
                     {
-                        this.handleAuth(client, (Map<String, Object>) (message));
+                        this.handleAuth(client, message);
                     } else if (java.util.Objects.equals(subscriptionMethod, "unsubscribe"))
                     {
-                        this.handleUnSubscribe(client, (Map<String, Object>) (message));
+                        this.handleUnSubscribe(client, message);
                     }
                 }
             }
@@ -1387,7 +1387,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
                     // in java the acknowledgement can arrive before the subscription record is stored
                     // so the shape serves as the routing fallback when the id scan finds nothing
-                    this.handleAuth(client, (Map<String, Object>) (message));
+                    this.handleAuth(client, message);
                 }
             }
         }

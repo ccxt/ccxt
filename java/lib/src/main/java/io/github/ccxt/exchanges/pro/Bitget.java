@@ -3293,7 +3293,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
+    {
+        if (java.util.Objects.equals(message, "pong"))
+        {
+            this.handlePong(client, message);
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -3375,14 +3383,6 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //         }
         //     }
         //
-        if ((message instanceof String))
-        {
-            if (java.util.Objects.equals(message, "pong"))
-            {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
@@ -3396,51 +3396,51 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "login"))
         {
-            this.handleAuthenticate(client, (Map<String, Object>) (message));
+            this.handleAuthenticate(client, message);
             return;
         }
         if (java.util.Objects.equals(eventVar, "subscribe"))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         if (java.util.Objects.equals(eventVar, "unsubscribe"))
         {
-            this.handleUnSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleUnSubscriptionStatus(client, message);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ticker", "handleTicker");
-            put( "trade", "handleTrades");
-            put( "publicTrade", "handleTrades");
-            put( "fill", "handleMyTrades");
-            put( "order", "handleOrder");
-            put( "orders", "handleOrder");
-            put( "ordersAlgo", "handleOrder");
-            put( "orders-algo", "handleOrder");
-            put( "orders-crossed", "handleOrder");
-            put( "orders-isolated", "handleOrder");
-            put( "account", "handleBalance");
-            put( "position", "handlePositions");
-            put( "positions", "handlePositions");
-            put( "account-isolated", "handleBalance");
-            put( "account-crossed", "handleBalance");
-            put( "kline", "handleOHLCV");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("ticker", Bitget.this::handleTicker);
+            put("trade", Bitget.this::handleTrades);
+            put("publicTrade", Bitget.this::handleTrades);
+            put("fill", Bitget.this::handleMyTrades);
+            put("order", Bitget.this::handleOrder);
+            put("orders", Bitget.this::handleOrder);
+            put("ordersAlgo", Bitget.this::handleOrder);
+            put("orders-algo", Bitget.this::handleOrder);
+            put("orders-crossed", Bitget.this::handleOrder);
+            put("orders-isolated", Bitget.this::handleOrder);
+            put("account", Bitget.this::handleBalance);
+            put("position", Bitget.this::handlePositions);
+            put("positions", Bitget.this::handlePositions);
+            put("account-isolated", Bitget.this::handleBalance);
+            put("account-crossed", Bitget.this::handleBalance);
+            put("kline", Bitget.this::handleOHLCV);
         }};
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String topic = this.safeString2(arg, "channel", "topic", "");
-        Object method = this.safeValue(methods, topic);
+        io.github.ccxt.Handler method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
         if (((String)topic).indexOf("candle") >= 0)
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
         }
         if (((String)topic).indexOf("books") >= 0)
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         }
     }
 

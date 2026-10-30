@@ -1187,7 +1187,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String type = this.safeString(message, "type");
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -1209,11 +1209,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 if (Boolean.TRUE.equals(authenticated))
                 {
-                    this.handleMyTrade(client, (Map<String, Object>) (message));
-                    this.handleOrder(client, (Map<String, Object>) (message));
+                    this.handleMyTrade(client, message);
+                    this.handleOrder(client, message);
                 } else
                 {
-                    this.handleTrade(client, (Map<String, Object>) (message));
+                    this.handleTrade(client, message);
                 }
             }
         } else

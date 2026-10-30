@@ -2245,7 +2245,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // {

@@ -1139,7 +1139,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // error
@@ -1236,7 +1236,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String accessToken = this.safeString(result, "access_token");
         if (!java.util.Objects.equals(accessToken, null))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
         }
     }
 

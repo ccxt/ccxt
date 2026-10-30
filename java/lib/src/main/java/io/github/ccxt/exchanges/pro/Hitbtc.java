@@ -1631,9 +1631,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return message;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        if (this.handleError(client, (Map<String, Object>) (message)))
+        if (this.handleError(client, message))
         {
             return;
         }
@@ -1650,25 +1650,25 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     channel = "orderbook/top";
                 }
             }
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "candles", "handleOHLCV");
-                put( "ticker", "handleTicker");
-                put( "trades", "handleTrades");
-                put( "orderbook", "handleOrderBook");
-                put( "orderbook/top", "handleBidAsk");
-                put( "spot_order", "handleOrder");
-                put( "spot_orders", "handleOrder");
-                put( "margin_order", "handleOrder");
-                put( "margin_orders", "handleOrder");
-                put( "futures_order", "handleOrder");
-                put( "futures_orders", "handleOrder");
-                put( "spot_balance", "handleBalance");
-                put( "futures_balance", "handleBalance");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("candles", Hitbtc.this::handleOHLCV);
+                put("ticker", Hitbtc.this::handleTicker);
+                put("trades", Hitbtc.this::handleTrades);
+                put("orderbook", Hitbtc.this::handleOrderBook);
+                put("orderbook/top", Hitbtc.this::handleBidAsk);
+                put("spot_order", Hitbtc.this::handleOrder);
+                put("spot_orders", Hitbtc.this::handleOrder);
+                put("margin_order", Hitbtc.this::handleOrder);
+                put("margin_orders", Hitbtc.this::handleOrder);
+                put("futures_order", Hitbtc.this::handleOrder);
+                put("futures_orders", Hitbtc.this::handleOrder);
+                put("spot_balance", Hitbtc.this::handleBalance);
+                put("futures_balance", Hitbtc.this::handleBalance);
             }};
-            Object method = (((java.util.Objects.equals(channel, null)))) ? null : this.safeValue(methods, channel);
+            io.github.ccxt.Handler method = methods.get(channel);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         } else
         {
@@ -1676,11 +1676,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String clientOrderId = this.safeString(result, "client_order_id");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                this.handleOrderRequest(client, (Map<String, Object>) (message));
+                this.handleOrderRequest(client, message);
             }
-            if ((java.util.Objects.equals(result, true)) && !(((Map<?, ?>)message).containsKey("id")))
+            if ((java.util.Objects.equals(result, true)) && !(message.containsKey("id")))
             {
-                this.handleAuthenticate(client, (Map<String, Object>) (message));
+                this.handleAuthenticate(client, message);
             }
             if ((result instanceof List))
             {
@@ -1689,7 +1689,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 Integer arrayLength = ((List<?>)result).size();
                 if ((java.util.Objects.equals(arrayLength, 0)) || (first.containsKey("client_order_id")))
                 {
-                    this.handleOrderRequest(client, (Map<String, Object>) (message));
+                    this.handleOrderRequest(client, message);
                 }
             }
         }

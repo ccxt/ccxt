@@ -214,7 +214,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.safeString(message, "method"), "PONG"))
         {
@@ -231,10 +231,10 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             if (((String)stream).indexOf("kline") >= 0 || ((String)stream).indexOf("markKline") >= 0)
             {
-                this.handleOHLCV(client, (Map<String, Object>) (message));
+                this.handleOHLCV(client, message);
             } else if (((String)stream).indexOf("ticker") >= 0)
             {
-                this.handleTicker(client, (Map<String, Object>) (message));
+                this.handleTicker(client, message);
             }
         }
     }

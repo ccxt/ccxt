@@ -1604,7 +1604,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.safeOrder(mapLiteral3, marketValue);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         // private spot update
         // {
@@ -1713,36 +1713,36 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         }
         String methodName = this.safeString(message, "method", "");
-        if ((((Map<?, ?>)message).containsKey("market24h")) || (((Map<?, ?>)message).containsKey("spot_market24h")) || (((String)methodName).indexOf("perp_market24h_pack_p") >= 0))
+        if ((message.containsKey("market24h")) || (message.containsKey("spot_market24h")) || (((String)methodName).indexOf("perp_market24h_pack_p") >= 0))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("trades")) || (((Map<?, ?>)message).containsKey("trades_p")))
+        } else if ((message.containsKey("trades")) || (message.containsKey("trades_p")))
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("kline")) || (((Map<?, ?>)message).containsKey("kline_p")))
+        } else if ((message.containsKey("kline")) || (message.containsKey("kline_p")))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("book")) || (((Map<?, ?>)message).containsKey("orderbook_p")))
+        } else if ((message.containsKey("book")) || (message.containsKey("orderbook_p")))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
-        if ((((Map<?, ?>)message).containsKey("orders")) || (((Map<?, ?>)message).containsKey("orders_p")))
+        if ((message.containsKey("orders")) || (message.containsKey("orders_p")))
         {
             Map<String, Object> orders = (Map<String, Object>) this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
             this.handleOrders(client, orders);
         }
-        if ((((Map<?, ?>)message).containsKey("accounts")) || (((Map<?, ?>)message).containsKey("accounts_p")) || (((Map<?, ?>)message).containsKey("wallets")))
+        if ((message.containsKey("accounts")) || (message.containsKey("accounts_p")) || (message.containsKey("wallets")))
         {
             String type = "spot";
-            if (((Map<?, ?>)message).containsKey("accounts"))
+            if (message.containsKey("accounts"))
             {
                 type = "swap";
             }
-            if (((Map<?, ?>)message).containsKey("accounts_p"))
+            if (message.containsKey("accounts_p"))
             {
                 type = "perpetual";
             }

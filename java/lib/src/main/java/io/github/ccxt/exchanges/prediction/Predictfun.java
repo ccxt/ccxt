@@ -4326,7 +4326,7 @@ public class Predictfun extends PredictfunApi
      * @param {Client} client the websocket client
      * @param {object} message the raw message
      */
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String messageType = this.safeString(message, "type");
         if (java.util.Objects.equals(messageType, "R"))
@@ -4340,7 +4340,7 @@ public class Predictfun extends PredictfunApi
             Boolean success = (Boolean) this.safeBool(message, "success", false);
             if (!Boolean.TRUE.equals(success))
             {
-                this.handleSubscriptionError(client, (Map<String, Object>) (message), subscription);
+                this.handleSubscriptionError(client, message, subscription);
                 return;
             }
             if (Boolean.TRUE.equals(this.safeBool(subscription, "unsubscribe", false)))
@@ -4352,7 +4352,7 @@ public class Predictfun extends PredictfunApi
         String topic = this.safeString(message, "topic");
         if (java.util.Objects.equals(topic, "heartbeat"))
         {
-            this.handleHeartbeat(client, (Map<String, Object>) (message));
+            this.handleHeartbeat(client, message);
             return;
         }
         if (java.util.Objects.equals(topic, null))
@@ -4363,10 +4363,10 @@ public class Predictfun extends PredictfunApi
         String channel = this.safeString(parts, 0);
         if (java.util.Objects.equals(channel, "predictOrderbook"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(channel, "predictWalletEvents"))
         {
-            this.handleWalletEvent(client, (Map<String, Object>) (message));
+            this.handleWalletEvent(client, message);
         }
     }
 

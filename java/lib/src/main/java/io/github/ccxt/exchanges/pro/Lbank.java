@@ -1064,7 +1064,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String status = this.safeString(message, "status");
         if (java.util.Objects.equals(status, "error"))
@@ -1075,21 +1075,21 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String type = this.safeString2(message, "type", "action");
         if (java.util.Objects.equals(type, "ping"))
         {
-            this.spawn(() -> { try { this.handlePing(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.spawn(() -> { try { this.handlePing(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
         }
-        Map<String, Object> handlers = new HashMap<String, Object>() {{
-            put( "kbar", "handleOHLCV");
-            put( "depth", "handleOrderBook");
-            put( "trade", "handleTrades");
-            put( "tick", "handleTicker");
-            put( "orderUpdate", "handleOrders");
-            put( "assetUpdate", "handleBalance");
+        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("kbar", Lbank.this::handleOHLCV);
+            put("depth", Lbank.this::handleOrderBook);
+            put("trade", Lbank.this::handleTrades);
+            put("tick", Lbank.this::handleTicker);
+            put("orderUpdate", Lbank.this::handleOrders);
+            put("assetUpdate", Lbank.this::handleBalance);
         }};
-        Object handler = this.safeValue(handlers, type);
+        io.github.ccxt.Handler handler = handlers.get(type);
         if (!java.util.Objects.equals(handler, null))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            handler.handle(client, message);
         }
     }
 

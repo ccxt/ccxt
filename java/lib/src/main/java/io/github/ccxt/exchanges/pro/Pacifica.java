@@ -1786,7 +1786,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1827,7 +1827,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         if (!java.util.Objects.equals(postType, null))
         {
-            this.handleWsPost(client, (Map<String, Object>) (message));
+            this.handleWsPost(client, message);
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());

@@ -2528,26 +2528,26 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
     {
-        if ((message instanceof String))
+        if (java.util.Objects.equals(message, "Invalid listen key"))
         {
-            if (java.util.Objects.equals(message, "Invalid listen key"))
-            {
-                var error = new AuthenticationError((this.id + " invalid listen key"));
-                client.reject(error);
-                return;
-            }
+            var error = new AuthenticationError((this.id + " invalid listen key"));
+            client.reject(error);
         }
-        if (this.isBinaryMessage(message))
+    }
+
+    public void handleBinaryMessage(Client client, Object message)
+    {
+        Object decodedMessage = this.decodeProtoMsg(message);
+        this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
+        if (message.containsKey("msg"))
         {
-            Object decodedMessage = this.decodeProtoMsg(message);
-            this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
-            return;
-        }
-        if ((switch ((Object)(message)) { case List<?> j39v4 -> j39v4.contains("msg"); case Map<?, ?> j39v3 -> j39v3.containsKey("msg"); case null, default -> false; }))
-        {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         String c = this.safeString(message, "c");

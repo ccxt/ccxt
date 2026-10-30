@@ -1332,7 +1332,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         throw new ExchangeError(feedback) ;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String code = this.safeString(message, "code");
         if (!java.util.Objects.equals(code, null) && (!java.util.Objects.equals(code, "0")))
@@ -1342,25 +1342,25 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
         } else if (!java.util.Objects.equals(result, null))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         } else
         {
             String eventVar = this.safeString(message, "e");
             if (java.util.Objects.equals(eventVar, "24hrTicker"))
             {
-                this.handleTicker(client, (Map<String, Object>) (message));
+                this.handleTicker(client, message);
             } else if (java.util.Objects.equals(eventVar, "kline"))
             {
-                this.handleOHLCV(client, (Map<String, Object>) (message));
+                this.handleOHLCV(client, message);
             } else if (java.util.Objects.equals(eventVar, "depthUpdate"))
             {
-                this.handleOrderBook(client, (Map<String, Object>) (message));
+                this.handleOrderBook(client, message);
             } else if (java.util.Objects.equals(eventVar, "ORDER_TRADE_UPDATE"))
             {
-                this.handleOrder(client, (Map<String, Object>) (message));
+                this.handleOrder(client, message);
             } else if (java.util.Objects.equals(eventVar, "ACCOUNT_UPDATE"))
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
@@ -1368,13 +1368,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Integer balancesLength = ((List<?>)balances).size();
                 if ((balancesLength != null && balancesLength > 0))
                 {
-                    this.handleBalance(client, (Map<String, Object>) (message));
+                    this.handleBalance(client, message);
                 }
                 List<Object> positions = (List<Object>) this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Integer positionsLength = ((List<?>)positions).size();
                 if ((positionsLength != null && positionsLength > 0))
                 {
-                    this.handlePositions(client, (Map<String, Object>) (message));
+                    this.handlePositions(client, message);
                 }
             }
         }

@@ -1104,7 +1104,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -1145,13 +1145,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "bts:subscription_succeeded"))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         } else if (java.util.Objects.equals(eventVar, "bts:unsubscription_succeeded"))
         {
-            this.handleUnsubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleUnsubscriptionStatus(client, message);
         } else
         {
-            this.handleSubject(client, (Map<String, Object>) (message));
+            this.handleSubject(client, message);
         }
     }
 

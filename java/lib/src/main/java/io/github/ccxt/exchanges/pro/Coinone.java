@@ -451,7 +451,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         return false;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -460,7 +460,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String type = this.safeString(message, "response_type");
         if (java.util.Objects.equals(type, "PONG"))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         if (java.util.Objects.equals(type, "DATA"))

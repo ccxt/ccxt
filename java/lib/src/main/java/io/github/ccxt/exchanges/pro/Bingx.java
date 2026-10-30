@@ -2192,23 +2192,23 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
-    public void handleMessage(Client client, Object message)
+    // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+    public void handleTextMessage(Client client, Object message)
     {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if ((message instanceof String))
+        if (java.util.Objects.equals(message, "Ping"))
         {
-            if (java.util.Objects.equals(message, "Ping"))
-            {
-                this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
-            }
-            return;
+            this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
         if (!this.handleErrorMessage(client, message))
         {
             return;
         }
         // public subscriptions
-        if ((switch ((Object)(message)) { case List<?> j39v3 -> j39v3.contains("ping"); case Map<?, ?> j39v2 -> j39v2.containsKey("ping"); case null, default -> false; }))
+        if (message.containsKey("ping"))
         {
             this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
@@ -2216,22 +2216,22 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String dataType = this.safeString(message, "dataType", "");
         if (((String)dataType).indexOf("@depth") >= 0)
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
         if (((String)dataType).indexOf("@ticker") >= 0)
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
             return;
         }
         if (((String)dataType).indexOf("@trade") >= 0)
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
             return;
         }
         if (((String)dataType).indexOf("@kline") >= 0)
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
             return;
         }
         if (((String)dataType).indexOf("executionReport") >= 0)
@@ -2240,20 +2240,20 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String type = this.safeString(data, "x");
             if (java.util.Objects.equals(type, "TRADE"))
             {
-                this.handleMyTrades(client, (Map<String, Object>) (message));
+                this.handleMyTrades(client, message);
             }
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
             return;
         }
         String e = this.safeString(message, "e");
         if (java.util.Objects.equals(e, "ACCOUNT_UPDATE"))
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
-            this.handlePositions(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
+            this.handlePositions(client, message);
         }
         if (java.util.Objects.equals(e, "ORDER_TRADE_UPDATE"))
         {
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
             String type = this.safeString(data, "x");
             String status = this.safeString(data, "X");
@@ -2269,18 +2269,18 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             if ((java.util.Objects.equals(type, "TRADE")) && Boolean.TRUE.equals(isExecution))
             {
-                this.handleMyTrades(client, (Map<String, Object>) (message));
+                this.handleMyTrades(client, message);
             }
         }
         Map<String, Object> msgData = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
         String msgEvent = this.safeString(msgData, "e");
         if (java.util.Objects.equals(msgEvent, "24hTicker"))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
         }
         if (java.util.Objects.equals(dataType, "") && java.util.Objects.equals(msgEvent, null) && java.util.Objects.equals(e, null))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         }
     }
 

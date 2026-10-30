@@ -785,7 +785,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -802,14 +802,14 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             //
             if (!java.util.Objects.equals(this.safeString(message, "id"), null))
             {
-                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+                this.handleSubscriptionStatus(client, message);
             } else if (!java.util.Objects.equals(this.safeString(message, "ch"), null))
             {
                 // route by channel aka topic aka subject
-                this.handleSubject(client, (Map<String, Object>) (message));
+                this.handleSubject(client, message);
             } else if (!java.util.Objects.equals(this.safeString(message, "ping"), null))
             {
-                this.handlePing(client, (Map<String, Object>) (message));
+                this.handlePing(client, message);
             }
         }
     }

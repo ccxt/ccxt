@@ -3646,10 +3646,10 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " signHash() requires privateKey")) ;
         }
         Map<String,Object> signature = ecdsa(hash, (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = ((String)this.intToBase16(this.sum(27, signature.get("v")))).toLowerCase();
-        return ((("0x" + this.padHex((String) (r), 64, true)) + this.padHex((String) (s), 64, true)) + v);
+        return ((("0x" + this.padHex(r, 64, true)) + this.padHex(s, 64, true)) + v);
     }
 
     public Object removeMarketSuffix(String marketId)

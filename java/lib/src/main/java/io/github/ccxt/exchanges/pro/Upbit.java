@@ -886,21 +886,21 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         client.resolve(this.balance, messageHash);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ticker", "handleTicker");
-            put( "orderbook", "handleOrderBook");
-            put( "trade", "handleTrades");
-            put( "myOrder", "handleMyOrder");
-            put( "myAsset", "handleBalance");
-            put( "candle.1s", "handleOHLCV");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("ticker", Upbit.this::handleTicker);
+            put("orderbook", Upbit.this::handleOrderBook);
+            put("trade", Upbit.this::handleTrades);
+            put("myOrder", Upbit.this::handleMyOrder);
+            put("myAsset", Upbit.this::handleBalance);
+            put("candle.1s", Upbit.this::handleOHLCV);
         }};
         String methodName = this.safeString(message, "type");
-        Object method = (((java.util.Objects.equals(methodName, null)))) ? null : this.safeValue(methods, methodName);
+        io.github.ccxt.Handler method = methods.get(methodName);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
     }
 }

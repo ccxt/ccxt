@@ -1941,45 +1941,45 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         this.cleanCache(subscription);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ping", "handlePing");
-            put( "pong", "handlePong");
-            put( "subscribe", "handleSubscribe");
-            put( "unsubscribe", "handleUnSubscription");
-            put( "orderbook", "handleOrderBook");
-            put( "orderbookupdate", "handleOrderBook");
-            put( "ticker", "handleTicker");
-            put( "tickers", "handleTickers");
-            put( "kline", "handleOHLCV");
-            put( "auth", "handleAuth");
-            put( "executionreport", "handleOrderUpdate");
-            put( "algoexecutionreportv2", "handleOrderUpdate");
-            put( "trade", "handleTrade");
-            put( "balance", "handleBalance");
-            put( "position", "handlePositions");
-            put( "bbos", "handleBidAsk");
-            put( "estfundingrate", "handleFundingRate");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("ping", Woo.this::handlePing);
+            put("pong", Woo.this::handlePong);
+            put("subscribe", Woo.this::handleSubscribe);
+            put("unsubscribe", Woo.this::handleUnSubscription);
+            put("orderbook", Woo.this::handleOrderBook);
+            put("orderbookupdate", Woo.this::handleOrderBook);
+            put("ticker", Woo.this::handleTicker);
+            put("tickers", Woo.this::handleTickers);
+            put("kline", Woo.this::handleOHLCV);
+            put("auth", Woo.this::handleAuth);
+            put("executionreport", Woo.this::handleOrderUpdate);
+            put("algoexecutionreportv2", Woo.this::handleOrderUpdate);
+            put("trade", Woo.this::handleTrade);
+            put("balance", Woo.this::handleBalance);
+            put("position", Woo.this::handlePositions);
+            put("bbos", Woo.this::handleBidAsk);
+            put("estfundingrate", Woo.this::handleFundingRate);
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
             return;
         }
         String topic = this.safeString(message, "topic");
         if (!java.util.Objects.equals(topic, null))
         {
-            method = this.safeValue(methods, topic);
+            method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
@@ -1991,20 +1991,20 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 {
                     return;
                 }
-                method = this.safeValue(methods, name);
+                method = methods.get(name);
                 if (!java.util.Objects.equals(method, null))
                 {
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
+                    method.handle(client, message);
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
                 Integer splitNameLength = ((List<?>)splitTopic).size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
-                    method = this.safeValue(methods, this.safeString(splitName, 0));
+                    method = methods.get(this.safeString(splitName, 0));
                     if (!java.util.Objects.equals(method, null))
                     {
-                        Helpers.callDynamically(this, method, new Object[] {client, message});
+                        method.handle(client, message);
                     }
                 }
             }

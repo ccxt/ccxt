@@ -387,14 +387,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, message);
+        Map<String, Object> market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
         }
         List<Object> tickers = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("ticker::" + symbol);
         this.tickers.put(symbol, ticker);
@@ -618,7 +618,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, message);
+        Map<String, Object> market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -636,7 +636,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> trade = this.parseWsTrade(rawTrade, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Map<String, Object> trade = this.parseWsTrade(rawTrade, market);
             ((List<Object>)newTrades).add(trade);
         }
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
@@ -909,7 +909,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, message);
+        Map<String, Object> market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -1133,7 +1133,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, message);
+        Map<String, Object> market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -1297,13 +1297,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "A": "6.30889"
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, message);
+        Map<String, Object> market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
         }
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, market);
+        String symbol = (String) market.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             this.bidsasks.put(symbol, ticker);
@@ -2393,7 +2393,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return false;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "id": "5", "method": "PONG" }
@@ -2413,40 +2413,40 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String id = this.safeString(message, "id");
         if (!java.util.Objects.equals(id, null))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         String eventVar = this.safeStringN(message, new ArrayList<Object>(Arrays.asList("e", "event", "type")));
         if (java.util.Objects.equals(eventVar, "ping"))
         {
-            this.handlePing(client, (Map<String, Object>) (message));
+            this.handlePing(client, message);
         } else if (java.util.Objects.equals(eventVar, "ticker"))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
         } else if ((java.util.Objects.equals(eventVar, "trade")) || (java.util.Objects.equals(eventVar, "tradeSnapshot")))
         {
-            this.handleTrade(client, (Map<String, Object>) (message));
+            this.handleTrade(client, message);
         } else if ((java.util.Objects.equals(eventVar, "kline")) || (java.util.Objects.equals(eventVar, "klineSnapshot")))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
         } else if ((java.util.Objects.equals(eventVar, "depth")) || (java.util.Objects.equals(eventVar, "depthSnapshot")))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(eventVar, "bookTicker"))
         {
-            this.handleBidAsk(client, (Map<String, Object>) (message));
+            this.handleBidAsk(client, message);
         } else if (java.util.Objects.equals(eventVar, "fill"))
         {
-            this.handleMyTrades(client, (Map<String, Object>) (message));
+            this.handleMyTrades(client, message);
         } else if (java.util.Objects.equals(eventVar, "orders"))
         {
-            this.handleOrders(client, (Map<String, Object>) (message));
+            this.handleOrders(client, message);
         } else if (java.util.Objects.equals(eventVar, "account"))
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
         } else if (java.util.Objects.equals(eventVar, "positions"))
         {
-            this.handlePositions(client, (Map<String, Object>) (message));
+            this.handlePositions(client, message);
         }
     }
 }

@@ -836,14 +836,14 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        if ((message instanceof List))
-        {
-            this.handleCryptoMessage(client, message);
-            return;
-        }
-        this.handleTradingMessage(client, (Map<String, Object>) (message));
+        this.handleTradingMessage(client, message);
+    }
+
+    public void handleListMessage(Client client, Object message)
+    {
+        this.handleCryptoMessage(client, message);
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

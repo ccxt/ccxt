@@ -1573,7 +1573,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (this.handleErrorMessage(client, message))
         {

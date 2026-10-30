@@ -1235,35 +1235,32 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         return this.safeOrder(mapLiteral6, market);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
     {
-        if ((message instanceof String))
+        String content = ((String)message).toLowerCase();
+        if (java.util.Objects.equals(content, "pong"))
         {
-            String content = ((String)message).toLowerCase();
-            if (java.util.Objects.equals(content, "pong"))
-            {
-                this.handlePong(client, message);
-                return;
-            }
-            if (java.util.Objects.equals(content, "ping"))
-            {
-                this.handlePing(client, message);
-                return;
-            }
-            return;
+            this.handlePong(client, message);
+        } else if (java.util.Objects.equals(content, "ping"))
+        {
+            this.handlePing(client, message);
         }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
         String status = this.safeString(message, "status");
         if (java.util.Objects.equals(status, "UP"))
         {
             this.handlePong(client, message);
             return;
         }
-        if (((switch ((Object)(message)) { case List<?> j39v6 -> j39v6.contains("pong"); case Map<?, ?> j39v5 -> j39v5.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v4 -> j39v4.contains("PINGPONG"); case Map<?, ?> j39v3 -> j39v3.containsKey("PINGPONG"); case null, default -> false; })))
+        if ((message.containsKey("pong")) || (message.containsKey("PINGPONG")))
         {
             this.handlePong(client, message);
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v2 -> j39v2.contains("ping"); case Map<?, ?> j39v1 -> j39v1.containsKey("ping"); case null, default -> false; }))
+        if (message.containsKey("ping"))
         {
             this.handlePing(client, message);
             return;
@@ -1275,19 +1272,19 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String topic = this.safeString(message, "type");
         if (!java.util.Objects.equals(topic, null))
         {
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "ticker", "handleTicker");
-                put( "orderbookdepth", "handleOrderBook");
-                put( "orderbook", "handleOrderBook");
-                put( "transaction", "handleTrades");
-                put( "trade", "handleTrades");
-                put( "myAsset", "handleBalance");
-                put( "myOrder", "handleOrders");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("ticker", Bithumb.this::handleTicker);
+                put("orderbookdepth", Bithumb.this::handleOrderBook);
+                put("orderbook", Bithumb.this::handleOrderBook);
+                put("transaction", Bithumb.this::handleTrades);
+                put("trade", Bithumb.this::handleTrades);
+                put("myAsset", Bithumb.this::handleBalance);
+                put("myOrder", Bithumb.this::handleOrders);
             }};
-            Object method = this.safeValue(methods, topic);
+            io.github.ccxt.Handler method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

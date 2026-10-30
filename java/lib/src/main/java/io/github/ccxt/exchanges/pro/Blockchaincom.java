@@ -856,30 +856,30 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "ticker"))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
         } else if (java.util.Objects.equals(channel, "trades"))
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
         } else if (java.util.Objects.equals(channel, "prices"))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
         } else if (java.util.Objects.equals(channel, "l2") || java.util.Objects.equals(channel, "l3"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(channel, "auth"))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
         } else if (java.util.Objects.equals(channel, "balances"))
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
         } else if (java.util.Objects.equals(channel, "trading"))
         {
-            this.handleOrders(client, (Map<String, Object>) (message));
+            this.handleOrders(client, message);
         } else
         {
             throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;

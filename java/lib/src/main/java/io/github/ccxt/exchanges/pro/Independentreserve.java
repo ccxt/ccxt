@@ -363,20 +363,20 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         return message;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String eventVar = this.safeString(message, "Event");
-        Map<String, Object> handlers = new HashMap<String, Object>() {{
-            put( "Subscriptions", "handleSubscriptions");
-            put( "Heartbeat", "handleHeartbeat");
-            put( "Trade", "handleTrades");
-            put( "OrderBookSnapshot", "handleOrderBook");
-            put( "OrderBookChange", "handleOrderBook");
+        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("Subscriptions", Independentreserve.this::handleSubscriptions);
+            put("Heartbeat", Independentreserve.this::handleHeartbeat);
+            put("Trade", Independentreserve.this::handleTrades);
+            put("OrderBookSnapshot", Independentreserve.this::handleOrderBook);
+            put("OrderBookChange", Independentreserve.this::handleOrderBook);
         }};
-        Object handler = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(handlers, eventVar);
+        io.github.ccxt.Handler handler = handlers.get(eventVar);
         if (!java.util.Objects.equals(handler, null))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            handler.handle(client, message);
             return;
         }
         throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;

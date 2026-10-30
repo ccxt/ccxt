@@ -1211,7 +1211,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -1221,7 +1221,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Long pong = this.safeInteger(message, "pong");
         if (java.util.Objects.equals(ret_msg, "pong") || !java.util.Objects.equals(pong, null))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         String topic = this.safeString2(message, "topic", "op", "");
@@ -1260,7 +1260,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String type = this.safeString(message, "type");
         if (java.util.Objects.equals(type, "AUTH_RESP"))
         {
-            this.handleAuthenticate(client, (Map<String, Object>) (message));
+            this.handleAuthenticate(client, message);
         }
     }
 

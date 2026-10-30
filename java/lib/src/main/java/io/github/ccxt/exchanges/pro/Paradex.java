@@ -1846,18 +1846,24 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return false;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleBinaryMessage(Client client, Object message)
     {
-        Object parsedMessage = message;
-        if (this.isBinaryMessage(message))
+        Map<String, Object> parsedMessage = this.parseSbeMessage(message);
+        if (java.util.Objects.equals(parsedMessage, null))
         {
-            parsedMessage = this.parseSbeMessage(message);
-            if (java.util.Objects.equals(parsedMessage, null))
-            {
-                return;
-            }
+            return;
         }
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, parsedMessage), true))
+        this.handleStreamMessage(client, parsedMessage);
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
+        this.handleStreamMessage(client, message);
+    }
+
+    public void handleStreamMessage(Client client, Map<String, Object> message)
+    {
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
@@ -1889,32 +1895,32 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(parsedMessage, "result", (Object) null);
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
         if (!java.util.Objects.equals(result, null))
         {
-            this.handleRequestReply(client, (Map<String, Object>) (parsedMessage));
+            this.handleRequestReply(client, message);
             return;
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parsedMessage, "params", (Object) null);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         if (!java.util.Objects.equals(data, null))
         {
             String channel = this.safeString(data, "channel");
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String name = this.safeString(parts, 0);
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "trades", "handleTrade");
-                put( "order_book", "handleOrderBook");
-                put( "markets_summary", "handleTicker");
-                put( "orders", "handleOrder");
-                put( "funding_data", "handleFundingRate");
-                put( "fills", "handleMyTrade");
-                put( "positions", "handlePositions");
-                put( "account", "handleBalance");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("trades", Paradex.this::handleTrade);
+                put("order_book", Paradex.this::handleOrderBook);
+                put("markets_summary", Paradex.this::handleTicker);
+                put("orders", Paradex.this::handleOrder);
+                put("funding_data", Paradex.this::handleFundingRate);
+                put("fills", Paradex.this::handleMyTrade);
+                put("positions", Paradex.this::handlePositions);
+                put("account", Paradex.this::handleBalance);
             }};
-            Object method = this.safeValue(methods, name);
+            io.github.ccxt.Handler method = methods.get(name);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, parsedMessage});
+                method.handle(client, message);
             }
         }
     }

@@ -3840,41 +3840,50 @@ public class Polymarket extends PolymarketApi
         return "PING";
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
     {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if ((message instanceof String))
+        client.lastPong = ((Number)this.milliseconds()).longValue();
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
+        this.handleMessageEvent(client, message);
+    }
+
+    public void handleListMessage(Client client, Object message)
+    {
+        for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            client.lastPong = ((Number)this.milliseconds()).longValue();
-            return;
-        }
-        Object events = (((message instanceof List))) ? message : new ArrayList<Object>(Arrays.asList(message));
-        for (var i = 0; i < ((List<?>)events).size(); i++)
-        {
-            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
+            Object eventVar = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
             if ((java.util.Objects.equals(eventVar, null)) || (java.util.Objects.equals(eventVar, null)) || (!(eventVar instanceof Map)))
             {
                 continue;
             }
-            String eventType = this.safeString(eventVar, "event_type");
-            if (java.util.Objects.equals(eventType, "book"))
-            {
-                this.handleOrderBookSnapshot(client, (Map<String, Object>) (eventVar));
-            } else if (java.util.Objects.equals(eventType, "price_change"))
-            {
-                this.handleOrderBookDelta(client, (Map<String, Object>) (eventVar));
-            } else if (java.util.Objects.equals(eventType, "last_trade_price"))
-            {
-                this.handleTrade(client, (Map<String, Object>) (eventVar));
-            } else if (java.util.Objects.equals(eventType, "order"))
-            {
-                this.handleOrder(client, (Map<String, Object>) (eventVar));
-            } else if (java.util.Objects.equals(eventType, "trade"))
-            {
-                this.handleMyTrade(client, (Map<String, Object>) (eventVar));
-            }
+            this.handleMessageEvent(client, (Map<String, Object>) (eventVar));
+        }
+    }
+
+    public void handleMessageEvent(Client client, Map<String, Object> eventVar)
+    {
+        String eventType = this.safeString(eventVar, "event_type");
+        if (java.util.Objects.equals(eventType, "book"))
+        {
+            this.handleOrderBookSnapshot(client, (Map<String, Object>) (eventVar));
+        } else if (java.util.Objects.equals(eventType, "price_change"))
+        {
+            this.handleOrderBookDelta(client, (Map<String, Object>) (eventVar));
+        } else if (java.util.Objects.equals(eventType, "last_trade_price"))
+        {
+            this.handleTrade(client, (Map<String, Object>) (eventVar));
+        } else if (java.util.Objects.equals(eventType, "order"))
+        {
+            this.handleOrder(client, (Map<String, Object>) (eventVar));
+        } else if (java.util.Objects.equals(eventType, "trade"))
+        {
+            this.handleMyTrade(client, (Map<String, Object>) (eventVar));
         }
     }
 

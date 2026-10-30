@@ -102,7 +102,35 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }};
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleListMessage(Client client, Object message)
+    {
+        // private streams
+        Map<String, Object> methods = new HashMap<String, Object>() {{
+            put( "trade", "handleTrades");
+            put( "kline", "handleOHLCV");
+            put( "realtimes", "handleTickers");
+            put( "depth", "handleOrderBookPartialSnapshot");
+            put( "diffDepth", "handleOrderBook");
+            put( "outboundAccountInfo", "handleBalance");
+            put( "outboundContractAccountInfo", "handleBalance");
+            put( "executionReport", "handleOrder");
+            put( "contractExecutionReport", "handleOrder");
+            put( "ticketInfo", "handleMyTrade");
+            put( "outboundContractPositionInfo", "handlePositions");
+        }};
+        for (var i = 0; i < ((List<?>)message).size(); i++)
+        {
+            Object item = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
+            String eventVar = this.safeString(item, "e");
+            Object method = this.safeValue(methods, eventVar);
+            if (!java.util.Objects.equals(method, null))
+            {
+                Helpers.callDynamically(this, method, new Object[] {client, item});
+            }
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // public
@@ -156,36 +184,23 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.handleIncomingPong(client, pongTimestamp);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "trade", "handleTrades");
-            put( "kline", "handleOHLCV");
-            put( "realtimes", "handleTickers");
-            put( "depth", "handleOrderBookPartialSnapshot");
-            put( "diffDepth", "handleOrderBook");
-            put( "outboundAccountInfo", "handleBalance");
-            put( "outboundContractAccountInfo", "handleBalance");
-            put( "executionReport", "handleOrder");
-            put( "contractExecutionReport", "handleOrder");
-            put( "ticketInfo", "handleMyTrade");
-            put( "outboundContractPositionInfo", "handlePositions");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("trade", Toobit.this::handleTrades);
+            put("kline", Toobit.this::handleOHLCV);
+            put("realtimes", Toobit.this::handleTickers);
+            put("depth", Toobit.this::handleOrderBookPartialSnapshot);
+            put("diffDepth", Toobit.this::handleOrderBook);
+            put("outboundAccountInfo", Toobit.this::handleBalance);
+            put("outboundContractAccountInfo", Toobit.this::handleBalance);
+            put("executionReport", Toobit.this::handleOrder);
+            put("contractExecutionReport", Toobit.this::handleOrder);
+            put("ticketInfo", Toobit.this::handleMyTrade);
+            put("outboundContractPositionInfo", Toobit.this::handlePositions);
         }};
-        Object method = (((java.util.Objects.equals(topic, null)))) ? null : this.safeValue(methods, topic);
+        io.github.ccxt.Handler method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
-        } else
-        {
-            // check private streams
-            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
-            {
-                Object item = Helpers.GetValue(message, i);
-                String eventVar = this.safeString(item, "e");
-                Object method2 = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
-                if (!java.util.Objects.equals(method2, null))
-                {
-                    Helpers.callDynamically(this, method2, new Object[] {client, item});
-                }
-            }
+            method.handle(client, message);
         }
     }
 
@@ -1264,7 +1279,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(type)) != null && j39v2.contains(type); case Map<?, ?> j39v1 -> ((Object)(type)) instanceof String && j39v1.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -1341,7 +1356,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v7 -> ((Object)(accountType)) != null && j39v7.contains(accountType); case Map<?, ?> j39v6 -> ((Object)(accountType)) instanceof String && j39v6.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(accountType)) != null && j39v4.contains(accountType); case Map<?, ?> j39v3 -> ((Object)(accountType)) instanceof String && j39v3.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }

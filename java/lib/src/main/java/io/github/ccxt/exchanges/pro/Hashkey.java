@@ -1076,38 +1076,43 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleListMessage(Client client, Object message)
     {
-        Object messageInner = message;
-        if ((message instanceof List))
-        {
-            messageInner = this.safeDict(message, 0, new HashMap<String, Object>() {{}});
-        }
-        String topic = this.safeString2(messageInner, "topic", "e");
+        this.handleStreamMessage(client, (Map<String, Object>) (this.safeDict(message, 0, new HashMap<String, Object>() {{}})));
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
+        this.handleStreamMessage(client, message);
+    }
+
+    public void handleStreamMessage(Client client, Map<String, Object> message)
+    {
+        String topic = this.safeString2(message, "topic", "e");
         if (java.util.Objects.equals(topic, "kline"))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (messageInner));
+            this.handleOHLCV(client, message);
         } else if (java.util.Objects.equals(topic, "realtimes"))
         {
-            this.handleTicker(client, (Map<String, Object>) (messageInner));
+            this.handleTicker(client, message);
         } else if (java.util.Objects.equals(topic, "trade"))
         {
-            this.handleTrades(client, (Map<String, Object>) (messageInner));
+            this.handleTrades(client, message);
         } else if (java.util.Objects.equals(topic, "depth"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (messageInner));
+            this.handleOrderBook(client, message);
         } else if ((java.util.Objects.equals(topic, "contractExecutionReport")) || (java.util.Objects.equals(topic, "executionReport")))
         {
-            this.handleOrder(client, (Map<String, Object>) (messageInner));
+            this.handleOrder(client, message);
         } else if (java.util.Objects.equals(topic, "ticketInfo"))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (messageInner), new HashMap<String, Object>() {{}});
+            this.handleMyTrade(client, message, new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(topic, "outboundContractPositionInfo"))
         {
-            this.handlePosition(client, (Map<String, Object>) (messageInner));
+            this.handlePosition(client, message);
         } else if ((java.util.Objects.equals(topic, "outboundAccountInfo")) || (java.util.Objects.equals(topic, "outboundContractAccountInfo")))
         {
-            this.handleBalance(client, (Map<String, Object>) (messageInner));
+            this.handleBalance(client, message);
         }
     }
 }

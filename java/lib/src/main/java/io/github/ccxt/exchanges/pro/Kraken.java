@@ -2118,7 +2118,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
         if (!java.util.Objects.equals(channel, null))
@@ -2148,21 +2148,21 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             String eventVar = this.safeString2(message, "event", "method");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "heartbeat", "handleHeartbeat");
-                put( "systemStatus", "handleSystemStatus");
-                put( "subscriptionStatus", "handleSubscriptionStatus");
-                put( "unsubscribe", "handleUnsubscriptionStatus");
-                put( "add_order", "handleCreateEditOrder");
-                put( "amend_order", "handleCreateEditOrder");
-                put( "cancel_order", "handleCancelOrder");
-                put( "cancel_all", "handleCancelAllOrders");
-                put( "pong", "handlePong");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("heartbeat", Kraken.this::handleHeartbeat);
+                put("systemStatus", Kraken.this::handleSystemStatus);
+                put("subscriptionStatus", Kraken.this::handleSubscriptionStatus);
+                put("unsubscribe", Kraken.this::handleUnsubscriptionStatus);
+                put("add_order", Kraken.this::handleCreateEditOrder);
+                put("amend_order", Kraken.this::handleCreateEditOrder);
+                put("cancel_order", Kraken.this::handleCancelOrder);
+                put("cancel_all", Kraken.this::handleCancelAllOrders);
+                put("pong", Kraken.this::handlePong);
             }};
-            Object method = this.safeValue(methods, eventVar);
+            io.github.ccxt.Handler method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

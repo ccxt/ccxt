@@ -1793,7 +1793,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String ok = this.safeString(message, "ok");
         if (java.util.Objects.equals(ok, "error"))
@@ -1802,33 +1802,33 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             return;
         }
         String eventVar = this.safeString(message, "e");
-        Map<String, Object> handlers = new HashMap<String, Object>() {{
-            put( "auth", "handleAuthenticationMessage");
-            put( "connected", "handleConnected");
-            put( "tick", "handleTicker");
-            put( "ticker", "handleTicker");
-            put( "init-ohlcv-data", "handleInitOHLCV");
-            put( "ohlcv24", "handleOHLCV24");
-            put( "ohlcv1m", "handleOHLCV1m");
-            put( "ohlcv", "handleOHLCV");
-            put( "get-balance", "handleBalance");
-            put( "order-book-subscribe", "handleOrderBookSnapshot");
-            put( "md_update", "handleOrderBookUpdate");
-            put( "open-orders", "resolveData");
-            put( "order", "handleOrderUpdate");
-            put( "history-update", "handleTrade");
-            put( "history", "handleTradesSnapshot");
-            put( "tx", "handleTransaction");
-            put( "place-order", "resolveData");
-            put( "cancel-replace-order", "resolveData");
-            put( "cancel-order", "resolveData");
-            put( "mass-cancel-place-orders", "resolveData");
-            put( "get-order", "resolveData");
+        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("auth", Cex.this::handleAuthenticationMessage);
+            put("connected", Cex.this::handleConnected);
+            put("tick", Cex.this::handleTicker);
+            put("ticker", Cex.this::handleTicker);
+            put("init-ohlcv-data", Cex.this::handleInitOHLCV);
+            put("ohlcv24", Cex.this::handleOHLCV24);
+            put("ohlcv1m", Cex.this::handleOHLCV1m);
+            put("ohlcv", Cex.this::handleOHLCV);
+            put("get-balance", Cex.this::handleBalance);
+            put("order-book-subscribe", Cex.this::handleOrderBookSnapshot);
+            put("md_update", Cex.this::handleOrderBookUpdate);
+            put("open-orders", Cex.this::resolveData);
+            put("order", Cex.this::handleOrderUpdate);
+            put("history-update", Cex.this::handleTrade);
+            put("history", Cex.this::handleTradesSnapshot);
+            put("tx", Cex.this::handleTransaction);
+            put("place-order", Cex.this::resolveData);
+            put("cancel-replace-order", Cex.this::resolveData);
+            put("cancel-order", Cex.this::resolveData);
+            put("mass-cancel-place-orders", Cex.this::resolveData);
+            put("get-order", Cex.this::resolveData);
         }};
-        Object handler = this.safeValue(handlers, eventVar);
+        io.github.ccxt.Handler handler = handlers.get(eventVar);
         if (!java.util.Objects.equals(handler, null))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            handler.handle(client, message);
         }
     }
 

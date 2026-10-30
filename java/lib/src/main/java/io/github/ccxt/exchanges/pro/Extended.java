@@ -1049,7 +1049,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         throw new ExchangeError(feedback) ;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -1064,10 +1064,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String side = this.safeString(first, "S");
             if (!java.util.Objects.equals(side, null))
             {
-                this.handleTrades(client, (Map<String, Object>) (message));
+                this.handleTrades(client, message);
             } else
             {
-                this.handleOHLCV(client, (Map<String, Object>) (message));
+                this.handleOHLCV(client, message);
             }
         } else if (!java.util.Objects.equals(data, null))
         {
@@ -1076,33 +1076,33 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Boolean isAccountUpdate = false;
             if ((java.util.Objects.equals(type, "ORDER")) || (data.containsKey("orders")))
             {
-                this.handleOrders(client, (Map<String, Object>) (message));
+                this.handleOrders(client, message);
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "TRADE")) || (data.containsKey("trades")))
             {
-                this.handleMyTrades(client, (Map<String, Object>) (message));
+                this.handleMyTrades(client, message);
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "POSITION")) || (data.containsKey("positions")))
             {
-                this.handlePositions(client, (Map<String, Object>) (message));
+                this.handlePositions(client, message);
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "BALANCE")) || (data.containsKey("balance")) || (data.containsKey("spotBalances")))
             {
-                this.handleBalance(client, (Map<String, Object>) (message));
+                this.handleBalance(client, message);
                 isAccountUpdate = true;
             }
             if (java.util.Objects.equals(type, "MP"))
             {
-                this.handleMarkPrice(client, (Map<String, Object>) (message));
+                this.handleMarkPrice(client, message);
             } else if (data.containsKey("f"))
             {
-                this.handleFundingRate(client, (Map<String, Object>) (message));
+                this.handleFundingRate(client, message);
             } else if (!Boolean.TRUE.equals(isAccountUpdate))
             {
-                this.handleOrderBook(client, (Map<String, Object>) (message));
+                this.handleOrderBook(client, message);
             }
         }
     }

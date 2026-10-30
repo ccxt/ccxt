@@ -3030,7 +3030,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String topic = this.safeString2(message, "topic", "op", "");
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
@@ -3041,21 +3041,21 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String ret_msg = this.safeString(message, "ret_msg");
         if ((java.util.Objects.equals(ret_msg, "pong")) || (java.util.Objects.equals(topic, "pong")))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         // spot pong
         Long pong = this.safeInteger(message, "pong");
         if (!java.util.Objects.equals(pong, null))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         // pong
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "sub") || (java.util.Objects.equals(topic, "subscribe")))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -3095,7 +3095,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         // orderbook prefix explicitly, then fall back to a simple first-match.
         if (((String)topic).indexOf("orderbook") >= 0)
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
@@ -3113,7 +3113,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String type = this.safeString(message, "type");
         if (java.util.Objects.equals(type, "AUTH_RESP"))
         {
-            this.handleAuthenticate(client, (Map<String, Object>) (message));
+            this.handleAuthenticate(client, message);
         }
     }
 

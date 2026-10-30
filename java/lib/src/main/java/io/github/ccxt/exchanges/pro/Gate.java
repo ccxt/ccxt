@@ -2599,7 +2599,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // subscribe
@@ -2697,46 +2697,46 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "subscribe"))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         if (java.util.Objects.equals(eventVar, "unsubscribe"))
         {
-            this.handleUnSubscribe(client, (Map<String, Object>) (message));
+            this.handleUnSubscribe(client, message);
             return;
         }
         String channel = this.safeString(message, "channel", "");
         // after supporting more method we can create a mapping for this
         if (java.util.Objects.equals(channel, "spot.obu"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String channelType = this.safeString(channelParts, 1);
-        Map<String, Object> v4Methods = new HashMap<String, Object>() {{
-            put( "usertrades", "handleMyTrades");
-            put( "candlesticks", "handleOHLCV");
-            put( "orders", "handleOrder");
-            put( "autoorders", "handleOrder");
-            put( "priceorders", "handleOrder");
-            put( "positions", "handlePositions");
-            put( "tickers", "handleTicker");
-            put( "book_ticker", "handleBidAsk");
-            put( "trades", "handleTrades");
-            put( "order_book_update", "handleOrderBook");
-            put( "balances", "handleBalance");
-            put( "liquidates", "handleLiquidation");
+        Map<String, io.github.ccxt.Handler> v4Methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("usertrades", Gate.this::handleMyTrades);
+            put("candlesticks", Gate.this::handleOHLCV);
+            put("orders", Gate.this::handleOrder);
+            put("autoorders", Gate.this::handleOrder);
+            put("priceorders", Gate.this::handleOrder);
+            put("positions", Gate.this::handlePositions);
+            put("tickers", Gate.this::handleTicker);
+            put("book_ticker", Gate.this::handleBidAsk);
+            put("trades", Gate.this::handleTrades);
+            put("order_book_update", Gate.this::handleOrderBook);
+            put("balances", Gate.this::handleBalance);
+            put("liquidates", Gate.this::handleLiquidation);
         }};
-        Object method = this.safeValue(v4Methods, channelType);
+        io.github.ccxt.Handler method = v4Methods.get(channelType);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
         String requestId = this.safeString(message, "request_id");
         if (java.util.Objects.equals(requestId, "authenticated"))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
             return;
         }
         if (!java.util.Objects.equals(requestId, null))

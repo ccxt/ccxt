@@ -4122,7 +4122,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return false;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String type = this.safeString2(message, "type", "message");
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -4136,17 +4136,17 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (!java.util.Objects.equals(method, null))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
-        } else if (((Map<?, ?>)message).containsKey("T"))
+        } else if (message.containsKey("T"))
         {
-            this.handleSubject(client, (Map<String, Object>) (message));
-        } else if (((Map<?, ?>)message).containsKey("result"))
+            this.handleSubject(client, message);
+        } else if (message.containsKey("result"))
         {
             Boolean result = (Boolean) this.safeBool(message, "result", true);
             if (!Boolean.TRUE.equals(result))
             {
                 this.handleErrorMessage(client, message);
             }
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         }
     }
 

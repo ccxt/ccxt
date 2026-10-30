@@ -2498,9 +2498,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         this.handlePositions(client, message);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        Object messageInner = this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
+        Map<String, Object> messageInner = (Map<String, Object>) this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
         String eventVar = this.safeString(messageInner, "e");
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "24hrTicker", "handleTicker");

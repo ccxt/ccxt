@@ -2354,28 +2354,28 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
         String id = this.safeString(message, "id");
-        Boolean hasResult = (((Map<?, ?>)message).containsKey("result"));
+        Boolean hasResult = (message.containsKey("result"));
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
         String method = this.safeString(result, "method");
         if (java.util.Objects.equals(method, "pong"))
         {
             // pong replies carry both 'id' and 'result' so they must be routed
             // before the subscription-ack branch below swallows them
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         String requestType = this.safeString(message, "request_type");
         if (!java.util.Objects.equals(requestType, null))
         {
             // v2 gateway execute responses carry 'request_type' and the echoed request id
-            this.handleExecuteResponse(client, (Map<String, Object>) (message));
+            this.handleExecuteResponse(client, message);
             return;
         }
         if ((!java.util.Objects.equals(id, null)) && Boolean.TRUE.equals(hasResult))
@@ -2383,38 +2383,38 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String authentication = this.safeString(client.subscriptions, ("authentication:" + id));
             if (!java.util.Objects.equals(authentication, null))
             {
-                this.handleAuthentication(client, (Map<String, Object>) (message));
+                this.handleAuthentication(client, message);
                 return;
             }
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("subscription:" + id), (Object) null);
             if (!java.util.Objects.equals(subscription, null))
             {
-                this.handleSubscription(client, (Map<String, Object>) (message));
+                this.handleSubscription(client, message);
                 return;
             }
             if (java.util.Objects.equals(result, null))
             {
-                this.handleUnsubscription(client, (Map<String, Object>) (message));
+                this.handleUnsubscription(client, message);
                 return;
             }
-            this.handleSubscription(client, (Map<String, Object>) (message));
+            this.handleSubscription(client, message);
             return;
         }
         String type = this.safeString(message, "type");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "trade", "handleTrade");
-            put( "all_bbo", "handleAllBidsAsks");
-            put( "best_bid_offer", "handleBidAsk");
-            put( "book_depth", "handleOrderBook");
-            put( "fill", "handleMyTrade");
-            put( "latest_candlestick", "handleOHLCV");
-            put( "order_update", "handleOrder");
-            put( "position_change", "handlePosition");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("trade", Nado.this::handleTrade);
+            put("all_bbo", Nado.this::handleAllBidsAsks);
+            put("best_bid_offer", Nado.this::handleBidAsk);
+            put("book_depth", Nado.this::handleOrderBook);
+            put("fill", Nado.this::handleMyTrade);
+            put("latest_candlestick", Nado.this::handleOHLCV);
+            put("order_update", Nado.this::handleOrder);
+            put("position_change", Nado.this::handlePosition);
         }};
-        Object handler = this.safeValue(methods, type);
+        io.github.ccxt.Handler handler = methods.get(type);
         if (!java.util.Objects.equals(handler, null))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            handler.handle(client, message);
         }
     }
 }

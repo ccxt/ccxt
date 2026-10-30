@@ -1739,7 +1739,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (!this.handleErrorMessage(client, message))
         {
@@ -1748,63 +1748,63 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String type = this.safeString(message, "type", "");
         if (java.util.Objects.equals(type, "ping"))
         {
-            this.handlePing(client, (Map<String, Object>) (message));
+            this.handlePing(client, message);
             return;
         }
         if (java.util.Objects.equals(type, "jsonapi/sendtx"))
         {
-            this.handleWsSendtxApi(client, (Map<String, Object>) (message));
+            this.handleWsSendtxApi(client, message);
             return;
         }
         if (java.util.Objects.equals(type, "unsubscribed"))
         {
-            this.handleUnSubscription(client, (Map<String, Object>) (message));
+            this.handleUnSubscription(client, message);
             return;
         }
         String channel = this.safeString(message, "channel", "");
         if (((String)channel).indexOf("order_book:") >= 0)
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
         if (((String)channel).indexOf("market_stats:") >= 0)
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
             return;
         }
         if (((String)channel).indexOf("trade:") >= 0)
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
             return;
         }
         if (((String)channel).indexOf("account_all_trades:") >= 0)
         {
-            this.handleMyTrades(client, (Map<String, Object>) (message));
+            this.handleMyTrades(client, message);
             return;
         }
         if (((String)channel).indexOf("account_all_assets:") >= 0)
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
             return;
         }
         if (((String)channel).indexOf("user_stats:") >= 0)
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
             return;
         }
         if (((String)channel).indexOf("account_orders:") >= 0)
         {
-            this.handleOrders(client, (Map<String, Object>) (message));
+            this.handleOrders(client, message);
             return;
         }
         if (((String)channel).indexOf("account_all_orders:") >= 0)
         {
-            this.handleOrders(client, (Map<String, Object>) (message));
+            this.handleOrders(client, message);
             return;
         }
         if (java.util.Objects.equals(channel, ""))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         }
     }
 

@@ -524,12 +524,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        if (java.util.Objects.equals(message, ""))
-        {
-            return;
-        }
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.values());
         Integer subscriptionsLength = ((List<?>)subscriptions).size();
         if (java.util.Objects.equals(subscriptionsLength, 0))

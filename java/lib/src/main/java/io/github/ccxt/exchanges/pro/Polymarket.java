@@ -1391,7 +1391,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String ch = this.safeString(message, "ch");
         if (java.util.Objects.equals(ch, null))
@@ -1401,20 +1401,20 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("::"))));
         String family = this.safeString(parts, 0, "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "book", "handleOrderBook");
-            put( "bbo", "handleBidAsk");
-            put( "trades", "handleTrades");
-            put( "tickers", "handleTicker");
-            put( "klines", "handleOHLCV");
-            put( "orders", "handleOrder");
-            put( "fills", "handleMyTrades");
-            put( "portfolio", "handlePortfolio");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("book", Polymarket.this::handleOrderBook);
+            put("bbo", Polymarket.this::handleBidAsk);
+            put("trades", Polymarket.this::handleTrades);
+            put("tickers", Polymarket.this::handleTicker);
+            put("klines", Polymarket.this::handleOHLCV);
+            put("orders", Polymarket.this::handleOrder);
+            put("fills", Polymarket.this::handleMyTrades);
+            put("portfolio", Polymarket.this::handlePortfolio);
         }};
-        Object method = this.safeValue(methods, family);
+        io.github.ccxt.Handler method = methods.get(family);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
     }
 

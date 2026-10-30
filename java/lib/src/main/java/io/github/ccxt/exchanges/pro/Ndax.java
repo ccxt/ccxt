@@ -643,7 +643,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -673,21 +673,21 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             return;
         }
         Helpers.addElementToObject(message, "o", Helpers.parseJson(payload));
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "SubscribeLevel2", "handleSubscriptionStatus");
-            put( "SubscribeLevel1", "handleTicker");
-            put( "Level2UpdateEvent", "handleOrderBook");
-            put( "Level1UpdateEvent", "handleTicker");
-            put( "SubscribeTrades", "handleTrades");
-            put( "TradeDataUpdateEvent", "handleTrades");
-            put( "SubscribeTicker", "handleOHLCV");
-            put( "TickerDataUpdateEvent", "handleOHLCV");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("SubscribeLevel2", Ndax.this::handleSubscriptionStatus);
+            put("SubscribeLevel1", Ndax.this::handleTicker);
+            put("Level2UpdateEvent", Ndax.this::handleOrderBook);
+            put("Level1UpdateEvent", Ndax.this::handleTicker);
+            put("SubscribeTrades", Ndax.this::handleTrades);
+            put("TradeDataUpdateEvent", Ndax.this::handleTrades);
+            put("SubscribeTicker", Ndax.this::handleOHLCV);
+            put("TickerDataUpdateEvent", Ndax.this::handleOHLCV);
         }};
         String eventVar = this.safeString(message, "n");
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
     }
 }

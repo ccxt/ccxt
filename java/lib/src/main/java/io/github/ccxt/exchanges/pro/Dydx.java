@@ -489,7 +489,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String type = this.safeString(message, "type");
         if (java.util.Objects.equals(type, "error"))
@@ -500,15 +500,15 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         if (!java.util.Objects.equals(type, null))
         {
             String topic = this.safeString(message, "channel");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "v4_trades", "handleTrades");
-                put( "v4_orderbook", "handleOrderBook");
-                put( "v4_candles", "handleOHLCV");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("v4_trades", Dydx.this::handleTrades);
+                put("v4_orderbook", Dydx.this::handleOrderBook);
+                put("v4_candles", Dydx.this::handleOHLCV);
             }};
-            Object method = this.safeValue(methods, topic);
+            io.github.ccxt.Handler method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

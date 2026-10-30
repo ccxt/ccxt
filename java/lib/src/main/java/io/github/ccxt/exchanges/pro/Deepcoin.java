@@ -1435,47 +1435,46 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return this.safeString(modes, marginMode, marginMode);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
     {
-        if ((message instanceof String))
+        if (java.util.Objects.equals(message, "pong"))
         {
-            if (java.util.Objects.equals(message, "pong"))
-            {
-                this.handlePong(client, (String) (message));
-            }
-        } else
+            this.handlePong(client, (String) (message));
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
+    {
+        String m = this.safeString(message, "m");
+        if ((!java.util.Objects.equals(m, null)) && (!java.util.Objects.equals(m, "Success")))
         {
-            String m = this.safeString(message, "m");
-            if ((!java.util.Objects.equals(m, null)) && (!java.util.Objects.equals(m, "Success")))
-            {
-                this.handleErrorMessage(client, message);
-            }
-            String action = this.safeString2(message, "a", "action");
-            if (java.util.Objects.equals(action, "RecvTopicAction"))
-            {
-                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PO"))
-            {
-                this.handleTicker(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PMT"))
-            {
-                this.handleTrades(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PK"))
-            {
-                this.handleOHLCV(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PMO"))
-            {
-                this.handleOrderBook(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PushTrade"))
-            {
-                this.handleMyTrade(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PushOrder"))
-            {
-                this.handleOrder(client, (Map<String, Object>) (message));
-            } else if (java.util.Objects.equals(action, "PushPosition"))
-            {
-                this.handlePosition(client, (Map<String, Object>) (message));
-            }
+            this.handleErrorMessage(client, message);
+        }
+        String action = this.safeString2(message, "a", "action");
+        if (java.util.Objects.equals(action, "RecvTopicAction"))
+        {
+            this.handleSubscriptionStatus(client, message);
+        } else if (java.util.Objects.equals(action, "PO"))
+        {
+            this.handleTicker(client, message);
+        } else if (java.util.Objects.equals(action, "PMT"))
+        {
+            this.handleTrades(client, message);
+        } else if (java.util.Objects.equals(action, "PK"))
+        {
+            this.handleOHLCV(client, message);
+        } else if (java.util.Objects.equals(action, "PMO"))
+        {
+            this.handleOrderBook(client, message);
+        } else if (java.util.Objects.equals(action, "PushTrade"))
+        {
+            this.handleMyTrade(client, message);
+        } else if (java.util.Objects.equals(action, "PushOrder"))
+        {
+            this.handleOrder(client, message);
+        } else if (java.util.Objects.equals(action, "PushPosition"))
+        {
+            this.handlePosition(client, message);
         }
     }
 

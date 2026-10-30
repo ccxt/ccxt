@@ -2901,7 +2901,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -2949,65 +2949,65 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             //         }
             //     }
             //
-            if (((Map<?, ?>)message).containsKey("id"))
+            if (message.containsKey("id"))
             {
-                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+                this.handleSubscriptionStatus(client, message);
                 return;
             }
-            if (((Map<?, ?>)message).containsKey("action"))
+            if (message.containsKey("action"))
             {
                 String action = this.safeString(message, "action");
                 if (java.util.Objects.equals(action, "ping"))
                 {
-                    this.handlePing(client, (Map<String, Object>) (message));
+                    this.handlePing(client, message);
                     return;
                 }
                 if (java.util.Objects.equals(action, "sub"))
                 {
-                    this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+                    this.handleSubscriptionStatus(client, message);
                     return;
                 }
             }
-            if (((Map<?, ?>)message).containsKey("ch"))
+            if (message.containsKey("ch"))
             {
                 if (java.util.Objects.equals(this.safeString(message, "ch"), "auth"))
                 {
-                    this.handleAuthenticate(client, (Map<String, Object>) (message));
+                    this.handleAuthenticate(client, message);
                     return;
                 } else
                 {
                     // route by channel aka topic aka subject
-                    this.handleSubject(client, (Map<String, Object>) (message));
+                    this.handleSubject(client, message);
                     return;
                 }
             }
-            if (((Map<?, ?>)message).containsKey("op"))
+            if (message.containsKey("op"))
             {
                 String op = this.safeString(message, "op");
                 if (java.util.Objects.equals(op, "ping"))
                 {
-                    this.handlePing(client, (Map<String, Object>) (message));
+                    this.handlePing(client, message);
                     return;
                 }
                 if (java.util.Objects.equals(op, "auth"))
                 {
-                    this.handleAuthenticate(client, (Map<String, Object>) (message));
+                    this.handleAuthenticate(client, message);
                     return;
                 }
                 if (java.util.Objects.equals(op, "sub"))
                 {
-                    this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+                    this.handleSubscriptionStatus(client, message);
                     return;
                 }
                 if (java.util.Objects.equals(op, "notify"))
                 {
-                    this.handleSubject(client, (Map<String, Object>) (message));
+                    this.handleSubject(client, message);
                     return;
                 }
             }
-            if (((Map<?, ?>)message).containsKey("ping"))
+            if (message.containsKey("ping"))
             {
-                this.handlePing(client, (Map<String, Object>) (message));
+                this.handlePing(client, message);
             }
         }
     }

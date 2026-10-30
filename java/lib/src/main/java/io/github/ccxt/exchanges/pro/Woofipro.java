@@ -1554,42 +1554,42 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ping", "handlePing");
-            put( "pong", "handlePong");
-            put( "subscribe", "handleSubscribe");
-            put( "orderbook", "handleOrderBook");
-            put( "ticker", "handleTicker");
-            put( "tickers", "handleTickers");
-            put( "kline", "handleOHLCV");
-            put( "trade", "handleTrade");
-            put( "auth", "handleAuth");
-            put( "executionreport", "handleOrderUpdate");
-            put( "algoexecutionreport", "handleOrderUpdate");
-            put( "position", "handlePositions");
-            put( "balance", "handleBalance");
-            put( "bbos", "handleBidAsk");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("ping", Woofipro.this::handlePing);
+            put("pong", Woofipro.this::handlePong);
+            put("subscribe", Woofipro.this::handleSubscribe);
+            put("orderbook", Woofipro.this::handleOrderBook);
+            put("ticker", Woofipro.this::handleTicker);
+            put("tickers", Woofipro.this::handleTickers);
+            put("kline", Woofipro.this::handleOHLCV);
+            put("trade", Woofipro.this::handleTrade);
+            put("auth", Woofipro.this::handleAuth);
+            put("executionreport", Woofipro.this::handleOrderUpdate);
+            put("algoexecutionreport", Woofipro.this::handleOrderUpdate);
+            put("position", Woofipro.this::handlePositions);
+            put("balance", Woofipro.this::handleBalance);
+            put("bbos", Woofipro.this::handleBidAsk);
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
             return;
         }
         String topic = this.safeString(message, "topic");
         if (!java.util.Objects.equals(topic, null))
         {
-            method = this.safeValue(methods, topic);
+            method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
@@ -1601,20 +1601,20 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 {
                     return;
                 }
-                method = this.safeValue(methods, name);
+                method = methods.get(name);
                 if (!java.util.Objects.equals(method, null))
                 {
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
+                    method.handle(client, message);
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
                 Integer splitNameLength = ((List<?>)splitTopic).size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
-                    method = this.safeValue(methods, this.safeString(splitName, 0));
+                    method = methods.get(this.safeString(splitName, 0));
                     if (!java.util.Objects.equals(method, null))
                     {
-                        Helpers.callDynamically(this, method, new Object[] {client, message});
+                        method.handle(client, message);
                     }
                 }
             }

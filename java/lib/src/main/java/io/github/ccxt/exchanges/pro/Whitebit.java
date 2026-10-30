@@ -1300,7 +1300,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // auth
@@ -1316,13 +1316,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         Long id = this.safeInteger(message, "id");
         if (!java.util.Objects.equals(id, null))
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message), id);
+            this.handleSubscriptionStatus(client, message, id);
             return;
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{

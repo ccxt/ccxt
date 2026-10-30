@@ -3639,7 +3639,7 @@ public class Lbank extends LbankApi
             }}, signedQuery)));
             Object encoded = this.encode(auth);
             String uppercaseHash = ((String)this.hash(encoded, md5())).toUpperCase();
-            Object sign = null;
+            Object sign = "";
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
                 Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);

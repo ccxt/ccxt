@@ -1008,7 +1008,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         throw new ExchangeError((String)this.json(message)) ;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleListMessage(Client client, Object message)
+    {
+        this.handleOrder(client, message);
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         //  public
@@ -1045,33 +1050,27 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         }
         //     ]
         //
-        Boolean isArray = (message instanceof List);
-        if (Boolean.TRUE.equals(isArray))
-        {
-            this.handleOrder(client, message);
-            return;
-        }
         String reason = this.safeString(message, "reason");
         if (java.util.Objects.equals(reason, "error"))
         {
-            this.handleError(client, (Map<String, Object>) (message));
+            this.handleError(client, message);
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "l2_updates", "handleL2Updates");
-            put( "trade", "handleTrade");
-            put( "subscription_ack", "handleSubscription");
-            put( "heartbeat", "handleHeartbeat");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("l2_updates", Gemini.this::handleL2Updates);
+            put("trade", Gemini.this::handleTrade);
+            put("subscription_ack", Gemini.this::handleSubscription);
+            put("heartbeat", Gemini.this::handleHeartbeat);
         }};
         String type = this.safeString(message, "type", "");
         if (((String)type).indexOf("candles") >= 0)
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
             return;
         }
-        Object method = this.safeValue(methods, type);
+        io.github.ccxt.Handler method = methods.get(type);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
         // handle multimarketdata
         if (java.util.Objects.equals(type, "update"))

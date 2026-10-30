@@ -2002,12 +2002,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "challenge"))
         {
-            this.handleAuthenticate(client, (Map<String, Object>) (message));
+            this.handleAuthenticate(client, message);
         } else if (java.util.Objects.equals(eventVar, "alert"))
         {
             this.handleErrorMessage(client, message);
@@ -2017,27 +2017,27 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         } else if (java.util.Objects.equals(eventVar, null))
         {
             String feed = this.safeString(message, "feed");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "ticker", "handleTicker");
-                put( "ticker_lite", "handleBidAsk");
-                put( "trade", "handleTrade");
-                put( "trade_snapshot", "handleTrade");
-                put( "book", "handleOrderBook");
-                put( "book_snapshot", "handleOrderBookSnapshot");
-                put( "open_orders_verbose", "handleOrder");
-                put( "open_orders_verbose_snapshot", "handleOrderSnapshot");
-                put( "fills", "handleMyTrades");
-                put( "fills_snapshot", "handleMyTrades");
-                put( "open_orders", "handleOrder");
-                put( "open_orders_snapshot", "handleOrderSnapshot");
-                put( "balances", "handleBalance");
-                put( "balances_snapshot", "handleBalance");
-                put( "open_positions", "handlePositions");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("ticker", Krakenfutures.this::handleTicker);
+                put("ticker_lite", Krakenfutures.this::handleBidAsk);
+                put("trade", Krakenfutures.this::handleTrade);
+                put("trade_snapshot", Krakenfutures.this::handleTrade);
+                put("book", Krakenfutures.this::handleOrderBook);
+                put("book_snapshot", Krakenfutures.this::handleOrderBookSnapshot);
+                put("open_orders_verbose", Krakenfutures.this::handleOrder);
+                put("open_orders_verbose_snapshot", Krakenfutures.this::handleOrderSnapshot);
+                put("fills", Krakenfutures.this::handleMyTrades);
+                put("fills_snapshot", Krakenfutures.this::handleMyTrades);
+                put("open_orders", Krakenfutures.this::handleOrder);
+                put("open_orders_snapshot", Krakenfutures.this::handleOrderSnapshot);
+                put("balances", Krakenfutures.this::handleBalance);
+                put("balances_snapshot", Krakenfutures.this::handleBalance);
+                put("open_positions", Krakenfutures.this::handlePositions);
             }};
-            Object method = this.safeValue(methods, feed);
+            io.github.ccxt.Handler method = methods.get(feed);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

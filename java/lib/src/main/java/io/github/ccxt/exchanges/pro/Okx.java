@@ -3135,7 +3135,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
+    {
+        if (java.util.Objects.equals(message, "pong"))
+        {
+            this.handlePong(client, message);
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -3180,35 +3188,27 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         //
         //
-        if ((message instanceof String))
-        {
-            if (java.util.Objects.equals(message, "pong"))
-            {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         String eventVar = this.safeString2(message, "event", "op");
         if (!java.util.Objects.equals(eventVar, null))
         {
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "login", "handleAuthenticate");
-                put( "subscribe", "handleSubscriptionStatus");
-                put( "unsubscribe", "handleUnsubscription");
-                put( "order", "handlePlaceOrders");
-                put( "batch-orders", "handlePlaceOrders");
-                put( "amend-order", "handlePlaceOrders");
-                put( "batch-amend-orders", "handlePlaceOrders");
-                put( "cancel-order", "handlePlaceOrders");
-                put( "batch-cancel-orders", "handleCancelOrders");
-                put( "mass-cancel", "handleCancelAllOrders");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("login", Okx.this::handleAuthenticate);
+                put("subscribe", Okx.this::handleSubscriptionStatus);
+                put("unsubscribe", Okx.this::handleUnsubscription);
+                put("order", Okx.this::handlePlaceOrders);
+                put("batch-orders", Okx.this::handlePlaceOrders);
+                put("amend-order", Okx.this::handlePlaceOrders);
+                put("batch-amend-orders", Okx.this::handlePlaceOrders);
+                put("cancel-order", Okx.this::handlePlaceOrders);
+                put("batch-cancel-orders", Okx.this::handleCancelOrders);
+                put("mass-cancel", Okx.this::handleCancelAllOrders);
             }};
-            Object method = this.safeValue(methods, eventVar);
+            io.github.ccxt.Handler method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         } else
         {
@@ -3218,38 +3218,38 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 return;
             }
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "bbo-tbt", "handleOrderBook");
-                put( "books", "handleOrderBook");
-                put( "books5", "handleOrderBook");
-                put( "books-rpi", "handleOrderBook");
-                put( "books50-l2-tbt", "handleOrderBook");
-                put( "books-l2-tbt", "handleOrderBook");
-                put( "tickers", "handleTicker");
-                put( "mark-price", "handleTicker");
-                put( "positions", "handlePositions");
-                put( "index-tickers", "handleTicker");
-                put( "sprd-tickers", "handleTicker");
-                put( "block-tickers", "handleTicker");
-                put( "trades", "handleTrades");
-                put( "trades-all", "handleTrades");
-                put( "account", "handleBalance");
-                put( "funding-rate", "handleFundingRate");
-                put( "orders", "handleOrders");
-                put( "orders-algo", "handleOrders");
-                put( "liquidation-orders", "handleLiquidation");
-                put( "balance_and_position", "handleBalanceAndPosition");
+            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+                put("bbo-tbt", Okx.this::handleOrderBook);
+                put("books", Okx.this::handleOrderBook);
+                put("books5", Okx.this::handleOrderBook);
+                put("books-rpi", Okx.this::handleOrderBook);
+                put("books50-l2-tbt", Okx.this::handleOrderBook);
+                put("books-l2-tbt", Okx.this::handleOrderBook);
+                put("tickers", Okx.this::handleTicker);
+                put("mark-price", Okx.this::handleTicker);
+                put("positions", Okx.this::handlePositions);
+                put("index-tickers", Okx.this::handleTicker);
+                put("sprd-tickers", Okx.this::handleTicker);
+                put("block-tickers", Okx.this::handleTicker);
+                put("trades", Okx.this::handleTrades);
+                put("trades-all", Okx.this::handleTrades);
+                put("account", Okx.this::handleBalance);
+                put("funding-rate", Okx.this::handleFundingRate);
+                put("orders", Okx.this::handleOrders);
+                put("orders-algo", Okx.this::handleOrders);
+                put("liquidation-orders", Okx.this::handleLiquidation);
+                put("balance_and_position", Okx.this::handleBalanceAndPosition);
             }};
-            Object method = this.safeValue(methods, channel);
+            io.github.ccxt.Handler method = methods.get(channel);
             if (java.util.Objects.equals(method, null))
             {
                 if ((((String)channel).indexOf("candle") == 0))
                 {
-                    this.handleOHLCV(client, (Map<String, Object>) (message));
+                    this.handleOHLCV(client, message);
                 }
             } else
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

@@ -1182,7 +1182,15 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }};
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
+    {
+        if (java.util.Objects.equals(message, "pong"))
+        {
+            client.lastPong = ((Number)this.milliseconds()).longValue();
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // message examples
@@ -1209,36 +1217,29 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             put( "funding-rate", "handleFundingRate");
         }};
         Object method = null;
-        if (java.util.Objects.equals(message, "pong"))
+        String eventVar = this.safeString(message, "event");
+        if (java.util.Objects.equals(eventVar, "subscribe"))
         {
-            client.lastPong = ((Number)this.milliseconds()).longValue();
             return;
-        } else
+        } else if (java.util.Objects.equals(eventVar, "unsubscribe"))
         {
-            String eventVar = this.safeString(message, "event");
-            if (java.util.Objects.equals(eventVar, "subscribe"))
-            {
-                return;
-            } else if (java.util.Objects.equals(eventVar, "unsubscribe"))
-            {
-                this.handleUnsubscription(client, (Map<String, Object>) (message));
-                return;
-            } else if (java.util.Objects.equals(eventVar, "login"))
-            {
-                io.github.ccxt.ws.Future future = client.futures.get("authenticate_hash");
-                future.resolve(true);
-                return;
-            } else if (java.util.Objects.equals(eventVar, "error"))
-            {
-                throw new ExchangeError(((this.id + " error: ") + this.json(message))) ;
-            }
-            Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", (Object) null);
-            String channelName = this.safeString(arg, "channel");
-            method = this.safeValue(methods, channelName);
-            if ((java.util.Objects.equals(method, null)) && (((String)channelName).indexOf("candle") >= 0))
-            {
-                method = methods.get("candle");
-            }
+            this.handleUnsubscription(client, message);
+            return;
+        } else if (java.util.Objects.equals(eventVar, "login"))
+        {
+            io.github.ccxt.ws.Future future = client.futures.get("authenticate_hash");
+            future.resolve(true);
+            return;
+        } else if (java.util.Objects.equals(eventVar, "error"))
+        {
+            throw new ExchangeError(((this.id + " error: ") + this.json(message))) ;
+        }
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", (Object) null);
+        String channelName = this.safeString(arg, "channel");
+        method = this.safeValue(methods, channelName);
+        if ((java.util.Objects.equals(method, null)) && (((String)channelName).indexOf("candle") >= 0))
+        {
+            method = methods.get("candle");
         }
         if (!java.util.Objects.equals(method, null))
         {

@@ -1654,7 +1654,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         client.lastPong = ((Number)this.milliseconds()).longValue();
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -1668,49 +1668,49 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         if (java.util.Objects.equals(eventVar, "unsubscribe"))
         {
-            this.handleUnsubscription(client, (Map<String, Object>) (message));
+            this.handleUnsubscription(client, message);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "candles_minute_1", "handleOHLCV");
-            put( "candles_minute_5", "handleOHLCV");
-            put( "candles_minute_10", "handleOHLCV");
-            put( "candles_minute_15", "handleOHLCV");
-            put( "candles_minute_30", "handleOHLCV");
-            put( "candles_hour_1", "handleOHLCV");
-            put( "candles_hour_2", "handleOHLCV");
-            put( "candles_hour_4", "handleOHLCV");
-            put( "candles_hour_6", "handleOHLCV");
-            put( "candles_hour_12", "handleOHLCV");
-            put( "candles_day_1", "handleOHLCV");
-            put( "candles_day_3", "handleOHLCV");
-            put( "candles_week_1", "handleOHLCV");
-            put( "candles_month_1", "handleOHLCV");
-            put( "book", "handleOrderBook");
-            put( "book_lv2", "handleOrderBook");
-            put( "ticker", "handleTicker");
-            put( "trades", "handleTrade");
-            put( "orders", "handleOrder");
-            put( "balances", "handleBalance");
-            put( "createOrder", "handleOrderRequest");
-            put( "cancelOrder", "handleOrderRequest");
-            put( "cancelAllOrders", "handleOrderRequest");
-            put( "auth", "handleAuthenticate");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("candles_minute_1", Poloniex.this::handleOHLCV);
+            put("candles_minute_5", Poloniex.this::handleOHLCV);
+            put("candles_minute_10", Poloniex.this::handleOHLCV);
+            put("candles_minute_15", Poloniex.this::handleOHLCV);
+            put("candles_minute_30", Poloniex.this::handleOHLCV);
+            put("candles_hour_1", Poloniex.this::handleOHLCV);
+            put("candles_hour_2", Poloniex.this::handleOHLCV);
+            put("candles_hour_4", Poloniex.this::handleOHLCV);
+            put("candles_hour_6", Poloniex.this::handleOHLCV);
+            put("candles_hour_12", Poloniex.this::handleOHLCV);
+            put("candles_day_1", Poloniex.this::handleOHLCV);
+            put("candles_day_3", Poloniex.this::handleOHLCV);
+            put("candles_week_1", Poloniex.this::handleOHLCV);
+            put("candles_month_1", Poloniex.this::handleOHLCV);
+            put("book", Poloniex.this::handleOrderBook);
+            put("book_lv2", Poloniex.this::handleOrderBook);
+            put("ticker", Poloniex.this::handleTicker);
+            put("trades", Poloniex.this::handleTrade);
+            put("orders", Poloniex.this::handleOrder);
+            put("balances", Poloniex.this::handleBalance);
+            put("createOrder", Poloniex.this::handleOrderRequest);
+            put("cancelOrder", Poloniex.this::handleOrderRequest);
+            put("cancelAllOrders", Poloniex.this::handleOrderRequest);
+            put("auth", Poloniex.this::handleAuthenticate);
         }};
-        Object method = (((java.util.Objects.equals(type, null)))) ? null : this.safeValue(methods, type);
+        io.github.ccxt.Handler method = methods.get(type);
         if (java.util.Objects.equals(type, "auth"))
         {
-            this.handleAuthenticate(client, (Map<String, Object>) (message));
+            this.handleAuthenticate(client, message);
         } else if (java.util.Objects.equals(type, null))
         {
-            this.handleOrderRequest(client, (Map<String, Object>) (message));
+            this.handleOrderRequest(client, message);
         } else
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = ((List<?>)data).size();
             if ((dataLength != null && dataLength > 0))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         }
     }

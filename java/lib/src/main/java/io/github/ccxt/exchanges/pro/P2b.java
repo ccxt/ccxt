@@ -564,7 +564,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
@@ -573,21 +573,21 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         String method = this.safeString(message, "method");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "depth.update", "handleOrderBook");
-            put( "price.update", "handleTicker");
-            put( "kline.update", "handleOHLCV");
-            put( "state.update", "handleTicker");
-            put( "deals.update", "handleTrade");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("depth.update", P2b.this::handleOrderBook);
+            put("price.update", P2b.this::handleTicker);
+            put("kline.update", P2b.this::handleOHLCV);
+            put("state.update", P2b.this::handleTicker);
+            put("deals.update", P2b.this::handleTrade);
         }};
-        Object endpoint = this.safeValue(methods, method);
+        io.github.ccxt.Handler endpoint = methods.get(method);
         if (!java.util.Objects.equals(endpoint, null))
         {
-            Helpers.callDynamically(this, endpoint, new Object[] {client, message});
+            endpoint.handle(client, message);
         }
     }
 

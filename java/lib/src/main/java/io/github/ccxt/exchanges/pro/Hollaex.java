@@ -626,7 +626,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // pong
@@ -720,7 +720,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String content = this.safeString(message, "message");
         if (java.util.Objects.equals(content, "pong"))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            this.handlePong(client, message);
             return;
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{

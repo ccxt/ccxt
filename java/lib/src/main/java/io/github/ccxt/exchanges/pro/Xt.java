@@ -1857,7 +1857,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(stored, ("trade::" + tradeType));
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "pong"))
@@ -1897,7 +1897,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
         } else
         {
-            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
+            this.handleSubscriptionStatus(client, message);
         }
     }
 

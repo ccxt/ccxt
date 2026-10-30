@@ -948,7 +948,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         String dataType = this.safeString(message, "dataType");
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
@@ -957,33 +957,33 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             String response = this.safeString(result, "message");
             if (java.util.Objects.equals(response, "Keep alive pong"))
             {
-                this.handlePong(client, (Map<String, Object>) (message));
+                this.handlePong(client, message);
             }
         } else if (!java.util.Objects.equals(dataType, null))
         {
             if (java.util.Objects.equals(dataType, "V1TAAnonymousTradeUpdate"))
             {
-                this.handleTrades(client, (Map<String, Object>) (message));
+                this.handleTrades(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TATickerResponse"))
             {
-                this.handleTicker(client, (Map<String, Object>) (message));
+                this.handleTicker(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TALevel2"))
             {
-                this.handleOrderBook(client, (Map<String, Object>) (message));
+                this.handleOrderBook(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TAOrder"))
             {
-                this.handleOrders(client, (Map<String, Object>) (message));
+                this.handleOrders(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TATrade"))
             {
-                this.handleMyTrades(client, (Map<String, Object>) (message));
+                this.handleMyTrades(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TAAssetAccount"))
             {
-                this.handleBalance(client, (Map<String, Object>) (message));
+                this.handleBalance(client, message);
             }
             if (java.util.Objects.equals(dataType, "V1TAErrorResponse"))
             {

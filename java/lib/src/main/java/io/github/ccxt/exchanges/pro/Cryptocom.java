@@ -1718,7 +1718,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // ping
@@ -1758,22 +1758,22 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             return;
         }
         String method = this.safeString(message, "method");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "", "handlePing");
-            put( "public/heartbeat", "handlePing");
-            put( "public/auth", "handleAuthenticate");
-            put( "private/create-order", "handleOrder");
-            put( "private/amend-order", "handleOrder");
-            put( "private/cancel-order", "handleOrder");
-            put( "private/cancel-all-orders", "handleCancelAllOrders");
-            put( "private/close-position", "handleOrder");
-            put( "subscribe", "handleSubscribe");
-            put( "unsubscribe", "handleUnsubscribe");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("", Cryptocom.this::handlePing);
+            put("public/heartbeat", Cryptocom.this::handlePing);
+            put("public/auth", Cryptocom.this::handleAuthenticate);
+            put("private/create-order", Cryptocom.this::handleOrder);
+            put("private/amend-order", Cryptocom.this::handleOrder);
+            put("private/cancel-order", Cryptocom.this::handleOrder);
+            put("private/cancel-all-orders", Cryptocom.this::handleCancelAllOrders);
+            put("private/close-position", Cryptocom.this::handleOrder);
+            put("subscribe", Cryptocom.this::handleSubscribe);
+            put("unsubscribe", Cryptocom.this::handleUnsubscribe);
         }};
-        Object callMethod = this.safeValue(methods, method);
+        io.github.ccxt.Handler callMethod = methods.get(method);
         if (!java.util.Objects.equals(callMethod, null))
         {
-            Helpers.callDynamically(this, callMethod, new Object[] {client, message});
+            callMethod.handle(client, message);
         }
     }
 

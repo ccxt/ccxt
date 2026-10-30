@@ -2247,7 +2247,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return null;
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2297,47 +2297,47 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             this.handleErrorMessage(client, message);
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "subscribed", "handleSubscriptionStatus");
-            put( "unsubscribed", "handleUnsubscriptionStatus");
-            put( "book", "handleOrderBook");
-            put( "getBook", "handleOrderBookSnapshot");
-            put( "trade", "handleTrade");
-            put( "candle", "handleOHLCV");
-            put( "ticker24h", "handleTicker");
-            put( "authenticate", "handleAuthenticationMessage");
-            put( "order", "handleOrder");
-            put( "fill", "handleMyTrade");
-            put( "privateCreateOrder", "handleSingleOrder");
-            put( "privateUpdateOrder", "handleSingleOrder");
-            put( "privateGetBalance", "handleFetchBalance");
-            put( "privateCancelOrders", "handleMultipleOrders");
-            put( "privateGetOrders", "handleMultipleOrders");
-            put( "privateGetOrder", "handleSingleOrder");
-            put( "privateCancelOrder", "handleSingleOrder");
-            put( "privateGetOrdersOpen", "handleMultipleOrders");
-            put( "privateGetAccount", "handleTradingFees");
-            put( "privateGetDepositHistory", "handleDeposits");
-            put( "privateGetWithdrawalHistory", "handleWithdraws");
-            put( "privateWithdrawAssets", "handleWithdraw");
-            put( "privateGetTrades", "handleMyTrades");
-            put( "getAssets", "handleFetchCurrencies");
-            put( "getCandles", "handleFetchOHLCV");
-            put( "getMarkets", "handleMarkets");
+        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
+            put("subscribed", Bitvavo.this::handleSubscriptionStatus);
+            put("unsubscribed", Bitvavo.this::handleUnsubscriptionStatus);
+            put("book", Bitvavo.this::handleOrderBook);
+            put("getBook", Bitvavo.this::handleOrderBookSnapshot);
+            put("trade", Bitvavo.this::handleTrade);
+            put("candle", Bitvavo.this::handleOHLCV);
+            put("ticker24h", Bitvavo.this::handleTicker);
+            put("authenticate", Bitvavo.this::handleAuthenticationMessage);
+            put("order", Bitvavo.this::handleOrder);
+            put("fill", Bitvavo.this::handleMyTrade);
+            put("privateCreateOrder", Bitvavo.this::handleSingleOrder);
+            put("privateUpdateOrder", Bitvavo.this::handleSingleOrder);
+            put("privateGetBalance", Bitvavo.this::handleFetchBalance);
+            put("privateCancelOrders", Bitvavo.this::handleMultipleOrders);
+            put("privateGetOrders", Bitvavo.this::handleMultipleOrders);
+            put("privateGetOrder", Bitvavo.this::handleSingleOrder);
+            put("privateCancelOrder", Bitvavo.this::handleSingleOrder);
+            put("privateGetOrdersOpen", Bitvavo.this::handleMultipleOrders);
+            put("privateGetAccount", Bitvavo.this::handleTradingFees);
+            put("privateGetDepositHistory", Bitvavo.this::handleDeposits);
+            put("privateGetWithdrawalHistory", Bitvavo.this::handleWithdraws);
+            put("privateWithdrawAssets", Bitvavo.this::handleWithdraw);
+            put("privateGetTrades", Bitvavo.this::handleMyTrades);
+            put("getAssets", Bitvavo.this::handleFetchCurrencies);
+            put("getCandles", Bitvavo.this::handleFetchOHLCV);
+            put("getMarkets", Bitvavo.this::handleMarkets);
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        io.github.ccxt.Handler method = methods.get(eventVar);
         if (java.util.Objects.equals(method, null))
         {
             String action = this.safeString(message, "action");
-            method = this.safeValue(methods, action);
+            method = methods.get(action);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                method.handle(client, message);
             }
         } else
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            method.handle(client, message);
         }
     }
 }

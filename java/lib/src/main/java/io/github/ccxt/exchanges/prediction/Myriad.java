@@ -3839,26 +3839,26 @@ public class Myriad extends MyriadApi
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleTextMessage(Client client, Object message)
+    {
+        List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
+        Integer linesLength = ((List<?>)lines).size();
+        for (var i = 0; (linesLength != null && i < linesLength); i++)
+        {
+            String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
+            if (line.length() > 0)
+            {
+                Object parsed = Helpers.parseJson(line);
+                this.handleCentrifugoFrame(client, (Map<String, Object>) (parsed));
+            }
+        }
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-        if ((message instanceof String))
-        {
-            List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
-            Integer linesLength = ((List<?>)lines).size();
-            for (var i = 0; (linesLength != null && i < linesLength); i++)
-            {
-                String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
-                if (line.length() > 0)
-                {
-                    Object parsed = Helpers.parseJson(line);
-                    this.handleCentrifugoFrame(client, (Map<String, Object>) (parsed));
-                }
-            }
-            return;
-        }
-        this.handleCentrifugoFrame(client, (Map<String, Object>) (message));
+        this.handleCentrifugoFrame(client, message);
     }
 
     public void handleCentrifugoFrame(Client client, Map<String, Object> msg)
