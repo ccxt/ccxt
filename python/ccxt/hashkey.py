@@ -3171,7 +3171,8 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         methodName = 'fetchOpenSpotOrders'
-        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption = self.safe_string(params, 'methodName', methodName)
+        paramsMethodName = self.omit(params, 'methodName')
         market = None
         request = {}
         response = None
@@ -3235,7 +3236,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         methodName = 'fetchOpenSwapOrders'
-        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption = self.safe_string(params, 'methodName', methodName)
+        paramsMethodName = self.omit(params, 'methodName')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' ' + methodNameOption + '() requires a symbol argument for swap market orders')
         market = self.market(symbol)
@@ -3817,7 +3819,8 @@ class hashkey(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchPosition'
-        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption = self.safe_string(params, 'methodName', methodName)
+        paramsMethodName = self.omit(params, 'methodName')
         if market['swap'] is not True:
             raise NotSupported(self.id + ' ' + methodNameOption + '() supports swap markets only')
         request = {

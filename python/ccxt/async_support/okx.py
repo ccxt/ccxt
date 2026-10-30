@@ -7851,7 +7851,7 @@ class okx(Exchange, ImplicitAPI):
         maxLimit = 100
         effectiveLimit = self.parse_to_int(100)
         if (limit is not None) and (100 > limit):
-            effectiveLimit = limit
+            effectiveLimit = self.parse_to_int(limit)
         if limit is not None:
             request['limit'] = effectiveLimit
         if since is not None:

@@ -2367,7 +2367,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
         # todo: lastFillTime: this.iso8601(end)
         response = await self.privateGetFills(params)
         #

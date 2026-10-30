@@ -518,7 +518,7 @@ class bitget(ccxt.async_support.bitget):
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         isStock = market['stock']
         paramsStock = self.omit(paramsUta, 'stock')
-        isStockSpot = isStock and market['spot']
+        isStockSpot = isStock and (market['spot'] is True)
         isStockOrUta = (isStockSpot or (uta is True))
         instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
@@ -828,7 +828,7 @@ class bitget(ccxt.async_support.bitget):
         if symbolsLength > 0:
             market = self.market(symbolsNormalized[0])
             isStock = market['stock']
-            isStockSpot = isStock and market['spot']
+            isStockSpot = isStock and (market['spot'] is True)
         paramsStock = self.omit(params, 'stock')
         uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'watchOrderBookForSymbols', 'uta', False)
         isStockOrUta = (isStockSpot or (uta is True))

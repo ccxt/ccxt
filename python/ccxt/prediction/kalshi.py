@@ -2377,7 +2377,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         apiGroup = api[0]
         access = api[1]
         baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['kalshi'])
+        baseUrl = self.safe_string(baseUrls, apiGroup, self.safe_string(baseUrls, 'kalshi', ''))
         implodedPath = self.implode_params(path, params)
         url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))

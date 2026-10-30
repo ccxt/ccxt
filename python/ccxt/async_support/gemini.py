@@ -1608,7 +1608,9 @@ class gemini(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price', 'stopPrice'])
         # timeInForce and postOnly are consumed only by non-trigger orders
         omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice']
-        optionKeys = ['timeInForce', 'postOnly'] if (triggerPrice is None) else []
+        optionKeys = []
+        if triggerPrice is None:
+            optionKeys = ['timeInForce', 'postOnly']
         paramsOmitted = self.omit(params, self.array_concat(omitKeys, optionKeys))
         if typeValue == 'stopLimit':
             raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders')
@@ -1967,11 +1969,10 @@ class gemini(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         fullUrl = apiUrl + url
-        headersResolved = headersSigned if (apiName == 'private') else None
         bodyResolved = None
         if (method == 'POST') or (method == 'DELETE'):
             bodyResolved = self.json(query)
-        return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
