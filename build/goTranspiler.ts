@@ -3625,6 +3625,7 @@ export function formatGoSource (filePath: string, content: string): string {
     }
     // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
     content = retypeGoProvenParseMethods (content);
+    content = goOmitTupleMapReturns (content);  // hx11 w8 m464
     content = hx11w8NonceInt64 (content);  // hx11 w8 m172: every Nonce() override is int64
     content = hx11w8NonceLocals (content);  // hx11 w8 M260: locals fed by Nonce()/IncrementingNonce() are int64
     content = g21Pass (content, filePath);  // hx10 w5 G21, first: the prediction tier's boxed locals
@@ -5061,6 +5062,9 @@ function goProvenParseSelfTest (): string[] {
     // hx10w8 GB07: a second Market/Currency wrap around a base row builder is the identity
     ok (dropNoOpMapTyped ('\treturn MarketTyped(this.Exchange.SafeMarket(id))\n') === '\treturn this.Exchange.SafeMarket(id)\n', 'base row wrap dropped');
     ok (dropNoOpMapTyped ('\treturn MarketTyped(this.SafeMarket(id))\n') === '\treturn MarketTyped(this.SafeMarket(id))\n', 'an override keeps its wrap');
+    const omitFn = (ret: string) => '\nfunc (this *X) H(m string, optionalArgs ...any) any {\n\tr, p := this.HandleOptionStringAndParams(a, m, \"route\", \"auto\")\n\t_ = r\n\t' + ret + '\n}\n';
+    ok (goOmitTupleMapReturns (omitFn ('return this.Omit(p, []any{\"route\"})')).includes ('...any) map[string]any {') && goOmitTupleMapReturns (omitFn ('return this.Omit(p, []any{\"route\"})')).includes ('return this.OmitDict(p,'), 'tuple omit return');
+    ok (goOmitTupleMapReturns (omitFn ('return this.Omit(q, []any{\"route\"})')) === omitFn ('return this.Omit(q, []any{\"route\"})'), 'foreign omit return untouched');
     return problems;
 }
 
@@ -12395,6 +12399,28 @@ export function g10kDerefSelfTest (): string[] {
     ];
     kept.forEach ((line) => ok (f (line) === line, 'must keep: ' + line));
     return problems;
+}
+
+// hx11 w8 m464: an `any` method whose every return is `this.Omit(x, ..)` of a tuple-helper params map
+// (x declared once by `a, x := this.HandleXAndParams(..)`) returns a fresh map: OmitDict, map[string]any.
+function goOmitTupleMapReturns (content: string): string {
+    const head = /\nfunc \(this \*\w+\) \w+\([^)\n]*\) any \{\n/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = head.exec (content); m !== null; m = head.exec (content)) {
+        const open = m.index + m[0].length - 1;
+        const close = content.indexOf ('\n}\n', open);
+        const body = (close < 0) ? '' : content.substring (open, close + 1);
+        const exprs = (close < 0) ? undefined : goFunctionLevelReturnExprs (body);
+        const omit = /^this\.Omit\((\w+), /;
+        if ((exprs === undefined) || !exprs.length || body.includes ('func(') || !exprs.every ((e) => omit.test (e) && g10kMaplistTupleMap (body, omit.exec (e)[1]))) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + m[0].replace (/\) any \{\n$/, ') map[string]any {\n') + body.replace (/\n(\t+)return this\.Omit\(/g, '\n$1return this.OmitDict(').substring (1);
+        cursor = close + 1;
+        head.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
 }
 
 // ===== G10K-maplist: Omit of a tuple-helper params map is OmitDict =====
