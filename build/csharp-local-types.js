@@ -8260,6 +8260,10 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
                     proof = candidate;
                     continue;
                 }
+                if (candidate.kind === ts.SyntaxKind.VariableStatement && candidate.declarationList.declarations.includes (declaration) && sliceOfNonNullStringInit (csharp, scope, declaration)) {
+                    proof = candidate;
+                    continue;
+                }
                 if (exitGuardProvesNonNull (candidate, csharp, scope, declaration)) {
                     proof = candidate;
                     continue;
@@ -8283,6 +8287,57 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
         block = block.parent;
     }
     return false;
+}
+
+// `const x = <recv>.slice (a, b)` holds a non-null string when <recv> is: the helper answers
+// null only for a null receiver. <recv> is a string param or local whose every value is a
+// literal, a `lit + ...` chain or a param an earlier top-level exit guard proved non-null.
+function sliceOfNonNullStringInit (csharp, scope, declaration) {
+    const init = stripParens (declaration.initializer);
+    const callee = (init?.kind === ts.SyntaxKind.CallExpression) ? init.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.name?.text !== 'slice' || callee.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    return nonNullSliceReceiver (csharp, scope, declaration, callee.expression, 0);
+}
+
+function nonNullSliceReceiver (csharp, scope, before, ident, depth) {
+    const binding = resolveReference (csharp, ident);
+    if (depth > 4 || binding?.name?.kind !== ts.SyntaxKind.Identifier || enclosingFunction (binding) !== scope) {
+        return false;
+    }
+    const writes = stringLocalWriteNodes (csharp, scope, binding, binding.name.text);
+    if (binding.kind === ts.SyntaxKind.Parameter) {
+        const typeText = binding.type?.getText ();
+        if (writes.length > 0 || (typeText !== 'Str') || binding.initializer !== undefined) {
+            return false;
+        }
+        const statements = scope.body?.statements ?? [];
+        return statements.some ((statement) => statement.getEnd () <= before.getStart () && exitGuardProvesNonNull (statement, csharp, scope, binding));
+    }
+    if (binding.kind !== ts.SyntaxKind.VariableDeclaration || binding.parent?.declarations?.length !== 1 || binding.initializer === undefined) {
+        return false;
+    }
+    const values = [ binding.initializer ];
+    for (const w of writes) {
+        const assign = w.parent;
+        if (assign.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            return false;
+        }
+        values.push (assign.right);
+    }
+    return values.every ((value) => nonNullSliceValue (csharp, scope, before, value, depth));
+}
+
+function nonNullSliceValue (csharp, scope, before, node, depth) {
+    const current = stripParens (node);
+    if (isStringLiteral (current)) {
+        return true;
+    }
+    if (current.kind === ts.SyntaxKind.BinaryExpression) {
+        return current.operatorToken.kind === ts.SyntaxKind.PlusToken && nonNullSliceValue (csharp, scope, before, current.left, depth + 1);
+    }
+    return current.kind === ts.SyntaxKind.Identifier && nonNullSliceReceiver (csharp, scope, before, current, depth + 1);
 }
 
 // is this statement a direct `x = <non-null string>` write of the binding?
