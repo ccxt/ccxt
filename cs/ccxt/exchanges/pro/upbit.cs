@@ -405,8 +405,8 @@ public partial class upbit : ccxt.upbit
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", channel },
         };
-        object messageHashResolved = messageHash;
-        object channelKey = channel;
+        string messageHashResolved = messageHash;
+        string channelKey = channel;
         if ((symbol != null))
         {
             await this.loadMarkets();
@@ -427,7 +427,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }
         IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, new Dictionary<string, object>() {});
-        bool isNewChannel = !((subscriptions != null && channelKey is string inOpKey1 && subscriptions.ContainsKey(inOpKey1)));
+        bool isNewChannel = !(((channelKey != null) && (subscriptions?.ContainsKey(channelKey) == true)));
         if (isNewChannel)
         {
             subscriptions[(string)channelKey] = request;

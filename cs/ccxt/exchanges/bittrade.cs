@@ -1930,7 +1930,7 @@ public partial class bittrade : Exchange
             string? quoteAmount = null;
             (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-            object paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2;
+            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             double? cost = this.safeNumber(paramsRequiresPrice, "cost");
             paramsOrder = this.omit(paramsRequiresPrice, "cost");
             if ((cost != null))

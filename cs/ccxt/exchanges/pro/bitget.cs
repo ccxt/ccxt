@@ -892,7 +892,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
-        object paramsUta = utaparamsUtaVariable.Item2;
+        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
         bool isStockSpot = (isStock == true) && (((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true);
         bool isStockOrUta = (isStockSpot || ((uta == true)));
         object paramsRequest = paramsUta;
@@ -997,7 +997,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
-        object paramsUta = utaparamsUtaVariable.Item2;
+        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
         bool isStockOrUta = (isStockSpot || ((uta == true)));
         string channel = "books";
         bool incrementalFeed = true;

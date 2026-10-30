@@ -2513,7 +2513,7 @@ public partial class deribit : Exchange
         bool isStopOrder = isStopLossOrder || isTakeProfitOrder;
         bool isLimitOrder = ((type == "limit")) || isStopLimit || isTakeLimit;
         bool isMarketOrder = ((type == "market")) || isStopMarket || isTakeMarket;
-        object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
+        bool? exchangeSpecificPostOnly = this.safeBool(parameters, "post_only");
         bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
         if (isLimitOrder)
         {

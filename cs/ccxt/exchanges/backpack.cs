@@ -1943,7 +1943,7 @@ public partial class backpack : Exchange
         };
         (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until");
         Int64? until = untilparamsUntilVariable.Item1;
-        object paramsUntil = untilparamsUntilVariable.Item2;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
@@ -3246,7 +3246,7 @@ public partial class backpack : Exchange
         }
         (string?, object) selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention");
         string? selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item1;
-        object paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item2;
+        IDictionary<string, object> paramsSelfTradePrevention = ((IDictionary<string, object>)selfTradePreventionparamsSelfTradePreventionVariable.Item2);
         if ((selfTradePrevention != null))
         {
             if ((selfTradePrevention == "EXPIRE_MAKER"))

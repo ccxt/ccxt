@@ -1772,7 +1772,7 @@ public partial class kucoin : ccxt.kucoin
         }
         (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams2(paramsOmitted, "watchOrderBook", optionName, "method", defaultMethod);
         string? methodOption = methodOptionparamsMethodVariable.Item1;
-        object paramsMethod = methodOptionparamsMethodVariable.Item2;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
         object method = methodOption;
         if (((string)method).IndexOf("Depth", StringComparison.Ordinal) < 0)
         {
@@ -2738,10 +2738,10 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual string? getMyTradesMessageHashSuffix(object topic)
+    public virtual string? getMyTradesMessageHashSuffix(string topic)
     {
         string suffix = "-spot";
-        if (getIndexOf(topic, "contractMarket") >= 0)
+        if (topic.IndexOf("contractMarket", StringComparison.Ordinal) >= 0)
         {
             suffix = "-contract";
         }
@@ -2788,7 +2788,7 @@ public partial class kucoin : ccxt.kucoin
         ccxt.pro.ArrayCache myTrades = this.myTrades;
         myTrades.append(ccxt.BaseExchange.FromTrade(parsed));
         string messageHash = "myTrades";
-        string? topic = this.safeString(message, "topic");
+        string? topic = this.safeString(message, "topic", "");
         string suffix = this.getMyTradesMessageHashSuffix(topic);
         string typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(this.myTrades, typeSpecificMessageHash);

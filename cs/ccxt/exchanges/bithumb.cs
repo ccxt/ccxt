@@ -1909,7 +1909,7 @@ public partial class bithumb : Exchange
                 string? costParam = this.safeString(paramsOrder, "cost");
                 (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(this.omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-                object paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2;
+                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
                 paramsOrder = paramsRequiresPrice;
                 string? amountString = this.numberToString(amount);
                 string? cost = ((costParam == null)) ? amountString : costParam;

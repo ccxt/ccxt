@@ -2538,11 +2538,11 @@ public partial class bybit : Exchange
         return amountString;
     }
 
-    public virtual object getPrice(object symbol, object price)
+    public virtual string? getPrice(object symbol, object price)
     {
         if ((price == null))
         {
-            return price;
+            return ((string?)((object)(price)));
         }
         Dictionary<string, object> market = this.market(symbol);
         bool emptyPrecisionPrice = ((this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price") == null));
@@ -2550,7 +2550,7 @@ public partial class bybit : Exchange
         {
             return this.priceToPrecision(symbol, price);
         }
-        return price;
+        return ((string?)((object)(price)));
     }
 
     public virtual string? getCost(string? symbol, object cost)
@@ -5365,7 +5365,7 @@ public partial class bybit : Exchange
         };
         bool? hedged = this.safeBool(parameters, "hedged", false);
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
-        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -5648,9 +5648,9 @@ public partial class bybit : Exchange
         {
             if (hasStopLoss)
             {
-                object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
+                string? slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                 request["stopLoss"] = this.getPrice(symbolValue, slTriggerPrice);
-                object slLimitPrice = this.safeValue(stopLoss, "price");
+                string? slLimitPrice = this.safeString(stopLoss, "price");
                 if ((slLimitPrice != null))
                 {
                     request["tpslMode"] = "Partial";
@@ -5672,9 +5672,9 @@ public partial class bybit : Exchange
             }
             if (hasTakeProfit)
             {
-                object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
+                string? tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 request["takeProfit"] = this.getPrice(symbolValue, tpTriggerPrice);
-                object tpLimitPrice = this.safeValue(takeProfit, "price");
+                string? tpLimitPrice = this.safeString(takeProfit, "price");
                 if ((tpLimitPrice != null))
                 {
                     request["tpslMode"] = "Partial";
@@ -6076,7 +6076,7 @@ public partial class bybit : Exchange
         object paramsOmitted = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? this.omit(parameters, new List<object>() {"stop", "trigger"}) : parameters;
         var categoryparamsCategoryVariable = this.getBybitType("cancelOrderRequest", market, paramsOmitted);
         string? category = (string)categoryparamsCategoryVariable[0];
-        var paramsCategory = categoryparamsCategoryVariable[1];
+        IDictionary<string, object> paramsCategory = ((IDictionary<string, object>)categoryparamsCategoryVariable[1]);
         request["category"] = category;
         return this.extend(request, paramsCategory);
     }

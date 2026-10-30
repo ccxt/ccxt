@@ -1464,7 +1464,7 @@ public partial class toobit : Exchange
         object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
         string? endpoint = endpointparamsPriceVariable.Item1;
-        object paramsPrice = endpointparamsPriceVariable.Item2;
+        IDictionary<string, object> paramsPrice = ((IDictionary<string, object>)endpointparamsPriceVariable.Item2);
         bool isPriceKlines = ((endpoint == "index")) || ((endpoint == "mark"));
         string startKey = "startTime";
         string endKey = "endTime";

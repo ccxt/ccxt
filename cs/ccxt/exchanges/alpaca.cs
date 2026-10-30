@@ -1407,10 +1407,10 @@ public partial class alpaca : Exchange
         object paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
         (string?, object) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
-        object paramsTimeInForce = defaultTIFparamsTimeInForceVariable.Item2;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
-        object paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
         request["client_order_id"] = this.generateClientOrderId(paramsOmitted);
         Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new List<object>() {"clientOrderId"})));
         //
@@ -1715,7 +1715,7 @@ public partial class alpaca : Exchange
         }
         (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        object paramsTimeInForce = timeInForceparamsTimeInForceVariable.Item2;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
@@ -2062,7 +2062,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object addressValue = address;
+        string addressValue = address;
         string? tagSuffix = this.safeString(parameters, "tag", "");
         if (tagSuffix != "")
         {

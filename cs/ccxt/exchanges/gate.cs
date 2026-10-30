@@ -6819,7 +6819,7 @@ public partial class gate : Exchange
         }
         var requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
         Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];
-        var paramsRequest = requestparamsRequestVariable[1];
+        IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));

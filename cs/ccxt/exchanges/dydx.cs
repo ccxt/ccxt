@@ -2111,7 +2111,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper(code, since, limit, this.extend(parameters, new Dictionary<string, object>() { { "methodName", "fetchLedger" }, })));
+        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchLedger", code, since, limit, parameters);
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
@@ -2349,7 +2349,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper(code, since, limit, this.extend(parameters, new Dictionary<string, object>() { { "methodName", "fetchTransfers" }, })));
+        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchTransfers", code, since, limit, parameters);
         List<object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
         List<object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
         List<object> rows = this.arrayConcat(transferIn, transferOut);
@@ -2509,7 +2509,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper(code, since, limit, this.extend(parameters, new Dictionary<string, object>() { { "methodName", "fetchWithdrawals" }, })));
+        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchWithdrawals", code, since, limit, parameters);
         List<object> rows = this.filterBy(response, "type", "WITHDRAWAL");
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
@@ -2539,7 +2539,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper(code, since, limit, this.extend(parameters, new Dictionary<string, object>() { { "methodName", "fetchDeposits" }, })));
+        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchDeposits", code, since, limit, parameters);
         List<object> rows = this.filterBy(response, "type", "DEPOSIT");
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
@@ -2569,24 +2569,23 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper(code, since, limit, this.extend(parameters, new Dictionary<string, object>() { { "methodName", "fetchDepositsWithdrawals" }, })));
+        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, parameters);
         List<object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
         List<object> deposits = this.filterBy(response, "type", "DEPOSIT");
         List<object> rows = this.arrayConcat(withdrawals, deposits);
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
 
-    public async virtual Task<List<Dictionary<string, object>>> FetchTransactionsHelper(string? code = null, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchTransactionsHelper(string methodName, object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? methodName = this.safeString(parameters, "methodName");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress(methodName, paramsOmitted);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
         string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
-        object paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item2;
+        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
             { "subaccountNumber", subAccountNumber },

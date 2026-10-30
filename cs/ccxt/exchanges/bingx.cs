@@ -1695,7 +1695,7 @@ public partial class bingx : Exchange
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             (Int64?, object) timeZoneparamsTimeZoneVariable = this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0);
             Int64? timeZone = timeZoneparamsTimeZoneVariable.Item1;
-            object paramsTimeZone = timeZoneparamsTimeZoneVariable.Item2;
+            IDictionary<string, object> paramsTimeZone = ((IDictionary<string, object>)timeZoneparamsTimeZoneVariable.Item2);
             if (!(timeZone == null))
             {
                 request["timeZone"] = timeZone;

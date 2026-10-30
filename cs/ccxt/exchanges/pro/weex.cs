@@ -1007,7 +1007,7 @@ public partial class weex : ccxt.weex
         string depth = "200";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
-        object paramsDepth = depthOptionparamsDepthVariable.Item2;
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};

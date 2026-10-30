@@ -3798,22 +3798,22 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        object requestPath = path;
+        string requestPath = path;
         object query = this.omit(parameters, this.extractParams(requestPath));
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = (apiUrl == null ? null : apiUrl + (string)(object)(requestPath));
+        string url = (apiUrl + requestPath);
         string queryString = "";
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
-                url = (url + ("?" + queryString));
+                url = url + ("?" + queryString);
             }
         } else if ((method == "POST"))
         {
@@ -3840,7 +3840,7 @@ public partial class grvt : Exchange
             {
                 requestPath = ((path + "?") + queryString);
             }
-            if (((((string)requestPath).EndsWith("auth/api_key/login") == true)) || ((((string)requestPath).EndsWith("auth/wallet/login") == true)))
+            if (((requestPath.EndsWith("auth/api_key/login") == true)) || ((requestPath.EndsWith("auth/wallet/login") == true)))
             {
                 requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

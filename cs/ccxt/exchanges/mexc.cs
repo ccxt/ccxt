@@ -3033,7 +3033,7 @@ public partial class mexc : Exchange
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             IList<object> triggerDirectionparamsTriggerDirectionVariable = (IList<object>)this.handleTriggerDirectionAndParams(paramsOmitted, "triggerType", true);
             string? triggerDirection = (string)triggerDirectionparamsTriggerDirectionVariable[0];
-            var paramsTriggerDirection = triggerDirectionparamsTriggerDirectionVariable[1];
+            IDictionary<string, object> paramsTriggerDirection = ((IDictionary<string, object>)triggerDirectionparamsTriggerDirectionVariable[1]);
             Int64? triggerType = this.safeInteger(paramsTriggerDirection, "triggerType", 1);
             if ((triggerDirection == "ascending"))
             {

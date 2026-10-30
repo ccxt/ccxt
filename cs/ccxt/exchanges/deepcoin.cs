@@ -2671,7 +2671,7 @@ public partial class deepcoin : Exchange
         object paramsOmitted = ((marginMode != null)) ? this.omit(parameters, "marginMode") : parameters;
         (bool?, object) mergedparamsMergedVariable = this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
         bool? merged = mergedparamsMergedVariable.Item1;
-        object paramsMerged = mergedparamsMergedVariable.Item2;
+        IDictionary<string, object> paramsMerged = ((IDictionary<string, object>)mergedparamsMergedVariable.Item2);
         int isMergedMode = (merged == true) ? 1 : 0;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentID", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3572,7 +3572,7 @@ public partial class deepcoin : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object requestPath = path;
+        string requestPath = path;
         if ((method == "GET"))
         {
             string query = this.urlencode(parameters);
@@ -3586,7 +3586,7 @@ public partial class deepcoin : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((apiUrl + "/") + (requestPath));
+        string url = ((apiUrl + "/") + requestPath);
         if (apiName == "private")
         {
             this.checkRequiredCredentials();
