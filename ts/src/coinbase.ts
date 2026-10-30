@@ -1348,12 +1348,22 @@ export default class coinbase extends Exchange {
             feeCurrencyId = this.safeString (marketResolved, 'quote');
         }
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
-        const side = this.safeStringLower2 (trade, 'resource', 'side');
+        let side = this.safeStringLower2 (trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'liquidity_indicator');
+        const orderId = this.safeString (trade, 'order_id');
+        const entryId = this.safeString (trade, 'entry_id');
+        if ((orderId === undefined) && (entryId === undefined) && (this.safeString (trade, 'resource') === undefined)) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side === 'buy') {
+                side = 'sell';
+            } else if (side === 'sell') {
+                side = 'buy';
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'id', 'trade_id'),
-            'order': this.safeString (trade, 'order_id'),
+            'order': orderId,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'symbol': symbol,
