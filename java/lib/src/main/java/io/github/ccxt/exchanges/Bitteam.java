@@ -2352,7 +2352,7 @@ public class Bitteam extends BitteamApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2622,7 +2622,7 @@ public class Bitteam extends BitteamApi
         String addressTo = this.safeString(transaction, "recipient");
         String tag = this.safeString(transaction, "message");
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
-        String amount = this.parseValueToPricision((Map<String, Object>) (transaction), "amount", currencyObject, "decimals");
+        String amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

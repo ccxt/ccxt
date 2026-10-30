@@ -138,7 +138,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "limit", limitResolved );
                 put( "params", parameters );
             }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, request, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -213,7 +213,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            return (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.watchPublic(topic, request, subscription)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -249,7 +249,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHash, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHash, request, subscription)).join();
         });
 
     }
@@ -408,7 +408,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHash, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHash, request, subscription)).join();
         });
 
     }
@@ -443,7 +443,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHah, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHah, request, subscription)).join();
         });
 
     }
@@ -605,7 +605,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, request, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -747,7 +747,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -882,7 +882,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            return (this.unWatchPublic(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHash, message, subscription)).join();
         });
 
     }
@@ -931,7 +931,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1004,7 +1004,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            return (this.unWatchPublic(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHash, message, subscription)).join();
         });
 
     }
@@ -1065,7 +1065,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            return (this.watchPrivate(topic, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            return (this.watchPrivate(topic, message, subscription)).join();
         }).thenApply(Balances::new);
 
     }
@@ -1143,7 +1143,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> newPositions = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivate(messageHash, message, subscription)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1237,7 +1237,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 // position deltas carry instrument names and do not belong into the balance structure
                 if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(subaccountIdKey)) != null && j39v4.contains(subaccountIdKey); case Map<?, ?> j39v3 -> ((Object)(subaccountIdKey)) instanceof String && j39v3.containsKey(subaccountIdKey); case null, default -> false; })))
                 {
-                    Map<String, Object> position = this.handlePositionDelta(subaccountIdKey, (Map<String, Object>) (entry));
+                    Map<String, Object> position = this.handlePositionDelta(subaccountIdKey, entry);
                     ((List<Object>)positionUpdates).add(position);
                 }
                 continue;

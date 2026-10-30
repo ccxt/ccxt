@@ -116,7 +116,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "fetchOHLCVWs");
+            this.checkContractMarket(market, "fetchOHLCVWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
@@ -166,7 +166,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "watchOHLCV");
+            this.checkContractMarket(market, "watchOHLCV");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -307,7 +307,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "fetchTickerWs");
+            this.checkContractMarket(market, "fetchTickerWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchTicker:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -341,7 +341,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "watchTicker");
+            this.checkContractMarket(market, "watchTicker");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("ticker:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -461,7 +461,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
+            this.checkContractMarket(market, "fetchTradesWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchTrades:" + market.get("symbol"));
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
@@ -499,7 +499,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "watchTrades");
+            this.checkContractMarket(market, "watchTrades");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("trades:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -690,7 +690,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -890,7 +890,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "fetchOrderBookWs");
+            this.checkContractMarket(market, "fetchOrderBookWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + market.get("symbol"));
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
@@ -927,7 +927,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
+            this.checkContractMarket(market, "watchOrderBook");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("orderbook:" + market.get("symbol"));
             Map<String, Object> paramsOmitted = this.omit(parameters, "aggregation");

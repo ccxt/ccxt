@@ -1380,7 +1380,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3302,7 +3302,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (data));
+            return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
@@ -3544,7 +3544,7 @@ public class Woo extends WooApi
             direction = "in";
         }
         Long timestamp = this.safeTimestamp(item, "createdTime");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
+        Object fee = this.parseTokenAndFeeTemp(item, new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("info", item);
         mapLiteral6.put("id", this.safeString(item, "id"));
@@ -3699,7 +3699,7 @@ public class Woo extends WooApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (transaction), new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
+        Object fee = this.parseTokenAndFeeTemp(transaction, new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Long timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
@@ -3999,7 +3999,7 @@ public class Woo extends WooApi
             mapLiteral7.put("type", "withdrawal");
             mapLiteral7.put("status", "pending");
             Map<String, Object> transactionData = this.extend(data, mapLiteral7);
-            return this.parseTransaction((Map<String, Object>) (transactionData), currency);
+            return this.parseTransaction(transactionData, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -4036,7 +4036,7 @@ public class Woo extends WooApi
             //         "success": true,
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbolResolved );
@@ -4534,7 +4534,7 @@ public class Woo extends WooApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v3PublicGetFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4661,7 +4661,7 @@ public class Woo extends WooApi
                 throw new NotSupported((((this.id + " fetchLeverage() is not supported for ") + marketType) + " markets")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -4877,7 +4877,7 @@ public class Woo extends WooApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (first), market);
+            return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
     }
@@ -5116,7 +5116,7 @@ public class Woo extends WooApi
             Map<String, Object> fromCurrency = this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "buyToken", toCode);
             Map<String, Object> toCurrency = this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -5157,7 +5157,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data), (Map<String, Object>) null, (Map<String, Object>) null);
+            return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
         }).thenApply(Conversion::new);
 
     }
@@ -5212,7 +5212,7 @@ public class Woo extends WooApi
             {
                 toCurrency = this.currency(toCurrencyId);
             }
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -5247,7 +5247,7 @@ public class Woo extends WooApi
             {
                 request.put("size", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v3PrivateGetConvertTrades(this.extend(requestUntil, paramsUntil))).join();

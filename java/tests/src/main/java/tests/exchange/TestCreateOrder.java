@@ -118,11 +118,11 @@ public class TestCreateOrder extends BaseTest {
             Object createdOrder = null;
             if (java.util.Objects.equals(buyOrSell, "buy"))
             {
-                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), limitBuyPrice_nonFillable, predefinedAmount);
+                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
                 createdOrder = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
             } else
             {
-                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), limitSellPrice_nonFillable, predefinedAmount);
+                Object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitSellPrice_nonFillable, predefinedAmount);
                 createdOrder = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", "sell", orderAmount, limitSellPrice_nonFillable, new HashMap<String, Object>() {{}}, skippedProperties)).join();
             }
             Object fetchedOrder = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (((Map<String, Object>)createdOrder).get("id")), skippedProperties)).join();
@@ -170,11 +170,11 @@ public class TestCreateOrder extends BaseTest {
             Object entryorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
             Object exitorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             Object symbol = market.get("symbol");
-            Object entryAmount = tcoGetMinimumAmountForLimitPrice(exchange, (Map<String, Object>) (market), entryorderPrice);
+            Object entryAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, entryorderPrice);
             Object entryorderFilled = (tcoCreateOrderSafe(exchange, (String) (symbol), "limit", entrySide, entryAmount, entryorderPrice, new HashMap<String, Object>() {{}}, skippedProperties)).join();
             (tcoTryCancelOrder(exchange, (String) (symbol), entryorderFilled, skippedProperties)).join();
             Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(entryorderFilled, "id")), skippedProperties)).join();
-            tcoAssertFilledOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
+            tcoAssertFilledOrder(exchange, market, (String) (logPrefix), skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
             Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSwapFuture))
@@ -184,7 +184,7 @@ public class TestCreateOrder extends BaseTest {
             Object exitorderPriceArg = (((java.util.Objects.equals(market.get("spot"), true)))) ? null : exitorderPrice;
             Object exitorderFilled = (tcoCreateOrderSafe(exchange, (String) (symbol), "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();
             Object exitorderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(exitorderFilled, "id")), skippedProperties)).join();
-            tcoAssertFilledOrder(exchange, (Map<String, Object>) (market), (String) (logPrefix), skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
+            tcoAssertFilledOrder(exchange, market, (String) (logPrefix), skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
             throw new RuntimeException(("failed for Scenario 2: " + String.valueOf(e))) ;
@@ -293,8 +293,8 @@ public class TestCreateOrder extends BaseTest {
         // then we need to calculate the amount using cost, because of price is volatile, today's 7 DOGE cost could be 1$
         // but "minimum cost" requirement could be 5$ (which translates to 35 DOGE amount)
         Object predefinedAmount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object minimumAmount = tcoMininumAmount(exchange, (Map<String, Object>) (market));
-        Object minimumCost = tcoMininumCost(exchange, (Map<String, Object>) (market));
+        Object minimumAmount = tcoMininumAmount(exchange, market);
+        Object minimumCost = tcoMininumCost(exchange, market);
         Object finalAmount = minimumAmount;
         if (!java.util.Objects.equals(minimumCost, null))
         {

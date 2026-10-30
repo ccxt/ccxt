@@ -371,7 +371,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         String symbol = this.safeString(trade, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))

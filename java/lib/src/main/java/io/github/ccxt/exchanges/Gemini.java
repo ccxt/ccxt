@@ -2335,7 +2335,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ExchangeError(((this.id + " withdraw() failed: ") + this.json(response))) ;
             }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

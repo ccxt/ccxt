@@ -744,7 +744,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
             } else
             {
-                Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+                Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
                 tradesArray.append(trade);
             }
             client.resolve(tradesArray, messageHash);
@@ -952,13 +952,13 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String reason = this.safeString(message, "reason");
             if ((java.util.Objects.equals(previousOrder, null)) || (java.util.Objects.equals(reason, "edited_by_user")))
             {
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, (Map<String, Object>) null);
                 orders.append(parsed);
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
             } else
             {
-                Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (order), (Map<String, Object>) null);
+                Map<String, Object> trade = this.parseWsTrade(order, (Map<String, Object>) null);
                 if (java.util.Objects.equals(previousOrder.get("trades"), null))
                 {
                     previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
@@ -1002,7 +1002,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                 }
                 // update the newUpdates count
-                orders.append(this.safeOrder((Map<String, Object>) (previousOrder), (Map<String, Object>) null));
+                orders.append(this.safeOrder(previousOrder, (Map<String, Object>) null));
                 client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
@@ -1699,7 +1699,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), code, newAccount);
                 }
             }
-            this.balance.put("cash", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("cash")), (Map<String, Object>) (holdingCodes)));
+            this.balance.put("cash", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("cash")), holdingCodes));
             this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
             updatedBalance = this.balance.get("cash");
         }
@@ -1729,7 +1729,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol), code, newAccount);
                 }
             }
-            this.balance.put("margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), (Map<String, Object>) (futuresSymbols)));
+            this.balance.put("margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), futuresSymbols));
             this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
             client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
             if (java.util.Objects.equals(updatedBalance, null))
@@ -1761,7 +1761,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), code, newAccount);
                 }
             }
-            this.balance.put("flex", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("flex")), (Map<String, Object>) (flexCodes)));
+            this.balance.put("flex", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("flex")), flexCodes));
             this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
             client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));
             if (java.util.Objects.equals(updatedBalance, null))

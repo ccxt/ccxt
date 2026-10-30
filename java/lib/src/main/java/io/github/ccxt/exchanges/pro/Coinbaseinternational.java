@@ -306,7 +306,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("watchBalance", parameters);
-            Pair<String, Map<String, Object>> currencyparamsCurrencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchBalance", "currency", "any");
+            Pair<String, Map<String, Object>> currencyparamsCurrencyVariable = this.handleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any");
             String currency = currencyparamsCurrencyVariable.first();
             Map<String, Object> paramsCurrency = currencyparamsCurrencyVariable.second();
             String channel = ("user.portfolio." + currency);
@@ -348,7 +348,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchMyTrades", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             String channel = ("user.trades.any.any." + interval);
@@ -382,7 +382,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("unWatchMyTrades", parameters);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchMyTrades", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             String channel = ("user.trades.any.any." + interval);
@@ -442,7 +442,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchOrders", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             String channel = ("user.orders.any.any." + interval);
@@ -488,7 +488,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchOrders", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -526,7 +526,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("unWatchOrders", parameters);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchOrders", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             String channel = ("user.orders.any.any." + interval);
@@ -594,7 +594,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchPositions", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -645,7 +645,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchPositions", "interval", "raw");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -818,7 +818,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchTicker", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTicker", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
@@ -873,7 +873,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchTickers", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
@@ -922,7 +922,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchTickers", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -1360,7 +1360,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchTradesForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
@@ -1428,7 +1428,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchTradesForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -1516,7 +1516,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchOrderBookForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
@@ -1592,7 +1592,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsResolved), "watchOrderBookForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);

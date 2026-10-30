@@ -1561,10 +1561,10 @@ public class Blofin extends BlofinApi
         List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
         if (!java.util.Objects.equals(data, null))
         {
-            return this.parseFundingBalance((Map<String, Object>) (response));
+            return this.parseFundingBalance(response);
         } else
         {
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }
     }
 
@@ -2381,7 +2381,7 @@ public class Blofin extends BlofinApi
             {
                 request.put("begin", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -2472,7 +2472,7 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2526,7 +2526,7 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2790,7 +2790,7 @@ public class Blofin extends BlofinApi
             {
                 throw new InvalidAddress(((((this.id + " fetchDepositAddress() returned no address for ") + code) + " on ") + this.safeString(request, "chain", chain))) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (first), currency);
+            return this.parseDepositAddress(first, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3124,7 +3124,7 @@ public class Blofin extends BlofinApi
                 currency = this.currency((String) (code));
                 request.put("currency", currency.get("id"));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAssetBills(this.extend(requestUntil, paramsUntil))).join();
@@ -3493,7 +3493,7 @@ public class Blofin extends BlofinApi
             {
                 throw new NullResponse((this.id + " fetchPosition() returned empty position")) ;
             }
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
@@ -3568,7 +3568,7 @@ public class Blofin extends BlofinApi
             {
                 request.put("begin", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();

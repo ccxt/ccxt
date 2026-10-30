@@ -197,7 +197,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         mapLiteral2.put("headers", mapLiteral3);
         mapLiteral1.put("options", mapLiteral2);
         extendedOptions.put("ws", mapLiteral1);
-        this.extendExchangeOptions((Map<String, Object>) (extendedOptions));
+        this.extendExchangeOptions(extendedOptions);
         // instantiate client
         this.client(url);
         // return headers to original state
@@ -210,7 +210,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 }} );
             }} );
         }};
-        this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+        this.extendExchangeOptions(defaultOptions);
     }
 
     /**
@@ -387,7 +387,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -618,7 +618,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -636,7 +636,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (rawTrade), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Map<String, Object> trade = this.parseWsTrade(rawTrade, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
             ((List<Object>)newTrades).add(trade);
         }
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
@@ -755,7 +755,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
-                Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
+                Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
                 priceType = priceTypeparamsPriceTypeVariable.first();
                 paramsPriceType = priceTypeparamsPriceTypeVariable.second();
             }
@@ -846,7 +846,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
-                Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
+                Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
                 priceType = priceTypeparamsPriceTypeVariable.first();
                 paramsPriceType = priceTypeparamsPriceTypeVariable.second();
             }
@@ -909,7 +909,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -1016,7 +1016,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
-            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), (String) (callerMethodName), "depth", depth);
+            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1088,7 +1088,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
-            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), (String) (callerMethodName), "depth", depth);
+            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
@@ -1133,7 +1133,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
@@ -1297,12 +1297,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "A": "6.30889"
         //     }
         //
-        Object market = this.getMarketFromClientAndMessage(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromClientAndMessage(client, message);
         if (java.util.Objects.equals(market, null))
         {
             return;
         }
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (message), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1490,7 +1490,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = this.parseWsMyTrade((Map<String, Object>) (trade), (Map<String, Object>) null);
+            Object parsed = this.parseWsMyTrade(trade, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1738,7 +1738,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(rawOrder, (Map<String, Object>) null);
             orders.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -2276,7 +2276,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, (Map<String, Object>) null);
             cache.append(position);
             ((List<Object>)newPositions).add(position);
         }
@@ -2299,7 +2299,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         // same as REST api
-        return this.parsePosition((Map<String, Object>) (position), market);
+        return this.parsePosition(position, market);
     }
 
     public Map<String, Object> getMarketFromClientAndMessage(Client client, Map<String, Object> message)
@@ -2337,7 +2337,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)

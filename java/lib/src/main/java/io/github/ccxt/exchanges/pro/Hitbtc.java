@@ -1133,11 +1133,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
-                this.handleOrderHelper(client, (Map<String, Object>) (message), (Map<String, Object>) (order));
+                this.handleOrderHelper(client, message, (Map<String, Object>) (order));
             }
         } else
         {
-            this.handleOrderHelper(client, (Map<String, Object>) (message), (Map<String, Object>) (data));
+            this.handleOrderHelper(client, message, (Map<String, Object>) (data));
         }
         return message;
     }
@@ -1249,7 +1249,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> trades = null;
         if (!java.util.Objects.equals(tradeId, null))
         {
-            Object trade = this.parseWsOrderTrade((Map<String, Object>) (order), marketResolved);
+            Object trade = this.parseWsOrderTrade(order, marketResolved);
             trades = new ArrayList<Object>(Arrays.asList(trade));
         }
         String rawStatus = this.safeString(order, "status");
@@ -1363,7 +1363,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
+            var orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
             var orderRequest = ((List<Object>) orderRequestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) orderRequestparamsValueVariable).get(1);
             Map<String, Object> request = this.extend(orderRequest, paramsValue);

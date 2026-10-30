@@ -2215,7 +2215,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
-            Map<String, Object> settlement = (Map<String, Object>) this.createWithdrawalSettlementData((String) (address), (String) (((String)amountString)), (Map<String, Object>) (currency), (Map<String, Object>) (account), paramsWithdrawTag);
+            Map<String, Object> settlement = (Map<String, Object>) this.createWithdrawalSettlementData((String) (address), (String) (((String)amountString)), currency, account, paramsWithdrawTag);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("accountId", accountId);
             request.put("amount", amountString);
@@ -2354,7 +2354,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
-            Map<String, Object> settlement = (Map<String, Object>) this.createTransferSettlementData((String) (((String)amountString)), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
+            Map<String, Object> settlement = (Map<String, Object>) this.createTransferSettlementData((String) (((String)amountString)), currency, account, toVault, toL2Key, parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromAccount", currentAccountId );
                 put( "toAccount", toAccount );
@@ -2579,7 +2579,7 @@ public class Extended extends ExtendedApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2619,7 +2619,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) (fee), (Map<String, Object>) null);
+                Map<String, Object> parsed = this.parseTradingFee(fee, (Map<String, Object>) null);
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2723,7 +2723,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         });
 
     }
@@ -3045,7 +3045,7 @@ public class Extended extends ExtendedApi
         settlement.put("feeAmount", feeAmount);
         settlement.put("expiration", this.numberToString(settlementExpiration));
         settlement.put("salt", nonce);
-        Object msgHash = this.getExtendedOrderMsgHash((Map<String, Object>) (settlement));
+        Object msgHash = this.getExtendedOrderMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Object r = this.getExtendedSignatureHex(this.safeString(sig, 0));
         Object s = this.getExtendedSignatureHex(this.safeString(sig, 1));
@@ -3079,7 +3079,7 @@ public class Extended extends ExtendedApi
                 put( "seconds", settlementExpiration );
             }});
         settlement.put("salt", nonce);
-        Object msgHash = this.getExtendedWithdrawalMsgHash((Map<String, Object>) (settlement), starkKey);
+        Object msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0)) );
@@ -3112,7 +3112,7 @@ public class Extended extends ExtendedApi
         settlement.put("receiverPublicKey", toL2Key);
         settlement.put("senderPositionId", fromVault);
         settlement.put("senderPublicKey", fromL2Key);
-        Object msgHash = this.getExtendedTransferMsgHash((Map<String, Object>) (settlement));
+        Object msgHash = this.getExtendedTransferMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0)) );
@@ -3177,7 +3177,7 @@ public class Extended extends ExtendedApi
                     Pair<String, Map<String, Object>> builderFeeRateparamsBuilderFeeRateVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "builderFeeRate", "0.0001");
                     builderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.first();
                     paramsBuilderFeeRate = builderFeeRateparamsBuilderFeeRateVariable.second();
-                    Pair<String, Map<String, Object>> builderIdparamsBuilderVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBuilderFeeRate), "createOrder", "builderId", (String) null);
+                    Pair<String, Map<String, Object>> builderIdparamsBuilderVariable = this.handleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId", (String) null);
                     builderId = builderIdparamsBuilderVariable.first();
                     paramsBuilder = builderIdparamsBuilderVariable.second();
                 }

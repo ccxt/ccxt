@@ -6096,14 +6096,14 @@ public Map<String, Object> describe()
             {
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, (String) null));
+                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper(initialFeatures, marketType, (String) null));
                 } else
                 {
                     this.features.put(marketType, new HashMap<String, Object>() {{}});
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
                         String subType = (String) (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j));
-                        Helpers.addElementToObject((this.features == null || marketType == null ? null : this.features.get(marketType)), subType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, subType));
+                        Helpers.addElementToObject((this.features == null || marketType == null ? null : this.features.get(marketType)), subType, this.featuresMapper(initialFeatures, marketType, subType));
                     }
                 }
             }
@@ -6122,7 +6122,7 @@ public Map<String, Object> describe()
         if (!java.util.Objects.equals(extendsStr, null))
         {
             featuresObj = this.omit(featuresObj, "extends");
-            Object extendObj = this.featuresMapper((Map<String, Object>) (initialFeatures), extendsStr, (String) null);
+            Object extendObj = this.featuresMapper(initialFeatures, extendsStr, (String) null);
             featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
@@ -9233,7 +9233,7 @@ public Map<String, Object> describe()
                     {
                         fetchData.put("request", request);
                     }
-                    this.setLastRequest((Map<String, Object>) (request));
+                    this.setLastRequest(request);
                     Object response = (this.fetch(request.get("url"), request.get("method"), request.get("headers"), request.get("body"))).join();
                     if (!java.util.Objects.equals(fetchData, null))
                     {
@@ -9916,7 +9916,7 @@ public Map<String, Object> describe()
 
     public void throwBroadlyMatchedException(Map<String, Object> broad, String str, String message)
     {
-        Object broadKey = this.findBroadlyMatchedKey((Map<String, Object>) (broad), (String) (str));
+        Object broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
         if (!java.util.Objects.equals(broadKey, null))
         {
             Helpers.throwDynamicException((broad == null || broadKey == null ? null : broad.get(broadKey)), message);

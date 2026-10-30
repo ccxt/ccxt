@@ -850,7 +850,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), market);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(rawOrder, market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         order.put("lastUpdateTimestamp", lastUpdateTimestamp);
         orders.append(order);
@@ -1027,7 +1027,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Long timestamp = this.safeInteger(message, "T");
-        Map<String, Object> parsedPosition = this.extend(this.parseWsPosition((Map<String, Object>) (rawPosition), market), new HashMap<String, Object>() {{
+        Map<String, Object> parsedPosition = this.extend(this.parseWsPosition(rawPosition, market), new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", Bydfi.this.iso8601(timestamp) );
         }});
@@ -1285,7 +1285,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSubMessage))
         {
-            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
+            this.handleUnSubscription(client, subscription);
         }
         return message;
     }

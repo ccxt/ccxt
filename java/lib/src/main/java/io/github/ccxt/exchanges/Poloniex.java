@@ -929,7 +929,7 @@ public class Poloniex extends PoloniexApi
                 // limit should in between 100 and 500
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(keyEnd, (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(keyEnd, request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(this.safeInteger(requestUntil, keyEnd), null)))
@@ -1933,7 +1933,7 @@ public class Poloniex extends PoloniexApi
             {
                 request.put("symbol", this.safeString(market, "id"));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(endKey, (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(endKey, request, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (isContract)
@@ -2394,7 +2394,7 @@ public class Poloniex extends PoloniexApi
             {
                 request.put("sTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("eTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("eTime", request, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.swapPrivateGetV3TradeOrderHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2473,7 +2473,7 @@ public class Poloniex extends PoloniexApi
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
+            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
@@ -2670,7 +2670,7 @@ public class Poloniex extends PoloniexApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (queryOmitted), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryOmittedVariable = this.handleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryOmittedVariable.first();
                 queryOmitted = createMarketBuyOrderRequiresPricequeryOmittedVariable.second();
                 Double cost = this.safeNumber(queryOmitted, "cost", (Object) null);
@@ -2772,7 +2772,7 @@ public class Poloniex extends PoloniexApi
                 put( "id", id );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
+            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
@@ -3465,7 +3465,7 @@ public class Poloniex extends PoloniexApi
             //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
             //     }
             //
-            return this.parseDepositAddressSpecial((Map<String, Object>) (response), (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
+            return this.parseDepositAddressSpecial(response, (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3503,7 +3503,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
-            return this.parseDepositAddressSpecial((Map<String, Object>) (response), (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
+            return this.parseDepositAddressSpecial(response, (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3681,7 +3681,7 @@ public class Poloniex extends PoloniexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil))).join();
@@ -3799,7 +3799,7 @@ public class Poloniex extends PoloniexApi
             //         "withdrawalNumber": 13449869
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -4372,7 +4372,7 @@ public class Poloniex extends PoloniexApi
             //        ]
             //    }
             //
-            return this.parseLeverage((Map<String, Object>) (response), market);
+            return this.parseLeverage(response, market);
         }).thenApply(Leverage::new);
 
     }

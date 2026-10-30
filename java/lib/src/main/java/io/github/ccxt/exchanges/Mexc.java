@@ -3142,7 +3142,7 @@ public class Mexc extends MexcApi
             if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                List<Object> triggerDirectionparamsTriggerDirectionVariable = (List<Object>) this.handleTriggerDirectionAndParams((Map<String, Object>) (paramsOmitted), "triggerType", true);
+                List<Object> triggerDirectionparamsTriggerDirectionVariable = (List<Object>) this.handleTriggerDirectionAndParams(paramsOmitted, "triggerType", true);
                 String triggerDirection = (String) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(0);
                 Map<String, Object> paramsTriggerDirection = (Map<String, Object>) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(1);
                 Long triggerType = this.safeInteger(paramsTriggerDirection, "triggerType", 1);
@@ -4682,11 +4682,11 @@ public class Mexc extends MexcApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"), (Map<String, Object>) null);
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                 }
             }
             return this.safeBalance(result);
@@ -5759,7 +5759,7 @@ public class Mexc extends MexcApi
             //        "address": "zzqqqqqqqqqq",
             //        "memo": "MX10068"
             //     }
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -6718,7 +6718,7 @@ public class Mexc extends MexcApi
                 //       "id":"7213fea8e94b4a5593d507237e5a555b"
                 //     }
                 //
-                return this.parseTransaction((Map<String, Object>) (responseForInternal), currency);
+                return this.parseTransaction(responseForInternal, currency);
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String networkRaw = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
@@ -6744,7 +6744,7 @@ public class Mexc extends MexcApi
             //       "id":"7213fea8e94b4a5593d507237e5a555b"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -7029,7 +7029,7 @@ public class Mexc extends MexcApi
 }});
             }
         }
-        return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), (Map<String, Object>) null);
+        return this.assignDefaultDepositWithdrawFees(result, (Map<String, Object>) null);
     }
 
     /**
@@ -7282,7 +7282,7 @@ public class Mexc extends MexcApi
             //
             // { success: true, code: '0' }
             //
-            return this.parseLeverage((Map<String, Object>) (response), market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
+            return this.parseLeverage(response, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
         });
 
     }

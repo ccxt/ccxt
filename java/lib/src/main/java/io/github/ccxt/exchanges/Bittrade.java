@@ -1635,7 +1635,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new NotSupported((((this.id + " fetchBalance() does not support the ") + method) + " method")) ;
             }
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2044,7 +2044,7 @@ public class Bittrade extends BittradeApi
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 String quoteAmount = null;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
@@ -2208,7 +2208,7 @@ public class Bittrade extends BittradeApi
             //         }
             //     }
             //
-            return this.parseCancelOrders((Map<String, Object>) (response));
+            return this.parseCancelOrders(response);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2600,7 +2600,7 @@ public class Bittrade extends BittradeApi
             //         "data": "99562054"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

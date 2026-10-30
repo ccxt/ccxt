@@ -167,7 +167,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance((Map<String, Object>) (message));
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(message);
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
@@ -217,7 +217,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            return (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
+            return (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -251,7 +251,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            Object tickers = (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, symbolsList, parameters)).join();
+            Object tickers = (this.watchMany(messageHash, request, subscriptionHash, symbolsList, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbolsList, true);
         }).thenApply(Tickers::new);
 
@@ -422,7 +422,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             mapLiteral1.put("name", "ORDER_BOOK");
             mapLiteral1.put("depth", depth);
             request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral1)));
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -633,7 +633,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Order order = this.parseTradingOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Order order = this.parseTradingOrder(message, (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(order);
         String orderSymbol = this.safeString(order, "symbol", "");
@@ -1134,7 +1134,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> newBalance = (Map<String, Object>) this.safeDict(update, (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i)), (Object) null);
             if (!java.util.Objects.equals(newBalance, null))
             {
-                this.updateBalance((Map<String, Object>) (newBalance));
+                this.updateBalance(newBalance);
             }
         }
         client.resolve(this.balance, "balance");

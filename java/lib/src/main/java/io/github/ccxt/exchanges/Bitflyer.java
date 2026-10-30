@@ -1232,7 +1232,7 @@ public class Bitflyer extends BitflyerApi
             //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

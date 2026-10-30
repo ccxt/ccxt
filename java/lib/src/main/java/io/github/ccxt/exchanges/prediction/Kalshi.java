@@ -1029,7 +1029,7 @@ public class Kalshi extends KalshiApi
             //     }
             //
             Map<String, Object> raw = (Map<String, Object>) this.safeDict(response, "market", response);
-            return this.parsePredictionTicker((Map<String, Object>) (raw), outcomeObj);
+            return this.parsePredictionTicker(raw, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1085,7 +1085,7 @@ public class Kalshi extends KalshiApi
             }};
             Map<String, Object> response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             Map<String, Object> raw = (Map<String, Object>) this.safeDict(response, "market", response);
-            return this.parsePredictionOpenInterest((Map<String, Object>) (raw), outcomeObj);
+            return this.parsePredictionOpenInterest(raw, outcomeObj);
         }).thenApply(PredictionOpenInterest::new);
 
     }
@@ -1894,7 +1894,7 @@ public class Kalshi extends KalshiApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2499,7 +2499,7 @@ public class Kalshi extends KalshiApi
             {
                 defaultTif = "good_till_canceled";
             }
-            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "time_in_force", defaultTif);
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
@@ -2518,7 +2518,7 @@ public class Kalshi extends KalshiApi
             Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
-            Object order = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
+            Object order = this.parsePredictionOrder(response, outcomeObj);
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "amount", amount);
             Helpers.addElementToObject(order, "price", price);
@@ -3066,7 +3066,7 @@ public class Kalshi extends KalshiApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (id), parameters)).join();
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (fullEvent));
+            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(fullEvent);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);

@@ -1098,7 +1098,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("limit", Math.min(limit, 500));
             }
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
+            String productGroup = this.getProductGroupFromMarket(market);
             request.put("productGroup", productGroup);
             Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1226,7 +1226,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketTypeOption) );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, paramsMarketType))).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2164,7 +2164,7 @@ public class Deepcoin extends DeepcoinApi
             }
         }
         String mrgPosition = "merge";
-        Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "mrgPosition", mrgPosition);
+        Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition);
         String mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.first();
         Map<String, Object> paramsMrgPosition = mrgPositionOptionparamsMrgPositionVariable.second();
         request.put("mrgPosition", mrgPositionOption);
@@ -2795,11 +2795,11 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " cancelAllOrders() is not supported for spot markets")) ;
             }
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
+            String productGroup = this.getProductGroupFromMarket(market);
             String marginMode = this.safeString(parameters, "marginMode");
             Integer encodedMarginMode = (((java.util.Objects.equals(marginMode, "isolated")))) ? 0 : 1;
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(marginMode, null)))) ? this.omit(parameters, "marginMode") : parameters;
-            Pair<Boolean, Map<String, Object>> mergedparamsMergedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "cancelAllOrders", "merged", true);
+            Pair<Boolean, Map<String, Object>> mergedparamsMergedVariable = this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
             Boolean merged = mergedparamsMergedVariable.first();
             Map<String, Object> paramsMerged = mergedparamsMergedVariable.second();
             Integer isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
@@ -3425,7 +3425,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
-                put( "instType", Deepcoin.this.getProductGroupFromMarket((Map<String, Object>) (market)) );
+                put( "instType", Deepcoin.this.getProductGroupFromMarket(market) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
             //
@@ -3716,7 +3716,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
+            String productGroup = this.getProductGroupFromMarket(market);
             String positionId = this.safeString(parameters, "positionId");
             List<Object> positionIds = (List<Object>) this.safeList(parameters, "positionIds", (Object) null);
             Map<String, Object> request = new HashMap<String, Object>() {{

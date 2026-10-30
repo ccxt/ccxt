@@ -334,7 +334,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol, (Object) null);
-            ticker = (Map<String, Object>) this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, market);
+            ticker = (Map<String, Object>) this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
@@ -454,7 +454,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), market);
+        Map<String, Object> parsed = this.parseWsTrade(message, market);
         stored.append(parsed);
         this.trades.put(symbol, stored);
         client.resolve(stored, messageHash);
@@ -639,7 +639,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
             cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;

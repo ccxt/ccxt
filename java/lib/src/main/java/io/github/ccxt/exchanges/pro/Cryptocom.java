@@ -760,7 +760,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //       ]
         //     }
         //
-        this.handleBidAsk(client, (Map<String, Object>) (message));
+        this.handleBidAsk(client, message);
         String messageHash = this.safeString(message, "subscription");
         String marketId = this.safeString(message, "instrument_name");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -882,7 +882,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(ticker, (Map<String, Object>) null);
         String symbol = this.safeString(parsedTicker, "symbol", "");
         if (!java.util.Objects.equals(symbol, ""))
         {
@@ -1811,7 +1811,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

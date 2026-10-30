@@ -449,7 +449,7 @@ public class Bit2c extends Bit2cApi
             //         }
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1226,7 +1226,7 @@ public class Bit2c extends Bit2cApi
             //         "hasTx": False
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }

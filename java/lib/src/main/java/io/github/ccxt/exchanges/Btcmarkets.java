@@ -1697,7 +1697,7 @@ public class Btcmarkets extends BtcmarketsApi
             //          }
             //      }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

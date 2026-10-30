@@ -300,7 +300,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //        "Y": "0"
         //    }
         //
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -960,7 +960,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public CompletableFuture<Object> pong(Client client, Map<String, Object> message)

@@ -1642,7 +1642,7 @@ public class Coinsph extends CoinsphApi
             //         "updateTime": "1677430932528"
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1734,7 +1734,7 @@ public class Coinsph extends CoinsphApi
                 } else if (java.util.Objects.equals(orderSide, "BUY"))
                 {
                     String quoteAmount = null;
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsType), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                     Double cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty", (Object) null);
@@ -2219,7 +2219,7 @@ public class Coinsph extends CoinsphApi
             //     ]
             //
             Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
+            return this.parseTradingFee(tradingFee, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2342,7 +2342,7 @@ public class Coinsph extends CoinsphApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted))).join();
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2651,7 +2651,7 @@ public class Coinsph extends CoinsphApi
             //         "addressTag": ""
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }

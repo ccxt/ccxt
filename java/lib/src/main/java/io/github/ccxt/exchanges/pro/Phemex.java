@@ -321,7 +321,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (message.containsKey("market24h"))
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
-            ((List<Object>)tickers).add(this.parseSwapTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
+            ((List<Object>)tickers).add(this.parseSwapTicker(ticker, (Map<String, Object>) null));
         } else if (message.containsKey("spot_market24h"))
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
@@ -905,7 +905,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates

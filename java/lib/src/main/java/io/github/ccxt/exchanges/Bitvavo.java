@@ -980,7 +980,7 @@ public class Bitvavo extends BitvavoApi
             {
                 request.put("start", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.publicGetMarketTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -1195,7 +1195,7 @@ public class Bitvavo extends BitvavoApi
             //         "maker": "0.0015"
             //     }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee(response, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1300,7 +1300,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("limit", 1440);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         return this.extend(requestUntil, paramsUntil);
@@ -1565,7 +1565,7 @@ public class Bitvavo extends BitvavoApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetSubaccountsTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -2237,7 +2237,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("limit", limit); // default 500, max 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         return this.extend(requestUntil, paramsUntil);
@@ -2531,7 +2531,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("limit", limit); // default 500, max 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         return this.extend(requestUntil, paramsUntil);
@@ -2631,7 +2631,7 @@ public class Bitvavo extends BitvavoApi
             {
                 request.put("maxItems", Math.min(limit, 100));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("toDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("toDate", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAccountHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2776,7 +2776,7 @@ public class Bitvavo extends BitvavoApi
             //         "amount": "1.5"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

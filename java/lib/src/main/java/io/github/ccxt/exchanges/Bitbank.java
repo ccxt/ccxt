@@ -857,7 +857,7 @@ public class Bitbank extends BitbankApi
             //       }
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1234,7 +1234,7 @@ public class Bitbank extends BitbankApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }

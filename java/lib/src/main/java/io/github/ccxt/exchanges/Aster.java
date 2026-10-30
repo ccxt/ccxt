@@ -1580,7 +1580,7 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1500));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             ((Map<String, Object>)requestUntil).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
@@ -1822,7 +1822,7 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = null;
@@ -2498,7 +2498,7 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(requestUntil, paramsUntil))).join();
@@ -3061,7 +3061,7 @@ public class Aster extends AsterApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = null;
@@ -4036,7 +4036,7 @@ public class Aster extends AsterApi
             //         "type": 1
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", code );
             }});
         });
@@ -4148,7 +4148,7 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1000)); // max 1000
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil))).join();
@@ -4848,7 +4848,7 @@ public class Aster extends AsterApi
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccountPositions", "filterClosed", false)).get(0);
-            List<Object> result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
+            List<Object> result = this.parseAccountPositions(response, filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -5041,7 +5041,7 @@ public class Aster extends AsterApi
             //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
             //   }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5247,11 +5247,11 @@ public class Aster extends AsterApi
 }})) );
                 }};
                 ((Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
-                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
-                paramsToEncode = this.capitalizeKeys((Map<String, Object>) (finalParams));
+                paramString = this.encodeValuesWithJson(finalParams);
+                paramsToEncode = this.capitalizeKeys(finalParams);
             } else
             {
-                paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
+                paramString = this.encodeValuesWithJson(finalParams);
                 {
                     HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                     hx4NewMap0.put("msg", paramString);

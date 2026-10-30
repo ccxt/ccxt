@@ -1818,7 +1818,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("start_t", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3032,7 +3032,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("algo_type", "STOP");
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -3257,7 +3257,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("size", 500);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -3349,7 +3349,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (data));
+            return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
@@ -3425,7 +3425,7 @@ public class Woofipro extends WoofiproApi
         String side = this.safeString(item, "token_side");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         Long timestamp = this.safeInteger(item, "created_time");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), "fee_token", "fee_amount");
+        Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Woofipro.this.safeString(item, "id") );
             put( "currency", code );
@@ -3487,7 +3487,7 @@ public class Woofipro extends WoofiproApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (transaction), "fee_token", "fee_amount");
+        Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");
@@ -3756,7 +3756,7 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3947,7 +3947,7 @@ public class Woofipro extends WoofiproApi
             //     "timestamp": 1702989203989
             // }
             //
-            Map<String, Object> modification = (Map<String, Object>) this.parseMarginModification((Map<String, Object>) (response), market);
+            Map<String, Object> modification = (Map<String, Object>) this.parseMarginModification(response, market);
             modification.put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
             modification.put("amount", this.parseNumber(this.numberToString(amount)));
             return modification;
@@ -4055,7 +4055,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -4213,7 +4213,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), market);
+            return this.parsePosition(data, market);
         }).thenApply(Position::new);
 
     }

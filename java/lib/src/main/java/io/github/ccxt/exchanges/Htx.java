@@ -2388,7 +2388,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3816,7 +3816,7 @@ public class Htx extends HtxApi
                 {
                     request.put("start-time", since); // a date within 120 days from today
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (paramsMarketType), 1);
                 request = requestparamsUntilVariable.first();
                 paramsUntil = requestparamsUntilVariable.second();
                 response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
@@ -3830,7 +3830,7 @@ public class Htx extends HtxApi
                 {
                     request.put("start_time", since);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsMarketType), 1);
                 request = requestparamsUntilVariable.first();
                 paramsUntil = requestparamsUntilVariable.second();
                 if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
@@ -4855,7 +4855,7 @@ public class Htx extends HtxApi
                             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                subResult.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
+                                subResult.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, subResult));
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
@@ -5197,7 +5197,7 @@ public class Htx extends HtxApi
                 request.put("start-time", since); // a window of 48 hours within 180 days
                 request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -5292,7 +5292,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
             if (java.util.Objects.equals(market.get("linear"), true))
@@ -8473,7 +8473,7 @@ public class Htx extends HtxApi
             //         "data": "99562054"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -9566,7 +9566,7 @@ public class Htx extends HtxApi
             Map<String, Object> initialRequest = new HashMap<String, Object>() {{
                 put( "type", "30,31" );
             }};
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (initialRequest), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", initialRequest, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> request = requestparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -10033,7 +10033,7 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(market.get("linear"), true))
             {
                 Map<String, Object> linearPosition = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-                return this.parsePosition((Map<String, Object>) (linearPosition), market);
+                return this.parsePosition(linearPosition, market);
             }
             Object account = null;
             if ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross")))
@@ -10180,7 +10180,7 @@ public class Htx extends HtxApi
             {
                 request.put("limit", limit); // max 500
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(requestUntil, paramsUntil))).join();
@@ -10944,7 +10944,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -11178,7 +11178,7 @@ public class Htx extends HtxApi
     }});
                     yield j39v21; } }));
             }
-            this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
+            this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
     }
@@ -11345,7 +11345,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;

@@ -2203,7 +2203,7 @@ public Map<String, Object> describe()
                 put( "value", value );
                 put( "data", data );
             }};
-            Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction((Map<String, Object>) (tx), this.privateKey);
+            Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
             return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
         });
 

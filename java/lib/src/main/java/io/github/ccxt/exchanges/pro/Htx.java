@@ -230,7 +230,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", market.get("id") );
             }});
-            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
+            return (this.unsubscribePublic(market, (String) (subMessageHash), topic, parameters)).join();
         });
 
     }
@@ -356,7 +356,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", market.get("id") );
             }});
-            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
+            return (this.unsubscribePublic(market, (String) (subMessageHash), topic, parameters)).join();
         });
 
     }
@@ -478,7 +478,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String subMessageHash = ((("market." + marketId) + ".kline.") + interval);
             String topic = "ohlcv";
             parameters.put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -629,7 +629,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 parameters.put("data_type", "incremental");
             }
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+            return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -982,7 +982,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message));
+            this.handleOrderBookMessage(client, message);
             client.resolve(orderbook, messageHash);
         }
     }
@@ -1004,7 +1004,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         if (java.util.Objects.equals(market.get("spot"), true))
         {
-            this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
     }
 
@@ -1457,7 +1457,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 // when a spot order is filled we get an update message
                 // with the trade info
-                Object parsedTrade = this.parseOrderTrade((Map<String, Object>) (data), market);
+                Object parsedTrade = this.parseOrderTrade(data, market);
                 // inject trade in existing order by faking an order object
                 String orderId = this.safeString(parsedTrade, "order");
                 List<Object> trades = new ArrayList<Object>(Arrays.asList(parsedTrade));
@@ -1478,12 +1478,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 parsedOrder = order;
             } else
             {
-                parsedOrder = this.parseWsOrder((Map<String, Object>) (data), market);
+                parsedOrder = this.parseWsOrder(data, market);
             }
         } else
         {
             // contract branch
-            parsedOrder = this.parseWsOrder((Map<String, Object>) (message), market);
+            parsedOrder = this.parseWsOrder(message, market);
             List<Object> rawTrades = (List<Object>) this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
             Integer tradesLength = ((List<?>)rawTrades).size();
             if ((tradesLength != null && tradesLength > 0))
@@ -1500,7 +1500,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // trades arrive inside an order update
                 // we're forwarding them to handleMyTrade
                 // so they can be properly resolved
-                this.handleMyTrade(client, (Map<String, Object>) (tradesObject), extendTradeParams);
+                this.handleMyTrade(client, tradesObject, extendTradeParams);
             }
         }
         if (java.util.Objects.equals(this.orders, null))
@@ -2683,17 +2683,17 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String privateType = this.safeString(privateParts, 0, "");
         if (java.util.Objects.equals(privateType, "trade.clearing"))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (message), new HashMap<String, Object>() {{}});
+            this.handleMyTrade(client, message, new HashMap<String, Object>() {{}});
             return;
         }
         if (((String)privateType).indexOf("accounts.update") >= 0)
         {
-            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handleBalance(client, message);
             return;
         }
         if (java.util.Objects.equals(privateType, "orders"))
         {
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
             return;
         }
         // private contract subjects
@@ -2703,19 +2703,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String topic = this.safeString(message, "topic", "");
             if (((String)topic).indexOf("orders") >= 0)
             {
-                this.handleOrder(client, (Map<String, Object>) (message));
+                this.handleOrder(client, message);
             }
             if (((String)topic).indexOf("trade") >= 0)
             {
-                this.handleMyTrade(client, (Map<String, Object>) (message), new HashMap<String, Object>() {{}});
+                this.handleMyTrade(client, message, new HashMap<String, Object>() {{}});
             }
             if (((String)topic).indexOf("account") >= 0)
             {
-                this.handleBalance(client, (Map<String, Object>) (message));
+                this.handleBalance(client, message);
             }
             if (((String)topic).indexOf("positions") >= 0)
             {
-                this.handlePositions(client, (Map<String, Object>) (message));
+                this.handlePositions(client, message);
             }
         }
     }
@@ -2769,7 +2769,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

@@ -1660,7 +1660,7 @@ public class Bullish extends BullishApi
                 put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "_pageSize", maxLimit );
             }};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2496,7 +2496,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2606,7 +2606,7 @@ public class Bullish extends BullishApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3343,7 +3343,7 @@ public class Bullish extends BullishApi
             }};
             Long now = this.milliseconds();
             Object startTimestamp = since;
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");

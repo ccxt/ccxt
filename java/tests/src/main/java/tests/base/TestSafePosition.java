@@ -35,7 +35,7 @@ public class TestSafePosition extends BaseTest
                 put( "collateral", 100 );
                 put( "initialMargin", 100 );
             }};
-            Object res1 = exchange.safePosition((Map<String, Object>) (pos1));
+            Object res1 = exchange.safePosition(pos1);
             Assert(preciseEqualPositionStr(exchange, res1, "maintenanceMargin", "10"));
             // CASE 2 - isolated linear short: derive liquidationPrice
             // entryMargin = 100, maintenanceMargin = 10, entryPrice = 1000, contracts = 2, contractSize = 0.5
@@ -50,7 +50,7 @@ public class TestSafePosition extends BaseTest
                 put( "initialMargin", 100 );
                 put( "maintenanceMargin", 10 );
             }};
-            Object res2 = exchange.safePosition((Map<String, Object>) (pos2));
+            Object res2 = exchange.safePosition(pos2);
             Assert(preciseEqualPositionStr(exchange, res2, "liquidationPrice", "1090"));
             // CASE 3 - isolated linear long: derive entryPrice
             Map<String, Object> pos3 = new HashMap<String, Object>() {{
@@ -63,7 +63,7 @@ public class TestSafePosition extends BaseTest
                 put( "initialMargin", 100 );
                 put( "maintenanceMargin", 10 );
             }};
-            Object res3 = exchange.safePosition((Map<String, Object>) (pos3));
+            Object res3 = exchange.safePosition(pos3);
             Assert(preciseEqualPositionStr(exchange, res3, "entryPrice", "1000"));
             // CASE 4 - isolated linear long: derive contracts
             Map<String, Object> pos4 = new HashMap<String, Object>() {{
@@ -76,7 +76,7 @@ public class TestSafePosition extends BaseTest
                 put( "initialMargin", 100 );
                 put( "maintenanceMargin", 10 );
             }};
-            Object res4 = exchange.safePosition((Map<String, Object>) (pos4));
+            Object res4 = exchange.safePosition(pos4);
             Assert(preciseEqualPositionStr(exchange, res4, "contracts", "2"));
             // CASE 5 - isolated linear long: derive contractSize
             Map<String, Object> pos5 = new HashMap<String, Object>() {{
@@ -89,7 +89,7 @@ public class TestSafePosition extends BaseTest
                 put( "initialMargin", 100 );
                 put( "maintenanceMargin", 10 );
             }};
-            Object res5 = exchange.safePosition((Map<String, Object>) (pos5));
+            Object res5 = exchange.safePosition(pos5);
             Assert(preciseEqualPositionStr(exchange, res5, "contractSize", "0.5"));
             // CASE 6 - isolated linear long: derive collateral and initialMargin
             Map<String, Object> pos6 = new HashMap<String, Object>() {{
@@ -101,7 +101,7 @@ public class TestSafePosition extends BaseTest
                 put( "contractSize", 0.5 );
                 put( "maintenanceMargin", 10 );
             }};
-            Object res6 = exchange.safePosition((Map<String, Object>) (pos6));
+            Object res6 = exchange.safePosition(pos6);
             Assert(preciseEqualPositionStr(exchange, res6, "initialMargin", "100"));
             Assert(preciseEqualPositionStr(exchange, res6, "collateral", "100"));
             // CASE 7 - isolated linear with unrealizedPnl included in collateral
@@ -116,7 +116,7 @@ public class TestSafePosition extends BaseTest
                 put( "collateral", 115 );
                 put( "unrealizedPnl", 15 );
             }};
-            Object res7 = exchange.safePosition((Map<String, Object>) (pos7));
+            Object res7 = exchange.safePosition(pos7);
             Assert(preciseEqualPositionStr(exchange, res7, "maintenanceMargin", "10"));
             // CASE 8 - cross margin position must not derive isolated maintenanceMargin
             Map<String, Object> pos8 = new HashMap<String, Object>() {{
@@ -129,7 +129,7 @@ public class TestSafePosition extends BaseTest
                 put( "collateral", 100 );
                 put( "initialMargin", 100 );
             }};
-            Object res8 = exchange.safePosition((Map<String, Object>) (pos8));
+            Object res8 = exchange.safePosition(pos8);
             Assert(java.util.Objects.equals(exchange.safeValue(res8, "maintenanceMargin"), null));
             // CASE 9 - cross margin linear position derives notional, unrealizedPnl, initialMarginPercentage, initialMargin, maintenanceMargin, marginRatio, percentage
             Map<String, Object> pos9 = new HashMap<String, Object>() {{
@@ -143,7 +143,7 @@ public class TestSafePosition extends BaseTest
                 put( "maintenanceMarginPercentage", 0.01 );
                 put( "collateral", 210 );
             }};
-            Object res9 = exchange.safePosition((Map<String, Object>) (pos9));
+            Object res9 = exchange.safePosition(pos9);
             Assert(preciseEqualPositionStr(exchange, res9, "notional", "1050"));
             Assert(preciseEqualPositionStr(exchange, res9, "unrealizedPnl", "50"));
             Assert(preciseEqualPositionStr(exchange, res9, "initialMarginPercentage", "0.1"));
@@ -161,7 +161,7 @@ public class TestSafePosition extends BaseTest
                 put( "initialMarginPercentage", 0.05 );
                 put( "maintenanceMargin", 20 );
             }};
-            Object res10 = exchange.safePosition((Map<String, Object>) (pos10));
+            Object res10 = exchange.safePosition(pos10);
             Assert(preciseEqualPositionStr(exchange, res10, "markPrice", "1000"));
             Assert(preciseEqualPositionStr(exchange, res10, "leverage", "20"));
             Assert(preciseEqualPositionStr(exchange, res10, "initialMargin", "100"));
@@ -180,7 +180,7 @@ public class TestSafePosition extends BaseTest
                 put( "collateral", -3.967 );
                 put( "unrealizedPnl", 0.008 );
             }};
-            Object res11 = exchange.safePosition((Map<String, Object>) (pos11));
+            Object res11 = exchange.safePosition(pos11);
             Assert(java.util.Objects.equals(exchange.safeValue(res11, "initialMargin"), null));
             Assert(java.util.Objects.equals(exchange.safeValue(res11, "maintenanceMargin"), null));
             Assert(java.util.Objects.equals(exchange.safeValue(res11, "positionMargin"), null));
@@ -195,7 +195,7 @@ public class TestSafePosition extends BaseTest
                 put( "positionMargin", 10 );
                 put( "unrealizedPnl", 2 );
             }};
-            Object res12 = exchange.safePosition((Map<String, Object>) (pos12));
+            Object res12 = exchange.safePosition(pos12);
             Assert(preciseEqualPositionStr(exchange, res12, "collateral", "12"));
             Assert(preciseEqualPositionStr(exchange, res12, "maintenanceMargin", "0.5"));
             // CASE 13 - isolated collateral given without margin: margin = collateral - unrealizedPnl
@@ -209,7 +209,7 @@ public class TestSafePosition extends BaseTest
                 put( "collateral", 17 );
                 put( "unrealizedPnl", -3 );
             }};
-            Object res13 = exchange.safePosition((Map<String, Object>) (pos13));
+            Object res13 = exchange.safePosition(pos13);
             Assert(preciseEqualPositionStr(exchange, res13, "positionMargin", "20"));
         }
 }

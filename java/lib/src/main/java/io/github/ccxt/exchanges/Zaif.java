@@ -477,7 +477,7 @@ public class Zaif extends ZaifApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -954,7 +954,7 @@ public class Zaif extends ZaifApi
             //     }
             //
             Map<String, Object> returnData = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (returnData), currency);
+            return this.parseTransaction(returnData, currency);
         }).thenApply(Transaction::new);
 
     }

@@ -1264,7 +1264,7 @@ public class Blockchaincom extends BlockchaincomApi
             //         "timestamp": "1634218452595"
             //     },
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -1328,7 +1328,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "withdrawalId", id );
             }};
             Map<String, Object> response = (this.privateGetWithdrawalsWithdrawalId(this.extend(request, parameters))).join();
-            return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseTransaction(response, (Map<String, Object>) null);
         });
 
     }
@@ -1393,7 +1393,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "depositId", depositId );
             }};
             Map<String, Object> deposit = (this.privateGetDepositsDepositId(this.extend(request, parameters))).join();
-            return this.parseTransaction((Map<String, Object>) (deposit), (Map<String, Object>) null);
+            return this.parseTransaction(deposit, (Map<String, Object>) null);
         });
 
     }

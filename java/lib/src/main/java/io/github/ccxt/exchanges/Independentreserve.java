@@ -1258,7 +1258,7 @@ public class Independentreserve extends IndependentreserveApi
             //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
             //    }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1347,7 +1347,7 @@ public class Independentreserve extends IndependentreserveApi
             //        "Transaction": null
             //    }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

@@ -1650,7 +1650,7 @@ public class Polymarket extends PolymarketApi
                 String amount = this.safeString(rawOrder, "amount");
                 String price = this.safeString(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> request = this.createOrderRequest((Map<String, Object>) (market), (String) (type), (String) (side), amount, price, orderParams);
+                Map<String, Object> request = this.createOrderRequest(market, (String) (type), (String) (side), amount, price, orderParams);
                 ((List<Object>)rows).add(request.get("signable"));
                 ((List<Object>)entries).add(request.get("entry"));
                 ((List<Object>)ordersMarkets).add(market);
@@ -1661,7 +1661,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "createOrders" );
                 put( "args", entries );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), parameters)).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, parameters)).join();
             List<Object> response = (this.tradePostTradeOrders(signed)).join();
             //
             //     [
@@ -1757,7 +1757,7 @@ public class Polymarket extends PolymarketApi
                     hx4NewMap1.put("args", clientOrderIds);
                     bodyOp = hx4NewMap1;
                 }
-                Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), paramsOmitted)).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, paramsOmitted)).join();
                 response = (this.tradeDeleteTradeOrdersCoid(signed)).join();
             } else
             {
@@ -1771,7 +1771,7 @@ public class Polymarket extends PolymarketApi
                     put( "type", "cancelOrders" );
                     put( "args", numericIds );
                 }};
-                Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), paramsOmitted)).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, paramsOmitted)).join();
                 response = (this.tradeDeleteTradeOrders(signed)).join();
             }
             //
@@ -1829,7 +1829,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "cancelAll" );
                 put( "args", args );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradeDeleteTradeOrdersAll(signed)).join();
             //
             //     { "status": "ok" }
@@ -1867,7 +1867,7 @@ public class Polymarket extends PolymarketApi
             HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
             mapLiteral3.put("time", deadline);
             bodyOp.put("args", mapLiteral3);
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeAutoCancel(signed)).join();
             //
             //     { "status": "ok", "deadline": 1788546570789 }
@@ -1914,7 +1914,7 @@ public class Polymarket extends PolymarketApi
         put( "qty", quantity );
     }})) );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), parameters)).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, parameters)).join();
             List<Object> response = (this.tradePatchTradeOrders(signed)).join();
             //
             //     [
@@ -2152,7 +2152,7 @@ public class Polymarket extends PolymarketApi
                 Map<String, Object> extended = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }});
-                ((List<Object>)positions).add(this.parsePosition((Map<String, Object>) (extended), (Map<String, Object>) null));
+                ((List<Object>)positions).add(this.parsePosition(extended, (Map<String, Object>) null));
             }
             return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -2792,7 +2792,7 @@ public class Polymarket extends PolymarketApi
             // the ack status is the request discriminator, the accepted
             // withdrawal itself starts out pending
             Map<String, Object> stripped = this.omit(response, "status");
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (stripped), currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(stripped, currency);
             transaction.put("status", "pending");
             return transaction;
         }).thenApply(Transaction::new);
@@ -2831,7 +2831,7 @@ public class Polymarket extends PolymarketApi
                 String rowId = this.safeString(row, "instrument_id");
                 if (java.util.Objects.equals(rowId, market.get("id")))
                 {
-                    return this.parseLeverage((Map<String, Object>) (row), market);
+                    return this.parseLeverage(row, market);
                 }
             }
             throw new BadSymbol(((this.id + " fetchLeverage() could not find the configuration for ") + symbol)) ;
@@ -2924,7 +2924,7 @@ public class Polymarket extends PolymarketApi
                     put( "lev", leverageInt );
                 }} );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeLeverage(signed)).join();
             //
             //     { "status": "ok", "instrument_id": 1, "leverage": 10, "cross": true }
@@ -3003,7 +3003,7 @@ public class Polymarket extends PolymarketApi
             mapLiteral6.put("amt", amountString);
             mapLiteral6.put("iid", instrumentId);
             bodyOp.put("args", mapLiteral6);
-            Map<String, Object> signed = (this.signPerpsOp(signable, (Map<String, Object>) (bodyOp), new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.tradePatchTradeMargin(signed)).join();
             //
             //     { "status": "ok" }

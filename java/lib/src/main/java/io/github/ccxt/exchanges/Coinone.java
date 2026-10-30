@@ -685,7 +685,7 @@ public class Coinone extends CoinoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.v2PrivatePostAccountBalance(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1485,7 +1485,7 @@ public class Coinone extends CoinoneApi
             //         "errorCode": "0"
             //     }
             //
-            return this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.safeOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }

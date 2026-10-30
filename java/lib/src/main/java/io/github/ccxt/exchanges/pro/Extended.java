@@ -198,7 +198,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                         }} );
                     }} );
                 }};
-                this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+                this.extendExchangeOptions(defaultOptions);
                 Object originalOptions = Helpers.GetValue(this.options.get("ws"), "options");
                 Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
@@ -688,7 +688,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = this.parseWsFundingRate((Map<String, Object>) (data), (Map<String, Object>) null, message);
+        Map<String, Object> fundingRate = this.parseWsFundingRate(data, (Map<String, Object>) null, message);
         String symbol = this.safeString(fundingRate, "symbol", "");
         this.fundingRates.put(symbol, fundingRate);
         String messageHash = ("fundingRate:" + symbol);

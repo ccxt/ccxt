@@ -194,7 +194,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Boolean isAuth = ((!java.util.Objects.equals(requestId, null)) && (java.util.Objects.equals(requestId, authRequestId))) || (!java.util.Objects.equals(this.safeString(result, "node_id"), null));
         if (Boolean.TRUE.equals(isAuth))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
         }
     }
 
@@ -747,7 +747,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
         String symbol = (String) position.get("symbol");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         // one position per market, so a fill through zero flips its side: the cache keys by
@@ -841,7 +841,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Map<String, Object> balance = this.parseWsBalance((Map<String, Object>) (data));
+        Map<String, Object> balance = this.parseWsBalance(data);
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
@@ -1039,7 +1039,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = this.parseFundingRateWs((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> fundingRate = this.parseFundingRateWs(data, (Map<String, Object>) null);
         String symbol = this.safeString(fundingRate, "symbol");
         this.fundingRates.put(symbol, fundingRate);
         String channel = this.safeString(parameters, "channel");
@@ -1350,11 +1350,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return new HashMap<String, Object>() {{
             put( "id", Paradex.this.safeString(strings, 1) );
             put( "market", Paradex.this.safeString(strings, 0) );
-            put( "side", Paradex.this.sbeReadEnum(frameHex, 32, (Map<String, Object>) (sides)) );
+            put( "side", Paradex.this.sbeReadEnum(frameHex, 32, sides) );
             put( "size", Paradex.this.sbeReadDecimal(frameHex, 41) );
             put( "price", Paradex.this.sbeReadDecimal(frameHex, 33) );
             put( "created_at", Paradex.this.sbeReadTimestamp(frameHex, 49) );
-            put( "trade_type", Paradex.this.sbeReadEnum(frameHex, 57, (Map<String, Object>) (tradeTypes)) );
+            put( "trade_type", Paradex.this.sbeReadEnum(frameHex, 57, tradeTypes) );
         }};
     }
 
@@ -1557,7 +1557,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "created_at", Paradex.this.sbeReadTimestamp(frameHex, 68) );
             put( "flags", flags );
             put( "id", Paradex.this.safeString(strings, 0) );
-            put( "instruction", Paradex.this.sbeReadEnum(frameHex, 27, (Map<String, Object>) (timeInForces)) );
+            put( "instruction", Paradex.this.sbeReadEnum(frameHex, 27, timeInForces) );
             put( "last_updated_at", Paradex.this.sbeReadTimestamp(frameHex, 76) );
             put( "market", Paradex.this.safeString(strings, 2) );
             put( "price", Paradex.this.sbeReadDecimal(frameHex, 28) );
@@ -1565,13 +1565,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "received_at", Paradex.this.sbeReadTimestamp(frameHex, 116) );
             put( "remaining_size", Paradex.this.sbeReadDecimal(frameHex, 52) );
             put( "seq_no", Paradex.this.sbeReadInt64(frameHex, 16) );
-            put( "side", Paradex.this.sbeReadEnum(frameHex, 25, (Map<String, Object>) (sides)) );
+            put( "side", Paradex.this.sbeReadEnum(frameHex, 25, sides) );
             put( "size", Paradex.this.sbeReadDecimal(frameHex, 44) );
-            put( "status", Paradex.this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (statuses)) );
-            put( "stp", Paradex.this.sbeReadEnum(frameHex, 132, (Map<String, Object>) (stpModes)) );
+            put( "status", Paradex.this.sbeReadEnum(frameHex, 24, statuses) );
+            put( "stp", Paradex.this.sbeReadEnum(frameHex, 132, stpModes) );
             put( "timestamp", Paradex.this.sbeReadTimestamp(frameHex, 8) );
             put( "trigger_price", Paradex.this.sbeReadDecimal(frameHex, 36) );
-            put( "type", Paradex.this.sbeReadEnum(frameHex, 26, (Map<String, Object>) (orderTypes)) );
+            put( "type", Paradex.this.sbeReadEnum(frameHex, 26, orderTypes) );
         }};
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
         String cancelReason = this.safeString(strings, 3, "");
@@ -1642,15 +1642,15 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "created_at", Paradex.this.sbeReadTimestamp(frameHex, 59) );
             put( "fee", Paradex.this.sbeReadDecimal(frameHex, 43) );
             put( "fee_currency", Paradex.this.safeString(strings, 5) );
-            put( "fill_type", Paradex.this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (fillTypes)) );
+            put( "fill_type", Paradex.this.sbeReadEnum(frameHex, 24, fillTypes) );
             put( "id", Paradex.this.safeString(strings, 0) );
-            put( "liquidity", Paradex.this.sbeReadEnum(frameHex, 26, (Map<String, Object>) (liquidities)) );
+            put( "liquidity", Paradex.this.sbeReadEnum(frameHex, 26, liquidities) );
             put( "market", Paradex.this.safeString(strings, 4) );
             put( "order_id", Paradex.this.safeString(strings, 1) );
             put( "price", Paradex.this.sbeReadDecimal(frameHex, 27) );
             put( "realized_funding", Paradex.this.sbeReadDecimal(frameHex, 107) );
             put( "realized_pnl", Paradex.this.sbeReadDecimal(frameHex, 51) );
-            put( "side", Paradex.this.sbeReadEnum(frameHex, 25, (Map<String, Object>) (sides)) );
+            put( "side", Paradex.this.sbeReadEnum(frameHex, 25, sides) );
             put( "size", Paradex.this.sbeReadDecimal(frameHex, 35) );
             put( "underlying_price", Paradex.this.sbeReadDecimal(frameHex, 99) );
         }};
@@ -1693,7 +1693,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "1", "OPEN" );
             put( "2", "CLOSED" );
         }};
-        String side = this.sbeReadEnum(frameHex, 24, (Map<String, Object>) (sides));
+        String side = this.sbeReadEnum(frameHex, 24, sides);
         Object account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
         Object size = this.sbeReadDecimal(frameHex, 25);
@@ -1719,7 +1719,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             h2kMap3.put("seq_no", this.sbeReadInt64(frameHex, 16));
             h2kMap3.put("side", side);
             h2kMap3.put("size", size);
-            h2kMap3.put("status", this.sbeReadEnum(frameHex, 161, (Map<String, Object>) (statuses)));
+            h2kMap3.put("status", this.sbeReadEnum(frameHex, 161, statuses));
             h2kMap3.put("unrealized_funding_pnl", this.sbeReadDecimal(frameHex, 153));
             h2kMap3.put("unrealized_pnl", this.sbeReadDecimal(frameHex, 41));
             return h2kMap3;
@@ -1760,7 +1760,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "margin_cushion", Paradex.this.sbeReadDecimal(frameHex, 112) );
             put( "seq_no", Paradex.this.sbeReadInt64(frameHex, 16) );
             put( "settlement_asset", Paradex.this.safeString(strings, 0) );
-            put( "status", Paradex.this.sbeReadEnum(frameHex, 120, (Map<String, Object>) (statuses)) );
+            put( "status", Paradex.this.sbeReadEnum(frameHex, 120, statuses) );
             put( "total_collateral", Paradex.this.sbeReadDecimal(frameHex, 24) );
             put( "updated_at", Paradex.this.sbeReadTimestamp(frameHex, 72) );
         }};

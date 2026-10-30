@@ -1217,7 +1217,7 @@ public class Hollaex extends HollaexApi
             //         // ...
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1983,7 +1983,7 @@ public class Hollaex extends HollaexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (transaction), currency);
+            return this.parseTransaction(transaction, currency);
         });
 
     }
@@ -2216,7 +2216,7 @@ public class Hollaex extends HollaexApi
             //         "fee_coin": "xht"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

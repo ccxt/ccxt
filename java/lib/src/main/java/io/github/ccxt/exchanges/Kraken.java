@@ -1152,7 +1152,7 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (result), market);
+            return this.parseTradingFee(result, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1937,7 +1937,7 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2034,7 +2034,7 @@ public class Kraken extends KrakenApi
                 put( "ordertype", type );
                 put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
-            List<Object> orderRequest = (List<Object>) this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
+            List<Object> orderRequest = (List<Object>) this.orderRequest("createOrder", (String) (symbol), (String) (type), request, amount, price, parameters);
             String flags = this.safeString(((List<Object>)orderRequest).get(0), "oflags", "");
             Boolean isUsingCost = ((String)flags).indexOf("viqc") > -1;
             Map<String, Object> response = (this.privatePostAddOrder(this.extend(((List<Object>)orderRequest).get(0), ((List<Object>)orderRequest).get(1)))).join();
@@ -2106,7 +2106,7 @@ public class Kraken extends KrakenApi
                     put( "ordertype", type );
                     put( "volume", parsedAmount );
                 }};
-                List<Object> orderRequest = (List<Object>) this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
+                List<Object> orderRequest = (List<Object>) this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
             }
             this.marketSymbols(orderSymbols, (Object) null, false, true, true);
@@ -3412,7 +3412,7 @@ public class Kraken extends KrakenApi
                 request.put("cl_ord_id", clientOrderId);
                 paramsOmitted = this.omit(paramsOmitted, "clientOrderId");
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsOmitted), 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, paramsOmitted))).join();
@@ -3987,7 +3987,7 @@ public class Kraken extends KrakenApi
             {
                 throw new InvalidAddress(((this.id + " privatePostDepositAddresses() returned no addresses for ") + codeResolved)) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (firstResult), currency);
+            return this.parseDepositAddress(firstResult, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4057,7 +4057,7 @@ public class Kraken extends KrakenApi
                 //     }
                 //
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                return this.parseTransaction((Map<String, Object>) (result), currency);
+                return this.parseTransaction(result, currency);
             }
             throw new ExchangeError((this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
         }).thenApply(Transaction::new);

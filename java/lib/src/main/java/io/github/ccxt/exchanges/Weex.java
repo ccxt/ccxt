@@ -2361,7 +2361,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(requestUntil, paramsUntil))).join();
@@ -2550,7 +2550,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(requestUntil, paramsUntil))).join();
@@ -2809,7 +2809,7 @@ public class Weex extends WeexApi
             throw new ArgumentsRequired((this.id + " createContractOrderRequest() requires a side argument")) ;
         }
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("symbol", this.toSandboxMarketId((Map<String, Object>) (market)));
+        request.put("symbol", this.toSandboxMarketId(market));
         request.put("side", ((String)side).toUpperCase());
         request.put("quantity", this.amountToPrecision(symbol, amount));
         request.put("type", ((String)type).toUpperCase());
@@ -3379,7 +3379,7 @@ public class Weex extends WeexApi
                 {
                     request.put("limit", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Boolean trigger = (Boolean) this.safeBool(paramsUntil, "trigger", false);
@@ -3603,7 +3603,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", Math.min(limit, maxLimit));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetApiV3AllOrders(this.extend(requestUntil, paramsUntil))).join();
@@ -3679,7 +3679,7 @@ public class Weex extends WeexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                request.put("symbol", this.toSandboxMarketId((Map<String, Object>) (market)));
+                request.put("symbol", this.toSandboxMarketId(market));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3689,7 +3689,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -4036,7 +4036,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = null;
@@ -4151,7 +4151,7 @@ public class Weex extends WeexApi
                 {
                     request.put("limit", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil))).join();
@@ -4166,7 +4166,7 @@ public class Weex extends WeexApi
                 {
                     request.put("pageSize", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(requestUntil, paramsUntil))).join();
@@ -4181,7 +4181,7 @@ public class Weex extends WeexApi
                 {
                     request.put("limit", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", request, (Map<String, Object>) (paramsMarketType), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil))).join();
@@ -4352,7 +4352,7 @@ public class Weex extends WeexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
@@ -4579,7 +4579,7 @@ public class Weex extends WeexApi
         String errorCode = this.safeString(position, "errorCode");
         if (!java.util.Objects.equals(errorMessage, null))
         {
-            this.handleOrderOrPositionError(errorCode, errorMessage, (Map<String, Object>) (position));
+            this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
         String marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
@@ -4745,7 +4745,7 @@ public class Weex extends WeexApi
             //         "takerCommissionRate": "0.0008"
             //     }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee(response, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -4807,7 +4807,7 @@ public class Weex extends WeexApi
             //     ]
             //
             Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (marginMode), market);
+            return this.parseMarginMode(marginMode, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4928,7 +4928,7 @@ public class Weex extends WeexApi
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (marginMode), market);
+            return this.parseLeverage(marginMode, market);
         }).thenApply(Leverage::new);
 
     }
@@ -5151,7 +5151,7 @@ public class Weex extends WeexApi
                 parsedType = "add";
             }
             Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, paramsOmitted))).join();
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("amount", this.parseNumber(amount));
                 j39v1.put("type", parsedType);
                 yield j39v1; } }));

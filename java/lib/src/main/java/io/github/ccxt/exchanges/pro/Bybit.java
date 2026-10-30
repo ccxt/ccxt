@@ -1778,7 +1778,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object parsed = null;
             if (Boolean.TRUE.equals(spot) && !Boolean.TRUE.equals(executionFast))
             {
-                parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
+                parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             } else
             {
                 // filter unified trades

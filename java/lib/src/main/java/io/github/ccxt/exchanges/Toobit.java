@@ -1534,7 +1534,7 @@ public class Toobit extends ToobitApi
             }};
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
-            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "price", (String) null);
+            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price", (String) null);
             String endpoint = endpointparamsPriceVariable.first();
             Map<String, Object> paramsPrice = endpointparamsPriceVariable.second();
             Boolean isPriceKlines = (java.util.Objects.equals(endpoint, "index")) || (java.util.Objects.equals(endpoint, "mark"));
@@ -2698,7 +2698,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> market = null;
@@ -2753,7 +2753,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil, (String) null)).get(0);
@@ -2822,7 +2822,7 @@ public class Toobit extends ToobitApi
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -2935,7 +2935,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -3155,7 +3155,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -3181,7 +3181,7 @@ public class Toobit extends ToobitApi
 
     public Map<String, Object> parseTransactionWithType(Map<String, Object> transaction, Map<String, Object> currency, String transactType)
     {
-        Map<String, Object> result = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (transaction), currency);
+        Map<String, Object> result = (Map<String, Object>) this.parseTransaction(transaction, currency);
         if (!java.util.Objects.equals(transactType, null))
         {
             result.put("type", transactType);
@@ -3349,7 +3349,7 @@ public class Toobit extends ToobitApi
             //         "coinType":"ERC20_TOKEN"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3421,7 +3421,7 @@ public class Toobit extends ToobitApi
             //     "refuseReason":"" // failure rejection reason
             // }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3538,7 +3538,7 @@ public class Toobit extends ToobitApi
             // ]
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }

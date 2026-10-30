@@ -1554,7 +1554,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (result));
+            return this.parseBalance(result);
         }).thenApply(Balances::new);
 
     }
@@ -3489,7 +3489,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (result), (Map<String, Object>) null);
+            return this.parsePosition(result, (Map<String, Object>) null);
         }).thenApply(Position::new);
 
     }
@@ -3596,7 +3596,7 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            return this.parseVolatilityHistory((Map<String, Object>) (response));
+            return this.parseVolatilityHistory(response);
         });
 
     }
@@ -3854,7 +3854,7 @@ public class Deribit extends DeribitApi
                 request.put("tfa", totp(this.twofa));
             }
             Map<String, Object> response = (this.privateGetWithdraw(this.extend(request, paramsWithdrawTag))).join();
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -4390,7 +4390,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (result), market);
+            return this.parseGreeks(result, market);
         }).thenApply(Greeks::new);
 
     }
@@ -4520,7 +4520,7 @@ public class Deribit extends DeribitApi
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, market);
+            return this.parseOption(chain, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }

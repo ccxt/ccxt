@@ -698,7 +698,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) (market));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, market);
         String symbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -915,7 +915,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+        Map<String, Object> parsed = this.parseWsTrade(trade, market);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -2222,8 +2222,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             tradeMessage = rawOrder;
         }
-        this.handleOrder(client, (Map<String, Object>) (rawOrder));
-        this.handleMyTrade(client, (Map<String, Object>) (tradeMessage));
+        this.handleOrder(client, rawOrder);
+        this.handleMyTrade(client, tradeMessage);
     }
 
     public void handleMyTrade(Client client, Map<String, Object> message)
@@ -2241,7 +2241,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("type", type);
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(mapLiteral5);
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
+            Map<String, Object> trade = this.parseWsTrade(message, fakeMarket);
             String orderId = this.safeString(trade, "order");
             Map<String, Object> tradeFee = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(trade, "fee", new HashMap<String, Object>() {{}}));
             String symbol = this.safeString(trade, "symbol");
@@ -2392,14 +2392,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String messageHash = "orders";
-        Object market = this.getMarketFromOrder(client, (Map<String, Object>) (message));
+        Object market = this.getMarketFromOrder(client, message);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         String symbol = this.safeString(market, "symbol", "");
         cache.append(parsed);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, messageHash);
@@ -2494,8 +2494,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public void handleBalanceAndPosition(Client client, Map<String, Object> message)
     {
-        this.handleBalance(client, (Map<String, Object>) (message));
-        this.handlePositions(client, (Map<String, Object>) (message));
+        this.handleBalance(client, message);
+        this.handlePositions(client, message);
     }
 
     public void handleMessage(Client client, Object message)

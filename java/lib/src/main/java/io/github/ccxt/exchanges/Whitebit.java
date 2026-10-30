@@ -3664,7 +3664,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), currency);
+            return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3887,7 +3887,7 @@ public class Whitebit extends WhitebitApi
             //
             //     []
             //
-            return this.extend(this.parseTransaction((Map<String, Object>) (response), currency), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransaction(response, currency), new HashMap<String, Object>() {{
                 put( "id", uniqueId );
             }});
         }).thenApply(Transaction::new);
@@ -4056,7 +4056,7 @@ public class Whitebit extends WhitebitApi
             //
             List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(records, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (first), currency);
+            return this.parseTransaction(first, currency);
         });
 
     }
@@ -4433,7 +4433,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4627,7 +4627,7 @@ public class Whitebit extends WhitebitApi
             //         "to": "BTC"
             //     }
             //
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -4665,7 +4665,7 @@ public class Whitebit extends WhitebitApi
             //         "finalReceive": "0.00004772"
             //     }
             //
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -4708,7 +4708,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4836,7 +4836,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4960,7 +4960,7 @@ public class Whitebit extends WhitebitApi
             //     ]
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), market);
+            return this.parsePosition(data, market);
         }).thenApply(Position::new);
 
     }
@@ -5093,7 +5093,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("startDate", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))

@@ -273,7 +273,7 @@ public class Paymium extends PaymiumApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetUser(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -487,7 +487,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -522,7 +522,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }

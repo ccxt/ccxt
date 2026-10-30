@@ -2191,7 +2191,7 @@ public class Hitbtc extends HitbtcApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             String price = this.safeString(paramsUntil, "price");
@@ -2900,7 +2900,7 @@ public class Hitbtc extends HitbtcApi
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            var requestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
+            var requestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             Map<String, Object> response = null;
@@ -3359,7 +3359,7 @@ public class Hitbtc extends HitbtcApi
             //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3467,7 +3467,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(symbol, null))

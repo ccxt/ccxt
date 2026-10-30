@@ -1975,7 +1975,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2011,7 +2011,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (result), market);
+            return this.parsePosition(result, market);
         }).thenApply(Position::new);
 
     }
@@ -2959,7 +2959,7 @@ public class Delta extends DeltaApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (result), currency);
+            return this.parseDepositAddress(result, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3290,7 +3290,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginModification((Map<String, Object>) (result), market);
+            return this.parseMarginModification(result, market);
         });
 
     }
@@ -3514,7 +3514,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (result), market);
+            return this.parseLeverage(result, market);
         }).thenApply(Leverage::new);
 
     }
@@ -3662,7 +3662,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = (List<Object>) this.parseSettlements(result, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(result, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -3740,7 +3740,7 @@ public class Delta extends DeltaApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), (Map<String, Object>) (market)));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
     }
@@ -3818,7 +3818,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (result), market);
+            return this.parseGreeks(result, market);
         }).thenApply(Greeks::new);
 
     }
@@ -4016,7 +4016,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (result), market);
+            return this.parseMarginMode(result, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4137,7 +4137,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (result), (Map<String, Object>) null, market);
+            return this.parseOption(result, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }

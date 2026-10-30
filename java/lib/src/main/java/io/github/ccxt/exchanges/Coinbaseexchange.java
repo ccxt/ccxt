@@ -2157,7 +2157,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 throw new ExchangeError(((this.id + " withdraw() error: ") + this.json(response))) ;
             }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2581,7 +2581,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             h2kMap0.put("currency", code);
             h2kMap0.put("network", this.networkIdToCode(networkId, code));
             h2kMap0.put("amount", amount);
-            h2kMap0.put("status", this.parseTransactionStatus((Map<String, Object>) (transaction)));
+            h2kMap0.put("status", this.parseTransactionStatus(transaction));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
             h2kMap0.put("address", address);

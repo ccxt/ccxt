@@ -1677,7 +1677,7 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -4326,7 +4326,7 @@ public class Cryptocom extends CryptocomApi
             //   }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFees((Map<String, Object>) (result));
+            return this.parseTradingFees(result);
         }).thenApply(TradingFees::new);
 
     }

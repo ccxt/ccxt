@@ -1150,7 +1150,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1240,7 +1240,7 @@ public class Paradex extends ParadexApi
                 // the exchange names the index price "underlying" and rejects "index"
                 request.put("price_kind", (((java.util.Objects.equals(price, "index")))) ? "underlying" : price);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Boolean hasEnd = (request.containsKey("end_at"));
@@ -1681,7 +1681,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.publicGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -2400,7 +2400,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request = (this.signOrderRequest((Map<String, Object>) (request), false)).join();
+            request = (this.signOrderRequest(request, false)).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2547,7 +2547,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest), false)).join();
+                orderRequest = (this.signOrderRequest(orderRequest, false)).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
@@ -2886,7 +2886,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("page_size", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3106,7 +3106,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFills(this.extend(requestUntil, paramsUntil))).join();
@@ -3321,7 +3321,7 @@ public class Paradex extends ParadexApi
             {
                 market = this.market(symbol);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetLiquidations(this.extend(requestUntil, paramsUntil))).join();
@@ -3403,7 +3403,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3482,7 +3482,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3566,7 +3566,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3962,7 +3962,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (greeks), market);
+            return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
 
     }
@@ -4142,7 +4142,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil))).join();

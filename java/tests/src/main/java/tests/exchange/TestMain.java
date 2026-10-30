@@ -2611,7 +2611,7 @@ public class TestMain extends BaseTest
                     // buried on top of
                     List<Object> promises = new ArrayList<Object>(Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, (String) (method), input, skipKeys, expectedResults)));
                     (Helpers.promiseAll(promises)).join();
-                    this.AssertWsSentMessages(exchange, url, (Map<String, Object>) (data));
+                    this.AssertWsSentMessages(exchange, url, data);
                 } else
                 {
                     // 'parsedResponse' Asserts the final state after every frame
@@ -2621,7 +2621,7 @@ public class TestMain extends BaseTest
                     Object results = (Helpers.promiseAll(promises)).join();
                     Object unifiedResult = jsonParse(jsonStringify((results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0))));
                     this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, data.get("parsedResponse"));
-                    this.AssertWsSentMessages(exchange, url, (Map<String, Object>) (data));
+                    this.AssertWsSentMessages(exchange, url, data);
                 }
             } catch(Exception e)
             {

@@ -4629,7 +4629,7 @@ public class Xt extends XtApi
             //         "result": true
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null)));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4679,7 +4679,7 @@ public class Xt extends XtApi
             //         "result": null
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null)));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -5088,7 +5088,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (result), currency);
+            return this.parseDepositAddress(result, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -5302,7 +5302,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (result), currency);
+            return this.parseTransaction(result, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5546,7 +5546,7 @@ public class Xt extends XtApi
             //         "result": null
             //     }
             //
-            return this.parseMarginModification((Map<String, Object>) (response), market);
+            return this.parseMarginModification(response, market);
         });
 
     }
@@ -6113,7 +6113,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (result), market);
+            return this.parseTradingFee(result, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -6158,7 +6158,7 @@ public class Xt extends XtApi
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? market.get("inverse") : market.get("linear");
                 if ((java.util.Objects.equals(market.get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    result.put(symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
+                    result.put(symbol, this.parseTradingFee(fee, market));
                 }
             }
             return result;
@@ -6419,7 +6419,7 @@ public class Xt extends XtApi
                 String positionSize = this.safeString(entry, "positionSize");
                 if (!java.util.Objects.equals(positionSize, "0"))
                 {
-                    Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
+                    Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), breakBySymbolSide);
                     return this.parsePosition((Map<String, Object>) (merged), marketInner);
                 }
             }
@@ -6513,7 +6513,7 @@ public class Xt extends XtApi
                 Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-                Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
+                Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), breakBySymbolSide);
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols);
@@ -6559,7 +6559,7 @@ public class Xt extends XtApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, paramsUntil, (Object) null);

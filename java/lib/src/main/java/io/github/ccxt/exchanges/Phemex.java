@@ -1606,7 +1606,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
-            Map<String, Object> orderbook = this.customParseOrderBook((Map<String, Object>) (book), (String) (symbol), timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> orderbook = this.customParseOrderBook(book, (String) (symbol), timestamp, "bids", "asks", 0, 1, market);
             Long nonce = this.safeInteger(result, "sequence");
             return this.extend(orderbook, new HashMap<String, Object>() {{
                 put( "nonce", nonce );
@@ -2575,7 +2575,7 @@ public class Phemex extends PhemexApi
             }
             if (java.util.Objects.equals(type, "swap"))
             {
-                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchBalance", "settle", "USDT");
+                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
                 String settle = settleparamsSettleVariable.first();
                 Map<String, Object> paramsSettle = settleparamsSettleVariable.second();
                 if (!java.util.Objects.equals(code, null) || !java.util.Objects.equals(settle, null))
@@ -4553,7 +4553,7 @@ public class Phemex extends PhemexApi
                 code = this.safeString(market, "settle");
             } else
             {
-                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchPositions", "settle", code);
+                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code);
                 settle = settleparamsSettleVariable.first();
                 paramsSettle = settleparamsSettleVariable.second();
             }
@@ -5203,7 +5203,7 @@ public class Phemex extends PhemexApi
             //         "data": "OK"
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
         }).thenApply(MarginModification::new);
@@ -5930,7 +5930,7 @@ public class Phemex extends PhemexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -6062,7 +6062,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -6207,7 +6207,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -6266,7 +6266,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> fromResult = this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
             Map<String, Object> to = this.safeCurrency(toCurrencyId, toCurrency);
-            return this.parseConversion((Map<String, Object>) (data), fromResult, to);
+            return this.parseConversion(data, fromResult, to);
         }).thenApply(Conversion::new);
 
     }
@@ -6307,7 +6307,7 @@ public class Phemex extends PhemexApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(requestUntil, paramsUntil))).join();
@@ -6455,7 +6455,7 @@ public class Phemex extends PhemexApi
                 code = this.safeString(market, "settle");
             } else
             {
-                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchPositionsADLRank", "settle", code);
+                Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code);
                 settle = settleparamsSettleVariable.first();
                 paramsSettle = settleparamsSettleVariable.second();
             }

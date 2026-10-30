@@ -1445,7 +1445,7 @@ public class Onetrading extends OnetradingApi
             //         ]
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }

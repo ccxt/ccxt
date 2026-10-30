@@ -1432,7 +1432,7 @@ public class Polymarket extends PolymarketApi
             //         }
             //     }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1531,7 +1531,7 @@ public class Polymarket extends PolymarketApi
                         }});
                     tickerInput.put("book", book);
                     tickerInput.put("lastTrade", this.safeDict(lastTradesByTokenId, tokenId, new HashMap<String, Object>() {{}}));
-                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
+                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
                     result.put(symbolKey, ticker);
                 }
@@ -1683,7 +1683,7 @@ public class Polymarket extends PolymarketApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -1913,7 +1913,7 @@ public class Polymarket extends PolymarketApi
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
             Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parsePredictionOpenInterest((Map<String, Object>) (first), outcomeObj);
+            return this.parsePredictionOpenInterest(first, outcomeObj);
         }).thenApply(PredictionOpenInterest::new);
 
     }
@@ -2203,7 +2203,7 @@ public class Polymarket extends PolymarketApi
                 put( "signature_type", signatureType );
             }};
             Map<String, Object> response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2427,7 +2427,7 @@ public class Polymarket extends PolymarketApi
                 put( "id", id );
             }};
             Map<String, Object> response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
-            return this.parsePredictionOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parsePredictionOrder(response, (Map<String, Object>) null);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2552,7 +2552,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", (Object) null))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Map<String, Object> enriched = this.extend(this.safeDict(built, "request", (Object) null), response);
-            Object order = this.parsePredictionOrder((Map<String, Object>) (enriched), ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", (Object) null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
+            Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", (Object) null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
         }).thenApply(PredictionOrder::new);
@@ -2616,7 +2616,7 @@ public class Polymarket extends PolymarketApi
                     // request echo first so the response's real orderID/status win on overlap
                     Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), rawItem);
-                    Object parsedItem = this.parsePredictionOrder((Map<String, Object>) (enriched), ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                    Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                     Helpers.addElementToObject(parsedItem, "info", rawItem); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
@@ -2768,7 +2768,7 @@ public class Polymarket extends PolymarketApi
             exchangeAddress = negRiskExchangeV2;
         }
         String domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
-        String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, (String) (domainVersion), signatureType);
+        String signature = this.signClobOrder(message, exchangeAddress, (String) (domainVersion), signatureType);
         String owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         Map<String, Object> orderBody = new HashMap<String, Object>();
         orderBody.put("deferExec", false);
@@ -3296,7 +3296,7 @@ public class Polymarket extends PolymarketApi
             {
                 eventForParsing = new HashMap<String, Object>() {{}};
             }
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (eventForParsing));
+            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(eventForParsing);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -3364,7 +3364,7 @@ public class Polymarket extends PolymarketApi
         //     "deploying": false,
         //     "requiresTranslation": false
         // }
-        List<Object> marketsList = this.parseEventToMarkets((Map<String, Object>) (rawEvent));
+        List<Object> marketsList = this.parseEventToMarkets(rawEvent);
         String slug = this.safeString(rawEvent, "slug");
         // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
         // the snake_case fallbacks cover older payload shapes
@@ -3717,7 +3717,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
-            return this.setApiCredentials((Map<String, Object>) (response));
+            return this.setApiCredentials(response);
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -3737,7 +3737,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
-            return this.setApiCredentials((Map<String, Object>) (response));
+            return this.setApiCredentials(response);
         }).thenApply(res -> (Map<String, Object>) res);
 
     }

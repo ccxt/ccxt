@@ -1360,7 +1360,7 @@ public class Sxbet extends SxbetApi
     }})) );
             }};
             Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
-            List<Object> orders = this.parseSxbetCancelResponse((Map<String, Object>) (response));
+            List<Object> orders = this.parseSxbetCancelResponse(response);
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             return first;
         }).thenApply(PredictionOrder::new);
@@ -1418,7 +1418,7 @@ public class Sxbet extends SxbetApi
                     put( "orders", orderItems );
                 }};
                 Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
-                result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse((Map<String, Object>) (response)));
+                result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(response));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -1458,7 +1458,7 @@ public class Sxbet extends SxbetApi
                 response = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse((Map<String, Object>) (response)));
+            result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(response));
             // both paths paginate their async submission - keep going on the SAME route while more remain
             Boolean hasMore = (Boolean) this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
             for (var guard = 0; guard < 50; guard++)
@@ -1477,7 +1477,7 @@ public class Sxbet extends SxbetApi
                 {
                     nextResponse = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
                 }
-                result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse((Map<String, Object>) (nextResponse)));
+                result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(nextResponse));
                 hasMore = (Boolean) this.safeBool(this.safeDict(nextResponse, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
             }
             return result;
@@ -1693,7 +1693,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> row = (Map<String, Object>) this.safeDict(data, "order", data);
-            return this.parsePredictionOrder((Map<String, Object>) (row), outcomeObj);
+            return this.parsePredictionOrder(row, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2225,8 +2225,8 @@ public class Sxbet extends SxbetApi
             // the book snapshot is public and carries the same top of book - the batched best-odds
             // route needs an apiKey, so it only pays off for the multi-market path
             Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
-            Map<String, Object> raw = this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot));
-            return this.parsePredictionTicker((Map<String, Object>) (raw), outcomeObj);
+            Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
+            return this.parsePredictionTicker(raw, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -2327,9 +2327,9 @@ public class Sxbet extends SxbetApi
                 {
                     String marketHash = (hashesOrder == null || i < 0 || i >= hashesOrder.size() ? null : hashesOrder.get(i));
                     Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
-                    rowsByHash.put(marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
+                    rowsByHash.put(marketHash, this.parseSxbetSnapshotBestOdds(snapshot));
                 }
-                return this.parseSxbetTickersByHash(outcomesList, (Map<String, Object>) (rowsByHash));
+                return this.parseSxbetTickersByHash(outcomesList, rowsByHash);
             }
             Long chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
             Long chunkCount = this.parseToInt((chunkSize == null ? null : ((Number) this.sum(hashesLength, (chunkSize - 1L))).doubleValue() / ((double) chunkSize)));
@@ -2358,7 +2358,7 @@ public class Sxbet extends SxbetApi
                     }
                 }
             }
-            return this.parseSxbetTickersByHash(outcomesList, (Map<String, Object>) (rowsByHash));
+            return this.parseSxbetTickersByHash(outcomesList, rowsByHash);
         }).thenApply(PredictionTickers::new);
 
     }
@@ -2385,7 +2385,7 @@ public class Sxbet extends SxbetApi
             {
                 continue;
             }
-            Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), outcomeObj);
+            Map<String, Object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             String sym = this.safeString(ticker, "outcome");
             if (!java.util.Objects.equals(sym, null))
             {
@@ -2496,7 +2496,7 @@ public class Sxbet extends SxbetApi
             }};
             Map<String, Object> response = (this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters))).join();
             Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> sides = this.parseSxbetV3BookSides((Map<String, Object>) (snapshot), isOutcomeOne);
+            Map<String, Object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
             Object sortedBids = this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
             Object sortedAsks = this.safeList(sides, "asks", new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(limit, null))
@@ -2862,7 +2862,7 @@ public class Sxbet extends SxbetApi
                 // seed from the REST snapshot so the book is served before the first publication
                 this.setWsOption("wsWatchedBooks", (String) (sym), marketHash);
                 Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
-                this.applySxbetWsSnapshot((Map<String, Object>) (snapshot));
+                this.applySxbetWsSnapshot(snapshot);
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
                     io.github.ccxt.ws.WsOrderBook emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
@@ -2927,7 +2927,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> outcomeObj = this.outcome(sym);
             String outcomeId = this.safeString(outcomeObj, "outcomeId");
             Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
-            Map<String, Object> sides = this.parseSxbetV3BookSides((Map<String, Object>) (snapshot), isOutcomeOne);
+            Map<String, Object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, sym);
             if (java.util.Objects.equals(orderbook, null))
             {
@@ -3001,8 +3001,8 @@ public class Sxbet extends SxbetApi
                 // market's next top-of-book change - the channel is global, so the seed must fire
                 // for every newly watched market, not only on a fresh subscription
                 Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
-                Map<String, Object> raw = this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot));
-                Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), outcomeObj);
+                Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
+                Object ticker = this.parsePredictionTicker(raw, outcomeObj);
                 this.tickers.put(sym, ((Object)ticker));
                 hydrated = true;
             }
@@ -3066,7 +3066,7 @@ public class Sxbet extends SxbetApi
                     continue;
                 }
                 Object outcomeObj = ((Object)this.outcome(sym));
-                Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Object ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 this.tickers.put(sym, ((Object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }

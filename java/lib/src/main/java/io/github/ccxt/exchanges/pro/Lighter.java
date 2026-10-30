@@ -242,7 +242,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
+            this.handleOrderBookMessage(client, message, (io.github.ccxt.ws.WsOrderBook) (orderbook));
         }
         String messageHash = this.getMessageHash("orderbook", symbol, (String) null);
         client.resolve(orderbook, messageHash);
@@ -724,7 +724,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Integer liquidationDataLength = ((List<?>)liquidationData).size();
         if ((liquidationDataLength != null && liquidationDataLength > 0))
         {
-            this.handleLiquidation(client, (Map<String, Object>) (message));
+            this.handleLiquidation(client, message);
         }
         List<Object> data = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
@@ -972,7 +972,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Long jReversed = ((((long) tradesLength) - 1L) - ((long) j));
                 Map<String, Object> tradeRaw = (Map<String, Object>) this.safeDict(trades, jReversed, new HashMap<String, Object>() {{}});
                 tradeRaw.put("accountIndex", accountIndex);
-                Object trade = this.parseWsOrderTrade((Map<String, Object>) (tradeRaw), market);
+                Object trade = this.parseWsOrderTrade(tradeRaw, market);
                 stored.append(trade);
                 String symbol = this.safeString(trade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1693,7 +1693,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 Map<String, Object> unsubscribed = new HashMap<String, Object>();
                 unsubscribed.put("channel", notSubscribedChannel);
-                this.handleUnSubscription(client, (Map<String, Object>) (unsubscribed));
+                this.handleUnSubscription(client, unsubscribed);
                 return true;
             }
         }

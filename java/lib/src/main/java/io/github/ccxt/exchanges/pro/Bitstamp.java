@@ -427,7 +427,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("trades:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
+        Map<String, Object> trade = this.parseWsTrade(data, market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -535,7 +535,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             subscription.put("limit", limit);
             subscription.put("type", channel);
             subscription.put("params", parameters);
-            List<Object> orders = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), ((channel + "_") + this.safeString(market, "id", "")), parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(subscription, ((channel + "_") + this.safeString(market, "id", "")), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -615,7 +615,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             subscription.put("limit", limit);
             subscription.put("type", channel);
             subscription.put("params", parameters);
-            List<Object> trades = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(subscription, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -699,7 +699,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Object trade = this.parseWsMyTrade((Map<String, Object>) (data), market);
+        Object trade = this.parseWsMyTrade(data, market);
         stored.append(trade);
         client.resolve(stored, channel);
     }
@@ -801,7 +801,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> market = this.market(symbol);
         order.put("event", this.safeString(message, "event"));
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
         stored.append(parsed);
         client.resolve(this.orders, channel);
     }
@@ -951,7 +951,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         if (((String)channel).indexOf("order_book") > -1)
         {
-            this.handleOrderBookSubscription(client, (Map<String, Object>) (message));
+            this.handleOrderBookSubscription(client, message);
         }
     }
 

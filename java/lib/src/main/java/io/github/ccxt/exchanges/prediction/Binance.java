@@ -688,7 +688,7 @@ public class Binance extends BinanceApi
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), (Map<String, Object>) (rawTopic));
+            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), rawTopic);
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -938,7 +938,7 @@ public class Binance extends BinanceApi
             //
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1094,7 +1094,7 @@ public class Binance extends BinanceApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -2069,7 +2069,7 @@ public class Binance extends BinanceApi
                 j39v2.put("side", sideUpper);
                 j39v2.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
                 yield j39v2; } }));
-            Map<String, Object> quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
+            Map<String, Object> quote = (this.fetchQuote(quoteRequest, paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("walletId", this.safeString(wallet, "walletId"));
@@ -2227,7 +2227,7 @@ public class Binance extends BinanceApi
                 order.put("market", this.safeString(outcomeObj, "market"));
                 order.put("timestamp", null);
                 order.put("datetime", null);
-                ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order), (Object) null));
+                ((List<Object>)orders).add(this.safePredictionOrder(order, (Object) null));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));

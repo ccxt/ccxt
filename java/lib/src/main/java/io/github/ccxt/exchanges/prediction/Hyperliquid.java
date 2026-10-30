@@ -524,7 +524,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});
                 Long outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
                 Map<String, Object> linkedQuestion = (Map<String, Object>) this.safeDict(outcomesToQuestions, String.valueOf(outcomeId), new HashMap<String, Object>() {{}});
-                Object market = this.parseOutcomeMarket((Map<String, Object>) (outcomeInfo), outcomeId, linkedQuestion);
+                Object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
                 ((List<Object>)markets).add(market);
                 // Build outcomes dictionary from market outcomes
                 List<Object> marketOutcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
@@ -564,7 +564,7 @@ public class Hyperliquid extends HyperliquidApi
         String name = this.safeString(outcomeInfo, "name", "");
         List<Object> sideSpecs = (List<Object>) this.safeList(outcomeInfo, "sideSpecs", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> desc = this.parseOutcomeDescription((String) (description));
-        String parentSymbol = this.buildOutcomeParentSymbol((Map<String, Object>) (desc), outcomeId, name, question);
+        String parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
         Object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         Object noEncoding = this.outcomeEncoding(outcomeId, 1);
         String yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -780,7 +780,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
                 put( "book", response );
             }}, "book", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker((Map<String, Object>) (tickerData), outcomeObj);
+            return this.parsePredictionTicker(tickerData, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -988,7 +988,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "bids", bids );
                 put( "asks", asks );
             }}, this.safeString(outcomeObj, "outcome", outcome), timestamp, "bids", "asks", 0, 1, 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -1237,7 +1237,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> enriched = this.extend(balance, new HashMap<String, Object>() {{
                     put( "markPx", Hyperliquid.this.safeString(mids, tradeCoin) );
                 }});
-                ((List<Object>)positions).add(this.parsePredictionPosition((Map<String, Object>) (enriched), outcomeObj));
+                ((List<Object>)positions).add(this.parsePredictionPosition(enriched, outcomeObj));
             }
             return positions;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
@@ -1421,7 +1421,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 sideHintOrDefault = sideHint;
             }
-            Object found = this.findOutcomeInMarket((Map<String, Object>) (market), sideHintOrDefault);
+            Object found = this.findOutcomeInMarket(market, sideHintOrDefault);
             if (((Map<String, Object>)found).size() > 0)
             {
                 return found;
@@ -1542,7 +1542,7 @@ public class Hyperliquid extends HyperliquidApi
                 mapLiteral8.put("f", feeInt);
                 orderAction.put("builder", mapLiteral8);
             }
-            Map<String, Object> signature = this.signL1Action((Map<String, Object>) (orderAction), nonce, vaultAddress);
+            Map<String, Object> signature = this.signL1Action(orderAction, nonce, vaultAddress);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", orderAction );
                 put( "nonce", nonce );
@@ -1680,9 +1680,9 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             cancelAction.put("cancels", cancelReq);
-            String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "cancelOrders", "vaultAddress", (String) null)).get(0);
+            String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress", (String) null)).get(0);
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
-            Map<String, Object> signature = this.signL1Action((Map<String, Object>) (cancelAction), nonce, vaultAddress);
+            Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", cancelAction );
                 put( "nonce", nonce );
@@ -1734,7 +1734,7 @@ public class Hyperliquid extends HyperliquidApi
                 order.put("market", this.safeString(outcomeObj, "market"));
                 order.put("timestamp", null);
                 order.put("datetime", null);
-                ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order), (Object) null));
+                ((List<Object>)orders).add(this.safePredictionOrder(order, (Object) null));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -2544,7 +2544,7 @@ public class Hyperliquid extends HyperliquidApi
     public Map<String, Object> signL1Action(Map<String, Object> action, Object nonce, String vaultAddress)
     {
         this.checkRequiredCredentials(true);
-        Object hash = this.actionHash((Map<String, Object>) (action), (String) (vaultAddress), nonce);
+        Object hash = this.actionHash(action, (String) (vaultAddress), nonce);
         Boolean isTestnet = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         Map<String, Object> phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         String zeroAddress = this.safeString(this.options, "zeroAddress");
@@ -2599,7 +2599,7 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
+        return this.signUserSignedAction(messageTypes, message);
     }
 
     /**
@@ -2624,7 +2624,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "builder", builder );
                 put( "nonce", nonce );
             }};
-            Map<String, Object> sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
+            Map<String, Object> sig = this.buildApproveBuilderFeeSig(payload);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );

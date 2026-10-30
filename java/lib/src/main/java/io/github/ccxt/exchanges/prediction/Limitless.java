@@ -754,7 +754,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> wrapped = this.extend(response, new HashMap<String, Object>() {{
                 put( "markets", rows );
             }});
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (wrapped));
+            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(wrapped);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -1180,7 +1180,7 @@ public class Limitless extends LimitlessApi
                 put( "market", response );
                 put( "book", (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)) );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
+            return this.parsePredictionTicker(tickerInput, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1449,7 +1449,7 @@ public class Limitless extends LimitlessApi
                 List<Object> grouped = (List<Object>) this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)grouped).size(); j++)
                 {
-                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
@@ -1627,7 +1627,7 @@ public class Limitless extends LimitlessApi
                 put( "datetime", null );
                 put( "nonce", null );
             }};
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -2582,7 +2582,7 @@ public class Limitless extends LimitlessApi
             // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
             signRequest.put("makerAmount", this.parseToInt(this.applyScale((String) (makerAmount), true)));
             signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale((String) (takerAmount), true))));
-            String signature = this.signOrderRequest((Map<String, Object>) (signRequest), (String) (marketSymbol));
+            String signature = this.signOrderRequest(signRequest, (String) (marketSymbol));
             signRequest.put("signature", signature);
             // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
             if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
@@ -2600,7 +2600,7 @@ public class Limitless extends LimitlessApi
                 request.put("postOnly", postOnly);
             }
             Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
-            Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
+            Object parsedOrder = this.parsePredictionOrder(response, outcomeObj);
             // the create-order response omits a status field; a freshly accepted order is open
             String parsedStatus = this.safeString(parsedOrder, "status");
             if (java.util.Objects.equals(parsedStatus, null))
@@ -2795,7 +2795,7 @@ public class Limitless extends LimitlessApi
             }};
             Map<String, Object> response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
             // the delete response carries no order body, so backfill the id and the resulting status
-            Object order = this.parsePredictionOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            Object order = this.parsePredictionOrder(response, (Map<String, Object>) null);
             String orderId = this.safeString(order, "id");
             if (java.util.Objects.equals(orderId, null))
             {
@@ -3377,7 +3377,7 @@ public class Limitless extends LimitlessApi
         Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(entry, "market", (Object) null);
         String slug = this.safeString(rawMarket, "slug");
         Map<String, Object> outcomeObj = this.getOutcomeBySlugAndLabel((String) (slug), (String) (label), (Map<String, Object>) null);
-        Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition((Map<String, Object>) (position), outcomeObj);
+        Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition(position, outcomeObj);
         parsed.put("contracts", this.parseNumber(this.applyScale((String) (contracts), false)));
         Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade", (Object) null);
         String key = "latestYesPrice";
@@ -3387,7 +3387,7 @@ public class Limitless extends LimitlessApi
         }
         parsed.put("markPrice", this.safeNumber(latestTrade, key, (Object) null));
         parsed.put("info", entry);
-        return this.safePredictionPosition((Map<String, Object>) (parsed));
+        return this.safePredictionPosition(parsed);
     }
 
     /**

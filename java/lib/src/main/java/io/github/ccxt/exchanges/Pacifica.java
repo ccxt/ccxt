@@ -1156,10 +1156,10 @@ public class Pacifica extends PacificaApi
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
                 // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
-                return this.parseLeverageFromMarket((Map<String, Object>) (market));
+                return this.parseLeverageFromMarket(market);
             } else
             {
-                return this.parseLeverageFromSetting((String) (symbol), (Map<String, Object>) (setting));
+                return this.parseLeverageFromSetting((String) (symbol), setting);
             }
         }).thenApply(Leverage::new);
 
@@ -1332,7 +1332,7 @@ public class Pacifica extends PacificaApi
                 }};
             } else
             {
-                return this.parseMarginModeFromSetting((String) (symbol), (Map<String, Object>) (setting));
+                return this.parseMarginModeFromSetting((String) (symbol), setting);
             }
         }).thenApply(MarginMode::new);
 
@@ -1570,7 +1570,7 @@ public class Pacifica extends PacificaApi
             request.put("symbol", market.get("id"));
             request.put("interval", tf);
             request.put("start_time", since);
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long nowMillis = this.milliseconds();
@@ -1723,7 +1723,7 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             requestUntil.put("account", userAddress);
@@ -1765,7 +1765,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true   // not included to info!
             // }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            Object data = this.addPaginationCursorToResult(response);
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2054,7 +2054,7 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("client_order_id", clientOrderId);
         }
-        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (paramsClientOrderId));
+        Map<String, Object> request = this.postActionRequest(operationType, sigPayload, paramsClientOrderId);
         return new ArrayList<Object>(Arrays.asList(request, operationType));
     }
 
@@ -2368,7 +2368,7 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("all_symbols", true);
         }
-        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+        Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
         return request;
     }
 
@@ -2454,7 +2454,7 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("order_id", this.parseToInt(id));
         }
-        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+        Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
         return request;
     }
 
@@ -2485,7 +2485,7 @@ public class Pacifica extends PacificaApi
             }
             (this.initializeClient()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, market, parameters);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
             Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, paramsOmitted))).join();
             //
@@ -2540,7 +2540,7 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("order_id", this.parseToInt(id));
         }
-        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+        Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
         return (Map<String, Object>) (request);
     }
 
@@ -2605,7 +2605,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            Object data = this.addPaginationCursorToResult(response);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -2940,7 +2940,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             //
-            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            Object data = this.addPaginationCursorToResult(response);
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3408,7 +3408,7 @@ public class Pacifica extends PacificaApi
                 put( "symbol", market.get("id") );
                 put( "is_isolated", isIsolated );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             Map<String, Object> response = (this.privatePostAccountMargin(request)).join();
             // {
             //     "success": true
@@ -3448,7 +3448,7 @@ public class Pacifica extends PacificaApi
                 put( "symbol", market.get("id") );
                 put( "leverage", leverage );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             Map<String, Object> response = (this.privatePostAccountLeverage(request)).join();
             // {
             //     "success": true
@@ -3485,7 +3485,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "amount", Pacifica.this.numberToString(amount) );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountWithdraw(this.extend(request, paramsOmitted))).join();
             return new HashMap<String, Object>() {{
@@ -3545,7 +3545,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3581,7 +3581,7 @@ public class Pacifica extends PacificaApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put(symbol, this.parseTradingFee((Map<String, Object>) (data), this.market(symbol)));
+                result.put(symbol, this.parseTradingFee(data, this.market(symbol)));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -3775,7 +3775,7 @@ public class Pacifica extends PacificaApi
             //   "next_cursor": "11114Lz77",
             //   "has_more": true
             // }
-            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult(response);
             return this.parseLedger(data, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -4026,7 +4026,7 @@ public class Pacifica extends PacificaApi
             //   "next_cursor": "11114Lz77",
             //   "has_more": true
             // }
-            List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+            List<Object> data = this.addPaginationCursorToResult(response);
             return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -4093,7 +4093,7 @@ public class Pacifica extends PacificaApi
                 put( "to_account", toAccount );
                 put( "amount", Pacifica.this.numberToString(amount) );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountSubaccountTransfer(this.extend(request, paramsOmitted))).join();
             //
@@ -4210,7 +4210,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> subSigPayload = new HashMap<String, Object>();
             subSigPayload.put("account", originAddress);
-            Object subaccountSignature = this.signMessage((Map<String, Object>) (subaccountSignatureHeader), (Map<String, Object>) (subSigPayload), subAccountPrivateKey);
+            Object subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "expiry_window", expiryWindow );
@@ -4219,7 +4219,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> mainSigPayload = new HashMap<String, Object>() {{
                 put( "signature", subaccountSignature );
             }};
-            Object main_signature = this.signMessage((Map<String, Object>) (mainSignatureHeader), (Map<String, Object>) (mainSigPayload), (String) (this.privateKey));
+            Object main_signature = this.signMessage(mainSignatureHeader, mainSigPayload, (String) (this.privateKey));
             finalHeaders.put("main_account", originAddress);
             finalHeaders.put("subaccount", subAccountAddress);
             finalHeaders.put("sub_signature", subaccountSignature);
@@ -4259,7 +4259,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "agent_wallet", agentAddress );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAgentBind(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4279,7 +4279,7 @@ public class Pacifica extends PacificaApi
 
             String operationType = "create_api_key";
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysCreate(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4302,7 +4302,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "api_key", apiKey );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysRevoke(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4322,7 +4322,7 @@ public class Pacifica extends PacificaApi
 
             String operationType = "list_api_keys";
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeys(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4348,7 +4348,7 @@ public class Pacifica extends PacificaApi
                 put( "builder_code", builderCode );
                 put( "max_fee_rate", maxFeeRate );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4393,7 +4393,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "builder_code", builderCode );
             }};
-            Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -4565,7 +4565,7 @@ public class Pacifica extends PacificaApi
 
     public Object signMessage(Map<String, Object> header, Map<String, Object> payload, String privateKey)
     {
-        String message = this.prepareMessage((Map<String, Object>) (header), (Map<String, Object>) (payload));
+        String message = this.prepareMessage(header, payload);
         Object messageBytes = this.encode(message);
         Object secretBytes = this.base58ToBinary(privateKey);
         Object seed = this.arraySlice(secretBytes, 0, 32);
@@ -4607,7 +4607,7 @@ public class Pacifica extends PacificaApi
         signatureHeader.put("timestamp", timestamp);
         signatureHeader.put("expiry_window", expiryWindow);
         signatureHeader.put("type", operationType);
-        Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), (String) (this.privateKey));
+        Object signature = this.signMessage(signatureHeader, sigPayload, (String) (this.privateKey));
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
         Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
         String agentAddress = agentAddressparamsAgentAddressVariable.first();

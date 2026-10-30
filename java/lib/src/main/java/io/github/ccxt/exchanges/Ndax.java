@@ -2677,7 +2677,7 @@ public class Ndax extends NdaxApi
             //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3152,7 +3152,7 @@ public class Ndax extends NdaxApi
                 put( "Payload", Ndax.this.json(withdrawPayload) );
             }};
             Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted))).join();
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

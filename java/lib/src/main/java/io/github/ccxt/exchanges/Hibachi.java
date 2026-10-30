@@ -583,7 +583,7 @@ public class Hibachi extends HibachiApi
             //     tradeTakerFeeRate: '0.00020000'
             // }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1058,7 +1058,7 @@ public class Hibachi extends HibachiApi
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
-        Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
+        Object message = this.orderMessage(market, nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", this.safeString(market, "id"));
@@ -1204,7 +1204,7 @@ public class Hibachi extends HibachiApi
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
         Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
-        Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
+        Object message = this.orderMessage(market, nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );

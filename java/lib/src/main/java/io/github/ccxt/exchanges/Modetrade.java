@@ -1455,7 +1455,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("start_t", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2966,7 +2966,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("algo_type", "STOP");
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -3191,7 +3191,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("size", 500);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -3283,7 +3283,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (data));
+            return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
@@ -3742,7 +3742,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3807,7 +3807,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -3971,7 +3971,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), market);
+            return this.parsePosition(data, market);
         }).thenApply(Position::new);
 
     }

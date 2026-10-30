@@ -2380,7 +2380,7 @@ public class Dydx extends DydxApi
                     signingPayload = hx4NewMap4;
                 }
             }
-            Map<String, Object> txFee = (this.estimateTxFee((Map<String, Object>) (signingPayload), "", (Map<String, Object>) (account))).join();
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
             String chainName = this.safeString(this.options, "chainName");
             Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2589,7 +2589,7 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
             }};
-            Map<String, Object> txFee = (this.estimateTxFee((Map<String, Object>) (signingPayload), tag, (Map<String, Object>) (account))).join();
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
             String chainName = this.safeString(this.options, "chainName");
             Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2611,7 +2611,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2726,7 +2726,7 @@ public class Dydx extends DydxApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsOmitted = this.omit(parameters, "methodName");
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress((String) (methodName), (Map<String, Object>) (paramsOmitted));
+            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress((String) (methodName), paramsOmitted);
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
             Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), (String) (methodName), "subAccountNumber", "0");
@@ -2939,7 +2939,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (data));
+            return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }

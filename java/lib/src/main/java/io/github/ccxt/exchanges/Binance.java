@@ -4633,7 +4633,7 @@ public class Binance extends BinanceApi
         {
             request.put("size", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Object response = this.sapiGetEquityTokenizedHistory(this.extend(requestUntil, paramsUntil));
@@ -5710,11 +5710,11 @@ public class Binance extends BinanceApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"), (Map<String, Object>) null);
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                 }
             }
         } else if (java.util.Objects.equals(type, "savings"))
@@ -5822,7 +5822,7 @@ public class Binance extends BinanceApi
             subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchBalance", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
             paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
             String marginMode = null;
@@ -5848,7 +5848,7 @@ public class Binance extends BinanceApi
             {
                 type = "linear";
                 Boolean useV2 = null;
-                Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "useV2", false);
+                Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "useV2", false);
                 useV2 = useV2paramsSubTypeVariable.first();
                 paramsSubType = useV2paramsSubTypeVariable.second();
                 paramsSubType = this.extend(request, query);
@@ -8053,7 +8053,7 @@ public class Binance extends BinanceApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Boolean isPortfolioMargin = null;
-                Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (orderParams), "editOrders", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginorderParamsVariable.first();
                 orderParams = isPortfolioMarginorderParamsVariable.second();
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -9375,7 +9375,7 @@ public class Binance extends BinanceApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", upperCaseSide);
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsAlgo), "createOrder", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAlgo, "createOrder", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
         Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
         Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, (String) null);
@@ -9994,7 +9994,7 @@ public class Binance extends BinanceApi
             marginMode = marginModeparamsStockVariable.first();
             paramsStock = marginModeparamsStockVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "fetchOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "fetchOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -10134,7 +10134,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             Boolean stock = false;
-            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchOrders", "stock", false);
             stock = stockparamsPaginateVariable.first();
             paramsPaginate = stockparamsPaginateVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -10160,7 +10160,7 @@ public class Binance extends BinanceApi
             marginMode = marginModeparamsPaginateVariable.first();
             paramsPaginate = marginModeparamsPaginateVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
             paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -10542,12 +10542,12 @@ public class Binance extends BinanceApi
             marginMode = marginModeparamsMarginModeVariable.first();
             paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2(paramsMarginMode, "fetchOpenOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsMarginModeVariable.first();
             paramsMarginMode = isPortfolioMarginparamsMarginModeVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             Boolean stock = false;
-            Pair<Boolean, Map<String, Object>> stockparamsMarginModeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "fetchOpenOrders", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "stock", false);
             stock = stockparamsMarginModeVariable.first();
             paramsMarginMode = stockparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -11159,7 +11159,7 @@ public class Binance extends BinanceApi
             marginMode = marginModeparamsStockVariable.first();
             paramsStock = marginModeparamsStockVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelOrder", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -11337,7 +11337,7 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsStock), "cancelAllOrders", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelAllOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsStockVariable.first();
             paramsStock = isPortfolioMarginparamsStockVariable.second();
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
@@ -11620,7 +11620,7 @@ public class Binance extends BinanceApi
             String type = null;
             String marginMode = null;
             Boolean stock = false;
-            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchMyTrades", "stock", false);
             stock = stockparamsPaginateVariable.first();
             paramsPaginate = stockparamsPaginateVariable.second();
             if (!java.util.Objects.equals(symbol, null))
@@ -11697,7 +11697,7 @@ public class Binance extends BinanceApi
                 marginMode = marginModeparamsPaginateVariable.first();
                 paramsPaginate = marginModeparamsPaginateVariable.second();
                 Boolean isPortfolioMargin = null;
-                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchMyTrades", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchMyTrades", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
                 paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
                 if (Boolean.TRUE.equals(stock))
@@ -12768,7 +12768,7 @@ public class Binance extends BinanceApi
             Boolean intern = (Boolean) this.safeBool(parameters, "internal", (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, "internal");
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTransfers", "paginate", false);
             paginate = paginateparamsOmittedVariable.first();
             paramsOmitted = paginateparamsOmittedVariable.second();
             if (Boolean.TRUE.equals(paginate) && (!java.util.Objects.equals(intern, true)))
@@ -12886,7 +12886,7 @@ public class Binance extends BinanceApi
             //         }
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -13246,7 +13246,7 @@ public class Binance extends BinanceApi
             request.put("amount", this.currencyToPrecision((String) (currency.get("code")), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, paramsNetworkCode))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -13370,7 +13370,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseTradingFee() returned empty response")) ;
             }
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -14508,7 +14508,7 @@ public class Binance extends BinanceApi
                 subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 paramsSubType = subTypeparamsSubTypeVariable.second();
                 Boolean isPortfolioMargin = null;
-                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "loadLeverageBrackets", "papi", "portfolioMargin", false);
+                Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "loadLeverageBrackets", "papi", "portfolioMargin", false);
                 isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
                 paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
                 List<Object> response = null;
@@ -15028,7 +15028,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported((this.id + " fetchPositions() supports linear and inverse contracts only")) ;
             }
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "filterClosed", false)).get(0);
-            List<Object> result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
+            List<Object> result = this.parseAccountPositions(response, filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -15079,7 +15079,7 @@ public class Binance extends BinanceApi
             subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsRisk", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.first();
             paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
             paramsSubType = this.omit(paramsSubType, "type");
@@ -15092,7 +15092,7 @@ public class Binance extends BinanceApi
                 } else
                 {
                     Boolean useV2 = null;
-                    Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchPositionsRisk", "useV2", false);
+                    Pair<Boolean, Map<String, Object>> useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchPositionsRisk", "useV2", false);
                     useV2 = useV2paramsSubTypeVariable.first();
                     paramsSubType = useV2paramsSubTypeVariable.second();
                     paramsSubType = this.extend(request, paramsSubType);
@@ -15265,7 +15265,7 @@ public class Binance extends BinanceApi
             Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchFundingHistory", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -15711,7 +15711,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            List<Object> settlements = (List<Object>) this.parseSettlements(response, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(response, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });
@@ -15781,7 +15781,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            List<Object> settlements = (List<Object>) this.parseSettlements(response, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(response, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });
@@ -15870,7 +15870,7 @@ public class Binance extends BinanceApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (this.safeValue(settlements, i)), (Map<String, Object>) (market)));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (this.safeValue(settlements, i)), market));
         }
         return result;
     }
@@ -15991,7 +15991,7 @@ public class Binance extends BinanceApi
                 request.put("endTime", until);
             }
             Boolean isPortfolioMargin = null;
-            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsPaginate), "fetchLedger", "papi", "portfolioMargin", false);
+            Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchLedger", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.first();
             paramsPaginate = isPortfolioMarginparamsPaginateVariable.second();
             List<Object> response = null;
@@ -16586,7 +16586,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v27 = new HashMap<String, Object>(); j39v27.put("code", code); yield j39v27; } }));
+            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v27 = new HashMap<String, Object>(); j39v27.put("code", code); yield j39v27; } }));
         });
 
     }
@@ -17070,7 +17070,7 @@ public class Binance extends BinanceApi
             {
                 request.put("size", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -17191,7 +17191,7 @@ public class Binance extends BinanceApi
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 String method = null;
-                Pair<String, Map<String, Object>> methodparamsPapiVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPapi), "repayCrossMargin", "repayCrossMarginMethod", "method", (String) null);
+                Pair<String, Map<String, Object>> methodparamsPapiVariable = this.handleOptionStringAndParams2(paramsPapi, "repayCrossMargin", "repayCrossMarginMethod", "method", (String) null);
                 method = methodparamsPapiVariable.first();
                 paramsPapi = methodparamsPapiVariable.second();
                 if (java.util.Objects.equals(method, "papiPostMarginRepayDebt"))
@@ -17207,7 +17207,7 @@ public class Binance extends BinanceApi
                 request.put("type", "REPAY");
                 response = (this.sapiPostMarginBorrowRepay(this.extend(request, paramsPapi))).join();
             }
-            return this.parseMarginLoan((Map<String, Object>) (response), currency);
+            return this.parseMarginLoan(response, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17248,7 +17248,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), currency);
+            return this.parseMarginLoan(response, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17298,7 +17298,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), currency);
+            return this.parseMarginLoan(response, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17339,7 +17339,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), currency);
+            return this.parseMarginLoan(response, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17683,7 +17683,7 @@ public class Binance extends BinanceApi
                     request.put("limit", limit);
                 }
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -18286,7 +18286,7 @@ public class Binance extends BinanceApi
             //     ]
             //
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, market);
+            return this.parseOption(chain, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -18539,7 +18539,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18589,7 +18589,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
+            return this.parseConversion(response, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18655,7 +18655,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18903,7 +18903,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", period );
             }};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -19007,7 +19007,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseADLRank() returned empty response")) ;
             }
-            return this.parseADLRank((Map<String, Object>) (response), market);
+            return this.parseADLRank(response, market);
         }).thenApply(ADL::new);
 
     }

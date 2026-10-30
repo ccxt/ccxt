@@ -161,7 +161,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String marketType = this.safeString(market, "type", "");
             String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public"), marketType, "");
             Long requestId = this.requestId();
-            Map<String, Object> request = this.createPublicRequest((Map<String, Object>) (market), requestId, (String) (topicID), java.util.Objects.requireNonNullElse(suffix, ""), false);
+            Map<String, Object> request = this.createPublicRequest(market, requestId, (String) (topicID), java.util.Objects.requireNonNullElse(suffix, ""), false);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "id", requestId );
@@ -186,7 +186,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 throw new BadRequest(((this.id + " no subscription for ") + messageHash)) ;
             }
             Long subId = this.safeInteger(existingSubscription, "id");
-            Map<String, Object> request = this.createPublicRequest((Map<String, Object>) (market), subId, (String) (topicID), java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
+            Map<String, Object> request = this.createPublicRequest(market, subId, (String) (topicID), java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
             String unsubHash = ("unsubscribe::" + messageHash);
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
@@ -306,7 +306,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("ticker" + "::") + this.safeString(market, "symbol", ""));
-            return (this.watchPublic((Map<String, Object>) (market), messageHash, "7", parameters, "")).join();
+            return (this.watchPublic(market, messageHash, "7", parameters, "")).join();
         }).thenApply(Ticker::new);
 
     }
@@ -334,7 +334,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ticker" );
             }};
-            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "7", parameters, subscription, "")).join();
+            return (this.unWatchPublic(market, messageHash, "7", parameters, subscription, "")).join();
         });
 
     }
@@ -468,7 +468,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("trades" + "::") + this.safeString(market, "symbol", ""));
-            List<Object> trades = (List<Object>) (this.watchPublic((Map<String, Object>) (market), messageHash, "2", parameters, "")).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(market, messageHash, "2", parameters, "")).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -502,7 +502,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "trades" );
             }};
-            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "2", parameters, subscription, "")).join();
+            return (this.unWatchPublic(market, messageHash, "2", parameters, subscription, "")).join();
         });
 
     }
@@ -543,7 +543,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         io.github.ccxt.ws.ArrayCache strored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         if (!java.util.Objects.equals(data, null))
         {
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
+            Map<String, Object> trade = this.parseWsTrade(data, market);
             strored.append(trade);
         }
         String messageHash = (("trades" + "::") + symbol);
@@ -661,7 +661,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String suffix = ("_" + interval);
-            List<Object> ohlcv = (List<Object>) (this.watchPublic((Map<String, Object>) (market), messageHash, "11", parameters, suffix)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -701,7 +701,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
             }};
-            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "11", parameters, subscription, suffix)).join();
+            return (this.unWatchPublic(market, messageHash, "11", parameters, subscription, suffix)).join();
         });
 
     }
@@ -798,10 +798,10 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("orderbook" + "::") + this.safeString(market, "symbol", ""));
-            var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
+            var suffixparamsValueVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
             Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic((Map<String, Object>) (market), messageHash, "25", paramsValue, suffix)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, suffix)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -828,13 +828,13 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("orderbook" + "::") + this.safeString(market, "symbol", ""));
-            var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "unWatchOrderBook", parameters);
+            var suffixparamsValueVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
             Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
             }};
-            return (this.unWatchPublic((Map<String, Object>) (market), messageHash, "25", paramsValue, subscription, suffix)).join();
+            return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix)).join();
         });
 
     }
@@ -906,7 +906,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (java.util.Objects.equals(type, "f"))
             {
                 // snapshot
-                this.handleOrderBookSnapshot(client, (Map<String, Object>) (message));
+                this.handleOrderBookSnapshot(client, message);
             } else
             {
                 // cache the updates until the snapshot is received
@@ -914,7 +914,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
         } else
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (io.github.ccxt.ws.WsOrderBook) (orderbook));
+            this.handleOrderBookMessage(client, message, (io.github.ccxt.ws.WsOrderBook) (orderbook));
             String messageHash = (("orderbook" + "::") + symbol);
             client.resolve(orderbook, messageHash);
         }
@@ -1099,7 +1099,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), market);
+            Map<String, Object> parsed = this.parseWsTrade(data, market);
             stored.append(parsed);
             client.resolve(stored, messageHash);
             client.resolve(stored, symbolMessageHash);
@@ -1191,7 +1191,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data, market);
             ((io.github.ccxt.ws.ArrayCache) this.orders).append(parsed);
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
@@ -1350,7 +1350,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(data, market);
             ((io.github.ccxt.ws.ArrayCache) this.positions).append(parsed);
             client.resolve(this.positions, messageHash);
             client.resolve(this.positions, symbolMessageHash);
@@ -1510,7 +1510,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String subHash = this.safeString(subscription, "subHash", "");
             String unsubHash = ("unsubscribe::" + subHash);
             Map<String, Object> unsubsciption = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}}); // unWatch subscription
-            this.handleUnSubscription(client, (Map<String, Object>) (unsubsciption));
+            this.handleUnSubscription(client, unsubsciption);
         }
     }
 

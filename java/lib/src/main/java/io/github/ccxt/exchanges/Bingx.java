@@ -2485,7 +2485,7 @@ public class Bingx extends BingxApi
             {
                 request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.swapV2PublicGetQuoteFundingRate(this.extend(requestUntil, paramsUntil))).join();
@@ -3430,7 +3430,7 @@ public class Bingx extends BingxApi
             {
                 request.put("startTs", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTs", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTs", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
@@ -3571,7 +3571,7 @@ public class Bingx extends BingxApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (first), market);
+            return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
     }
@@ -5371,7 +5371,7 @@ public class Bingx extends BingxApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsSubType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsSubType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil))).join();
@@ -5920,7 +5920,7 @@ public class Bingx extends BingxApi
             {
                 request.put("pageSize", Math.min(limit, maxLimit));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.apiV3PrivateGetAssetTransferRecord(this.extend(requestUntil, paramsUntil))).join();
@@ -6149,7 +6149,7 @@ public class Bingx extends BingxApi
             {
                 request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(requestUntil, paramsUntil))).join();
@@ -6211,7 +6211,7 @@ public class Bingx extends BingxApi
             {
                 request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -6507,7 +6507,7 @@ public class Bingx extends BingxApi
             //        "type": 1
             //    }
             //
-            return this.parseMarginModification((Map<String, Object>) (response), market);
+            return this.parseMarginModification(response, market);
         }).thenApply(MarginModification::new);
 
     }
@@ -6571,7 +6571,7 @@ public class Bingx extends BingxApi
                 response = (this.swapV2PrivateGetTradeLeverage(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -6914,7 +6914,7 @@ public class Bingx extends BingxApi
             //           "id":"1197073063359000577"
             //        }
             //    }
-            return this.parseTransaction((Map<String, Object>) (data), (Map<String, Object>) null);
+            return this.parseTransaction(data, (Map<String, Object>) null);
         }).thenApply(Transaction::new);
 
     }
@@ -6973,7 +6973,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "autoCloseType", "LIQUIDATION" );
             }};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> market = null;
@@ -7428,7 +7428,7 @@ public class Bingx extends BingxApi
                 response = (this.swapV2PrivateGetTradeMarginType(this.extend(request, paramsSubType))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -7750,10 +7750,10 @@ public class Bingx extends BingxApi
             Object encodeRequest = null;
             if (Boolean.TRUE.equals(isJsonContentType))
             {
-                encodeRequest = this.customEncode((Map<String, Object>) (paramsSorted));
+                encodeRequest = this.customEncode(paramsSorted);
             } else
             {
-                parsedParams = this.parseParams((Map<String, Object>) (paramsSorted));
+                parsedParams = this.parseParams(paramsSorted);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             Object encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;

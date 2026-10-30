@@ -911,7 +911,7 @@ public class Bithumb extends BithumbApi
             Long timestamp = null;
             if ((generation != null && generation == 2))
             {
-                request.put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
+                request.put("markets", this.getGen2MarketId(market));
                 response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
@@ -1157,7 +1157,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
                     Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
-                    ((List<Object>)marketIds).add(this.getGen2MarketId((Map<String, Object>) (market)));
+                    ((List<Object>)marketIds).add(this.getGen2MarketId(market));
                 }
                 Integer marketIdsLength = ((List<?>)marketIds).size();
                 if (java.util.Objects.equals(marketIdsLength, 0))
@@ -1361,7 +1361,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> data = new HashMap<String, Object>() {{}};
             if ((generation != null && generation == 2))
             {
-                request.put("markets", this.getGen2MarketId((Map<String, Object>) (market)));
+                request.put("markets", this.getGen2MarketId(market));
                 response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
@@ -1503,7 +1503,7 @@ public class Bithumb extends BithumbApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if ((generation != null && generation == 2))
             {
-                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                request.put("market", this.getGen2MarketId(market));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("count", limit);
@@ -1770,7 +1770,7 @@ public class Bithumb extends BithumbApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if ((generation != null && generation == 2))
             {
-                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                request.put("market", this.getGen2MarketId(market));
                 response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
@@ -1919,7 +1919,7 @@ public class Bithumb extends BithumbApi
          */
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
+            put( "market", Bithumb.this.getGen2MarketId(market) );
         }};
         String sideRequest = null;
         if (java.util.Objects.equals(side, "buy"))
@@ -2151,7 +2151,7 @@ public class Bithumb extends BithumbApi
             String durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Bithumb.this.getGen2MarketId((Map<String, Object>) (market)) );
+                put( "market", Bithumb.this.getGen2MarketId(market) );
                 put( "duration", durationSeconds );
             }};
             if (!java.util.Objects.equals(amount, null))
@@ -2222,7 +2222,7 @@ public class Bithumb extends BithumbApi
                 {
                     if (!java.util.Objects.equals(market, null))
                     {
-                        request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                        request.put("market", this.getGen2MarketId(market));
                     }
                     request.put("uuids", new ArrayList<Object>(Arrays.asList(id)));
                     response = (this.privateGetV1Twap(this.extend(request, paramsOmitted))).join();
@@ -2714,7 +2714,7 @@ public class Bithumb extends BithumbApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", this.getGen2MarketId((Map<String, Object>) (market)));
+                request.put("market", this.getGen2MarketId(market));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3146,7 +3146,7 @@ public class Bithumb extends BithumbApi
                 }
                 response = (this.privatePostTradeBtcWithdrawal(this.extend(request, paramsReceiverType))).join();
             }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3348,7 +3348,7 @@ public class Bithumb extends BithumbApi
             //         "txid": null
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -3485,7 +3485,7 @@ public class Bithumb extends BithumbApi
             //         "txid": null
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -3613,7 +3613,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3665,7 +3665,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }

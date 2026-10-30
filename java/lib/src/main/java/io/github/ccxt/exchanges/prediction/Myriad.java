@@ -469,13 +469,13 @@ public class Myriad extends MyriadApi
             if (((String)id).indexOf(":") < 0)
             {
                 Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (id), parameters)).join();
-                Map<String, Object> orderBookEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) (rawQuestion));
+                Map<String, Object> orderBookEvent = (Map<String, Object>) this.parseEvent(rawQuestion);
                 this.indexEventOutcomes(orderBookEvent);
                 return orderBookEvent;
             }
             Map<String, Object> response = (this.fetchRawMarketById((String) (id), parameters)).join();
-            Map<String, Object> market = this.parseMyriadMarket((Map<String, Object>) (response), (String) null);
-            Map<String, Object> eventVar = this.parseMarketToEvent((Map<String, Object>) (response), market);
+            Map<String, Object> market = this.parseMyriadMarket(response, (String) null);
+            Map<String, Object> eventVar = this.parseMarketToEvent(response, market);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -1098,7 +1098,7 @@ public class Myriad extends MyriadApi
                 put( "timeInForce", timeInForce );
             }});
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Object parsed = this.parsePredictionOrder((Map<String, Object>) (wrapper), outcomeObj);
+            Object parsed = this.parsePredictionOrder(wrapper, outcomeObj);
             // the POST /orders response is minimal (hash + status), so backfill the known request values
             // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
             String sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
@@ -1196,7 +1196,7 @@ public class Myriad extends MyriadApi
         order.put("minFillAmount", minFillAmount);
         order.put("nonce", nonce);
         order.put("expiration", expiration);
-        String signature = this.signClobOrder((Map<String, Object>) (order), (String) (networkId));
+        String signature = this.signClobOrder(order, (String) (networkId));
         return new HashMap<String, Object>() {{
             put( "order", order );
             put( "signature", signature );
@@ -1359,7 +1359,7 @@ public class Myriad extends MyriadApi
             {
                 (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
             }
-            return this.parseTradeTx((String) (txHash), (Map<String, Object>) (quote), (Map<String, Object>) (outcomeObj), (String) (sideStr));
+            return this.parseTradeTx((String) (txHash), quote, outcomeObj, (String) (sideStr));
         });
 
     }
@@ -1464,7 +1464,7 @@ public class Myriad extends MyriadApi
 }}));
         return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "Order", orderStruct );
-        }}, (Map<String, Object>) (message), (String) (networkId));
+        }}, message, (String) (networkId));
     }
 
     /**
@@ -1488,7 +1488,7 @@ public class Myriad extends MyriadApi
 }}));
         return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "CancelAll", cancelStruct );
-        }}, (Map<String, Object>) (message), (String) (networkId));
+        }}, message, (String) (networkId));
     }
 
     /**
@@ -1918,8 +1918,8 @@ public class Myriad extends MyriadApi
             {
                 networkId = this.safeString(this.options, "defaultNetworkId", "56");
             }
-            Map<String, Object> message = this.clobOrderMessage((Map<String, Object>) (rawOrder));
-            String signature = this.signClobOrder((Map<String, Object>) (message), (String) (networkId));
+            Map<String, Object> message = this.clobOrderMessage(rawOrder);
+            String signature = this.signClobOrder(message, (String) (networkId));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("hash", id);
             request.put("order", message);
@@ -1942,7 +1942,7 @@ public class Myriad extends MyriadApi
             {
                 market = (this.loadOutcome((String) (outcome), false)).join();
             }
-            return this.parsePredictionOrder((Map<String, Object>) (wrapper), market);
+            return this.parsePredictionOrder(wrapper, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1981,7 +1981,7 @@ public class Myriad extends MyriadApi
             message.put("trader", trader);
             message.put("marketId", marketId);
             message.put("timestamp", timestamp);
-            String signature = this.signCancelAll((Map<String, Object>) (message), (String) (networkId));
+            String signature = this.signCancelAll(message, (String) (networkId));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("trader", trader);
             request.put("market_id", this.parseToInt(marketId));
@@ -2064,8 +2064,8 @@ public class Myriad extends MyriadApi
                 {
                     networkId = fetchedNetworkId;
                 }
-                Map<String, Object> message = this.clobOrderMessage((Map<String, Object>) (rawOrder));
-                String signature = this.signClobOrder((Map<String, Object>) (message), (String) (networkId));
+                Map<String, Object> message = this.clobOrderMessage(rawOrder);
+                String signature = this.signClobOrder(message, (String) (networkId));
                 ((List<Object>)signedOrders).add(new HashMap<String, Object>() {{
                     put( "order", message );
                     put( "signature", signature );
@@ -2142,7 +2142,7 @@ public class Myriad extends MyriadApi
             {
                 market = (this.loadOutcome((String) (outcome), false)).join();
             }
-            return this.parsePredictionOrder((Map<String, Object>) (response), market);
+            return this.parsePredictionOrder(response, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2807,7 +2807,7 @@ public class Myriad extends MyriadApi
             //         "externalSources": []
             //     }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -3030,7 +3030,7 @@ public class Myriad extends MyriadApi
                 //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
                 //     }
                 //
-                return this.safePredictionOrderBook((Map<String, Object>) (this.parseWeiOrderBook((Map<String, Object>) (obResponse), (String) (this.safeOutcomeSymbol((String) (outcome), outcomeObj)))), outcomeObj);
+                return this.safePredictionOrderBook((Map<String, Object>) (this.parseWeiOrderBook(obResponse, (String) (this.safeOutcomeSymbol((String) (outcome), outcomeObj)))), outcomeObj);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", marketId );
@@ -3154,7 +3154,7 @@ public class Myriad extends MyriadApi
                 put( "datetime", null );
                 put( "nonce", null );
             }};
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -3894,19 +3894,19 @@ public class Myriad extends MyriadApi
         String channelType = this.safeString(parts, 0);
         if (java.util.Objects.equals(channelType, "orderbook"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (data));
+            this.handleOrderBook(client, data);
         } else if (java.util.Objects.equals(channelType, "trades"))
         {
-            this.handleTrades(client, (Map<String, Object>) (data));
+            this.handleTrades(client, data);
         } else if (java.util.Objects.equals(channelType, "prices"))
         {
-            this.handleTicker(client, (Map<String, Object>) (data));
+            this.handleTicker(client, data);
         } else if (java.util.Objects.equals(channelType, "orders"))
         {
-            this.handleOrder(client, (Map<String, Object>) (data));
+            this.handleOrder(client, data);
         } else if (java.util.Objects.equals(channelType, "positions"))
         {
-            this.handlePosition(client, (Map<String, Object>) (data));
+            this.handlePosition(client, data);
         }
     }
 

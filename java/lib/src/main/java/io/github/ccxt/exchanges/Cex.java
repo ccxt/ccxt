@@ -1028,7 +1028,7 @@ public class Cex extends CexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(data, "tradingFee", new HashMap<String, Object>() {{}});
-            return this.parseTradingFees((Map<String, Object>) (fees), true);
+            return this.parseTradingFees(fees, true);
         }).thenApply(TradingFees::new);
 
     }
@@ -1059,7 +1059,7 @@ public class Cex extends CexApi
             if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = this.market(symbol);
-                result.put(symbol, this.parseTradingFee((Map<String, Object>) (response), market));
+                result.put(symbol, this.parseTradingFee(response, market));
             }
         }
         return result;
@@ -1183,7 +1183,7 @@ public class Cex extends CexApi
                 //
                 accountBalance = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseBalance((Map<String, Object>) (accountBalance));
+            return this.parseBalance(accountBalance);
         }).thenApply(Balances::new);
 
     }
@@ -2133,7 +2133,7 @@ public class Cex extends CexApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), currency);
+            return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
     }

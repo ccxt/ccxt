@@ -2347,7 +2347,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), settleId);
+                    Map<String, Object> parsedMarket = this.parseContractMarket(contract, settleId);
                     if (!java.util.Objects.equals(parsedMarket, null))
                     {
                         ((List<Object>)result).add(parsedMarket);
@@ -2380,7 +2380,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), settleId);
+                    Map<String, Object> parsedMarket = this.parseContractMarket(contract, settleId);
                     if (!java.util.Objects.equals(parsedMarket, null))
                     {
                         ((List<Object>)result).add(parsedMarket);
@@ -2918,7 +2918,7 @@ public class Gate extends GateApi
                 throw new BadRequest((this.id + " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "getMarginMode", "unifiedAccount", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(paramsOmitted, "getMarginMode", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         if (Boolean.TRUE.equals(isUnifiedAccount))
@@ -3468,7 +3468,7 @@ public class Gate extends GateApi
             //        "futures_maker_fee": "0"
             //    }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee(response, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3505,7 +3505,7 @@ public class Gate extends GateApi
             //        "futures_maker_fee": "0"
             //    }
             //
-            return this.parseTradingFees((Map<String, Object>) (response));
+            return this.parseTradingFees(response);
         }).thenApply(TradingFees::new);
 
     }
@@ -3518,7 +3518,7 @@ public class Gate extends GateApi
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
-            result.put(symbol, this.parseTradingFee((Map<String, Object>) (response), market));
+            result.put(symbol, this.parseTradingFee(response, market));
         }
         return result;
     }
@@ -4304,7 +4304,7 @@ public class Gate extends GateApi
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             String symbol = this.safeString(parameters, "symbol");
             Map<String, Object> paramsOmitted = this.omit(parameters, "symbol");
-            Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchBalance", "unifiedAccount", false);
+            Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchBalance", "unifiedAccount", false);
             Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
             Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
             Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnifiedAccount, (String) null);
@@ -4581,8 +4581,8 @@ public class Gate extends GateApi
                     Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quote", new HashMap<String, Object>() {{}});
                     String baseCode = this.safeCurrencyCode(this.safeString(base, "currency"), (Map<String, Object>) null);
                     String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"), (Map<String, Object>) null);
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
+                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                 } else
                 {
                     String code = this.safeCurrencyCode(this.safeString(entry, "currency"), (Map<String, Object>) null);
@@ -5424,7 +5424,7 @@ public class Gate extends GateApi
                 request.put("from", start);
                 request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateWalletGetDeposits(this.extend(requestUntil, paramsUntil))).join();
@@ -5479,7 +5479,7 @@ public class Gate extends GateApi
                 request.put("from", start);
                 request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateWalletGetWithdrawals(this.extend(requestUntil, paramsUntil))).join();
@@ -5540,7 +5540,7 @@ public class Gate extends GateApi
             //        "memo": null
             //    }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -6020,7 +6020,7 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(isClose, true))
             {
                 signedAmount = this.getGateFuturesSignedAmount((String) (symbol), (String) (side), amount);
-                useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize((Map<String, Object>) (market));
+                useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!Boolean.TRUE.equals(useGateFuturesDecimalSize))
                 {
                     contractAmount = JsParse.parseInt(((String)signedAmount));
@@ -6338,7 +6338,7 @@ public class Gate extends GateApi
             } else
             {
                 Object signedAmount = this.getGateFuturesSignedAmount((String) (symbol), (String) (side), amount);
-                if (this.isGateFuturesContractWithDecimalSize((Map<String, Object>) (market)))
+                if (this.isGateFuturesContractWithDecimalSize(market))
                 {
                     request.put("size", signedAmount);
                 } else
@@ -8191,7 +8191,7 @@ public class Gate extends GateApi
             {
                 throw new NullResponse((this.id + " fetchPosition() returned empty response")) ;
             }
-            return this.parsePosition((Map<String, Object>) (response), market);
+            return this.parsePosition(response, market);
         }).thenApply(Position::new);
 
     }
@@ -8802,7 +8802,7 @@ public class Gate extends GateApi
             Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
             Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (paramsUnifiedAccount), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsUnifiedAccount), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> currency = null;
@@ -9578,7 +9578,7 @@ public class Gate extends GateApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (paramsSettle), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, paramsSettle, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (java.util.Objects.equals(type, "spot"))
@@ -9912,7 +9912,7 @@ public class Gate extends GateApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.publicFuturesGetSettleLiqOrders(this.extend(requestUntil, paramsUntil))).join();
@@ -10172,7 +10172,7 @@ public class Gate extends GateApi
                 String entryMarketId = this.safeString(entry, "name");
                 if (java.util.Objects.equals(entryMarketId, marketId))
                 {
-                    return this.parseGreeks((Map<String, Object>) (entry), market);
+                    return this.parseGreeks(entry, market);
                 }
             }
             throw new NullResponse(((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
@@ -10426,7 +10426,7 @@ public class Gate extends GateApi
             //         "bid1_price": "269.3"
             //     }
             //
-            return this.parseOption((Map<String, Object>) (response), (Map<String, Object>) null, market);
+            return this.parseOption(response, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }

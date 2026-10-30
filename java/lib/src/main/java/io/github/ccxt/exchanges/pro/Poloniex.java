@@ -1028,7 +1028,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
-                Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (item), (Map<String, Object>) null);
+                Map<String, Object> trade = this.parseWsTrade(item, (Map<String, Object>) null);
                 String symbol = this.safeString(trade, "symbol");
                 String type = "trades";
                 String messageHash = ((type + "::") + this.safeString(trade, "symbol", ""));
@@ -1241,18 +1241,18 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (java.util.Objects.equals(eventType, "place") || java.util.Objects.equals(eventType, "canceled"))
                 {
-                    Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+                    Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, (Map<String, Object>) null);
                     orders.append(parsed);
                 } else
                 {
                     Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
                     Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict2(previousOrders, orderId, clientOrderId, (Object) null);
-                    Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (order), (Map<String, Object>) null);
+                    Map<String, Object> trade = this.parseWsTrade(order, (Map<String, Object>) null);
                     this.handleMyTrades(client, trade);
                     if (java.util.Objects.equals(previousOrder, null))
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
-                        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+                        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order, (Map<String, Object>) null);
                         orders.append(parsedOrder);
                         marketIds.add(marketId);
                         continue;
@@ -1366,7 +1366,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (!Precise.stringEq(filledAmount, "0"))
         {
             trades = new ArrayList<Object>(Arrays.asList());
-            Object trade = this.parseWsOrderTrade((Map<String, Object>) (order), (Map<String, Object>) null);
+            Object trade = this.parseWsOrderTrade(order, (Map<String, Object>) null);
             ((List<Object>)trades).add(trade);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();

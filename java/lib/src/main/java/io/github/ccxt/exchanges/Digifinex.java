@@ -2507,7 +2507,7 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new OrderNotFound((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
                 }
-                List<Object> orders = (List<Object>) this.parseCancelOrders((Map<String, Object>) (response), new HashMap<String, Object>() {{}});
+                List<Object> orders = (List<Object>) this.parseCancelOrders(response, new HashMap<String, Object>() {{}});
                 Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
                 return canceled;
             } else
@@ -2611,7 +2611,7 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            return this.parseCancelOrders((Map<String, Object>) (response), new HashMap<String, Object>() {{}});
+            return this.parseCancelOrders(response, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2731,7 +2731,7 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            return this.parseCancelOrders((Map<String, Object>) (response), symbolsById);
+            return this.parseCancelOrders(response, symbolsById);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4049,7 +4049,7 @@ public class Digifinex extends DigifinexApi
             //         "withdraw_id": 700
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -4506,7 +4506,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -5442,7 +5442,7 @@ public class Digifinex extends DigifinexApi
                 status = "ok";
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("status", status); yield j39v5; } }));
+            return this.extend(this.parseMarginModification(data, market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("status", status); yield j39v5; } }));
         });
 
     }
@@ -5497,7 +5497,7 @@ public class Digifinex extends DigifinexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_timestamp", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> market = null;

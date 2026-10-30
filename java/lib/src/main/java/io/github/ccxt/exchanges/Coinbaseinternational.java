@@ -1131,7 +1131,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1238,7 +1238,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchFundingRateHistory", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -2161,7 +2161,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             //
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
@@ -3298,7 +3298,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOpenOrders", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -3386,7 +3386,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchMyTrades", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -3641,7 +3641,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (result), market);
+            return this.parseLeverage(result, market);
         }).thenApply(Leverage::new);
 
     }

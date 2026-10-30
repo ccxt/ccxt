@@ -401,7 +401,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "params", orderParams );
                 put( "req_id", requestId );
             }};
-            var requestValueparamsValueVariable = this.orderRequestWs("createOrderWs", (String) (symbol), type, (Map<String, Object>) (request), (Map<String, Object>) (orderParams), amount, price, parameters);
+            var requestValueparamsValueVariable = this.orderRequestWs("createOrderWs", (String) (symbol), type, request, orderParams, amount, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             return (this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash, null)).join();
@@ -477,7 +477,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "params", orderParams );
                 put( "req_id", requestId );
             }};
-            var requestValueparamsValueVariable = this.orderRequestWs("editOrderWs", (String) (symbol), type, (Map<String, Object>) (request), (Map<String, Object>) (orderParams), amount, price, parameters);
+            var requestValueparamsValueVariable = this.orderRequestWs("editOrderWs", (String) (symbol), type, request, orderParams, amount, price, parameters);
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             return (this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash, null)).join();
@@ -1603,7 +1603,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             for (var i = 0; i < ((List<?>)allTrades).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), (Map<String, Object>) null);
+                Map<String, Object> parsed = this.parseWsTrade(trade, (Map<String, Object>) null);
                 stored.append(parsed);
                 Object symbol = ((String)parsed.get("symbol"));
                 symbols.put((String)symbol, true);
@@ -1751,7 +1751,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i, new HashMap<String, Object>() {{}});
                 String id = this.safeString(order, "order_id");
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, (Map<String, Object>) null);
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol, (Object) null);
                 Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, id, (Object) null);
@@ -1759,7 +1759,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 if (!java.util.Objects.equals(previousOrder, null))
                 {
                     Map<String, Object> newRawOrder = this.extend(previousOrder.get("info"), parsed.get("info"));
-                    newOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (newRawOrder), (Map<String, Object>) null);
+                    newOrder = (Map<String, Object>) this.parseWsOrder(newRawOrder, (Map<String, Object>) null);
                 }
                 Object length = ((List<?>)stored).size();
                 if (java.util.Objects.equals(((Number) length).longValue(), limit) && (java.util.Objects.equals(previousOrder, null)))

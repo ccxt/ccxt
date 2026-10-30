@@ -1912,7 +1912,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                MarketInterface spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier));
+                MarketInterface spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), feeTier);
                 if (!java.util.Objects.equals(spotMarket, null))
                 {
                     ((List<Object>)result).add(spotMarket);
@@ -1921,7 +1921,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> futureData = (List<Object>) this.safeList(expiringFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)futureData).size(); i++)
             {
-                Object futureMarket = this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), (Map<String, Object>) (expiringFeeTier));
+                Object futureMarket = this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), expiringFeeTier);
                 if (!java.util.Objects.equals(futureMarket, null))
                 {
                     ((List<Object>)result).add(futureMarket);
@@ -1930,7 +1930,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> perpetualData = (List<Object>) this.safeList(perpetualFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)perpetualData).size(); i++)
             {
-                Object perpetualMarket = this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), (Map<String, Object>) (perpetualFeeTier));
+                Object perpetualMarket = this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), perpetualFeeTier);
                 if (!java.util.Objects.equals(perpetualMarket, null))
                 {
                     ((List<Object>)result).add(perpetualMarket);
@@ -3104,7 +3104,7 @@ public class Coinbase extends CoinbaseApi
             //
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("type", marketType);
-            return this.parseCustomBalance((Map<String, Object>) (response), this.extend(paramsMarketType, mapLiteral14));
+            return this.parseCustomBalance(response, this.extend(paramsMarketType, mapLiteral14));
         }).thenApply(Balances::new);
 
     }
@@ -4653,7 +4653,7 @@ public class Coinbase extends CoinbaseApi
                 request.put("end", Precise.stringAdd(sinceString, String.valueOf(requestedDuration)));
             }
             Map<String, Object> response = null;
-            Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "usePrivate", false);
+            Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);
             Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
             Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
             if (Boolean.TRUE.equals(usePrivate))
@@ -5098,7 +5098,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5353,7 +5353,7 @@ public class Coinbase extends CoinbaseApi
             //
             // https://github.com/ccxt/ccxt/issues/25484
             Map<String, Object> data = (Map<String, Object>) this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), (Map<String, Object>) null);
+            return this.parseTransaction(data, (Map<String, Object>) null);
         });
 
     }
@@ -5435,7 +5435,7 @@ public class Coinbase extends CoinbaseApi
             //
             // https://github.com/ccxt/ccxt/issues/25484
             Map<String, Object> data = (Map<String, Object>) this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), (Map<String, Object>) null);
+            return this.parseTransaction(data, (Map<String, Object>) null);
         });
 
     }
@@ -5523,7 +5523,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "payment_method", new HashMap<String, Object>() {{}});
-            return this.parseDepositMethodId((Map<String, Object>) (result));
+            return this.parseDepositMethodId(result);
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -5580,7 +5580,7 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data), (Map<String, Object>) null, (Map<String, Object>) null);
+            return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
         }).thenApply(Conversion::new);
 
     }
@@ -5613,7 +5613,7 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data), (Map<String, Object>) null, (Map<String, Object>) null);
+            return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
         }).thenApply(Conversion::new);
 
     }
@@ -5654,7 +5654,7 @@ public class Coinbase extends CoinbaseApi
             request.put("to_account", toCode);
             Map<String, Object> response = (this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
-            return this.parseConversion((Map<String, Object>) (data), (Map<String, Object>) null, (Map<String, Object>) null);
+            return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
         }).thenApply(Conversion::new);
 
     }
@@ -5853,7 +5853,7 @@ public class Coinbase extends CoinbaseApi
             }};
             Map<String, Object> response = (this.v3PrivateGetBrokerageCfmPositionsProductId(this.extend(request, parameters))).join();
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "position", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
@@ -6030,7 +6030,7 @@ public class Coinbase extends CoinbaseApi
                 put( "portfolio_uuid", portfolioUuid );
             }};
             Map<String, Object> response = (this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters))).join();
-            List<Object> result = (List<Object>) this.parsePortfolioDetails((Map<String, Object>) (response));
+            List<Object> result = (List<Object>) this.parsePortfolioDetails(response);
             return result;
         });
 

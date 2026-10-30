@@ -1598,7 +1598,7 @@ public class Foxbit extends FoxbitApi
             //         "code": "btc"
             //     }
             // }
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1938,7 +1938,7 @@ public class Foxbit extends FoxbitApi
             //     "destination_address": "0x1234567890123456789012345678",
             //     "destination_tag": "123456"
             // }
-            return this.parseTransaction((Map<String, Object>) (response), (Object) null, (Object) null, (Object) null);
+            return this.parseTransaction(response, (Object) null, (Object) null, (Object) null);
         }).thenApply(Transaction::new);
 
     }

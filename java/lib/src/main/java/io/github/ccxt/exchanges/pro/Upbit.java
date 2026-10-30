@@ -735,9 +735,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String tradeId = this.safeString(message, "trade_uuid");
         if (!java.util.Objects.equals(tradeId, null))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (message));
+            this.handleMyTrade(client, message);
         }
-        this.handleOrder(client, (Map<String, Object>) (message));
+        this.handleOrder(client, message);
     }
 
     public void handleMyTrade(Client client, Map<String, Object> message)
@@ -749,7 +749,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
         myTrades.append(trade);
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -758,7 +758,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (java.util.Objects.equals(this.orders, null))

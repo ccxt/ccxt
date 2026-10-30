@@ -1476,13 +1476,13 @@ public class Alpaca extends AlpacaApi
                 request.put("qty", this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
-            Pair<String, Map<String, Object>> defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCost), "createOrder", "timeInForce", (String) null);
+            Pair<String, Map<String, Object>> defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce", (String) null);
             String defaultTIF = defaultTIFparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = defaultTIFparamsTimeInForceVariable.second();
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.put("time_in_force", (((!java.util.Objects.equals(defaultTIF, null)))) ? ((String)defaultTIF).toLowerCase() : defaultTIF);
             Map<String, Object> paramsOmitted = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
-            request.put("client_order_id", this.generateClientOrderId((Map<String, Object>) (paramsOmitted)));
+            request.put("client_order_id", this.generateClientOrderId(paramsOmitted));
             Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
             //
             //   {
@@ -1814,7 +1814,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("limit_price", this.priceToPrecision(symbol, price));
             }
-            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTrigger), "editOrder", "timeInForce", "gtc");
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             if (!java.util.Objects.equals(timeInForce, null))
@@ -2001,7 +2001,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("page_size", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil))).join();
@@ -2123,7 +2123,7 @@ public class Alpaca extends AlpacaApi
             //         "created_at": "2024-11-03T07:30:05.609976344Z"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2207,7 +2207,7 @@ public class Alpaca extends AlpacaApi
             //         "fees": "0.1"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2604,7 +2604,7 @@ public class Alpaca extends AlpacaApi
                 put( "account", account );
                 put( "positions", positions );
             }};
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }

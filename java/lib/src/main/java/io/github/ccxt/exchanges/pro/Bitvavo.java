@@ -221,7 +221,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //         ]
         //     }
         //
-        this.handleBidAsk(client, (Map<String, Object>) (message));
+        this.handleBidAsk(client, message);
         String eventVar = this.safeString(message, "event");
         List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -471,7 +471,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbols", symbolsNormalized );
             }};
-            return (this.unWatchChannels("trades", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
+            return (this.unWatchChannels("trades", channels, subMessageHashes, subscriptionArgs, parameters)).join();
         });
 
     }
@@ -727,7 +727,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
-            return (this.unWatchChannels("ohlcv", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
+            return (this.unWatchChannels("ohlcv", channels, subMessageHashes, subscriptionArgs, parameters)).join();
         });
 
     }
@@ -880,7 +880,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbols", symbolsNormalized );
             }};
-            return (this.unWatchChannels("orderbook", channels, subMessageHashes, (Map<String, Object>) (subscriptionArgs), parameters)).join();
+            return (this.unWatchChannels("orderbook", channels, subMessageHashes, subscriptionArgs, parameters)).join();
         });
 
     }
@@ -970,7 +970,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+            this.handleOrderBookMessage(client, message, orderbook);
             client.resolve(orderbook, messageHash);
         }
     }
@@ -1299,7 +1299,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            return (this.watchRequest("privateCreateOrder", (Map<String, Object>) (request))).join();
+            return (this.watchRequest("privateCreateOrder", request)).join();
         }).thenApply(Order::new);
 
     }
@@ -1329,7 +1329,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            return (this.watchRequest("privateUpdateOrder", (Map<String, Object>) (request))).join();
+            return (this.watchRequest("privateUpdateOrder", request)).join();
         }).thenApply(Order::new);
 
     }
@@ -1355,7 +1355,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.cancelOrderRequest((String) (id), symbol, parameters);
-            return (this.watchRequest("privateCancelOrder", (Map<String, Object>) (request))).join();
+            return (this.watchRequest("privateCancelOrder", request)).join();
         }).thenApply(Order::new);
 
     }
@@ -1483,7 +1483,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.fetchOrdersRequest(symbol, since, limit, parameters);
-            List<Object> orders = (List<Object>) (this.watchRequest("privateGetOrders", (Map<String, Object>) (request))).join();
+            List<Object> orders = (List<Object>) (this.watchRequest("privateGetOrders", request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1571,7 +1571,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.fetchMyTradesRequest(symbol, since, limit, parameters);
-            List<Object> myTrades = (List<Object>) (this.watchRequest("privateGetTrades", (Map<String, Object>) (request))).join();
+            List<Object> myTrades = (List<Object>) (this.watchRequest("privateGetTrades", request)).join();
             return this.filterBySymbolSinceLimit(myTrades, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1635,7 +1635,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, (String) (address), tagWithdrawTag, paramsWithdrawTag);
-            return (this.watchRequest("privateWithdrawAssets", (Map<String, Object>) (request))).join();
+            return (this.watchRequest("privateWithdrawAssets", request)).join();
         }).thenApply(Transaction::new);
 
     }
@@ -1656,7 +1656,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", new HashMap<String, Object>() {{}});
-        Map<String, Object> withdraw = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+        Map<String, Object> withdraw = (Map<String, Object>) this.parseTransaction(response, (Map<String, Object>) null);
         client.resolve(withdraw, messageHash);
     }
 
@@ -1682,7 +1682,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.fetchWithdrawalsRequest(code, since, limit, parameters);
-            List<Object> withdraws = (List<Object>) (this.watchRequest("privateGetWithdrawalHistory", (Map<String, Object>) (request))).join();
+            List<Object> withdraws = (List<Object>) (this.watchRequest("privateGetWithdrawalHistory", request)).join();
             return this.filterByCurrencySinceLimit(withdraws, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1738,7 +1738,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             Map<String, Object> request = (Map<String, Object>) this.fetchOHLCVRequest((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, parameters);
             String action = "getCandles";
-            List<Object> ohlcv = (List<Object>) (this.watchRequest(action, (Map<String, Object>) (request))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchRequest(action, request)).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1766,7 +1766,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = (Map<String, Object>) this.fetchDepositsRequest(code, since, limit, parameters);
-            List<Object> deposits = (List<Object>) (this.watchRequest("privateGetDepositHistory", (Map<String, Object>) (request))).join();
+            List<Object> deposits = (List<Object>) (this.watchRequest("privateGetDepositHistory", request)).join();
             return this.filterByCurrencySinceLimit(deposits, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

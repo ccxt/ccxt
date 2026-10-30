@@ -523,7 +523,7 @@ public class Btcturk extends BtcturkApi
             //       ]
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }

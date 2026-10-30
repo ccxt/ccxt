@@ -839,7 +839,7 @@ public class Luno extends LunoApi
             //         ]
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1855,7 +1855,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1905,7 +1905,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1980,7 +1980,7 @@ public class Luno extends LunoApi
         put( "fee", Luno.this.safeNumber(response, "fee", (Object) null) );
         put( "percentage", false );
     }});
-            return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
+            return this.assignDefaultDepositWithdrawFees(result, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }

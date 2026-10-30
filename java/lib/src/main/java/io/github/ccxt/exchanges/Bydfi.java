@@ -2429,7 +2429,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -2844,7 +2844,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }

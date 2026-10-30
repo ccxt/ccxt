@@ -509,8 +509,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleTradeUpdate(Client client, Map<String, Object> message)
     {
-        this.handleOrder(client, (Map<String, Object>) (message));
-        this.handleMyTrade(client, (Map<String, Object>) (message));
+        this.handleOrder(client, message);
+        this.handleMyTrade(client, message);
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
@@ -637,7 +637,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade((Map<String, Object>) (rawOrder), (Map<String, Object>) null);
+        Object trade = this.parseMyTrade(rawOrder, (Map<String, Object>) null);
         if (java.util.Objects.equals(trade, null))
         {
             return;

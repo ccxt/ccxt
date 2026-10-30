@@ -1055,7 +1055,7 @@ public class Derive extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "erc20" );
             }};
-            Object instruments = (this.getMarketsPaginated((Map<String, Object>) (request), parameters)).join();
+            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
             return this.parseMarkets(instruments);
         });
 
@@ -1070,7 +1070,7 @@ public class Derive extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "perp" );
             }};
-            Object instruments = (this.getMarketsPaginated((Map<String, Object>) (request), parameters)).join();
+            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
             return this.parseMarkets(instruments);
         });
 
@@ -1085,7 +1085,7 @@ public class Derive extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "option" );
             }};
-            Object instruments = (this.getMarketsPaginated((Map<String, Object>) (request), parameters)).join();
+            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
             return this.parseMarkets(instruments);
         });
 
@@ -1467,7 +1467,7 @@ public class Derive extends DeriveApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (result), market);
+            return this.parseGreeks(result, market);
         }).thenApply(Greeks::new);
 
     }
@@ -1528,7 +1528,7 @@ public class Derive extends DeriveApi
             Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             // the response sample is listed in fetchGreeks, both methods read the same endpoint
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (result), (Map<String, Object>) null, market);
+            return this.parseOption(result, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -2458,7 +2458,7 @@ public class Derive extends DeriveApi
             String amountString = this.numberToString(amount);
             Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (paramsMaxFee));
+            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", paramsMaxFee);
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
@@ -2952,7 +2952,7 @@ public class Derive extends DeriveApi
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchCanceledAndClosedOrders", (Map<String, Object>) (paramsOmitted));
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchCanceledAndClosedOrders", paramsOmitted);
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3112,7 +3112,7 @@ public class Derive extends DeriveApi
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOpenOrders", (Map<String, Object>) (paramsOmitted));
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOpenOrders", paramsOmitted);
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4283,7 +4283,7 @@ public class Derive extends DeriveApi
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             String TRANSFER_MODULE_ADDRESS = "0x01259207A40925b794C8ac320456F7F6c8FE2636"; // shared across mainnet and testnet in v3
             Object transferModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("uint", "uint", "address", "uint", "uint", "uint")), new ArrayList<Object>(Arrays.asList(toId, newSubaccountManager, assetAddress, 0, this.convertToBigInt(this.parseUnits(amountString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000"))))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", (Map<String, Object>) (paramsOmitted));
+            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", paramsOmitted);
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, fromId, this.convertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
@@ -4670,7 +4670,7 @@ public class Derive extends DeriveApi
             // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
             Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, paramsDeriveWalletAddress))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (result), currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(result, currency);
             transaction.put("type", "withdrawal");
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);

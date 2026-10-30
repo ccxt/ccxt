@@ -634,7 +634,7 @@ public class Coinmate extends CoinmateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostBalances(parameters)).join();
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1031,7 +1031,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (data), currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(data, currency);
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {

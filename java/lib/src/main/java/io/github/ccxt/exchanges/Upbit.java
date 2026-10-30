@@ -2003,7 +2003,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -2109,7 +2109,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -2483,7 +2483,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
@@ -2554,7 +2554,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
@@ -2767,7 +2767,7 @@ public class Upbit extends UpbitApi
             //        secondary_address: '167029435'
             //    }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2817,7 +2817,7 @@ public class Upbit extends UpbitApi
             {
                 throw new AddressPending((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }

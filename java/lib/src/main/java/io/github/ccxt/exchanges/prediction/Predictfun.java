@@ -1022,7 +1022,7 @@ public class Predictfun extends PredictfunApi
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), (Map<String, Object>) (rawTopic));
+            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), rawTopic);
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -1423,7 +1423,7 @@ public class Predictfun extends PredictfunApi
             if (Boolean.TRUE.equals(isYesOutcome))
             {
                 Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
-                return this.safePredictionOrderBook((Map<String, Object>) (yesOrderbook), outcomeObj);
+                return this.safePredictionOrderBook(yesOrderbook, outcomeObj);
             } else
             {
                 List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -1453,7 +1453,7 @@ public class Predictfun extends PredictfunApi
                     put( "datetime", Predictfun.this.iso8601(timestamp) );
                     put( "nonce", null );
                 }};
-                return this.safePredictionOrderBook((Map<String, Object>) (noOrderbook), outcomeObj);
+                return this.safePredictionOrderBook(noOrderbook, outcomeObj);
             }
         }).thenApply(PredictionOrderBook::new);
 
@@ -1514,7 +1514,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker((Map<String, Object>) (data), outcomeObj);
+            return this.parsePredictionTicker(data, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -2248,7 +2248,7 @@ public class Predictfun extends PredictfunApi
             contractOrder.put("feeRateBps", feeRateBps);
             contractOrder.put("side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1);
             contractOrder.put("signatureType", 0);
-            Map<String, Object> signed = this.signPredictfunOrder((Map<String, Object>) (contractOrder), isNegRisk, isYieldBearing);
+            Map<String, Object> signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
             Map<String, Object> orderPayload = this.extend(contractOrder, new HashMap<String, Object>() {{
                 put( "hash", Predictfun.this.safeString(signed, "hash") );
                 put( "signature", Predictfun.this.safeString(signed, "signature") );
@@ -2701,7 +2701,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (data), outcomeObj);
+            return this.parsePredictionOrder(data, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -3984,14 +3984,14 @@ public class Predictfun extends PredictfunApi
         // orderCancelled - the latter arrives with the same envelope and no fill
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object order = this.parseWalletEventOrder((Map<String, Object>) (data));
+        Object order = this.parseWalletEventOrder(data);
         this.handleWalletEventOrder(client, order);
         // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
         // yet and a failed one never did, so neither belongs in myTrades
         String eventType = this.safeString(data, "type");
         if (java.util.Objects.equals(eventType, "orderTransactionSuccess"))
         {
-            this.handleWalletEventTrade(client, (Map<String, Object>) (data), order);
+            this.handleWalletEventTrade(client, data, order);
         }
     }
 
@@ -4141,7 +4141,7 @@ public class Predictfun extends PredictfunApi
         //     }
         //
         Map<String, Object> details = (Map<String, Object>) this.safeDict(eventVar, "details", new HashMap<String, Object>() {{}});
-        Object outcomeObj = this.walletEventOutcome((Map<String, Object>) (details));
+        Object outcomeObj = this.walletEventOutcome(details);
         String eventType = this.safeString(eventVar, "type");
         String amount = this.safeString(details, "quantity");
         String filled = this.safeString(details, "quantityFilled");
@@ -4283,7 +4283,7 @@ public class Predictfun extends PredictfunApi
     {
         // client.send () is a coroutine in the python port, so firing it from this synchronous
         // handler would drop it unsent and the venue would close the socket on its next probe
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     /**
@@ -4340,12 +4340,12 @@ public class Predictfun extends PredictfunApi
             Boolean success = (Boolean) this.safeBool(message, "success", false);
             if (!Boolean.TRUE.equals(success))
             {
-                this.handleSubscriptionError(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription));
+                this.handleSubscriptionError(client, (Map<String, Object>) (message), subscription);
                 return;
             }
             if (Boolean.TRUE.equals(this.safeBool(subscription, "unsubscribe", false)))
             {
-                this.handleUnSubscription(client, (Map<String, Object>) (subscription));
+                this.handleUnSubscription(client, subscription);
             }
             return;
         }

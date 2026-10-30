@@ -947,7 +947,7 @@ public class P2b extends P2bApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (result));
+            return this.parseBalance(result);
         }).thenApply(Balances::new);
 
     }

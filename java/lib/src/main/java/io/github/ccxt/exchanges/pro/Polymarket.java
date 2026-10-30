@@ -570,7 +570,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (row), market);
+            Map<String, Object> trade = this.parseWsTrade(row, market);
             trades.append(trade);
         }
         String messageHash = ("trade:" + symbol);
@@ -1223,7 +1223,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Map<String, Object> extended = this.extend(row, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }});
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (extended), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(extended, (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }

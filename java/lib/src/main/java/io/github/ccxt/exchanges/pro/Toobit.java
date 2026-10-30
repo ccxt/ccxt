@@ -710,7 +710,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Boolean isSnapshot = (Boolean) this.safeBool(message, "f", false);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "diffDepth");
+            this.setOrderBookSnapshot(client, message, "diffDepth");
             return;
         }
         String marketId = this.safeString(message, "symbol");
@@ -768,7 +768,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //         shared: false
         //     }
         //
-        this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "depth");
+        this.setOrderBookSnapshot(client, message, "depth");
     }
 
     public void setOrderBookSnapshot(Client client, Map<String, Object> message, String channel)
@@ -1043,7 +1043,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
@@ -1169,7 +1169,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+        Object trade = this.parseMyTrade(message, (Map<String, Object>) null);
         myTrades.append(trade);
         String messageHash = ("myTrades:" + this.safeString(trade, "symbol", ""));
         client.resolve(myTrades, messageHash);
@@ -1347,7 +1347,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
         // handleMessage's fallback dispatches one item at a time
-        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(message, (Map<String, Object>) null);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList(position));
         ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         // no local may be named `positions` in this method: build/transpile.ts

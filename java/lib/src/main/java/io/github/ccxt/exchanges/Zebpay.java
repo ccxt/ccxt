@@ -725,7 +725,7 @@ public class Zebpay extends ZebpayApi
                 List<Object> responseData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = (Map<String, Object>) this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTradingFee((Map<String, Object>) (data), market);
+            return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1302,7 +1302,7 @@ public class Zebpay extends ZebpayApi
             //         ]
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1348,7 +1348,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                response = (this.privateSpotPostV2ExOrders(this.spotOrderBody((String) (symbol), type, amount, (Map<String, Object>) (request), price, query))).join();
+                response = (this.privateSpotPostV2ExOrders(this.spotOrderBody((String) (symbol), type, amount, request, price, query))).join();
             } else
             {
                 String marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1823,7 +1823,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -1955,7 +1955,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "direction", "in" );
             }});
@@ -2003,7 +2003,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "direction", "out" );
             }});

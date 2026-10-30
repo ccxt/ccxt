@@ -659,7 +659,7 @@ public class Nado extends NadoApi
             order.put("appendix", appendix);
             Map<String, Object> contracts = (this.queryContracts(new HashMap<String, Object>() {{}})).join();
             String chainId = this.safeString(contracts, "chain_id");
-            String signature = this.signOrder((Map<String, Object>) (order), productId, chainId);
+            String signature = this.signOrder(order, productId, chainId);
             placeOrder.put("order", order);
             placeOrder.put("signature", signature);
             Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
@@ -813,8 +813,8 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " editOrder() requires endpoint_addr from contracts query")) ;
             }
-            String cancelSignature = this.signCancellation((Map<String, Object>) (cancelTx), chainId, endpointAddress);
-            String orderSignature = this.signOrder((Map<String, Object>) (order), productId, chainId);
+            String cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
+            String orderSignature = this.signOrder(order, productId, chainId);
             Map<String, Object> placeOrder = new HashMap<String, Object>() {{
                 put( "product_id", productId );
                 put( "order", order );
@@ -956,7 +956,7 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrders() requires endpoint_addr from contracts query")) ;
             }
-            String signature = this.signCancellationProducts((Map<String, Object>) (tx), chainId, endpointAddress);
+            String signature = this.signCancellationProducts(tx, chainId, endpointAddress);
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("id")));
             Map<String, Object> cancelProductOrders = new HashMap<String, Object>() {{
@@ -1069,7 +1069,7 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " cancelOrders() requires endpoint_addr from contracts query")) ;
             }
-            String signature = this.signCancellation((Map<String, Object>) (tx), chainId, endpointAddress);
+            String signature = this.signCancellation(tx, chainId, endpointAddress);
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             String requiredUnfilledAmountRaw = this.safeString(paramsRecvWindow, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(paramsRecvWindow, "requiredUnfilledAmount");
@@ -1204,7 +1204,7 @@ public class Nado extends NadoApi
             Map<String, Object> contracts = (this.queryContracts(new HashMap<String, Object>() {{}})).join();
             String chainId = this.safeString(contracts, "chain_id");
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
-            String signature = this.signFetchTriggerOrders((Map<String, Object>) (tx), chainId, endpointAddress);
+            String signature = this.signFetchTriggerOrders(tx, chainId, endpointAddress);
             request.put("signature", signature);
             Map<String, Object> response = (this.triggerPrivatePostQuery(this.extend(request, paramsRecvWindow))).join();
             //
@@ -1377,7 +1377,7 @@ public class Nado extends NadoApi
             {
                 ordersRequest.put("limit", Math.min(limit, 500));
             }
-            Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", ordersRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> ordersRequestUntil = ordersRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = ordersRequestUntilparamsUntilVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1510,7 +1510,7 @@ public class Nado extends NadoApi
             {
                 matchesRequest.put("limit", Math.min(limit, 500));
             }
-            Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", matchesRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> matchesRequestUntil = matchesRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = matchesRequestUntilparamsUntilVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1608,7 +1608,7 @@ public class Nado extends NadoApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBalance((Map<String, Object>) (data));
+            return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
@@ -1693,7 +1693,7 @@ public class Nado extends NadoApi
             {
                 eventsRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(currency.get("id")))));
             }
-            Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (paramsSubaccount), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", eventsRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
             Map<String, Object> eventsRequestUntil = eventsRequestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = eventsRequestUntilparamsUntilVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1753,7 +1753,7 @@ public class Nado extends NadoApi
                 Map<String, Object> transaction = this.extend(new HashMap<String, Object>() {{}}, tx);
                 transaction = this.extend(transaction, eventVar);
                 transaction.put("transaction_type", transactionType);
-                ((List<Object>)transactions).add(this.parseTransaction((Map<String, Object>) (transaction), currency));
+                ((List<Object>)transactions).add(this.parseTransaction(transaction, currency));
             }
             return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);
         });

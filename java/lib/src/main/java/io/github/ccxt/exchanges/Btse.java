@@ -2476,7 +2476,7 @@ public class Btse extends BtseApi
             Map<String, Object> market = this.market(symbol);
             String typeValue = ((String)type).toUpperCase();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "orderSide", ((String)((String)side)).toUpperCase() );
                 put( "orderSize", Btse.this.amountToPrecision(symbol, amount) );
             }};
@@ -2828,7 +2828,7 @@ public class Btse extends BtseApi
             {
                 // the futures amend requires an explicit amendType discriminator
                 // which can change the price and size together or a single field
-                request.put("symbol", this.futuresRequestId((Map<String, Object>) (market)));
+                request.put("symbol", this.futuresRequestId(market));
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
                     if ((!java.util.Objects.equals(amount, null)) || (!java.util.Objects.equals(price, null)))
@@ -2913,7 +2913,7 @@ public class Btse extends BtseApi
                 //         }
                 //     ]
                 //
-                request.put("symbol", this.futuresRequestId((Map<String, Object>) (market)));
+                request.put("symbol", this.futuresRequestId(market));
                 response = (this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, paramsOmitted))).join();
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
@@ -3799,7 +3799,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> paramsExtended = this.extend(new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }}, parameters);
             return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3940,7 +3940,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
             //
@@ -3994,7 +3994,7 @@ public class Btse extends BtseApi
                 positionMode = "HEDGE";
             }
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", this.futuresRequestId((Map<String, Object>) (market)));
+            request.put("symbol", this.futuresRequestId(market));
             request.put("positionMode", positionMode);
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
         });
@@ -4018,11 +4018,11 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4107,7 +4107,7 @@ public class Btse extends BtseApi
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "hedged");
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", this.futuresRequestId((Map<String, Object>) (market)));
+            request.put("symbol", this.futuresRequestId(market));
             request.put("positionMode", positionMode);
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, paramsOmitted))).join();
         });
@@ -4141,7 +4141,7 @@ public class Btse extends BtseApi
                 throw new ArgumentsRequired((this.id + " closePosition() requires a positionId parameter")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             Pair<String, Map<String, Object>> orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "closePosition", "type", "market");
             String orderType = orderTypeparamsOrderTypeVariable.first();
@@ -4182,7 +4182,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             //
@@ -4264,7 +4264,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Btse.this.futuresRequestId((Map<String, Object>) (market)) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "leverage", leverage );
             }};
             // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,

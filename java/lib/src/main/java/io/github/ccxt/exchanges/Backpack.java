@@ -1790,7 +1790,7 @@ public class Backpack extends BackpackApi
                     put( "stock", true );
                 }});
             }
-            Map<String, Object> request = this.stockDataRequest("fetchTickers", (Map<String, Object>) (requestParams), (Map<String, Object>) null);
+            Map<String, Object> request = this.stockDataRequest("fetchTickers", requestParams, (Map<String, Object>) null);
             Object response = (this.publicGetApiV1Tickers(request)).join();
             Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
             Map<String,Object> responseById = this.indexBy(response, "symbol");
@@ -1802,7 +1802,7 @@ public class Backpack extends BackpackApi
                     put( "stock", true );
                     put( "source", "External" );
                 }});
-                externalResponse = (this.publicGetApiV1Tickers(this.stockDataRequest("fetchTickers", (Map<String, Object>) (externalParams), (Map<String, Object>) null))).join();
+                externalResponse = (this.publicGetApiV1Tickers(this.stockDataRequest("fetchTickers", externalParams, (Map<String, Object>) null))).join();
                 externalResponseById = this.indexBy(externalResponse, "symbol");
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -2641,9 +2641,9 @@ public class Backpack extends BackpackApi
                         balances.put(assetId, (response == null || assetId == null ? null : response.get(assetId)));
                     }
                 }
-                return this.parseBalance((Map<String, Object>) (balances));
+                return this.parseBalance(balances);
             }
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -2821,7 +2821,7 @@ public class Backpack extends BackpackApi
             }
             request.put("blockchain", networkId);
             Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2995,7 +2995,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }

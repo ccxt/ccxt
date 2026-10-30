@@ -338,7 +338,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
         trades.append(parsed);
         client.resolve(trades, messageHash);
         if (!java.util.Objects.equals(messageHash, null))
@@ -526,7 +526,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             }} );
         }};
         // this.options = this.extend (defaultOptions, this.options);
-        this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+        this.extendExchangeOptions(defaultOptions);
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsInnerOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
         Object originalHeaders = wsInnerOptions.get("headers");

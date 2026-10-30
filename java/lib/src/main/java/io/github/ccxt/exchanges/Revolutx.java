@@ -1660,7 +1660,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseMyTrade((Map<String, Object>) (trade), market));
+                ((List<Object>)result).add(this.parseMyTrade(trade, market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

@@ -186,7 +186,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         this.balance.put("info", data);
         String currencyId = this.safeString(data, "currency");
         String currencyCode = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance((Map<String, Object>) (data));
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {
             this.balance.put(currencyCode, balance);
@@ -416,7 +416,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol");
         this.bidsasks.put(symbol, ticker);
         String messageHash = this.safeString(parameters, "channel");

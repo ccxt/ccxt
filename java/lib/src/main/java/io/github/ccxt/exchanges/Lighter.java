@@ -3528,7 +3528,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseTransaction(response, (Map<String, Object>) null);
         }).thenApply(Transaction::new);
 
     }
@@ -4201,7 +4201,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseMarginModification((Map<String, Object>) (response), market);
+            return this.parseMarginModification(response, market);
         }).thenApply(MarginModification::new);
 
     }

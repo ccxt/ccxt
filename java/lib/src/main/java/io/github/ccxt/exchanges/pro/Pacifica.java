@@ -249,7 +249,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, (Map<String, Object>) (market), parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, market, parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
@@ -263,7 +263,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
+            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             // {
@@ -348,7 +348,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
+            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
@@ -450,7 +450,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
+            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
@@ -531,7 +531,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
+            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //  {
@@ -1193,7 +1193,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+            Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
             trades.append(trade);
         }
         client.resolve(trades, messageHash);
@@ -1766,22 +1766,22 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String type = this.safeString(subscription, "source");
             if (java.util.Objects.equals(type, "book"))
             {
-                this.handleOrderBookUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleOrderBookUnsubscription(client, subscription);
             } else if (java.util.Objects.equals(type, "trades"))
             {
-                this.handleTradesUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleTradesUnsubscription(client, subscription);
             } else if (java.util.Objects.equals(type, "prices"))
             {
-                this.handleTickersUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleTickersUnsubscription(client, subscription);
             } else if (java.util.Objects.equals(type, "candle"))
             {
-                this.handleOHLCVUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleOHLCVUnsubscription(client, subscription);
             } else if (java.util.Objects.equals(type, "account_order_updates"))
             {
-                this.handleOrderUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleOrderUnsubscription(client, subscription);
             } else if (java.util.Objects.equals(type, "account_trades"))
             {
-                this.handleMyTradesUnsubscription(client, (Map<String, Object>) (subscription));
+                this.handleMyTradesUnsubscription(client, subscription);
             }
         }
     }

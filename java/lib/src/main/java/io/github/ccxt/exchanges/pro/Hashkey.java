@@ -142,7 +142,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            List<Object> ohlcv = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.wathPublic(market, topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -252,7 +252,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = this.safeString(market, "symbol", "");
             String topic = "realtimes";
             String messageHash = ("ticker:" + symbolValue);
-            return (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            return (this.wathPublic(market, topic, messageHash, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -320,7 +320,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = this.safeString(market, "symbol", "");
             String topic = "trade";
             String messageHash = ("trades:" + symbolValue);
-            List<Object> trades = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.wathPublic(market, topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -373,7 +373,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, (Object) null);
-                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+                Map<String, Object> parsed = this.parseWsTrade(trade, market);
                 stored.append(parsed);
             }
         }
@@ -404,7 +404,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = this.safeString(market, "symbol", "");
             String topic = "depth";
             String messageHash = ("orderbook:" + symbolValue);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.wathPublic(market, topic, messageHash, parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -538,7 +538,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(parsed);
         String messageHash = "orders";
@@ -663,7 +663,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(message, (Map<String, Object>) null);
         tradesArray.append(parsed);
         this.myTrades = tradesArray;
         String messageHash = "myTrades";
@@ -811,7 +811,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(message, (Map<String, Object>) null);
         positions.append(parsed);
         String messageHash = "positions";
         client.resolve(parsed, messageHash);

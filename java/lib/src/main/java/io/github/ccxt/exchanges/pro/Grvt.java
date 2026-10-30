@@ -452,7 +452,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
@@ -791,7 +791,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 mapLiteral2.put("headers", mapLiteral3);
                 mapLiteral1.put("options", mapLiteral2);
                 defaultOptions.put("ws", mapLiteral1);
-                this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+                this.extendExchangeOptions(defaultOptions);
                 this.client(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateTrading"));
             }
             return null;
@@ -892,7 +892,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseWsMyTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Object trade = this.parseWsMyTrade(data, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
         client.resolve(this.myTrades, ("myTrades::" + this.safeString(trade, "symbol", "")));
         client.resolve(this.myTrades, "myTrades");
@@ -1126,7 +1126,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) this.orders).append(order);
         client.resolve(this.orders, "orders");
         client.resolve(this.orders, ("order::" + this.safeString(order, "symbol", "")));

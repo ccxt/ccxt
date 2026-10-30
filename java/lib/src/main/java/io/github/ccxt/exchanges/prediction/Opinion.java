@@ -516,7 +516,7 @@ public class Opinion extends OpinionApi
                 }
                 Map<String, Object> singleResult = (Map<String, Object>) this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
                 Map<String, Object> singleData = (Map<String, Object>) this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
-                Map<String, Object> single = (Map<String, Object>) this.parseEvent((Map<String, Object>) (singleData));
+                Map<String, Object> single = (Map<String, Object>) this.parseEvent(singleData);
                 this.indexEventOutcomes(single);
                 return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), queries);
             }
@@ -611,7 +611,7 @@ public class Opinion extends OpinionApi
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (data));
+            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(data);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -793,7 +793,7 @@ public class Opinion extends OpinionApi
                 put( "price", priceResponse );
                 put( "book", bookResponse );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -907,7 +907,7 @@ public class Opinion extends OpinionApi
                     put( "price", priceResponse );
                     put( "book", bookResponse );
                 }};
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> ticker = this.parsePredictionTicker(response, ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -958,7 +958,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -1299,7 +1299,7 @@ public class Opinion extends OpinionApi
                 put( "side", sideInt );
                 put( "signatureType", signatureType );
             }};
-            String signature = this.signOpinionOrder((Map<String, Object>) (order), this.safeString(quoteToken, "ctfExchangeAddress", ""));
+            String signature = this.signOpinionOrder(order, this.safeString(quoteToken, "ctfExchangeAddress", ""));
             Object signatureNo0x = this.remove0xPrefix(signature);
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("salt", salt);
@@ -1329,7 +1329,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivatePostOrder(orderBody)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
+            return this.parsePredictionOrder(orderData, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1509,7 +1509,7 @@ public class Opinion extends OpinionApi
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
+            return this.parsePredictionOrder(orderData, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1643,7 +1643,7 @@ public class Opinion extends OpinionApi
             }})).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> market = this.parseOpinionMarket((Map<String, Object>) (data), (String) null);
+            Map<String, Object> market = this.parseOpinionMarket(data, (String) null);
             if (java.util.Objects.equals(market, null))
             {
                 throw new ExchangeError(((this.id + " loadTradeMarket() could not parse market ") + idStr)) ;
@@ -1723,7 +1723,7 @@ public class Opinion extends OpinionApi
                 Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
                 ((Map<String, Object>)rawBalance).put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1920,7 +1920,7 @@ public class Opinion extends OpinionApi
 
             Map<String, Object> response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.setApiCredentials((Map<String, Object>) (result));
+            return this.setApiCredentials(result);
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -1940,7 +1940,7 @@ public class Opinion extends OpinionApi
 
             Map<String, Object> response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.setApiCredentials((Map<String, Object>) (result));
+            return this.setApiCredentials(result);
         }).thenApply(res -> (Map<String, Object>) res);
 
     }

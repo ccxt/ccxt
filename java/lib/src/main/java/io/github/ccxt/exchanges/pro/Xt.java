@@ -1052,7 +1052,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
         cache.append(position);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1735,7 +1735,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "contract";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
             orders.append(parsed);
             client.resolve(orders, ("order::" + tradeType));
         }
@@ -1932,7 +1932,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (Boolean.TRUE.equals(unsubscribe))
             {
-                this.handleUnSubscription(client, (Map<String, Object>) (subscription));
+                this.handleUnSubscription(client, subscription);
             }
         }
         return message;

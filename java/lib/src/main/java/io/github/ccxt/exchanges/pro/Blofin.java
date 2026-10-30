@@ -425,7 +425,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //         ],
         //     }
         //
-        this.handleBidAsk(client, (Map<String, Object>) (message));
+        this.handleBidAsk(client, message);
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", (Object) null);
         String channelName = this.safeString(arg, "channel");
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
@@ -740,7 +740,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
         this.balance.put(marketType, this.safeDict(this.balance, marketType, new HashMap<String, Object>() {{}}));
-        Map<String, Object> parsed = this.parseWsBalance((Map<String, Object>) (message));
+        Map<String, Object> parsed = this.parseWsBalance(message);
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
         List<String> keys = new ArrayList<String>(parsed.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -759,7 +759,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public Map<String, Object> parseWsBalance(Map<String, Object> message)
     {
-        return (Map<String, Object>) (this.parseBalance((Map<String, Object>) (message)));
+        return (Map<String, Object>) (this.parseBalance(message));
     }
 
     /**
@@ -931,7 +931,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
-        return this.parsePosition((Map<String, Object>) (position), market);
+        return this.parsePosition(position, market);
     }
 
     /**

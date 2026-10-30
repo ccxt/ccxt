@@ -1251,8 +1251,8 @@ public class Bigone extends BigoneApi
     {
         Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", new HashMap<String, Object>() {{}});
         Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", new HashMap<String, Object>() {{}});
-        List<Object> bids = (List<Object>) this.parseContractBidsAsks((Map<String, Object>) (responseBids));
-        List<Object> asks = (List<Object>) this.parseContractBidsAsks((Map<String, Object>) (responseAsks));
+        List<Object> bids = (List<Object>) this.parseContractBidsAsks(responseBids);
+        List<Object> asks = (List<Object>) this.parseContractBidsAsks(responseAsks);
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Bigone.this.filterByLimit(Bigone.this.sortBy(bids, 0, true), limit, "timestamp", false) );
@@ -1429,7 +1429,7 @@ public class Bigone extends BigoneApi
         {
             result.put("fee", null);
         }
-        return this.safeTrade((Map<String, Object>) (result), marketResolved);
+        return this.safeTrade(result, marketResolved);
     }
 
     /**
@@ -2352,7 +2352,7 @@ public class Bigone extends BigoneApi
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;
             }
             Map<String,Object> chainsIndexedById = this.indexBy(data, "chain");
-            Object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, (Map<String, Object>) (chainsIndexedById), false);
+            Object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
             Map<String, Object> addressObject = (Map<String, Object>) this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");
             String tag = this.safeString(addressObject, "memo");
@@ -2744,7 +2744,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }

@@ -586,7 +586,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1368,7 +1368,7 @@ public class Indodax extends IndodaxApi
         put( "fee", 0 );
         put( "percentage", false );
     }});
-            return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
+            return this.assignDefaultDepositWithdrawFees(result, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -1548,7 +1548,7 @@ public class Indodax extends IndodaxApi
             //         "withdraw_memo": "123123"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }

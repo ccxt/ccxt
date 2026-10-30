@@ -2203,7 +2203,7 @@ public class Kucoin extends KucoinApi
             fetchTickersFees = fetchTickersFeesparamsRequestVariable.first();
             paramsRequest = fetchTickersFeesparamsRequestVariable.second();
             Boolean uta = false;
-            Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchMarkets", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchMarkets", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             if (Boolean.TRUE.equals(uta))
@@ -3869,7 +3869,7 @@ public class Kucoin extends KucoinApi
                 //
                 result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseSpotOrUtaTicker((Map<String, Object>) (result), market);
+            return this.parseSpotOrUtaTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -3907,7 +3907,7 @@ public class Kucoin extends KucoinApi
             {
                 response = (this.publicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseSpotOrUtaTicker((Map<String, Object>) (data), market);
+                return this.parseSpotOrUtaTicker(data, market);
             }
         }).thenApply(Ticker::new);
 
@@ -4296,7 +4296,7 @@ public class Kucoin extends KucoinApi
             //   }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), currency);
+            return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4370,7 +4370,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (data), currency);
+            return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -6927,7 +6927,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("startAt", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarginMode), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsMarginMode), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -8070,7 +8070,7 @@ public class Kucoin extends KucoinApi
             marketType = marketTypeparamsRequestVariable.first();
             paramsRequest = marketTypeparamsRequestVariable.second();
             Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchMyTrades", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchMyTrades", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             if (Boolean.TRUE.equals(uta))
@@ -8153,7 +8153,7 @@ public class Kucoin extends KucoinApi
             String method = this.safeString(this.options, "fetchMyTradesMethod");
             Boolean parseResponseData = false;
             Map<String, Object> response = null;
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
             request = requestparamsRequestVariable.first();
             paramsRequest = requestparamsRequestVariable.second();
             if (java.util.Objects.equals(hf, true))
@@ -8300,7 +8300,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", Math.min(1000, limit));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.futuresPrivateGetFills(this.extend(requestUntil, paramsUntil))).join();
@@ -8418,7 +8418,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsOmitted), 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.utaPrivateGetAccountModeOrderExecution(this.extend(request, paramsOmitted))).join();
@@ -9117,7 +9117,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (data), currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(data, currency);
             // the response only has the withdrawalId
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("type", "withdrawal");
@@ -9310,7 +9310,7 @@ public class Kucoin extends KucoinApi
                 return (this.fetchContractDeposits(code, since, limit, paramsRequest)).join();
             }
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchDeposits", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchDeposits", "paginate", false);
             paginate = paginateparamsRequestVariable.first();
             paramsRequest = paginateparamsRequestVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -9334,7 +9334,7 @@ public class Kucoin extends KucoinApi
                     request.put("pageSize", limit);
                 }
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
             request = requestparamsRequestVariable.first();
             paramsRequest = requestparamsRequestVariable.second();
             Map<String, Object> response = null;
@@ -9506,7 +9506,7 @@ public class Kucoin extends KucoinApi
             }
             Long maxLimit = 500L;
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchWithdrawals", "paginate", false);
             paginate = paginateparamsRequestVariable.first();
             paramsRequest = paginateparamsRequestVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -9530,7 +9530,7 @@ public class Kucoin extends KucoinApi
                     request.put("pageSize", limit);
                 }
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
             request = requestparamsRequestVariable.first();
             paramsRequest = requestparamsRequestVariable.second();
             Map<String, Object> response = null;
@@ -9856,11 +9856,11 @@ public class Kucoin extends KucoinApi
                     String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"), (Map<String, Object>) null);
                     if (!java.util.Objects.equals(baseCode, null))
                     {
-                        result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (base))));
+                        result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                     }
                     if (!java.util.Objects.equals(quoteCode, null))
                     {
-                        result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (quote))));
+                        result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                     }
                 }
             } else if (Boolean.TRUE.equals(cross))
@@ -10104,7 +10104,7 @@ public class Kucoin extends KucoinApi
                         String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(currencyCode, null))
                         {
-                            result = this.mergeBalanceAccount((Map<String, Object>) (result), currencyCode, (Map<String, Object>) (this.parseBalanceHelper((Map<String, Object>) (currencyEntry))));
+                            result = this.mergeBalanceAccount((Map<String, Object>) (result), currencyCode, (Map<String, Object>) (this.parseBalanceHelper(currencyEntry)));
                         }
                     }
                 }
@@ -10119,7 +10119,7 @@ public class Kucoin extends KucoinApi
                     String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        ((Map<String, Object>)result).put(currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
+                        ((Map<String, Object>)result).put(currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
             }
@@ -10790,7 +10790,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchLedger", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchLedger", "paginate", false);
             paginate = paginateparamsRequestVariable.first();
             paramsRequest = paginateparamsRequestVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -10809,7 +10809,7 @@ public class Kucoin extends KucoinApi
                 currency = this.currency((String) (code));
                 request.put("currency", currency.get("id"));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
             request = requestparamsRequestVariable.first();
             paramsRequest = requestparamsRequestVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -11247,7 +11247,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -11315,7 +11315,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -11491,7 +11491,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), currency);
+            return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11540,7 +11540,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), currency);
+            return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11583,7 +11583,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), currency);
+            return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11630,7 +11630,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), currency);
+            return this.parseMarginLoan(data, currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11742,7 +11742,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseLeverage((Map<String, Object>) (data), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseLeverage(data, market);
             HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
             mapLiteral16.put("marginMode", marginMode);
             return this.extend(parsed, mapLiteral16);
@@ -12314,7 +12314,7 @@ public class Kucoin extends KucoinApi
                 {
                     request.put("pageSize", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
                 request = requestparamsRequestVariable.first();
                 paramsRequest = requestparamsRequestVariable.second();
                 Map<String, Object> response = (this.utaPrivateGetPositionFundingHistory(this.extend(request, paramsRequest))).join();
@@ -12608,7 +12608,7 @@ public class Kucoin extends KucoinApi
                 {
                     request.put("pageSize", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsRequest), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.handleUntilOption("endAt", request, paramsRequest, 1);
                 request = requestparamsRequestVariable.first();
                 paramsRequest = requestparamsRequestVariable.second();
                 //
@@ -13002,7 +13002,7 @@ public class Kucoin extends KucoinApi
             if (Boolean.TRUE.equals(uta))
             {
                 String accountMode = "unified";
-                Pair<String, Map<String, Object>> accountModeparamsRequestVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRequest), "cancelOrders", "accountMode", accountMode);
+                Pair<String, Map<String, Object>> accountModeparamsRequestVariable = this.handleOptionStringAndParams(paramsRequest, "cancelOrders", "accountMode", accountMode);
                 accountMode = accountModeparamsRequestVariable.first();
                 paramsRequest = accountModeparamsRequestVariable.second();
                 request.put("accountMode", accountMode);
@@ -13131,7 +13131,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "direction", "in" );
             }});
@@ -13293,7 +13293,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -13355,7 +13355,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
+            return this.parseMarginMode(data, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
         });
 
     }
@@ -13816,7 +13816,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(requestUntil, paramsUntil))).join();
@@ -14065,7 +14065,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", 500);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsOmitted), 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.privateGetAccountsLedgers(this.extend(request, paramsOmitted))).join();

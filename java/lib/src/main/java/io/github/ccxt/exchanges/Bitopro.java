@@ -1473,7 +1473,7 @@ public class Bitopro extends BitoproApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseCancelOrders((Map<String, Object>) (data));
+            return this.parseCancelOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1518,7 +1518,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseCancelOrders((Map<String, Object>) (data));
+            return this.parseCancelOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2041,7 +2041,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (result), currency);
+            return this.parseTransaction(result, currency);
         });
 
     }
@@ -2113,7 +2113,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (result), currency);
+            return this.parseTransaction(result, currency);
         }).thenApply(Transaction::new);
 
     }

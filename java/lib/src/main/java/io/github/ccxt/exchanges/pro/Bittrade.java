@@ -599,7 +599,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
+            this.handleOrderBookMessage(client, message, orderbook);
             client.resolve(orderbook, messageHash);
         }
     }
@@ -620,7 +620,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         orderbook.put("nonce", null);
         orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         // watch the snapshot in a separate async call
-        this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -735,7 +735,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

@@ -1470,12 +1470,12 @@ public class Bitstamp extends BitstampApi
             if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
-                result.put(base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, (Map<String, Object>) (market)));
+                result.put(base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
             }
             if ((!java.util.Objects.equals(quote, null)) && !(result.containsKey(quote)))
             {
                 Long counterDecimals = this.safeInteger(market, "counter_decimals");
-                result.put(quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), (Map<String, Object>) (market)));
+                result.put(quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
         return result;
@@ -2171,7 +2171,7 @@ public class Bitstamp extends BitstampApi
             {
                 tradingFee = new HashMap<String, Object>() {{}};
             }
-            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
+            return this.parseTradingFee(tradingFee, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2769,7 +2769,7 @@ public class Bitstamp extends BitstampApi
             {
                 request.put("since_timestamp", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -2975,7 +2975,7 @@ public class Bitstamp extends BitstampApi
         //     }
         //
         Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
-        String currencyId = this.getCurrencyIdFromTransaction((Map<String, Object>) (transaction));
+        String currencyId = this.getCurrencyIdFromTransaction(transaction);
         String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
@@ -3252,7 +3252,7 @@ public class Bitstamp extends BitstampApi
             // try to deduce it from used keys
             if (java.util.Objects.equals(market, null))
             {
-                market = this.getMarketFromTrade((Map<String, Object>) (item));
+                market = this.getMarketFromTrade(item);
             }
             String direction = (((java.util.Objects.equals(this.safeString(parsedTrade, "side"), "buy")))) ? "in" : "out";
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -3274,7 +3274,7 @@ public class Bitstamp extends BitstampApi
             return this.safeLedgerEntry(mapLiteral4, currency);
         } else
         {
-            Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (item), currency);
+            Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction(item, currency);
             String direction = null;
             String transactionCurrency = this.safeString(parsedTransaction, "currency");
             Boolean hasTransactionCurrency = !(item.containsKey("amount")) && (!java.util.Objects.equals(transactionCurrency, null));

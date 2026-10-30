@@ -125,7 +125,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         stored.append(trade);
         this.trades.put(symbol, stored);
         client.resolve(stored, messageHash);

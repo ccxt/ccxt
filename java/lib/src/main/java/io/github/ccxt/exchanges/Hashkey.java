@@ -2046,7 +2046,7 @@ public class Hashkey extends HashkeyApi
                 //     ]
                 //
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                return this.parseSwapBalance((Map<String, Object>) (balance));
+                return this.parseSwapBalance(balance);
             } else if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
                 Map<String, Object> response = (this.privateGetApiV1Account(this.extend(request, paramsMarketType))).join();
@@ -2066,7 +2066,7 @@ public class Hashkey extends HashkeyApi
                 //         "userId": "1732885739572845312"
                 //     }
                 //
-                return this.parseBalance((Map<String, Object>) (response));
+                return this.parseBalance(response);
             } else
             {
                 throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
@@ -2184,7 +2184,7 @@ public class Hashkey extends HashkeyApi
             //         "coinType": "ERC20_TOKEN"
             //     }
             //
-            Map<String, Object> depositAddress = (Map<String, Object>) this.parseDepositAddress((Map<String, Object>) (response), currency);
+            Map<String, Object> depositAddress = (Map<String, Object>) this.parseDepositAddress(response, currency);
             depositAddress.put("network", networkCode);
             return depositAddress;
         }).thenApply(DepositAddress::new);
@@ -2417,7 +2417,7 @@ public class Hashkey extends HashkeyApi
             //         "accountId": "1732885739589466115"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3607,7 +3607,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = null;
-            Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMethodName), methodNameOption, "accountId", (String) null);
+            Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId", (String) null);
             String accountId = accountIdparamsAccountIdVariable.first();
             Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (!java.util.Objects.equals(accountId, null))
@@ -3666,7 +3666,7 @@ public class Hashkey extends HashkeyApi
                 put( "symbol", market.get("id") );
             }};
             Boolean isTrigger = false;
-            Pair<Boolean, Map<String, Object>> isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMethodName), methodNameOption, "stop", "trigger", isTrigger);
+            Pair<Boolean, Map<String, Object>> isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger);
             Boolean isTriggerTrigger = isTriggerTriggerparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = isTriggerTriggerparamsTriggerVariable.second();
             if (java.util.Objects.equals(isTriggerTrigger, true))
@@ -4404,7 +4404,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             Map<String, Object> leverage = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (leverage), market);
+            return this.parseLeverage(leverage, market);
         }).thenApply(Leverage::new);
 
     }
@@ -4458,7 +4458,7 @@ public class Hashkey extends HashkeyApi
             //         "leverage": "3"
             //     }
             //
-            return this.parseLeverage((Map<String, Object>) (response), market);
+            return this.parseLeverage(response, market);
         });
 
     }
@@ -4590,7 +4590,7 @@ public class Hashkey extends HashkeyApi
             //         "timestamp": "1726869763318"
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("type", type);
                 j39v1.put("amount", amount);
                 yield j39v1; } }));
@@ -4834,7 +4834,7 @@ public class Hashkey extends HashkeyApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsedFee = this.parseTradingFee((Map<String, Object>) (fee), (Map<String, Object>) null);
+                Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
                 result.put((String)((String)parsedFee.get("symbol")), parsedFee);
             }
             return result;

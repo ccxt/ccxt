@@ -234,7 +234,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         ]
         //     }
         //
-        this.handleTradesInner(client, (Map<String, Object>) (message));
+        this.handleTradesInner(client, message);
     }
 
     public Object parseWsOldTrade(Object trade, Map<String, Object> market)
@@ -283,7 +283,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         ]
         //     }
         //
-        this.handleTradesInner(client, (Map<String, Object>) (message));
+        this.handleTradesInner(client, message);
     }
 
     public void handleTradesInner(Client client, Map<String, Object> message)
@@ -665,8 +665,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             return;
         }
-        this.handleOrderUpdate(client, (Map<String, Object>) (message));
-        this.handleMyTrades(client, (Map<String, Object>) (message));
+        this.handleOrderUpdate(client, message);
+        this.handleMyTrades(client, message);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -720,7 +720,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         stored.append(trade);
         String tradeSymbol = this.safeString(trade, "symbol", "");
         String messageHash = ("myTrades:" + tradeSymbol);
@@ -796,7 +796,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             mapLiteral3.put("rate", null);
             parsedTrade.put("fee", mapLiteral3);
         }
-        return this.safeTrade((Map<String, Object>) (parsedTrade), market);
+        return this.safeTrade(parsedTrade, market);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -900,7 +900,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object order = this.safeValue(ordersBySymbol, orderId);
         if (java.util.Objects.equals(order, null))
         {
-            order = this.parseWsOrderUpdate((Map<String, Object>) (data), market);
+            order = this.parseWsOrderUpdate(data, market);
         }
         Helpers.addElementToObject(order, "remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
@@ -1048,9 +1048,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         parsedOrder.put("trades", null);
         if (Boolean.TRUE.equals(isTransaction))
         {
-            parsedOrder.put("trades", this.parseWsTrade((Map<String, Object>) (order), marketResolved));
+            parsedOrder.put("trades", this.parseWsTrade(order, marketResolved));
         }
-        return this.safeOrder((Map<String, Object>) (parsedOrder), marketResolved);
+        return this.safeOrder(parsedOrder, marketResolved);
     }
 
     public String fromPrecision(Object amount, Object scale)

@@ -783,7 +783,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             // of the five feeds routed here, only the plain one carries bidPx/askPx —
             // mark-price and index frames lack them and must not overwrite the bid-ask cache
-            this.handleBidAsk(client, (Map<String, Object>) (message));
+            this.handleBidAsk(client, message);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
@@ -904,7 +904,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), market);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(ticker, market);
         String symbol = this.safeString(parsedTicker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1946,7 +1946,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         if (java.util.Objects.equals(channel, "bbo-tbt"))
         {
-            this.handleBidAsk(client, (Map<String, Object>) (message));
+            this.handleBidAsk(client, message);
         }
         return message;
     }
@@ -2017,7 +2017,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleBalanceAndPosition(Client client, Map<String, Object> message)
     {
-        this.handleMyLiquidation(client, (Map<String, Object>) (message));
+        this.handleMyLiquidation(client, message);
     }
 
     public void handleBalance(Client client, Map<String, Object> message)
@@ -2120,7 +2120,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Object balance = this.parseTradingBalance((Map<String, Object>) (message));
+        Object balance = this.parseTradingBalance(message);
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
@@ -2546,7 +2546,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //         ]
         //     }
         //
-        this.handleMyTrades(client, (Map<String, Object>) (message));
+        this.handleMyTrades(client, message);
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
         List<Object> orders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));

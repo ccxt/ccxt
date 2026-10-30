@@ -256,7 +256,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ticker";
             String methodName = "unWatchTicker";
-            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, dataType, topic, market, methodName, parameters)).join();
         });
 
     }
@@ -527,7 +527,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "trades";
             String methodName = "unWatchTrades";
-            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, (this.safeString(market, "id", "") + "@trade"), topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, (this.safeString(market, "id", "") + "@trade"), topic, market, methodName, parameters)).join();
         });
 
     }
@@ -750,7 +750,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "orderbook";
             String methodName = "unWatchOrderBook";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
         });
 
     }
@@ -1142,7 +1142,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String methodName = "unWatchOHLCV";
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m")))));
             parameters.put("symbolsAndTimeframes", symbolsAndTimeframes);
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
         });
 
     }
@@ -2300,7 +2300,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSubMessage))
         {
-            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
+            this.handleUnSubscription(client, subscription);
         }
         return message;
     }

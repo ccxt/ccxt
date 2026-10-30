@@ -1021,7 +1021,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                result.put(symbol, this.parseTradingFee((Map<String, Object>) (schedule), market, volume));
+                result.put(symbol, this.parseTradingFee(schedule, market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1226,7 +1226,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 {
                     request.put("count", limit);
                 }
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", request, (Map<String, Object>) (paramsMethod), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> response = (this.historyGetMarketSymbolExecutions(this.extend(requestUntil, paramsUntil))).join();
@@ -1294,7 +1294,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
             } else
             {
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("lastTime", request, (Map<String, Object>) (paramsMethod), 1);
                 Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
                 Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> response = (this.publicGetHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3392,7 +3392,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
                 throw new BadRequest(((this.id + " fetchBalance has no account for ") + type)) ;
             }
-            Map<String, Object> balance = (Map<String, Object>) this.parseBalance((Map<String, Object>) (account));
+            Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
             balance.put("info", response);
             Helpers.addElementToObject(balance, "timestamp", this.parse8601(datetime));
             Helpers.addElementToObject(balance, "datetime", datetime);
@@ -4366,7 +4366,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }

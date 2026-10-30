@@ -279,7 +279,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (java.util.Objects.equals(asks, null))
         {
-            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), symbol);
+            Boolean inSequence = this.isOrderBookDeltaInSequence(client, message, symbol);
             if (!Boolean.TRUE.equals(inSequence))
             {
                 return;
@@ -287,7 +287,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         if (!java.util.Objects.equals(asks, null))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
+            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook(message, (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             orderbook.reset(snapshot);
         } else
         {

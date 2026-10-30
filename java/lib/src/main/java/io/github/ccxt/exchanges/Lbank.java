@@ -2002,7 +2002,7 @@ public class Lbank extends LbankApi
                     request.put("type", ((side + "_") + "market"));
                     String quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.first();
                     paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.second();
                     Double cost = this.safeNumber(paramsRequest, "cost", (Object) null);

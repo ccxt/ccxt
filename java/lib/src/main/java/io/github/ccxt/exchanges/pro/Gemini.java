@@ -213,7 +213,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         "side": "buy"
         //     }
         //
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
         String symbol = (String) trade.get("symbol");
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -792,8 +792,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         ]
         //     }
         //
-        this.handleOrderBook(client, (Map<String, Object>) (message));
-        this.handleTrades(client, (Map<String, Object>) (message));
+        this.handleOrderBook(client, message);
+        this.handleTrades(client, message);
     }
 
     /**
@@ -1159,7 +1159,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 }} );
             }};
             // this.options = this.extend (defaultOptions, this.options);
-            this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
+            this.extendExchangeOptions(defaultOptions);
             Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             Map<String, Object> wsSubOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
             Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(wsSubOptions, "headers", new HashMap<String, Object>() {{}});

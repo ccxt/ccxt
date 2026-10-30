@@ -870,7 +870,7 @@ public class Bitso extends BitsoApi
             //       },
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
@@ -1757,7 +1757,7 @@ public class Bitso extends BitsoApi
             //
             List<Object> transactions = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(transactions, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (first), (Map<String, Object>) null);
+            return this.parseTransaction(first, (Map<String, Object>) null);
         });
 
     }

@@ -133,7 +133,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                String marketIdRequest = this.getGen2MarketId(market);
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
@@ -195,7 +195,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Object streamMarketId = null;
                 if (Boolean.TRUE.equals(isGenerationTwo))
                 {
-                    streamMarketId = this.getGen2MarketId((Map<String, Object>) (market));
+                    streamMarketId = this.getGen2MarketId(market);
                 } else
                 {
                     streamMarketId = ((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""));
@@ -473,7 +473,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                String marketIdRequest = this.getGen2MarketId(market);
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
@@ -674,7 +674,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                String marketIdRequest = this.getGen2MarketId(market);
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
@@ -1116,7 +1116,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myOrder";
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         // const orderId = this.safeString (parsed, 'id');
         if (java.util.Objects.equals(this.orders, null))
         {

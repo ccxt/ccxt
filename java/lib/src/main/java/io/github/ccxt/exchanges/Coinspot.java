@@ -694,7 +694,7 @@ public class Coinspot extends CoinspotApi
             //         ]
             //     }
             //
-            return this.parseBalance((Map<String, Object>) (response));
+            return this.parseBalance(response);
         }).thenApply(Balances::new);
 
     }
