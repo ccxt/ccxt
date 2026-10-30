@@ -2022,6 +2022,8 @@ const VENUE_RETURN_KINDS = {
     // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
     // prints Map<String, Object>, so the venue declarations and their callers must say so too
     'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hx11 w9 M490: nado `parseWsTimestamp (…): Int` returns parseToInt/safeInteger only
+    'parseWsTimestamp': [ 'Long' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2118,6 +2120,9 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     if (enclosingFunction (node) !== method) {
         return undefined;
+    }
+    if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
+        return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
     }
     return '(' + javaType + ')';
 }
