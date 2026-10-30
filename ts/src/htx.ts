@@ -3663,7 +3663,7 @@ export default class htx extends Exchange {
                     const subCodes = Object.keys (subResult);
                     for (let j = 0; j < subCodes.length; j++) {
                         const subCode = subCodes[j];
-                        const subAccount = this.safeDict (subResult, subCode);
+                        const subAccount = this.safeDict (subResult, subCode, {});
                         result = this.mergeBalanceAccount (result, subCode, subAccount);
                     }
                 }
