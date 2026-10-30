@@ -149,7 +149,7 @@ export default class apex extends apexRest {
     handlePositions(client: Client, lists: any[]): void;
     authenticate(url: string, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         args: string[];
         op: string;

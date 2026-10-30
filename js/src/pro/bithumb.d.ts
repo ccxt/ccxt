@@ -108,5 +108,6 @@ export default class bithumb extends bithumbRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
 }

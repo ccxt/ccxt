@@ -1404,6 +1404,24 @@ export class BaseExchange {
         return new CountedOrderBook(snapshot, depth);
     }
     handleMessage(client, message) { } // stub to override
+    handleTextMessage(client, message) { } // stub to override
+    handleListMessage(client, message) { } // stub to override
+    handleBinaryMessage(client, message) { } // stub to override
+    routeMessage(client, message) {
+        // the transport hands over a parsed frame: a json object, a json array, a text frame or raw bytes
+        if (typeof message === 'string') {
+            this.handleTextMessage(client, message);
+        }
+        else if (Array.isArray(message)) {
+            this.handleListMessage(client, message);
+        }
+        else if (message instanceof Uint8Array) {
+            this.handleBinaryMessage(client, message);
+        }
+        else {
+            this.handleMessage(client, message);
+        }
+    }
     // ping (client: Client) {} // stub to override
     ping(client) {
         return undefined;
@@ -1416,7 +1434,7 @@ export class BaseExchange {
             this.clients = {};
         }
         if (this.clients[url] === undefined) {
-            const onMessage = this.handleMessage.bind(this);
+            const onMessage = this.routeMessage.bind(this);
             const onError = this.onError.bind(this);
             const onClose = this.onClose.bind(this);
             const onConnected = this.onConnected.bind(this);

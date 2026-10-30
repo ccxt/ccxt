@@ -1,5 +1,5 @@
 import geminiRest from '../gemini.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
+import type { List, Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
     describe(): Dict;
@@ -101,6 +101,7 @@ export default class gemini extends geminiRest {
     parseWsOrderStatus(status: Str): Str;
     parseWsOrderType(type: Str): Str;
     handleError(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<void>;
 }

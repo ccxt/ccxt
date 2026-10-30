@@ -1509,15 +1509,18 @@ class paradex extends paradex$1["default"] {
         }
         return false;
     }
-    handleMessage(client, message) {
-        let parsedMessage = message;
-        if (this.isBinaryMessage(message)) {
-            parsedMessage = this.parseSbeMessage(message);
-            if (parsedMessage === undefined) {
-                return;
-            }
+    handleBinaryMessage(client, message) {
+        const parsedMessage = this.parseSbeMessage(message);
+        if (parsedMessage === undefined) {
+            return;
         }
-        if (this.handleErrorMessage(client, parsedMessage) !== true) {
+        this.handleStreamMessage(client, parsedMessage);
+    }
+    handleMessage(client, message) {
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //
@@ -1548,12 +1551,12 @@ class paradex extends paradex$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(parsedMessage, 'result');
+        const result = this.safeDict(message, 'result');
         if (result !== undefined) {
-            this.handleRequestReply(client, parsedMessage);
+            this.handleRequestReply(client, message);
             return;
         }
-        const data = this.safeDict(parsedMessage, 'params');
+        const data = this.safeDict(message, 'params');
         if (data !== undefined) {
             const channel = this.safeString(data, 'channel');
             const parts = channel.split('.');
@@ -1570,7 +1573,7 @@ class paradex extends paradex$1["default"] {
             };
             const method = this.safeValue(methods, name);
             if (method !== undefined) {
-                method.call(this, client, parsedMessage);
+                method.call(this, client, message);
             }
         }
     }

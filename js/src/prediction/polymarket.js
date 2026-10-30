@@ -2970,38 +2970,42 @@ export default class polymarket extends Exchange {
         // keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING';
     }
-    handleMessage(client, message) {
+    handleTextMessage(client, message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if (typeof message === 'string') {
-            client.lastPong = this.milliseconds();
-            return;
-        }
-        const events = Array.isArray(message) ? message : [message];
-        for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+        client.lastPong = this.milliseconds();
+    }
+    handleMessage(client, message) {
+        this.handleMessageEvent(client, message);
+    }
+    handleListMessage(client, message) {
+        for (let i = 0; i < message.length; i++) {
+            const event = message[i];
             if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
-            const eventType = this.safeString(event, 'event_type');
-            if (eventType === 'book') {
-                this.handleOrderBookSnapshot(client, event);
-            }
-            else if (eventType === 'price_change') {
-                this.handleOrderBookDelta(client, event);
-            }
-            else if (eventType === 'last_trade_price') {
-                this.handleTrade(client, event);
-            }
-            else if (eventType === 'order') {
-                this.handleOrder(client, event);
-            }
-            else if (eventType === 'trade') {
-                this.handleMyTrade(client, event);
-            }
-            // tick_size_change events are silently ignored for now
+            this.handleMessageEvent(client, event);
         }
+    }
+    handleMessageEvent(client, event) {
+        const eventType = this.safeString(event, 'event_type');
+        if (eventType === 'book') {
+            this.handleOrderBookSnapshot(client, event);
+        }
+        else if (eventType === 'price_change') {
+            this.handleOrderBookDelta(client, event);
+        }
+        else if (eventType === 'last_trade_price') {
+            this.handleTrade(client, event);
+        }
+        else if (eventType === 'order') {
+            this.handleOrder(client, event);
+        }
+        else if (eventType === 'trade') {
+            this.handleMyTrade(client, event);
+        }
+        // tick_size_change events are silently ignored for now
     }
     handleOrderBookSnapshot(client, event) {
         const tokenId = this.safeString(event, 'asset_id');

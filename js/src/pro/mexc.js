@@ -2214,19 +2214,17 @@ export default class mexc extends mexcRest {
         }
         return true;
     }
+    handleTextMessage(client, message) {
+        if (message === 'Invalid listen key') {
+            const error = new AuthenticationError(this.id + ' invalid listen key');
+            client.reject(error);
+        }
+    }
+    handleBinaryMessage(client, message) {
+        const decodedMessage = this.decodeProtoMsg(message);
+        this.handleProtobufMessage(client, decodedMessage);
+    }
     handleMessage(client, message) {
-        if (typeof message === 'string') {
-            if (message === 'Invalid listen key') {
-                const error = new AuthenticationError(this.id + ' invalid listen key');
-                client.reject(error);
-                return;
-            }
-        }
-        if (this.isBinaryMessage(message)) {
-            const decodedMessage = this.decodeProtoMsg(message);
-            this.handleProtobufMessage(client, decodedMessage);
-            return;
-        }
         if ('msg' in message) {
             this.handleSubscriptionStatus(client, message);
             return;

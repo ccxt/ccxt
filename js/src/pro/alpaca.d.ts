@@ -1,5 +1,5 @@
 import alpacaRest from '../alpaca.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool, Market } from '../base/types.js';
+import type { List, Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
     describe(): Dict;
@@ -88,7 +88,8 @@ export default class alpaca extends alpacaRest {
     handleConnected(client: Client, message: Dict): Dict;
     handleCryptoMessage(client: Client, message: Dict[]): void;
     handleTradingMessage(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleListMessage(client: Client, message: List): void;
     handleAuthenticate(client: Client, message: Dict): void;
     handleSubscription(client: Client, message: Dict): Dict;
 }

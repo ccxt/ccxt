@@ -64,5 +64,5 @@ export default class luno extends lunoRest {
      * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
      */
     isOrderBookDeltaInSequence(client: Client, message: Dict, symbol: string): boolean;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

@@ -3176,21 +3176,20 @@ export default class myriad extends Exchange {
         const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
         return await this.watch(url, messageHash, subscribeMsg, channel);
     }
+    handleTextMessage(client, message) {
+        const lines = message.split('\n');
+        const linesLength = lines.length;
+        for (let i = 0; i < linesLength; i++) {
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse(line);
+                this.handleCentrifugoFrame(client, parsed);
+            }
+        }
+    }
     handleMessage(client, message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split('\n');
-            const linesLength = lines.length;
-            for (let i = 0; i < linesLength; i++) {
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse(line);
-                    this.handleCentrifugoFrame(client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame(client, message);
     }
     handleCentrifugoFrame(client, msg) {

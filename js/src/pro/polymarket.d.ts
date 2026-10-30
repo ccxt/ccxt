@@ -193,7 +193,7 @@ export default class polymarket extends polymarketRest {
     loadBalanceSnapshot(client: Client, messageHash: string): Promise<void>;
     handlePortfolio(client: Client, message: Dict): void;
     handleAck(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         id: number;
         req: string;

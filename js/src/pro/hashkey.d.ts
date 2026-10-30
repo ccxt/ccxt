@@ -1,5 +1,5 @@
 import hashkeyRest from '../hashkey.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { List, Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hashkey extends hashkeyRest {
     describe(): Dict;
@@ -117,5 +117,7 @@ export default class hashkey extends hashkeyRest {
     handleBalance(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<Str>;
     keepAliveListenKey(listenKey: Str, params?: Dict): Promise<void>;
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleStreamMessage(client: Client, message: Dict): void;
 }

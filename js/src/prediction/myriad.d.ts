@@ -590,7 +590,8 @@ export default class myriad extends Exchange {
     connectCentrifugo(url: Str): Promise<any>;
     pong(client: Client, message?: NullableDict): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: Dict): Promise<any>;
-    handleMessage(client: any, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method

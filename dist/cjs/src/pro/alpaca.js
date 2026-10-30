@@ -704,11 +704,10 @@ class alpaca extends alpaca$1["default"] {
         }
     }
     handleMessage(client, message) {
-        if (Array.isArray(message)) {
-            this.handleCryptoMessage(client, message);
-            return;
-        }
         this.handleTradingMessage(client, message);
+    }
+    handleListMessage(client, message) {
+        this.handleCryptoMessage(client, message);
     }
     handleAuthenticate(client, message) {
         //

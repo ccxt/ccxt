@@ -177668,6 +177668,21 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return new _ws_OrderBook_js__rspack_import_4/* .CountedOrderBook */["if"](snapshot, depth);
     }
     handleMessage(client, message) {}
+    handleTextMessage(client, message) {}
+    handleListMessage(client, message) {}
+    handleBinaryMessage(client, message) {}
+    routeMessage(client, message) {
+        // the transport hands over a parsed frame: a json object, a json array, a text frame or raw bytes
+        if (typeof message === 'string') {
+            this.handleTextMessage(client, message);
+        } else if (Array.isArray(message)) {
+            this.handleListMessage(client, message);
+        } else if (message instanceof Uint8Array) {
+            this.handleBinaryMessage(client, message);
+        } else {
+            this.handleMessage(client, message);
+        }
+    }
     // ping (client: Client) {} // stub to override
     ping(client) {
         return undefined;
@@ -177680,7 +177695,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             this.clients = {};
         }
         if (this.clients[url] === undefined) {
-            const onMessage = this.handleMessage.bind(this);
+            const onMessage = this.routeMessage.bind(this);
             const onError = this.onError.bind(this);
             const onClose = this.onClose.bind(this);
             const onConnected = this.onConnected.bind(this);
@@ -353418,7 +353433,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
         return this.parseLedger(response, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
@@ -353630,7 +353645,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, this.omit(params, 'methodName'));
         const transferIn = this.filterBy(response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy(response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat(transferIn, transferOut);
@@ -353773,7 +353788,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'WITHDRAWAL');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -353797,7 +353812,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'DEPOSIT');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -353821,15 +353836,14 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const withdrawals = this.filterBy(response, 'type', 'WITHDRAWAL');
         const deposits = this.filterBy(response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat(withdrawals, deposits);
         return this.parseTransactions(rows, currency, since, limit);
     }
     async fetchTransactionsHelper(methodName, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const paramsOmitted = this.omit(params, 'methodName');
-        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, paramsOmitted);
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, params);
         const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, methodName, 'subAccountNumber', '0');
         const request = {
             'address': userAddress,
@@ -435416,7 +435430,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
             }, signedQuery)));
             const encoded = this.encode(auth);
             const uppercaseHash = this.hash(encoded, _noble_hashes_legacy_js__rspack_import_4/* .md5 */.Fx).toUpperCase();
-            let sign = undefined;
+            let sign = '';
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
@@ -457628,8 +457642,8 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash, privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();
         return '0x' + this.padHex(r, 64) + this.padHex(s, 64) + v;
     }
@@ -511095,21 +511109,20 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         };
         return await this.watch(url, messageHash, subscribeMsg, channel);
     }
+    handleTextMessage(client, message) {
+        const lines = message.split('\n');
+        const linesLength = lines.length;
+        for(let i = 0; i < linesLength; i++){
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse(line);
+                this.handleCentrifugoFrame(client, parsed);
+            }
+        }
+    }
     handleMessage(client, message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split('\n');
-            const linesLength = lines.length;
-            for(let i = 0; i < linesLength; i++){
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse(line);
-                    this.handleCentrifugoFrame(client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame(client, message);
     }
     handleCentrifugoFrame(client, msg) {
@@ -517600,36 +517613,38 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         // keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING';
     }
-    handleMessage(client, message) {
+    handleTextMessage(client, message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if (typeof message === 'string') {
-            client.lastPong = this.milliseconds();
-            return;
-        }
-        const events = Array.isArray(message) ? message : [
-            message
-        ];
-        for(let i = 0; i < events.length; i++){
-            const event = events[i];
+        client.lastPong = this.milliseconds();
+    }
+    handleMessage(client, message) {
+        this.handleMessageEvent(client, message);
+    }
+    handleListMessage(client, message) {
+        for(let i = 0; i < message.length; i++){
+            const event = message[i];
             if (event === undefined || event === null || typeof event !== 'object') {
                 continue;
             }
-            const eventType = this.safeString(event, 'event_type');
-            if (eventType === 'book') {
-                this.handleOrderBookSnapshot(client, event);
-            } else if (eventType === 'price_change') {
-                this.handleOrderBookDelta(client, event);
-            } else if (eventType === 'last_trade_price') {
-                this.handleTrade(client, event);
-            } else if (eventType === 'order') {
-                this.handleOrder(client, event);
-            } else if (eventType === 'trade') {
-                this.handleMyTrade(client, event);
-            }
-        // tick_size_change events are silently ignored for now
+            this.handleMessageEvent(client, event);
         }
+    }
+    handleMessageEvent(client, event) {
+        const eventType = this.safeString(event, 'event_type');
+        if (eventType === 'book') {
+            this.handleOrderBookSnapshot(client, event);
+        } else if (eventType === 'price_change') {
+            this.handleOrderBookDelta(client, event);
+        } else if (eventType === 'last_trade_price') {
+            this.handleTrade(client, event);
+        } else if (eventType === 'order') {
+            this.handleOrder(client, event);
+        } else if (eventType === 'trade') {
+            this.handleMyTrade(client, event);
+        }
+    // tick_size_change events are silently ignored for now
     }
     handleOrderBookSnapshot(client, event) {
         const tokenId = this.safeString(event, 'asset_id');
@@ -524455,21 +524470,20 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         };
         return await this.watch(url, messageHash, subscribeMsg, channel);
     }
+    handleTextMessage(client, message) {
+        const lines = message.split('\n');
+        const linesLength = lines.length;
+        for(let i = 0; i < linesLength; i++){
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse(line);
+                this.handleCentrifugoFrame(client, parsed);
+            }
+        }
+    }
     handleMessage(client, message) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split('\n');
-            const linesLength = lines.length;
-            for(let i = 0; i < linesLength; i++){
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse(line);
-                    this.handleCentrifugoFrame(client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame(client, message);
     }
     handleCentrifugoFrame(client, msg) {
@@ -525748,11 +525762,10 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
         }
     }
     handleMessage(client, message) {
-        if (Array.isArray(message)) {
-            this.handleCryptoMessage(client, message);
-            return;
-        }
         this.handleTradingMessage(client, message);
+    }
+    handleListMessage(client, message) {
+        this.handleCryptoMessage(client, message);
     }
     handleAuthenticate(client, message) {
         //
@@ -539028,14 +539041,13 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], type + ':balance');
     }
-    handleMessage(client, message) {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if (typeof message === 'string') {
-            if (message === 'Ping') {
-                this.spawn(this.pong, client, message);
-            }
-            return;
+    // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+    handleTextMessage(client, message) {
+        if (message === 'Ping') {
+            this.spawn(this.pong, client, message);
         }
+    }
+    handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
             return;
         }
@@ -540428,8 +540440,42 @@ class bitfinex extends _bitfinex_js__rspack_import_0/* ["default"] */.A {
             'trades': undefined
         }, marketResolved);
     }
-    handleMessage(client, message) {
+    handleListMessage(client, message) {
         const channelId = this.safeString(message, 0);
+        const heartbeat = this.safeString(message, 1);
+        if (heartbeat === 'hb') {
+            return; // skip heartbeats within subscription channels for now
+        }
+        const subscription = this.safeDict(client.subscriptions, channelId, {});
+        const channel = this.safeString(subscription, 'channel');
+        const name = this.safeString(message, 1);
+        const publicMethods = {
+            'book': this.handleOrderBook,
+            'cs': this.handleChecksum,
+            'candles': this.handleOHLCV,
+            'ticker': this.handleTicker,
+            'trades': this.handleTrades
+        };
+        const privateMethods = {
+            'os': this.handleOrders,
+            'ou': this.handleOrders,
+            'on': this.handleOrders,
+            'oc': this.handleOrders,
+            'wu': this.handleBalance,
+            'ws': this.handleBalance,
+            'tu': this.handleMyTrade
+        };
+        let method = undefined;
+        if (channelId === '0') {
+            method = this.safeValue(privateMethods, name);
+        } else {
+            method = this.safeValue2(publicMethods, name, channel);
+        }
+        if (method !== undefined) {
+            method.call(this, client, message, subscription);
+        }
+    }
+    handleMessage(client, message) {
         //
         //     [
         //         1231,
@@ -540455,52 +540501,17 @@ class bitfinex extends _bitfinex_js__rspack_import_0/* ["default"] */.A {
         //        }
         //    }
         //
-        if (Array.isArray(message)) {
-            const heartbeat = this.safeString(message, 1);
-            if (heartbeat === 'hb') {
-                return; // skip heartbeats within subscription channels for now
-            }
-            const subscription = this.safeDict(client.subscriptions, channelId, {});
-            const channel = this.safeString(subscription, 'channel');
-            const name = this.safeString(message, 1);
-            const publicMethods = {
-                'book': this.handleOrderBook,
-                'cs': this.handleChecksum,
-                'candles': this.handleOHLCV,
-                'ticker': this.handleTicker,
-                'trades': this.handleTrades
+        const event = this.safeString(message, 'event');
+        if (event !== undefined) {
+            const methods = {
+                'info': this.handleSystemStatus,
+                'subscribed': this.handleSubscriptionStatus,
+                'unsubscribed': this.handleUnsubscriptionStatus,
+                'auth': this.handleAuthenticationMessage
             };
-            const privateMethods = {
-                'os': this.handleOrders,
-                'ou': this.handleOrders,
-                'on': this.handleOrders,
-                'oc': this.handleOrders,
-                'wu': this.handleBalance,
-                'ws': this.handleBalance,
-                'tu': this.handleMyTrade
-            };
-            let method = undefined;
-            if (channelId === '0') {
-                method = this.safeValue(privateMethods, name);
-            } else {
-                method = this.safeValue2(publicMethods, name, channel);
-            }
+            const method = this.safeValue(methods, event);
             if (method !== undefined) {
-                method.call(this, client, message, subscription);
-            }
-        } else {
-            const event = this.safeString(message, 'event');
-            if (event !== undefined) {
-                const methods = {
-                    'info': this.handleSystemStatus,
-                    'subscribed': this.handleSubscriptionStatus,
-                    'unsubscribed': this.handleUnsubscriptionStatus,
-                    'auth': this.handleAuthenticationMessage
-                };
-                const method = this.safeValue(methods, event);
-                if (method !== undefined) {
-                    method.call(this, client, message);
-                }
+                method.call(this, client, message);
             }
         }
     }
@@ -543343,6 +543354,11 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             return true;
         }
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            this.handlePong(client, message);
+        }
+    }
     handleMessage(client, message) {
         //
         //   {
@@ -543424,12 +543440,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         if (this.handleErrorMessage(client, message) === true) {
             return;
         }
@@ -544771,19 +544781,15 @@ class bithumb extends _bithumb_js__rspack_import_0/* ["default"] */.A {
             'trades': undefined
         }, market);
     }
-    handleMessage(client, message) {
-        if (typeof message === 'string') {
-            const content = message.toLowerCase();
-            if (content === 'pong') {
-                this.handlePong(client, message);
-                return;
-            }
-            if (content === 'ping') {
-                this.handlePing(client, message);
-                return;
-            }
-            return;
+    handleTextMessage(client, message) {
+        const content = message.toLowerCase();
+        if (content === 'pong') {
+            this.handlePong(client, message);
+        } else if (content === 'ping') {
+            this.handlePing(client, message);
         }
+    }
+    handleMessage(client, message) {
         const status = this.safeString(message, 'status');
         if (status === 'UP') {
             this.handlePong(client, message);
@@ -551681,6 +551687,11 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             'args': args
         };
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            client.lastPong = this.milliseconds();
+        }
+    }
     handleMessage(client, message) {
         //
         // message examples
@@ -551709,29 +551720,24 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             'funding-rate': this.handleFundingRate
         };
         let method = undefined;
-        if (message === 'pong') {
-            client.lastPong = this.milliseconds();
+        const event = this.safeString(message, 'event');
+        if (event === 'subscribe') {
             return;
-        } else {
-            const event = this.safeString(message, 'event');
-            if (event === 'subscribe') {
-                return;
-            } else if (event === 'unsubscribe') {
-                this.handleUnsubscription(client, message);
-                return;
-            } else if (event === 'login') {
-                const future = this.safeValue(client.futures, 'authenticate_hash');
-                future.resolve(true);
-                return;
-            } else if (event === 'error') {
-                throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' error: ' + this.json(message));
-            }
-            const arg = this.safeDict(message, 'arg');
-            const channelName = this.safeString(arg, 'channel');
-            method = this.safeValue(methods, channelName);
-            if (method === undefined && channelName.indexOf('candle') >= 0) {
-                method = methods['candle'];
-            }
+        } else if (event === 'unsubscribe') {
+            this.handleUnsubscription(client, message);
+            return;
+        } else if (event === 'login') {
+            const future = this.safeValue(client.futures, 'authenticate_hash');
+            future.resolve(true);
+            return;
+        } else if (event === 'error') {
+            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' error: ' + this.json(message));
+        }
+        const arg = this.safeDict(message, 'arg');
+        const channelName = this.safeString(arg, 'channel');
+        method = this.safeValue(methods, channelName);
+        if (method === undefined && channelName.indexOf('candle') >= 0) {
+            method = methods['candle'];
         }
         if (method !== undefined) {
             method.call(this, client, message);
@@ -562644,7 +562650,7 @@ class coincheck extends _coincheck_js__rspack_import_0/* ["default"] */.A {
             'fee': undefined
         }, market);
     }
-    handleMessage(client, message) {
+    handleListMessage(client, message) {
         const data = this.safeList(message, 0);
         if (!Array.isArray(data)) {
             this.handleOrderBook(client, message);
@@ -565802,34 +565808,33 @@ class deepcoin extends _deepcoin_js__rspack_import_0/* ["default"] */.A {
         };
         return this.safeString(modes, marginMode, marginMode);
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            this.handlePong(client, message);
+        }
+    }
     handleMessage(client, message) {
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
-        } else {
-            const m = this.safeString(message, 'm');
-            if (m !== undefined && m !== 'Success') {
-                this.handleErrorMessage(client, message);
-            }
-            const action = this.safeString2(message, 'a', 'action');
-            if (action === 'RecvTopicAction') {
-                this.handleSubscriptionStatus(client, message);
-            } else if (action === 'PO') {
-                this.handleTicker(client, message);
-            } else if (action === 'PMT') {
-                this.handleTrades(client, message);
-            } else if (action === 'PK') {
-                this.handleOHLCV(client, message);
-            } else if (action === 'PMO') {
-                this.handleOrderBook(client, message);
-            } else if (action === 'PushTrade') {
-                this.handleMyTrade(client, message);
-            } else if (action === 'PushOrder') {
-                this.handleOrder(client, message);
-            } else if (action === 'PushPosition') {
-                this.handlePosition(client, message);
-            }
+        const m = this.safeString(message, 'm');
+        if (m !== undefined && m !== 'Success') {
+            this.handleErrorMessage(client, message);
+        }
+        const action = this.safeString2(message, 'a', 'action');
+        if (action === 'RecvTopicAction') {
+            this.handleSubscriptionStatus(client, message);
+        } else if (action === 'PO') {
+            this.handleTicker(client, message);
+        } else if (action === 'PMT') {
+            this.handleTrades(client, message);
+        } else if (action === 'PK') {
+            this.handleOHLCV(client, message);
+        } else if (action === 'PMO') {
+            this.handleOrderBook(client, message);
+        } else if (action === 'PushTrade') {
+            this.handleMyTrade(client, message);
+        } else if (action === 'PushOrder') {
+            this.handleOrder(client, message);
+        } else if (action === 'PushPosition') {
+            this.handlePosition(client, message);
         }
     }
     handleSubscriptionStatus(client, message) {
@@ -568137,7 +568142,7 @@ class derive extends _derive_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
-        const method = event === undefined ? undefined : this.safeValue(methods, event);
+        const method = this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
             return;
@@ -572975,6 +572980,9 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         //
         throw new _base_errors_js__rspack_import_1.ExchangeError(this.json(message));
     }
+    handleListMessage(client, message) {
+        this.handleOrder(client, message);
+    }
     handleMessage(client, message) {
         //
         //  public
@@ -573011,11 +573019,6 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     ]
         //
-        const isArray = Array.isArray(message);
-        if (isArray) {
-            this.handleOrder(client, message);
-            return;
-        }
         const reason = this.safeString(message, 'reason');
         if (reason === 'error') {
             this.handleError(client, message);
@@ -574979,28 +574982,30 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
             delete this.clients[url];
         }
     }
+    handleListMessage(client, message) {
+        this.handleStreamMessage(client, this.safeDict(message, 0, {}));
+    }
     handleMessage(client, message) {
-        let messageInner = message;
-        if (Array.isArray(message)) {
-            messageInner = this.safeDict(message, 0, {});
-        }
-        const topic = this.safeString2(messageInner, 'topic', 'e');
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
+        const topic = this.safeString2(message, 'topic', 'e');
         if (topic === 'kline') {
-            this.handleOHLCV(client, messageInner);
+            this.handleOHLCV(client, message);
         } else if (topic === 'realtimes') {
-            this.handleTicker(client, messageInner);
+            this.handleTicker(client, message);
         } else if (topic === 'trade') {
-            this.handleTrades(client, messageInner);
+            this.handleTrades(client, message);
         } else if (topic === 'depth') {
-            this.handleOrderBook(client, messageInner);
+            this.handleOrderBook(client, message);
         } else if (topic === 'contractExecutionReport' || topic === 'executionReport') {
-            this.handleOrder(client, messageInner);
+            this.handleOrder(client, message);
         } else if (topic === 'ticketInfo') {
-            this.handleMyTrade(client, messageInner);
+            this.handleMyTrade(client, message);
         } else if (topic === 'outboundContractPositionInfo') {
-            this.handlePosition(client, messageInner);
+            this.handlePosition(client, message);
         } else if (topic === 'outboundAccountInfo' || topic === 'outboundContractAccountInfo') {
-            this.handleBalance(client, messageInner);
+            this.handleBalance(client, message);
         }
     }
 }
@@ -576434,7 +576439,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
                 'spot_balance': this.handleBalance,
                 'futures_balance': this.handleBalance
             };
-            const method = channel === undefined ? undefined : this.safeValue(methods, channel);
+            const method = this.safeValue(methods, channel);
             if (method !== undefined) {
                 method.call(this, client, message);
             }
@@ -582521,7 +582526,7 @@ class independentreserve extends _independentreserve_js__rspack_import_0/* ["def
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook
         };
-        const handler = event === undefined ? undefined : this.safeValue(handlers, event);
+        const handler = this.safeValue(handlers, event);
         if (handler !== undefined) {
             handler.call(this, client, message);
             return;
@@ -592994,9 +592999,6 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         return true;
     }
     handleMessage(client, message) {
-        if (message === '') {
-            return;
-        }
         const subscriptions = Object.values(client.subscriptions);
         const subscriptionsLength = subscriptions.length;
         if (subscriptionsLength === 0) {
@@ -595241,19 +595243,17 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         }
         return true;
     }
+    handleTextMessage(client, message) {
+        if (message === 'Invalid listen key') {
+            const error = new _base_errors_js__rspack_import_1.AuthenticationError(this.id + ' invalid listen key');
+            client.reject(error);
+        }
+    }
+    handleBinaryMessage(client, message) {
+        const decodedMessage = this.decodeProtoMsg(message);
+        this.handleProtobufMessage(client, decodedMessage);
+    }
     handleMessage(client, message) {
-        if (typeof message === 'string') {
-            if (message === 'Invalid listen key') {
-                const error = new _base_errors_js__rspack_import_1.AuthenticationError(this.id + ' invalid listen key');
-                client.reject(error);
-                return;
-            }
-        }
-        if (this.isBinaryMessage(message)) {
-            const decodedMessage = this.decodeProtoMsg(message);
-            this.handleProtobufMessage(client, decodedMessage);
-            return;
-        }
         if ('msg' in message) {
             this.handleSubscriptionStatus(client, message);
             return;
@@ -599573,7 +599573,7 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
             'TickerDataUpdateEvent': this.handleOHLCV
         };
         const event = this.safeString(message, 'n');
-        const method = event === undefined ? undefined : this.safeValue(methods, event);
+        const method = this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }
@@ -602226,6 +602226,11 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
         return true;
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            this.handlePong(client, message);
+        }
+    }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message) !== true) {
             return;
@@ -602269,12 +602274,6 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         //
         //
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         const event = this.safeString2(message, 'event', 'op');
@@ -607563,15 +607562,18 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         }
         return false;
     }
-    handleMessage(client, message) {
-        let parsedMessage = message;
-        if (this.isBinaryMessage(message)) {
-            parsedMessage = this.parseSbeMessage(message);
-            if (parsedMessage === undefined) {
-                return;
-            }
+    handleBinaryMessage(client, message) {
+        const parsedMessage = this.parseSbeMessage(message);
+        if (parsedMessage === undefined) {
+            return;
         }
-        if (this.handleErrorMessage(client, parsedMessage) !== true) {
+        this.handleStreamMessage(client, parsedMessage);
+    }
+    handleMessage(client, message) {
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //
@@ -607602,12 +607604,12 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const result = this.safeDict(parsedMessage, 'result');
+        const result = this.safeDict(message, 'result');
         if (result !== undefined) {
-            this.handleRequestReply(client, parsedMessage);
+            this.handleRequestReply(client, message);
             return;
         }
-        const data = this.safeDict(parsedMessage, 'params');
+        const data = this.safeDict(message, 'params');
         if (data !== undefined) {
             const channel = this.safeString(data, 'channel');
             const parts = channel.split('.');
@@ -607624,7 +607626,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             };
             const method = this.safeValue(methods, name);
             if (method !== undefined) {
-                method.call(this, client, parsedMessage);
+                method.call(this, client, message);
             }
         }
     }
@@ -610701,7 +610703,7 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate
         };
-        const method = type === undefined ? undefined : this.safeValue(methods, type);
+        const method = this.safeValue(methods, type);
         if (type === 'auth') {
             this.handleAuthenticate(client, message);
         } else if (type === undefined) {
@@ -612151,6 +612153,30 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
             'ping': this.milliseconds()
         };
     }
+    handleListMessage(client, message) {
+        // private streams
+        const methods = {
+            'trade': this.handleTrades,
+            'kline': this.handleOHLCV,
+            'realtimes': this.handleTickers,
+            'depth': this.handleOrderBookPartialSnapshot,
+            'diffDepth': this.handleOrderBook,
+            'outboundAccountInfo': this.handleBalance,
+            'outboundContractAccountInfo': this.handleBalance,
+            'executionReport': this.handleOrder,
+            'contractExecutionReport': this.handleOrder,
+            'ticketInfo': this.handleMyTrade,
+            'outboundContractPositionInfo': this.handlePositions
+        };
+        for(let i = 0; i < message.length; i++){
+            const item = message[i];
+            const event = this.safeString(item, 'e');
+            const method = this.safeValue(methods, event);
+            if (method !== undefined) {
+                method.call(this, client, item);
+            }
+        }
+    }
     handleMessage(client, message) {
         //
         // public
@@ -612215,19 +612241,9 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions
         };
-        const method = topic === undefined ? undefined : this.safeValue(methods, topic);
+        const method = this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
-        } else {
-            // check private streams
-            for(let i = 0; i < message.length; i++){
-                const item = message[i];
-                const event = this.safeString(item, 'e');
-                const method2 = event === undefined ? undefined : this.safeValue(methods, event);
-                if (method2 !== undefined) {
-                    method2.call(this, client, item);
-                }
-            }
         }
     }
     handleIncomingPong(client, pongTimestamp) {
@@ -614082,7 +614098,7 @@ class upbit extends _upbit_js__rspack_import_0/* ["default"] */.A {
             'candle.1s': this.handleOHLCV
         };
         const methodName = this.safeString(message, 'type');
-        const method = methodName === undefined ? undefined : this.safeValue(methods, methodName);
+        const method = this.safeValue(methods, methodName);
         if (method !== undefined) {
             method.call(this, client, message);
         }

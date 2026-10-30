@@ -125,5 +125,6 @@ export default class bitfinex extends bitfinexRest {
     handleOrders(client: Client, message: any[], subscription: Dict): void;
     parseWsOrderStatus(status: Str): Str;
     parseWsOrder(order: List, market?: Market): Order;
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
 }

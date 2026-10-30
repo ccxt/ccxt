@@ -992,5 +992,5 @@ export default class binance extends binanceRest {
     handleOptionsAccountUpdate(client: Client, message: Dict): void;
     handleWsError(client: Client, message: Dict): void;
     handleEventStreamTerminated(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

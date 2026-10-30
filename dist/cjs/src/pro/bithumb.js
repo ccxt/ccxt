@@ -1051,19 +1051,16 @@ class bithumb extends bithumb$1["default"] {
             'trades': undefined,
         }, market);
     }
-    handleMessage(client, message) {
-        if (typeof message === 'string') {
-            const content = message.toLowerCase();
-            if (content === 'pong') {
-                this.handlePong(client, message);
-                return;
-            }
-            if (content === 'ping') {
-                this.handlePing(client, message);
-                return;
-            }
-            return;
+    handleTextMessage(client, message) {
+        const content = message.toLowerCase();
+        if (content === 'pong') {
+            this.handlePong(client, message);
         }
+        else if (content === 'ping') {
+            this.handlePing(client, message);
+        }
+    }
+    handleMessage(client, message) {
         const status = this.safeString(message, 'status');
         if (status === 'UP') {
             this.handlePong(client, message);

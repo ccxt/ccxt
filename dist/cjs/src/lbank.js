@@ -3097,7 +3097,7 @@ class lbank extends lbank$1["default"] {
             }, signedQuery)));
             const encoded = this.encode(auth);
             const uppercaseHash = this.hash(encoded, legacy_js.md5).toUpperCase();
-            let sign = undefined;
+            let sign = '';
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;

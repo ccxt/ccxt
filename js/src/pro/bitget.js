@@ -2800,6 +2800,11 @@ export default class bitget extends bitgetRest {
             return true;
         }
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            this.handlePong(client, message);
+        }
+    }
     handleMessage(client, message) {
         //
         //   {
@@ -2881,12 +2886,6 @@ export default class bitget extends bitgetRest {
         //         }
         //     }
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         if (this.handleErrorMessage(client, message) === true) {
             return;
         }

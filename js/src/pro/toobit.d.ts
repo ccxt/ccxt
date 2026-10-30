@@ -1,12 +1,13 @@
 import toobitRest from '../toobit.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class toobit extends toobitRest {
     describe(): Dict;
     ping(client: Client): {
         ping: number;
     };
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
     handleIncomingPong(client: Client, pongTimestamp: Int): void;
     /**
      * @method

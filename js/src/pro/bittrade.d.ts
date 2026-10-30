@@ -62,5 +62,5 @@ export default class bittrade extends bittradeRest {
     pong(client: Client, message: Dict): Promise<void>;
     handlePing(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

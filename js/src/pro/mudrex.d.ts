@@ -17,7 +17,7 @@ export default class mudrex extends mudrexRest {
     watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
     handleTicker(client: Client, message: Dict): void;

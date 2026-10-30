@@ -491,7 +491,8 @@ export default class sxbet extends Exchange {
     connectSxbetCentrifugo(url: Str): Promise<any>;
     pong(client: Client, message?: any): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method

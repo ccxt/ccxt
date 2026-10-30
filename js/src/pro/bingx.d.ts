@@ -181,7 +181,8 @@ export default class bingx extends bingxRest {
     handleOrder(client: Client, message: Dict): void;
     handleMyTrades(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
 }

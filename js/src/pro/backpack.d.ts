@@ -394,6 +394,6 @@ export default class backpack extends backpackRest {
     unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
 }

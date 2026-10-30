@@ -885,35 +885,37 @@ export default class hashkey extends hashkeyRest {
             delete this.clients[url];
         }
     }
+    handleListMessage(client, message) {
+        this.handleStreamMessage(client, this.safeDict(message, 0, {}));
+    }
     handleMessage(client, message) {
-        let messageInner = message;
-        if (Array.isArray(message)) {
-            messageInner = this.safeDict(message, 0, {});
-        }
-        const topic = this.safeString2(messageInner, 'topic', 'e');
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
+        const topic = this.safeString2(message, 'topic', 'e');
         if (topic === 'kline') {
-            this.handleOHLCV(client, messageInner);
+            this.handleOHLCV(client, message);
         }
         else if (topic === 'realtimes') {
-            this.handleTicker(client, messageInner);
+            this.handleTicker(client, message);
         }
         else if (topic === 'trade') {
-            this.handleTrades(client, messageInner);
+            this.handleTrades(client, message);
         }
         else if (topic === 'depth') {
-            this.handleOrderBook(client, messageInner);
+            this.handleOrderBook(client, message);
         }
         else if ((topic === 'contractExecutionReport') || (topic === 'executionReport')) {
-            this.handleOrder(client, messageInner);
+            this.handleOrder(client, message);
         }
         else if (topic === 'ticketInfo') {
-            this.handleMyTrade(client, messageInner);
+            this.handleMyTrade(client, message);
         }
         else if (topic === 'outboundContractPositionInfo') {
-            this.handlePosition(client, messageInner);
+            this.handlePosition(client, message);
         }
         else if ((topic === 'outboundAccountInfo') || (topic === 'outboundContractAccountInfo')) {
-            this.handleBalance(client, messageInner);
+            this.handleBalance(client, message);
         }
     }
 }

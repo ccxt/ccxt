@@ -158,7 +158,8 @@ export default class deepcoin extends deepcoinRest {
     parseWsPosition(position: Dict, market?: Market): Position;
     parsePositionSide(direction: Str): Str;
     parseWsMarginMode(marginMode: Str): Str;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;

@@ -474,7 +474,11 @@ export declare class BaseExchange {
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
-    handleMessage(client: any, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleListMessage(client: Client, message: List): void;
+    handleBinaryMessage(client: Client, message: unknown): void;
+    routeMessage(client: Client, message: Dict | List | string | Uint8Array): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
     calculateWsBackoffDelay(url: string): number;

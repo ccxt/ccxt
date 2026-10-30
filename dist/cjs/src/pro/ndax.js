@@ -602,7 +602,7 @@ class ndax extends ndax$1["default"] {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString(message, 'n');
-        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
+        const method = this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }

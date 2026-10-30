@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams, NullableDict } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams, NullableDict, List } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class polymarket
@@ -505,7 +505,10 @@ export default class polymarket extends Exchange {
      */
     loadApiCredentials(): Promise<void>;
     ping(client: any): string;
-    handleMessage(client: any, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessageEvent(client: Client, event: Dict): void;
     handleOrderBookSnapshot(client: Client, event: Dict): void;
     handleOrderBookDelta(client: Client, event: Dict): void;
     handleTrade(client: Client, event: Dict): void;

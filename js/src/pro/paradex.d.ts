@@ -156,5 +156,7 @@ export default class paradex extends paradexRest {
     parseSbePosition(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbeAccount(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleBinaryMessage(client: Client, message: unknown): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleStreamMessage(client: Client, message: Dict): void;
 }

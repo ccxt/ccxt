@@ -222,7 +222,9 @@ export default class mexc extends mexcRest {
     handlePong(client: Client, message: Dict): Dict;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleProtobufMessage(client: Client, message: Dict): boolean;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleBinaryMessage(client: Client, message: unknown): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         method: string;
     };

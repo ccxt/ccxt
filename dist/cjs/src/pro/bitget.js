@@ -2793,6 +2793,11 @@ class bitget extends bitget$1["default"] {
             return true;
         }
     }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            this.handlePong(client, message);
+        }
+    }
     handleMessage(client, message) {
         //
         //   {
@@ -2874,12 +2879,6 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         if (this.handleErrorMessage(client, message) === true) {
             return;
         }

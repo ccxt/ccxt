@@ -1111,7 +1111,7 @@ class derive extends derive$1["default"] {
                 }
             }
         }
-        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
+        const method = this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
             return;

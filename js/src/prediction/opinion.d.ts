@@ -377,7 +377,7 @@ export default class opinion extends Exchange {
      * @returns {any} the first resolved payload
      */
     subscribeOpinionChannel(messageHash: string, channel: string, marketId: Int): Promise<any>;
-    handleMessage(client: any, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     /**
      * @ignore
      * @method

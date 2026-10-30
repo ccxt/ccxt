@@ -865,6 +865,9 @@ export default class gemini extends geminiRest {
         //
         throw new ExchangeError(this.json(message));
     }
+    handleListMessage(client, message) {
+        this.handleOrder(client, message);
+    }
     handleMessage(client, message) {
         //
         //  public
@@ -901,11 +904,6 @@ export default class gemini extends geminiRest {
         //         }
         //     ]
         //
-        const isArray = Array.isArray(message);
-        if (isArray) {
-            this.handleOrder(client, message);
-            return;
-        }
         const reason = this.safeString(message, 'reason');
         if (reason === 'error') {
             this.handleError(client, message);

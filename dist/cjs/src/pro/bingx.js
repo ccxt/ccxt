@@ -1844,14 +1844,13 @@ class bingx extends bingx$1["default"] {
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], type + ':balance');
     }
-    handleMessage(client, message) {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if (typeof message === 'string') {
-            if (message === 'Ping') {
-                this.spawn(this.pong, client, message);
-            }
-            return;
+    // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+    handleTextMessage(client, message) {
+        if (message === 'Ping') {
+            this.spawn(this.pong, client, message);
         }
+    }
+    handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
             return;
         }

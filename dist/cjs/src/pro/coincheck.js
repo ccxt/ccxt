@@ -194,7 +194,7 @@ class coincheck extends coincheck$1["default"] {
             'fee': undefined,
         }, market);
     }
-    handleMessage(client, message) {
+    handleListMessage(client, message) {
         const data = this.safeList(message, 0);
         if (!Array.isArray(data)) {
             this.handleOrderBook(client, message);

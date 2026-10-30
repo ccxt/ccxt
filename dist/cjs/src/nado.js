@@ -3150,8 +3150,8 @@ class nado extends nado$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
         const signature = crypto.ecdsa(hash, privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();
         return '0x' + this.padHex(r, 64) + this.padHex(s, 64) + v;
     }

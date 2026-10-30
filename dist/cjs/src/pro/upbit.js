@@ -723,7 +723,7 @@ class upbit extends upbit$1["default"] {
             'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString(message, 'type');
-        const method = (methodName === undefined) ? undefined : this.safeValue(methods, methodName);
+        const method = this.safeValue(methods, methodName);
         if (method !== undefined) {
             method.call(this, client, message);
         }

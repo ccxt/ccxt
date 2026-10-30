@@ -219,7 +219,7 @@ function injectWsMessage(exchange, url, message) {
     // feed one already-json-parsed frame into the exchange's ws message
     // handler — the same entry point the real transport invokes
     const client = exchange.client(url);
-    exchange.handleMessage(client, message);
+    exchange.routeMessage(client, message);
 }
 function wsClientHasPendingFutures(exchange, url) {
     // whether the watch flow is currently awaiting a message — the frame

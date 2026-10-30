@@ -488,7 +488,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleDeltas(bookside: any, deltas: any[]): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleHeartbeat(client: Client, message: Dict): Promise<void>;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     handleAuthenticationMessage(client: Client, message: Dict): void;
     /**
      * @ignore

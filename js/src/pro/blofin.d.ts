@@ -224,6 +224,7 @@ export default class blofin extends blofinRest {
     unsubscribeMultipleWrapper(channelName: string, callerMethodName: string, symbolsArray: any, params?: Dict): Promise<any>;
     handleUnsubscription(client: Client, message: Dict): void;
     getSubscriptionRequest(args: List): Dict;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<void>;
 }

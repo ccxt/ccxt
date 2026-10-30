@@ -441,9 +441,6 @@ class luno extends luno$1["default"] {
         return true;
     }
     handleMessage(client, message) {
-        if (message === '') {
-            return;
-        }
         const subscriptions = Object.values(client.subscriptions);
         const subscriptionsLength = subscriptions.length;
         if (subscriptionsLength === 0) {

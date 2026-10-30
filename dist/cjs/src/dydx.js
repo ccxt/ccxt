@@ -1842,7 +1842,7 @@ class dydx extends dydx$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
         return this.parseLedger(response, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
@@ -2056,7 +2056,7 @@ class dydx extends dydx$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, this.omit(params, 'methodName'));
         const transferIn = this.filterBy(response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy(response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat(transferIn, transferOut);
@@ -2201,7 +2201,7 @@ class dydx extends dydx$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'WITHDRAWAL');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -2226,7 +2226,7 @@ class dydx extends dydx$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'DEPOSIT');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -2251,15 +2251,14 @@ class dydx extends dydx$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, params);
+        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const withdrawals = this.filterBy(response, 'type', 'WITHDRAWAL');
         const deposits = this.filterBy(response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat(withdrawals, deposits);
         return this.parseTransactions(rows, currency, since, limit);
     }
     async fetchTransactionsHelper(methodName, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const paramsOmitted = this.omit(params, 'methodName');
-        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, paramsOmitted);
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, params);
         const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, methodName, 'subAccountNumber', '0');
         const request = {
             'address': userAddress,

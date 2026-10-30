@@ -29,5 +29,5 @@ export default class coincheck extends coincheckRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleTrades(client: Client, message: any[]): void;
     parseWsTrade(trade: List, market?: Market): Trade;
-    handleMessage(client: Client, message: any[]): void;
+    handleListMessage(client: Client, message: List): void;
 }

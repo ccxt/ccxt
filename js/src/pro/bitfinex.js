@@ -1268,8 +1268,43 @@ export default class bitfinex extends bitfinexRest {
             'trades': undefined,
         }, marketResolved);
     }
-    handleMessage(client, message) {
+    handleListMessage(client, message) {
         const channelId = this.safeString(message, 0);
+        const heartbeat = this.safeString(message, 1);
+        if (heartbeat === 'hb') {
+            return; // skip heartbeats within subscription channels for now
+        }
+        const subscription = this.safeDict(client.subscriptions, channelId, {});
+        const channel = this.safeString(subscription, 'channel');
+        const name = this.safeString(message, 1);
+        const publicMethods = {
+            'book': this.handleOrderBook,
+            'cs': this.handleChecksum,
+            'candles': this.handleOHLCV,
+            'ticker': this.handleTicker,
+            'trades': this.handleTrades,
+        };
+        const privateMethods = {
+            'os': this.handleOrders,
+            'ou': this.handleOrders,
+            'on': this.handleOrders,
+            'oc': this.handleOrders,
+            'wu': this.handleBalance,
+            'ws': this.handleBalance,
+            'tu': this.handleMyTrade,
+        };
+        let method = undefined;
+        if (channelId === '0') {
+            method = this.safeValue(privateMethods, name);
+        }
+        else {
+            method = this.safeValue2(publicMethods, name, channel);
+        }
+        if (method !== undefined) {
+            method.call(this, client, message, subscription);
+        }
+    }
+    handleMessage(client, message) {
         //
         //     [
         //         1231,
@@ -1295,54 +1330,17 @@ export default class bitfinex extends bitfinexRest {
         //        }
         //    }
         //
-        if (Array.isArray(message)) {
-            const heartbeat = this.safeString(message, 1);
-            if (heartbeat === 'hb') {
-                return; // skip heartbeats within subscription channels for now
-            }
-            const subscription = this.safeDict(client.subscriptions, channelId, {});
-            const channel = this.safeString(subscription, 'channel');
-            const name = this.safeString(message, 1);
-            const publicMethods = {
-                'book': this.handleOrderBook,
-                'cs': this.handleChecksum,
-                'candles': this.handleOHLCV,
-                'ticker': this.handleTicker,
-                'trades': this.handleTrades,
+        const event = this.safeString(message, 'event');
+        if (event !== undefined) {
+            const methods = {
+                'info': this.handleSystemStatus,
+                'subscribed': this.handleSubscriptionStatus,
+                'unsubscribed': this.handleUnsubscriptionStatus,
+                'auth': this.handleAuthenticationMessage,
             };
-            const privateMethods = {
-                'os': this.handleOrders,
-                'ou': this.handleOrders,
-                'on': this.handleOrders,
-                'oc': this.handleOrders,
-                'wu': this.handleBalance,
-                'ws': this.handleBalance,
-                'tu': this.handleMyTrade,
-            };
-            let method = undefined;
-            if (channelId === '0') {
-                method = this.safeValue(privateMethods, name);
-            }
-            else {
-                method = this.safeValue2(publicMethods, name, channel);
-            }
+            const method = this.safeValue(methods, event);
             if (method !== undefined) {
-                method.call(this, client, message, subscription);
-            }
-        }
-        else {
-            const event = this.safeString(message, 'event');
-            if (event !== undefined) {
-                const methods = {
-                    'info': this.handleSystemStatus,
-                    'subscribed': this.handleSubscriptionStatus,
-                    'unsubscribed': this.handleUnsubscriptionStatus,
-                    'auth': this.handleAuthenticationMessage,
-                };
-                const method = this.safeValue(methods, event);
-                if (method !== undefined) {
-                    method.call(this, client, message);
-                }
+                method.call(this, client, message);
             }
         }
     }

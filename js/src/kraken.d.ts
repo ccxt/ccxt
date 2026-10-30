@@ -112,7 +112,7 @@ export default class kraken extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    fetchLedgerEntriesByIds(ids: any, code?: Str, params?: Dict): Promise<LedgerEntry[]>;
+    fetchLedgerEntriesByIds(ids: string[], code?: Str, params?: Dict): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: Dict): Promise<LedgerEntry>;
     parseTrade(trade: Dict | List | string, market?: Market): Trade;
     /**
@@ -259,7 +259,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByIds(ids: any, symbol?: Str, params?: Dict): Promise<Order[]>;
+    fetchOrdersByIds(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name kraken#fetchMyTrades

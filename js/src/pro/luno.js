@@ -442,9 +442,6 @@ export default class luno extends lunoRest {
         return true;
     }
     handleMessage(client, message) {
-        if (message === '') {
-            return;
-        }
         const subscriptions = Object.values(client.subscriptions);
         const subscriptionsLength = subscriptions.length;
         if (subscriptionsLength === 0) {
