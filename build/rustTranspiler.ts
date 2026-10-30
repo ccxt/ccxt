@@ -8026,6 +8026,7 @@ export class RustTranspilerBuilder {
             const paramKinds = params.map(p => {
                 if (/:\s*&\[/.test(p)) return 'slice';
                 if (hx10w9Rp02ParamKind(p) !== undefined) return 'map';
+                if (/:\s*Vec<String>/.test(p)) return 'strvec';
                 if (/:\s*Value\b/.test(p)) return 'value';
                 if (/:\s*bool\b/.test(p)) return 'bool';
                 return 'other';
@@ -8143,6 +8144,8 @@ export class RustTranspilerBuilder {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'strvec') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
@@ -8196,6 +8199,8 @@ ${arms.join('\n')}
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'strvec') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
@@ -8278,6 +8283,8 @@ ${arms.join('\n')}
                 } else if (paramKinds[i] === 'bool') {
                     // A native `bool` slot takes the same truthiness the body used.
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'strvec') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
@@ -8322,6 +8329,8 @@ ${isBase
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'bool') {
                     callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
+                } else if (paramKinds[i] === 'strvec') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(hx10w9Rp02DispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
@@ -8404,12 +8413,14 @@ ${fallthrough}
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
             if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
             const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (hx10w9Rp02ParamKind(p) !== undefined ? 'map' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other'))));
+            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (hx10w9Rp02ParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
                 ? this.dispatchSliceArg(i)
-                : k === 'bool'
+                : k === 'strvec'
+                    ? `args.get(${i}).cloned().unwrap_or_default().to_str_vec()`
+                    : k === 'bool'
                     ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
                     : k === 'map'
                         ? hx10w9Rp02DispatchArg(i)

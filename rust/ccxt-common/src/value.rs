@@ -231,6 +231,13 @@ impl Value {
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
+    /// Display text of each array element (empty for a non-array); the `Vec<String>` dispatch bridge.
+    pub fn to_str_vec(&self) -> Vec<String> {
+        match self {
+            Value::Arr(a) => a.iter().map(Value::to_string).collect(),
+            _ => Vec::new(),
+        }
+    }
 
     /// Length of array, map, or string; 0 for everything else.
     /// String length counts Unicode chars (matches TS `String#length`

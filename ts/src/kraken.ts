@@ -1381,7 +1381,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
+    async fetchLedgerEntriesByIds (ids: string[], code: Str = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2564,7 +2564,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByIds (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
