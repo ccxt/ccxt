@@ -12,19 +12,19 @@ function testMergeBalanceAccount () {
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
     // passed by value, so mutating the argument alone is invisible there.
-    // accounts and the result are map literals so every port types them as a dictionary
+    // accounts and the result are map literals; extend keeps the reassigned local a dictionary
     const btcAccount: Dict = { 'free': '1', 'used': '0.5', 'debt': '0.1' };
     let result: Dict = {};
-    result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount);
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'BTC', btcAccount));
     assert (exchange.safeString (result['BTC'], 'free') === '1');
     const btcAccount2: Dict = { 'free': '2', 'used': '0.25', 'total': '2.25' };
-    result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount2);
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'BTC', btcAccount2));
     assert (exchange.safeString (result['BTC'], 'free') === '3');
     assert (exchange.safeString (result['BTC'], 'used') === '0.75');
     assert (exchange.safeString (result['BTC'], 'total') === '2.25');
     assert (exchange.safeString (result['BTC'], 'debt') === '0.1');
     const usdtAccount: Dict = { 'free': '5' };
-    result = exchange.mergeBalanceAccount (result, 'USDT', usdtAccount);
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'USDT', usdtAccount));
     assert (exchange.safeString (result['USDT'], 'free') === '5');
     assert (exchange.safeString (result['USDT'], 'used') === undefined);
     const keys = Object.keys (result);
