@@ -80,6 +80,9 @@ export function m43UseKeepsMap (s: string, col: number, name: string): boolean {
     if (/(?<![&\w)\]])&\s*$/.test (before) || /(?:^|[(,=:{]\s*)&\s*$/.test (before) || /\bswitch\s+$/.test (before)) {
         return false;
     }
+    if (/\bIsArray\($/.test (before)) {
+        return false; // the box folds `!Array.isArray(x)` to `if true`; a map would print IsArray
+    }
     if (/^\s*(?:\.|\[|:(?!=))/.test (after)) {
         return false; // assertion, selector, index, keyed field
     }
@@ -144,9 +147,6 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
             || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && (args[0] !== 'this.Options') && (args[0] !== 'this.Balance'))
             || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0].replace (/^\w+\.\(\*ccxt\.ArrayCache\)\.Hashmap$/, 'hashmap')))) {
             continue;
-        }
-        if (/\bif true \{/.test (maskedFunc)) {
-            continue; // the box is what folds `!Array.isArray(x)` to `if true`; a map prints IsArray
         }
         if (m43Declarations (maskedFunc, lines[start], name) !== 1) {
             continue;
@@ -232,7 +232,7 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\treturn d\n').includes ('SafeDictMap'), 'no default: a bare return keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\tAddElementToObject(d, \"a\", 1)\n').includes ('SafeDictMap'), 'no default: a write keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(this.Markets(), \"data\")\n\t_ = d == nil\n').includes ('SafeDictMap'), 'no default: other this.* receivers keep the box');
-    ok (!run (decl + '\tif true {\n\t}\n').includes (typed), 'a folded `if true` keeps the box');
+    ok (!run (decl + '\tif !IsArray(d) {\n\t}\n').includes (typed), 'an IsArray test keeps the box');
     const once = run (decl);
     ok (hx11M43SafeDictLocals (once, 'go/v4/x.go') === once, 'idempotent');
     return problems;
