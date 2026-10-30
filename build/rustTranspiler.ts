@@ -531,6 +531,8 @@ export class RustTranspilerBuilder {
                     i = j;
                     continue;
                 }
+                i++; // bind line already pushed above
+                continue;
             }
             out.push(lines[i]);
             i++;
