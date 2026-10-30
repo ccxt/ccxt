@@ -2072,9 +2072,9 @@ export default class indodax extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const addresses = await this.fetchDepositAddresses ([ code ], params);
-        const rows = this.toArray (addresses);
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        const length = addresses.length;
+        for (let i = 0; i < length; i++) {
+            const row = this.safeDict (addresses, i, {});
             const rowCode = this.safeString (row, 'currency');
             if (rowCode === code) {
                 return row as DepositAddress;
@@ -2197,23 +2197,12 @@ export default class indodax extends Exchange {
             request['omitZeroBalances'] = omitZeroBalances;
         }
         const response = await this.v2GetAccount (this.extend (request, paramsOmitted));
-        return this.parseBalanceV2 (response);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name indodax#parseBalanceV2
-     * @param {object} response account response
-     * @returns {object} a balance structure
-     */
-    parseBalanceV2 (response: Dict): Balances {
         const balances = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict (balances, i, {});
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2925,13 +2914,14 @@ export default class indodax extends Exchange {
             const fiatResponse = await this.v2PostFiatWithdraw (this.extend (fiatRequest, paramsOmitted));
             const data = this.safeDict (fiatResponse, 'data', {});
             const orderId = this.safeString (data, 'orderId');
-            return this.parseV2Transaction ({
+            // copy so Go accepts this return; parseV2Transaction already built the transaction
+            return this.extend (this.parseV2Transaction ({
                 'orderNo': orderId,
                 'fiatCurrency': 'IDR',
                 'amount': this.numberToString (amount),
                 'txType': 'withdraw',
                 'address': address,
-            }, currency);
+            }, currency), {});
         }
         this.checkAddress (address, code, tagValue);
         const networkAndParams = this.handleNetworkCodeAndParams (paramsAfterTag);
@@ -2955,7 +2945,8 @@ export default class indodax extends Exchange {
         const annotated = this.extend (response, {
             'txType': 'withdraw',
         });
-        return this.parseV2Transaction (annotated, currency);
+        // copy so Go accepts this return; parseV2Transaction already built the transaction
+        return this.extend (this.parseV2Transaction (annotated, currency), {});
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
