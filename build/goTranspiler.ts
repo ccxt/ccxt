@@ -13562,8 +13562,11 @@ function g10kInopSelfTest (): string[] {
 // Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
 // map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
 function g10kArrReceiverKind (recv: string): string | undefined {
-    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs)$/.test (recv)) {
+    if (/^this\.(?:Tickers|Bidsasks)$/.test (recv)) {
         return 'sync';
+    }
+    if (/^this\.(?:Orderbooks|FundingRates|Ohlcvs|Trades)$/.test (recv)) {
+        return 'map';
     }
     if ((recv === 'this.Clients') || (recv === 'this.Options') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
         return 'map';
@@ -13571,13 +13574,72 @@ function g10kArrReceiverKind (recv: string): string | undefined {
     return undefined;
 }
 
+// hx11 w8: a `*string` key redeclared in sibling scopes of one func. The declaration in scope at the
+// Remove is the nearest earlier `var key *string` whose block is still open; the key is non-nil when
+// that declaration is a SafeString with a literal default or an enclosing `if` tests `key != nil`,
+// and no line other than a `var key` declaration ever writes or addresses it.
+function w8ScopedPtrKeyText (key: string, lines: string[], start: number, k: number): string | undefined {
+    const n = goAccessEscape (key);
+    const indentOf = (l: string) => l.length - l.trimStart ().length;
+    const declRx = new RegExp ('^\\s*var ' + n + ' \\*string = (.*)$');
+    const writeRx = new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=[^=]|&' + n + '\\b');
+    let end = k;
+    while ((end < lines.length) && (lines[end] !== '}')) {
+        end++;
+    }
+    for (let j = start + 1; j < end; j++) {
+        if (!declRx.test (lines[j]) && (writeRx.test (lines[j]) || new RegExp ('\\bfunc\\b[^{\\n]*[(,]\\s*' + n + ' ').test (lines[j]))) {
+            return undefined;
+        }
+    }
+    const cur = indentOf (lines[k]);
+    let minIndent = cur;
+    let decl: RegExpExecArray | null = null;
+    for (let j = k - 1; j > start; j--) {
+        if (lines[j].trim () === '') {
+            continue;
+        }
+        const d = indentOf (lines[j]);
+        const m = declRx.exec (lines[j]);
+        if (m && (d <= minIndent)) {
+            decl = m;
+            break;
+        }
+        if (d < minIndent) {
+            minIndent = d;
+        }
+    }
+    if (decl === null) {
+        return undefined;
+    }
+    if (/^this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (decl[1])) {
+        return '*' + key;
+    }
+    // the closest enclosing `if` must conjoin `key != nil`
+    for (let j = k - 1; j > start; j--) {
+        if ((lines[j].trim () === '') || (indentOf (lines[j]) >= cur)) {
+            continue;
+        }
+        const m = /^\s*if (.*) \{$/.exec (lines[j]);
+        if (m === null) {
+            return undefined;
+        }
+        const terms = m[1].split (' && ').map ((t) => t.trim ().replace (/^\((.*)\)$/, '$1'));
+        return terms.includes (key + ' != nil') ? '*' + key : undefined;
+    }
+    return undefined;
+}
+
 // the Go text of a non-nil string key, or undefined (the helper panics on a nil/non-string key)
-function g10kArrKeyText (key: string, lines: string[], start: number, maskedFunc: string, offset: number): string | undefined {
+function g10kArrKeyText (key: string, lines: string[], start: number, maskedFunc: string, offset: number, k?: number): string | undefined {
     if (/^"(?:[^"\\\n]|\\.)*"$/.test (key)) {
         return key;
     }
     const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-    if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offset))) {
+    if (decl === undefined) {
+        return (k === undefined) ? undefined : w8ScopedPtrKeyText (key, lines, start, k);
+    }
+    if ((decl.index !== undefined) && (decl.index >= offset)) {
         return undefined;
     }
     if (decl.type === 'string') {
@@ -13592,7 +13654,7 @@ function g10kArrKeyText (key: string, lines: string[], start: number, maskedFunc
         return undefined;
     }
     const declLine = lines[start + maskedFunc.substring (0, decl.index).split ('\n').length - 1];
-    return /\bvar \w+ \*string = this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (declLine) ? '*' + key : undefined;
+    return /\bvar \w+ \*string = this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (declLine) ? '*' + key : ((k === undefined) ? undefined : w8ScopedPtrKeyText (key, lines, start, k));
 }
 
 function g10kArrNativeRemove (content: string): string {
@@ -13630,12 +13692,19 @@ function g10kArrNativeRemove (content: string): string {
         if (start < 0) {
             continue;
         }
-        const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+\.\((?:ccxt\.)?ClientInterface\)\.Get\w+\(\)|this\.\w+), (\w+|"(?:[^"\\\n]|\\.)*")\)(\s*)$/.exec (lines[k]);
+        const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+\.\((?:ccxt\.)?ClientInterface\)\.Get\w+\(\)|this\.\w+|\w+), (\w+|"(?:[^"\\\n]|\\.)*")\)(\s*)$/.exec (lines[k]);
         if ((rm === null) || !/^\s*(?:ccxt\.)?Remove\(/.test (masked[k])) {
             continue;
         }
-        const kind = g10kArrReceiverKind (rm[2]);
-        const key = (kind === undefined) ? undefined : g10kArrKeyText (rm[3], lines, start, maskedFunc, offsets[k - start]);
+        let kind = g10kArrReceiverKind (rm[2]);
+        if ((kind === undefined) && /^\w+$/.test (rm[2])) {
+            // a local declared once as a plain map[string]any is the map the helper's default arm deletes from
+            const rd = goAccessSingleDeclaration (maskedFunc, lines[start], rm[2]);
+            if ((rd !== undefined) && (rd.type === 'map[string]any') && (rd.index < offsets[k - start]) && !new RegExp ('&\\s*' + rm[2] + '\\b').test (maskedFunc)) {
+                kind = 'map';
+            }
+        }
+        const key = (kind === undefined) ? undefined : g10kArrKeyText (rm[3], lines, start, maskedFunc, offsets[k - start], k);
         if (key === undefined) {
             continue;
         }
@@ -13659,11 +13728,22 @@ function g10kArrSelfTest (): string[] {
         '\tccxt.Remove(this.Clients, "u")',
         '\tccxt.Remove(this.Trades, symbol)',
         '\tccxt.Remove(this.Tickers, p)',
+        '\tvar m map[string]any = this.SafeDictMap(p, "m", map[string]any{})',
+        '\tif true {',
+        '\t\tvar sk *string = this.SafeString(p, "k", "")',
+        '\t\tRemove(this.Orderbooks, sk)',
+        '\t}',
+        '\tvar fid *string = this.SafeString(p, "id")',
+        '\tif (fid != nil) && (InOp(m, fid)) {',
+        '\t\tccxt.Remove(m, fid)',
+        '\t}',
+        '\tccxt.Remove(m, fid)',
         '}',
     ].join ('\n');
     const out = g10kArrNativeRemove (src);
     const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'this.Tickers.Delete(*h)', 'delete(this.Clients, "u")',
-        'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'ccxt.Remove(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)' ];
+        'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'delete(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)',
+        'delete(this.Orderbooks, *sk)', 'delete(m, *fid)\n\t}\n\tccxt.Remove(m, fid)' ];
     for (const w of want) {
         if (out.indexOf (w) < 0) {
             problems.push ('g10k-arr: missing ' + w);
