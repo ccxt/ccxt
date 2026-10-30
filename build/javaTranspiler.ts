@@ -10189,6 +10189,25 @@ function j40X14DeclTypes (masked: string, name: string, pos: number): string[] {
     return out;
 }
 
+// A Bool field of the TS MarketInterface only holds true/false/null, so `Boolean.TRUE.equals` equals isTrue.
+// The receiver must be one local declared once as a Market (MarketInterface, or a Map from this.market/safeMarket).
+const J40_MARKET_BOOL_KEYS = new Set ([ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ]);
+function j40MarketBoolRead (e: string, ctx: J40Ctx): boolean {
+    const m = /^(?:([A-Za-z_]\w*)|\(\(Map<String, Object>\)([A-Za-z_]\w*)\))\.get\("(\w+)"\)$/.exec (e);
+    if (m === null || !J40_MARKET_BOOL_KEYS.has (m[3])) { return false; }
+    const name = m[1] ?? m[2];
+    const before = ctx.masked.slice (0, ctx.pos);
+    const breaks = [ ...before.matchAll (/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
+    if (breaks.length === 0) { return false; }
+    const window = before.slice (breaks[breaks.length - 1].index);
+    if (new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (window)) { return false; }
+    if (new RegExp (`(?<![\\w.])${name}\\s*(?:=(?!=)|\\+=)`).test (window.replace (new RegExp (`(?:MarketInterface|Map<String, Object>) ${name} = `, 'g'), ''))) { return false; }
+    const decls = [ ...window.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.<>?,\\[\\]]+(?: <[^>]*>)?)\\s+${name}\\s*(?=[=;,)])`, 'g')) ];
+    if (decls.length !== 1) { return false; }
+    const init = new RegExp (`(?:MarketInterface|Map<String, Object>) ${name} = (?:\\(\\w+\\) )?this\\.(?:market|safeMarket|parseMarket)\\(`).test (window);
+    return init;
+}
+
 function j40X14Type (e: string, ctx: J40Ctx): 'boolean' | 'Boolean' | undefined {
     let t = e.trim();
     while (/^\(.*\)$/s.test(t) && j05Close(t, 0) === t.length) { t = t.slice(1, -1).trim(); }
@@ -10200,6 +10219,7 @@ function j40X14Type (e: string, ctx: J40Ctx): 'boolean' | 'Boolean' | undefined 
         if (decls.every((d) => d === 'boolean' || d === 'Boolean' || d === 'java.lang.Boolean')) { return 'Boolean'; }
         return undefined;
     }
+    if (j40MarketBoolRead (t, ctx)) { return 'Boolean'; }
     // requireNonNullElse(<Boolean>, <boolean literal>) is a non-null Boolean
     const r = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), (?:true|false)\)$/.exec(t);
     if (r !== null && j40X14Type(r[1], ctx) !== undefined) { return 'Boolean'; }
