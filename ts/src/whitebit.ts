@@ -1884,6 +1884,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -1897,14 +1898,27 @@ export default class whitebit extends Exchange {
         };
         const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
-        if (since !== undefined) {
-            const start = this.parseToInt (since / 1000);
-            request['start'] = start;
+        const until = this.safeInteger (params, 'until');
+        const paramsOmitted = this.omit (params, 'until');
+        if ((since !== undefined) || (until !== undefined)) {
+            // the exchange ignores a start alone: it returns the last candles that closed by the end,
+            // and nothing at all for an end past now
+            const duration = this.parseTimeframe (timeframe);
+            let endTime = this.seconds ();
+            if (until !== undefined) {
+                endTime = Math.min (endTime, this.sum (this.parseToInt (until / 1000), duration));
+            }
+            if (since !== undefined) {
+                const start = this.parseToInt (since / 1000);
+                request['start'] = start;
+                endTime = Math.min (endTime, this.sum (start, duration * cappedLimit));
+            }
+            request['end'] = endTime;
         }
-        if ((since !== undefined) || (limit !== undefined)) {
+        if ((since !== undefined) || (until !== undefined) || (limit !== undefined)) {
             request['limit'] = cappedLimit;
         }
-        const response = await this.v1PublicGetKline (this.extend (request, params));
+        const response = await this.v1PublicGetKline (this.extend (request, paramsOmitted));
         //
         //     {
         //         "success":true,
