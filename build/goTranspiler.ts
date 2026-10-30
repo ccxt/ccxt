@@ -5341,7 +5341,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     content = emitHx10w2G07Native (content);  // hx10w2 G07
-    content = path.endsWith ('.go') ? hx11w8StringAnyLocals (content) : content;  // hx11 w8: `var x any` only ever written strings is a string
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
     content = path.endsWith ('.go') ? hx11w8AsyncInt64Value (content) : content;  // hx11 w8: typed async int64 value
     content = path.endsWith ('.go') ? hx11w8AnySliceToList (content) : content;  // hx11 w8: ToList-fed []any locals
@@ -5363,6 +5362,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = hx4G36Inline (content, hx4G36Aligner ());  // hx4 G36
         content = hx5X26CaseAffix (content);  // hx5 X26
         content = hx5X27StringHelpers (hx11w8JoinStringLocals (content));  // hx5 X27, hx11 w8 r18: string-only []any locals are []string first
+        content = goNativeStringAdds (hx11w8StringAnyLocals (content));  // hx11 w8: string-only `any` locals are strings, their Add chains native
         content = hx5X29ParseNative (content);  // hx5 X29
         content = hx4G42InlineTypeChecks (content, hx4G36Aligner ());  // hx4 G42
         content = hx4G40InlineIsEqual (content, hx4G36Aligner ());  // hx4 G40: last, after every typed IsEqual pass
@@ -11839,8 +11839,13 @@ function hx11w8StringAnyLocals (content: string): string {
     for (const range of goFuncBlockRanges (content)) {
         let fn = content.slice (range.start, range.end);
         const masked0 = fileMasked.slice (range.start, range.end);
-        const cands = new Set<string> ([ ...masked0.matchAll (/^[ \t]*var (\w+) any = (.+)$/gm) ].filter ((m) => H2K_G16_STR_LIT ().test (m[2].trim ())).map ((m) => m[1]));
-        for (const name of cands) {
+        const cands = new Set<string> ([ ...masked0.matchAll (/^[ \t]*var (\w+) any = (.+)$/gm) ].filter ((m) => {
+            const at = m.index + m[0].length - m[2].length;
+            const rhs = fn.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
+            const leaf = g10kStrOperand (rhs, fn, masked0, fileMasked);
+            return ((leaf !== undefined) && (leaf.kind === 'string') && (leaf.text === rhs)) || goAddStringLeaf (rhs, goTextMaskLiteralsAndComments (rhs), new Set<string> (), overridden);
+        }).map ((m) => m[1]));
+        for (const name of [ ...cands ]) {
             if (h2kG16DeclaredType (masked0, name) !== 'any') { cands.delete (name); }
         }
         if (cands.size === 0) { out += content.slice (cursor, range.start) + fn; cursor = range.end; continue; }
@@ -11852,7 +11857,7 @@ function hx11w8StringAnyLocals (content: string): string {
             if (new RegExp ('&' + n + '\\b|\\b' + n + '\\s*(?:\\.\\(|\\[|==\\s*nil|!=\\s*nil|\\+=|,\\s*\\w+\\s*:?=)|(?:nil\\s*[=!]=\\s*)' + n + '\\b|\\.' + n + '\\b').test (masked)) { return false; }
             for (const line of masked.split ('\n')) {
                 const asg = /^\s*([^=!<>:\n]*?)\s=\s/.exec (line);
-                if (asg !== null && new RegExp (w).test (asg[1]) && asg[1].trim () !== name) { return false; }
+                if (asg !== null && !/^var \w+ any$/.test (asg[1].trim ()) && new RegExp (w).test (asg[1]) && asg[1].trim () !== name) { return false; }
             }
             return true;
         };
@@ -11870,7 +11875,7 @@ function hx11w8StringAnyLocals (content: string): string {
                     const rhs = fn.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
                     const mrhs = masked.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
                     const leaf = g10kStrOperand (rhs, fn, masked, fileMasked);
-                    const isStr = (leaf !== undefined) && (leaf.kind === 'string') && (leaf.text === rhs);
+                    const isStr = ((leaf !== undefined) && (leaf.kind === 'string') && (leaf.text === rhs)) || goAddStringLeaf (rhs, mrhs, locals, overridden);
                     const add = goAddNative (rhs, mrhs, hx4G19GuardedLocals (masked, at, locals), overridden);
                     if (!isStr && add === null) { good = false; break; }
                 }
