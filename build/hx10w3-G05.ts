@@ -30,6 +30,7 @@ export const G05_GENERATED_RETURN_TYPES: { [callee: string]: string } = {
     'ParseOpenInterests': 'map[string]any',
     'ParseAccount': 'map[string]any',
     'Extend': 'map[string]any',
+    'HandleRouteAndParams': 'map[string]any', // hx11 w8 m464: goOmitTupleMapReturns, OmitDict never nil
     'Sign': 'map[string]any', // hx11 w8 r18: base + 103 overrides return a request map literal (retypeGoProvenParseMethods)
     // list producers (goProvenListMethods), including the three G05_PROVEN_LIST_METHODS retypes
     'ParseOrders': '[]any',
@@ -58,7 +59,7 @@ const G05_LIST_SINKS = [ 'GetValue', 'GetArrayLength', 'SafeList', 'SafeList2', 
 // every return path of these prints a fresh container (no `return nil`, no parameter handed
 // back), so a local that holds it can never turn a nil box into a typed nil: every use may hold
 // the type, a hand-out included
-const G05_NEVER_ABSENT = [ 'Sign', 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'ParseTrades', 'FilterBySinceLimit', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
+const G05_NEVER_ABSENT = [ 'Sign', 'HandleRouteAndParams', 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'ParseTrades', 'FilterBySinceLimit', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
 
 const isMapType = (type: string) => type === 'map[string]any';
 const isListType = (type: string) => type === '[]any';
@@ -206,7 +207,7 @@ export function g05Locals (content: string): string {
             }
             const [ , indent, name, initializer, callee ] = declaration;
             const type = G05_GENERATED_RETURN_TYPES[callee];
-            if (type === undefined || (own.has (callee) && (callee !== 'Sign'))) {
+            if (type === undefined || (own.has (callee) && (callee !== 'Sign') && (callee !== 'HandleRouteAndParams'))) {
                 continue;
             }
             if (isMapType (type) ? (content.indexOf ('var ' + name + ' map[string]any = ' + initializer) >= 0) : false) {
