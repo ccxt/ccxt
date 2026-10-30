@@ -8,7 +8,7 @@ import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: hand
 import { hx10C08PromiseAll, hx10C08SnippetChecks, hx11w8PromiseAllSlots } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
-import { MARKET_ROW_STRING_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
+import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
 import { hx10C05NativeArithmeticEquality } from './hx10w7-C05.js' // hx10 wave7 C05: isEqual over native arithmetic
 import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
@@ -9557,6 +9557,25 @@ function nativeC07NameType (region, name: string, line: number): string | undefi
     return t.type.replace (/^long(\??)$/, 'Int64$1');
 }
 
+// `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
+// nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
+const NATIVE_C07_MARKET_READ_RE = /^\((?:([A-Za-z_]\w*) != null && )?([A-Za-z_]\w*)\.ContainsKey\("(\w+)"\) \? \2\["\3"\] : null\)$/;
+const NATIVE_C07_MARKET_ROW_RE = /^this\.(?:market|safeMarket|safeMarketStructure|parseMarket)\(/;
+function nativeC07MarketBoolRead (region, arg: string, line: number): string | undefined {
+    const m = NATIVE_C07_MARKET_READ_RE.exec (arg);
+    if ((m === null) || ((m[1] !== undefined) && (m[1] !== m[2])) || !MARKET_ROW_BOOL_KEYS.includes (m[3])) return undefined;
+    const name = m[2];
+    if (region.params[name] !== undefined) return undefined;
+    const all = region.declarations.filter ((d) => d.name === name);
+    if ((all.length !== 1) || (all[0].line >= line) || !/^I?Dictionary<string, object>\??$/.test (all[0].type) || !NATIVE_C07_MARKET_ROW_RE.test (all[0].value)) return undefined;
+    // the row is bound once and no key of it is written in the method
+    const write = new RegExp ('(?:\\b' + name + '[ ]*=[^=>]|\\b' + name + '\\[[^\\]]*\\][ ]*=[^=]|\\b(?:ref|out)[ ]+' + name + '\\b)');
+    for (let k = region.start + 1; k < region.end; k++) {
+        if ((k !== all[0].line) && write.test (region.lines[k])) return undefined;
+    }
+    return `((${arg} as bool?) == true)`;
+}
+
 function nativeC07Line (region, original: string, masked: string, line: number): string | undefined {
     const edits = [];
     const call = /(?<![\w.])(mathMin|mathMax|isTrue)\(/g;
@@ -9566,6 +9585,11 @@ function nativeC07Line (region, original: string, masked: string, line: number):
         const close = csharpHelperCallEnd (masked, open);
         if (close === undefined) continue;
         if (m[1] === 'isTrue') {
+            const read = nativeC07MarketBoolRead (region, original.substring (open + 1, close).trim (), line);
+            if (read !== undefined) {
+                edits.push ({ start: m.index, end: close + 1, text: read });
+                continue;
+            }
             const inner = /^\(([A-Za-z_]\w*)\)$/.exec (masked.substring (open + 1, close).trim ());
             const type = (inner === null) ? undefined : nativeC07NameType (region, inner[1], line);
             if (type === 'bool') edits.push ({ start: m.index, end: close + 1, text: inner[1] });

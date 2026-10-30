@@ -9006,7 +9006,7 @@ export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId
 // 'symbol'+'base'+'quote' literals plus the skeleton) stores a boolean or nothing at these keys,
 // nothing else (census: tools/S23/market-row-types.mjs, re-run for the added keys with
 // campaigns/cs90/tools/U01/key-value-census.mjs); `(bool?)` is BaseMethods#safeBool*'s shape.
-const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
+export const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
     'inverse', 'index', 'stock' ];
 
 // `market['precision']` — the DICT keys: every writer of both keys in a market-row literal is an
