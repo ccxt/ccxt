@@ -2980,7 +2980,7 @@ export default class poloniex extends Exchange {
         return [ request, query, currency, networkEntry ];
     }
 
-    parseDepositAddressSpecial (response: Dict, currency: any, networkEntry: Dict): DepositAddress {
+    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: Dict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, this.safeString (networkEntry, 'id'));
