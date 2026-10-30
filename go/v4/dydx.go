@@ -1082,7 +1082,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
-func (this *Dydx) HandlePublicAddress(methodName *string, params any) []any {
+func (this *Dydx) HandlePublicAddress(methodName string, params any) []any {
 	userAux, paramsUser := this.HandleOptionStringAndParams(params, methodName, "user")
 	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
@@ -1091,7 +1091,7 @@ func (this *Dydx) HandlePublicAddress(methodName *string, params any) []any {
 	if this.WalletAddress != "" {
 		return []any{this.WalletAddress, paramsAddress}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
+	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the walletAddress set"))
 }
 func (this *Dydx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
@@ -1252,7 +1252,7 @@ func (this *Dydx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(SafeStringPtr("fetchOrders"), params)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0")
@@ -1517,7 +1517,7 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(SafeStringPtr("fetchPositions"), params)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0")
@@ -2483,9 +2483,7 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
-		"methodName": "fetchLedger",
-	}))
+	r1 := <-this.FetchTransactionsHelperAsync("fetchLedger", code, since, limit, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2780,9 +2778,7 @@ func (this *Dydx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
-		"methodName": "fetchTransfers",
-	}))
+	r1 := <-this.FetchTransactionsHelperAsync("fetchTransfers", code, since, limit, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3003,9 +2999,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
-		"methodName": "fetchWithdrawals",
-	}))
+	r1 := <-this.FetchTransactionsHelperAsync("fetchWithdrawals", code, since, limit, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3060,9 +3054,7 @@ func (this *Dydx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
-		"methodName": "fetchDeposits",
-	}))
+	r1 := <-this.FetchTransactionsHelperAsync("fetchDeposits", code, since, limit, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3117,9 +3109,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 		currency = this.Currency(code)
 	}
 
-	r1 := <-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
-		"methodName": "fetchDepositsWithdrawals",
-	}))
+	r1 := <-this.FetchTransactionsHelperAsync("fetchDepositsWithdrawals", code, since, limit, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3134,12 +3124,12 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit))}
 	return nil
 }
-func (this *Dydx) FetchTransactionsHelperAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+func (this *Dydx) FetchTransactionsHelperAsync(methodName string, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
 	ch := make(chan AsyncResult[[]map[string]any], 1)
-	go this.fetchTransactionsHelperBody(ch, optionalArgs...)
+	go this.fetchTransactionsHelperBody(ch, methodName, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchTransactionsHelperBody(ch chan AsyncResult[[]map[string]any], optionalArgs ...any) any {
+func (this *Dydx) fetchTransactionsHelperBody(ch chan AsyncResult[[]map[string]any], methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3150,7 +3140,6 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan AsyncResult[[]map[string]a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var methodName *string = this.SafeString(params, "methodName")
 	var paramsOmitted map[string]any = this.OmitDict(params, "methodName")
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(methodName, paramsOmitted)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
@@ -3214,7 +3203,7 @@ func (this *Dydx) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(SafeStringPtr("fetchAccounts"), params)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchAccounts", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	var request map[string]any = map[string]any{
@@ -3313,7 +3302,7 @@ func (this *Dydx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			panic(r.Err)
 		}
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(SafeStringPtr("fetchBalance"), params)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
 	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
 	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
 	subaccountNumber, paramsSubaccountNumber := this.HandleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0)
@@ -4114,14 +4103,14 @@ func (this *Dydx) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOp
 	var res []Transaction = r.Value
 	return res, nil
 }
-func (this *Dydx) FetchTransactionsHelper(options ...FetchTransactionsHelperOptions) ([]map[string]any, error) {
+func (this *Dydx) FetchTransactionsHelper(methodName string, options ...FetchTransactionsHelperOptions) ([]map[string]any, error) {
 
 	opts := FetchTransactionsHelperOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.FetchTransactionsHelperAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	r := <-this.FetchTransactionsHelperAsync(methodName, opts.Code, opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

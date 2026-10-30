@@ -3395,7 +3395,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)
 	var messageHash string = "myTrades"
-	var topic *string = this.SafeString(message, "topic")
+	var topic *string = this.SafeString(message, "topic", "")
 	var suffix string = this.GetMyTradesMessageHashSuffix(topic)
 	var typeSpecificMessageHash string = messageHash + suffix
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, typeSpecificMessageHash)

@@ -2569,8 +2569,8 @@ func (this *Bybit) GetAmount(symbol any, amount any) *string {
 	}
 	return amountString
 }
-func (this *Bybit) GetPrice(symbol any, price any) any {
-	if IsEqual(price, nil) {
+func (this *Bybit) GetPrice(symbol any, price *string) *string {
+	if price == nil {
 		return price
 	}
 	var market map[string]any = this.Market(symbol)
@@ -5720,7 +5720,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 	}
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
-	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
@@ -5728,7 +5728,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 	var trailingTriggerPrice *string = this.SafeString2(params, "trailingTriggerPrice", "activePrice", this.NumberToString(price))
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trailingStop")
 	var isTrailingOrder bool = (trailingAmount != nil)
-	var isTriggerOrder bool = !IsEqual(triggerPrice, nil)
+	var isTriggerOrder bool = (triggerPrice != nil)
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
 	var hasStopLoss bool = (stopLoss != nil)
@@ -5761,7 +5761,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 		}
 		return nil
 	}()
-	var priceString any = func() any {
+	var priceString *string = func() *string {
 		if price != nil {
 			return this.GetPrice(symbolValue, this.NumberToString(price))
 		}
@@ -5839,7 +5839,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 		}
 		if market["spot"] == true {
 			// only works for spot market
-			if !IsEqual(triggerPrice, nil) {
+			if triggerPrice != nil {
 				request["orderFilter"] = "StopOrder"
 			} else if isStopLossOrder || isTakeProfitOrder {
 				request["orderFilter"] = "tpslOrder"
@@ -5963,9 +5963,9 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 	}
 	if (hasStopLoss || hasTakeProfit) && !endpointIsTradingStop {
 		if hasStopLoss {
-			var slTriggerPrice any = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
+			var slTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
 			request["stopLoss"] = this.GetPrice(symbolValue, slTriggerPrice)
-			var slLimitPrice any = this.SafeValue(stopLoss, "price")
+			var slLimitPrice *string = this.SafeString(stopLoss, "price")
 			if slLimitPrice != nil {
 				request["tpslMode"] = "Partial"
 				request["slOrderType"] = "Limit"
@@ -5982,9 +5982,9 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 			}
 		}
 		if hasTakeProfit {
-			var tpTriggerPrice any = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
+			var tpTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
 			request["takeProfit"] = this.GetPrice(symbolValue, tpTriggerPrice)
-			var tpLimitPrice any = this.SafeValue(takeProfit, "price")
+			var tpLimitPrice *string = this.SafeString(takeProfit, "price")
 			if tpLimitPrice != nil {
 				request["tpslMode"] = "Partial"
 				request["tpOrderType"] = "Limit"
@@ -6199,7 +6199,7 @@ func (this *Bybit) EditOrderRequest(id *string, symbol any, typeVar any, side an
 		}
 	}
 	if triggerPrice != nil {
-		var triggerPriceRequest any = func() any {
+		var triggerPriceRequest *string = func() *string {
 			if triggerPrice != nil && *triggerPrice == "0" {
 				return triggerPrice
 			}
@@ -6212,7 +6212,7 @@ func (this *Bybit) EditOrderRequest(id *string, symbol any, typeVar any, side an
 	if hasStopLoss || hasTakeProfit {
 		if hasStopLoss {
 			var slTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
-			var stopLossRequest any = func() any {
+			var stopLossRequest *string = func() *string {
 				if slTriggerPrice != nil && *slTriggerPrice == "0" {
 					return slTriggerPrice
 				}
@@ -6224,7 +6224,7 @@ func (this *Bybit) EditOrderRequest(id *string, symbol any, typeVar any, side an
 		}
 		if hasTakeProfit {
 			var tpTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
-			var takeProfitRequest any = func() any {
+			var takeProfitRequest *string = func() *string {
 				if tpTriggerPrice != nil && *tpTriggerPrice == "0" {
 					return tpTriggerPrice
 				}
