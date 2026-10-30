@@ -2,6 +2,37 @@
     "exchange": "bitrue",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "a perpetual with status 1 is active",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponseByUrl": {
+                    "/api/v1/exchangeInfo": {
+                        "timezone": "CTT",
+                        "serverTime": "1793366669000",
+                        "symbols": []
+                    },
+                    "/fapi/v1/contracts": [
+                        { "symbol": "E-BTC-USDT", "pricePrecision": 1, "side": 1, "maxMarketVolume": 1200000, "multiplier": 0.0001, "minOrderVolume": 4, "maxMarketMoney": 7572120.0, "type": "E", "maxLimitVolume": 10000000, "maxValidOrder": 50, "multiplierCoin": "BTC", "minOrderMoney": 30.0, "maxLimitMoney": 63101000.0, "status": 1 }
+                    ],
+                    "/dapi/v1/contracts": []
+                },
+                "parsedResponse": [
+                    {
+                        "id": "E-BTC-USDT", "lowercaseId": "e-btc-usdt", "symbol": "BTC/USDT:USDT",
+                        "base": "BTC", "quote": "USDT", "settle": "USDT", "baseId": "BTC", "quoteId": "USDT", "settleId": "USDT",
+                        "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
+                        "active": true, "contract": true, "linear": true, "inverse": false, "subType": null,
+                        "taker": null, "maker": null, "contractSize": 0.0001, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": 0.1 },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": 50 }, "price": { "min": null, "max": null }, "cost": { "min": 30, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null,
+                        "info": { "symbol": "E-BTC-USDT", "pricePrecision": 1, "side": 1, "maxMarketVolume": 1200000, "multiplier": 0.0001, "minOrderVolume": 4, "maxMarketMoney": 7572120, "type": "E", "maxLimitVolume": 10000000, "maxValidOrder": 50, "multiplierCoin": "BTC", "minOrderMoney": 30, "maxLimitMoney": 63101000, "status": 1 }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
