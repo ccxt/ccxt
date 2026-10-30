@@ -769,12 +769,17 @@ export default class dydx extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
-            request['fromIso'] = this.iso8601 (since);
+            request['fromISO'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
         if (until !== undefined) {
-            request['toIso'] = this.iso8601 (until);
+            request['toISO'] = this.iso8601 (until);
+        } else if (since !== undefined) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            const count = (limit !== undefined) ? Math.min (limit, 1000) : 1000;
+            request['toISO'] = this.iso8601 (this.sum (since, duration * count));
         }
         const response = await this.indexerGetCandlesPerpetualMarketsMarket (this.extend (request, paramsOmitted));
         //
