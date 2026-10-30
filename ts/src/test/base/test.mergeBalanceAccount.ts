@@ -12,25 +12,18 @@ function testMergeBalanceAccount () {
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
     // passed by value, so mutating the argument alone is invisible there.
-    // the local is seeded from the helper itself so the Go port infers the
-    // helper's own return type instead of a map literal it cannot assign back to
-    const btcAccount: Dict = exchange.account ();
-    btcAccount['free'] = '1';
-    btcAccount['used'] = '0.5';
-    btcAccount['debt'] = '0.1';
-    let result: Dict = exchange.mergeBalanceAccount ({}, 'BTC', btcAccount);
+    // accounts and the result are map literals so every port types them as a dictionary
+    const btcAccount: Dict = { 'free': '1', 'used': '0.5', 'debt': '0.1' };
+    let result: Dict = {};
+    result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount);
     assert (exchange.safeString (result['BTC'], 'free') === '1');
-    const btcAccount2: Dict = exchange.account ();
-    btcAccount2['free'] = '2';
-    btcAccount2['used'] = '0.25';
-    btcAccount2['total'] = '2.25';
+    const btcAccount2: Dict = { 'free': '2', 'used': '0.25', 'total': '2.25' };
     result = exchange.mergeBalanceAccount (result, 'BTC', btcAccount2);
     assert (exchange.safeString (result['BTC'], 'free') === '3');
     assert (exchange.safeString (result['BTC'], 'used') === '0.75');
     assert (exchange.safeString (result['BTC'], 'total') === '2.25');
     assert (exchange.safeString (result['BTC'], 'debt') === '0.1');
-    const usdtAccount: Dict = exchange.account ();
-    usdtAccount['free'] = '5';
+    const usdtAccount: Dict = { 'free': '5' };
     result = exchange.mergeBalanceAccount (result, 'USDT', usdtAccount);
     assert (exchange.safeString (result['USDT'], 'free') === '5');
     assert (exchange.safeString (result['USDT'], 'used') === undefined);
