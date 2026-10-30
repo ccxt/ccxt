@@ -5087,6 +5087,189 @@
                         "datetime": "2026-06-12T08:00:00.000Z"
                     }
                 ]
+            },
+            {
+                "description": "linear swap paginate walks back from until with end_time; the page cursor exists only on the inverse endpoint, so master stopped after one page (3 of 6 rows)",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792540799999
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "contract_code=BTC-USDT&limit=3&end_time=1792540799999": {
+                        "code": 200,
+                        "message": "Success",
+                        "data": [
+                            {
+                                "id": "15731",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.0001",
+                                "funding_time": "1792512000000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15729",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.0001",
+                                "funding_time": "1792483200000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15727",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.0001",
+                                "funding_time": "1792454400000",
+                                "funding_fee_type": "normal"
+                            }
+                        ],
+                        "args": null,
+                        "ts": 1793059530472
+                    },
+                    "contract_code=BTC-USDT&limit=3&end_time=1792454399999": {
+                        "code": 200,
+                        "message": "Success",
+                        "data": [
+                            {
+                                "id": "15725",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.0001",
+                                "funding_time": "1792425600000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15723",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.000026847778572936",
+                                "funding_time": "1792396800000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15721",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.0001",
+                                "funding_time": "1792368000000",
+                                "funding_fee_type": "normal"
+                            }
+                        ],
+                        "args": null,
+                        "ts": 1793059530847
+                    },
+                    "contract_code=BTC-USDT&limit=3&start_time=1792368000000&until=1792540799999": {
+                        "code": 200,
+                        "message": "Success",
+                        "data": [
+                            {
+                                "id": "15774",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.000074656198899553",
+                                "funding_time": "1793059200000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15772",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.000010923197733905",
+                                "funding_time": "1793030400000",
+                                "funding_fee_type": "normal"
+                            },
+                            {
+                                "id": "15770",
+                                "contract_code": "BTC-USDT",
+                                "funding_rate": "0.000054152345729723",
+                                "funding_time": "1793001600000",
+                                "funding_fee_type": "normal"
+                            }
+                        ],
+                        "args": null,
+                        "ts": 1793059536104
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "15721",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1792368000000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "id": "15723",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.000026847778572936",
+                            "funding_time": "1792396800000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000026847778572936,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "id": "15725",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1792425600000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "id": "15727",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1792454400000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792454400000,
+                        "datetime": "2026-10-20T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "id": "15729",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1792483200000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792483200000,
+                        "datetime": "2026-10-20T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "id": "15731",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1792512000000",
+                            "funding_fee_type": "normal"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792512000000,
+                        "datetime": "2026-10-20T16:00:00.000Z"
+                    }
+                ]
             }
         ],
         "fetchFundingHistory": [
