@@ -1901,19 +1901,25 @@ export default class whitebit extends Exchange {
         const until = this.safeInteger (params, 'until');
         const paramsOmitted = this.omit (params, 'until');
         if ((since !== undefined) || (until !== undefined)) {
-            // the exchange ignores a start alone: it returns the last candles that closed by the end,
-            // and nothing at all for an end past now
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, so an end reaching the present is left out, and
+            // the latest candles it then returns cover the range
             const duration = this.parseTimeframe (timeframe);
-            let endTime = this.seconds ();
+            let endTime: Int = undefined;
             if (until !== undefined) {
-                endTime = Math.min (endTime, this.sum (this.parseToInt (until / 1000), duration));
+                endTime = this.sum (this.parseToInt (until / 1000), duration);
             }
             if (since !== undefined) {
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                endTime = Math.min (endTime, this.sum (start, duration * cappedLimit));
+                const rangeEnd = this.sum (start, duration * cappedLimit);
+                if ((endTime === undefined) || (rangeEnd < endTime)) {
+                    endTime = rangeEnd;
+                }
             }
-            request['end'] = endTime;
+            if ((endTime !== undefined) && (endTime < this.seconds ())) {
+                request['end'] = endTime;
+            }
         }
         if ((since !== undefined) || (until !== undefined) || (limit !== undefined)) {
             request['limit'] = cappedLimit;

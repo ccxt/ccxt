@@ -562,6 +562,17 @@
                         "until": 1704895860000
                     }
                 ]
+            },
+            {
+                "description": "ohlcv with a since whose range reaches the present: no end, which the exchange refuses past its clock",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1m&start=4102444800&limit=3",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    4102444800000,
+                    3
+                ]
             }
         ],
         "fetchFundingRate": [
