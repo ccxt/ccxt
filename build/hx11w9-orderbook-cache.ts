@@ -32,7 +32,7 @@ const CALLS: { [name: string]: (a: string[], q: string) => string | undefined } 
     'GetValue': (a) => (a.length === 2) ? 'this.Orderbooks.Get(' + a[1] + ')' : undefined,
     'SafeValue': (a) => (a.length === 2) ? 'this.Orderbooks.Get(' + a[1] + ')' : ((a.length === 3) ? 'this.Orderbooks.GetOr(' + a[1] + ', ' + a[2] + ')' : undefined),
     'SafeDict': (a) => (a.length === 2) ? 'this.Orderbooks.Get(' + a[1] + ')' : undefined,
-    'SafeMapTyped': (a, q) => (a.length === 2) ? q + 'MapTyped(this.Orderbooks.Get(' + a[1] + '))' : undefined,
+    'SafeMapTyped': (a, q) => (a.length === 2) ? q + 'SafeMapTyped(this.Orderbooks.ToMap(), ' + a[1] + ')' : undefined,
     'InOp': (a) => (a.length === 2) ? 'this.Orderbooks.Has(' + a[1] + ')' : undefined,
     'Remove': (a) => (a.length === 2) ? 'this.Orderbooks.Delete(' + a[1] + ')' : undefined,
 };
@@ -218,7 +218,7 @@ export function hx11w9OrderBookCacheCheck (): string[] {
     const out = hx11w9OrderBookAssertPass (hx11w9OrderBookCachePass (src));
     for (const want of [ 'if !(this.Orderbooks.Has(symbol)) {', 'this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))',
         'var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)', 'var stored ccxt.OrderBookInterface = this.Orderbooks.GetOr(symbol, this.OrderBook(map[string]any{}))',
-        'var typed ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)', 'var side ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)', 'ccxt.MapTyped(this.Orderbooks.Get(symbol))',
+        'var typed ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)', 'var side ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)', 'ccxt.SafeMapTyped(this.Orderbooks.ToMap(), symbol)',
         '\torderbook.Reset(snapshot)', '\tthis.Orderbooks[*symbol] = orderbook\n', 'this.Orderbooks.Delete(symbol)' ]) {
         ok (out.indexOf (want) >= 0, 'missing ' + want + ' in ' + out);
     }
