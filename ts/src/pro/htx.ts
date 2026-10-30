@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
+import type { Balances, Bool, Currency, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1869,8 +1869,14 @@ export default class htx extends htxRest {
         } else {
             const symbol = this.safeString (paramsOmitted, 'symbol');
             const currency = this.safeString (paramsOmitted, 'currency');
-            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-            const currencyCode = (currency !== undefined) ? this.currency (currency) : undefined;
+            let market: Market = undefined;
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+            }
+            let currencyCode: Currency = undefined;
+            if (currency !== undefined) {
+                currencyCode = this.currency (currency);
+            }
             marginMode = this.safeString (paramsOmitted, 'margin', 'cross');
             let prefix = 'accounts';
             messageHash = prefix;
