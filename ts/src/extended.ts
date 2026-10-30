@@ -2546,8 +2546,8 @@ export default class extended extends Exchange {
         };
         const msgHash = this.getExtendedOrderMsgHash (settlement);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex (this.safeString (sig, 0));
-        const s = this.getExtendedSignatureHex (this.safeString (sig, 1));
+        const r = this.getExtendedSignatureHex (this.safeString (sig, 0, '0'));
+        const s = this.getExtendedSignatureHex (this.safeString (sig, 1, '0'));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2580,8 +2580,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex (this.safeString (sig, 0)),
-            's': this.getExtendedSignatureHex (this.safeString (sig, 1)),
+            'r': this.getExtendedSignatureHex (this.safeString (sig, 0, '0')),
+            's': this.getExtendedSignatureHex (this.safeString (sig, 1, '0')),
         };
         return settlement;
     }
@@ -2612,8 +2612,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedTransferMsgHash (settlement);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex (this.safeString (sig, 0)),
-            's': this.getExtendedSignatureHex (this.safeString (sig, 1)),
+            'r': this.getExtendedSignatureHex (this.safeString (sig, 0, '0')),
+            's': this.getExtendedSignatureHex (this.safeString (sig, 1, '0')),
         };
         return settlement;
     }
@@ -3431,15 +3431,10 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedDecimalToBase16 (value: any): string {
-        let decimalString = '';
-        if (typeof value === 'string') {
-            decimalString = value;
-        } else {
-            decimalString = this.numberToString (value) as string;
-        }
+    getExtendedDecimalToBase16 (value: string): string {
+        let decimalString: string = value;
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
-        let result = '';
+        let result: string = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
             const hexChar = this.safeString (hexChars, remainder, '');
@@ -3452,18 +3447,11 @@ export default class extended extends Exchange {
         return result;
     }
 
-    getExtendedSignatureHex (signature: any): string {
-        if (typeof signature === 'string') {
-            if (signature.indexOf ('0x') === 0) {
-                return signature;
-            }
-            return '0x' + this.getExtendedDecimalToBase16 (signature);
+    getExtendedSignatureHex (signature: string): string {
+        if (signature.indexOf ('0x') === 0) {
+            return signature;
         }
-        const signatureString = this.numberToString (signature) as string;
-        if (signatureString.indexOf ('0x') === 0) {
-            return signatureString;
-        }
-        return '0x' + this.getExtendedDecimalToBase16 (signatureString);
+        return '0x' + this.getExtendedDecimalToBase16 (signature);
     }
 
     getExtendedDomainHash () {
