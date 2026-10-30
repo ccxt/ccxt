@@ -13080,7 +13080,10 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     if (helper === undefined || scope === undefined) {
         return undefined;
     }
-    const type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.text, csharp);
+    let type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.text, csharp);
+    if (context.nonNullString === true && type === 'string?') {
+        type = 'string'; // hx11 w9: the argument prover asks for the non-null spelling
+    }
     const stringSlots = Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) && STRING_TYPES.includes (type);
     const slots = stringSlots ? stringElementIndexes (helper) : [ 0 ];
     const element = declaration.name.elements?.[slot];
@@ -16446,6 +16449,23 @@ function csharpIdentifierDeclaration (csharp, node) {
     }
 }
 
+// the C# type of `x` where x is a slot binding of an audited destructured tuple
+function hx11w9DestructuredSlotArgumentType (csharp, declaration, argument) {
+    const pattern = declaration?.parent;
+    const holder = pattern?.parent;
+    if (declaration?.kind !== ts.SyntaxKind.BindingElement || pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern
+            || holder?.kind !== ts.SyntaxKind.VariableDeclaration || holder.name !== pattern) {
+        return undefined;
+    }
+    try {
+        const scope = csharp.csharpEnclosingFunction (argument);
+        const slot = pattern.elements.indexOf (declaration);
+        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, holder, slot, { scope, 'stack': new Set (), 'depth': 0, 'nonNullString': true });
+    } catch (e) {
+        return undefined;
+    }
+}
+
 // the C# static type of a call-site argument, or undefined when nothing proves it
 function csharpArgumentType (csharp, argument, expected) {
     if (argument === undefined) {
@@ -16467,6 +16487,12 @@ function csharpArgumentType (csharp, argument, expected) {
             const reference = referenceDeclaredType (csharp, declaration);
             if (reference !== undefined) {
                 return reference;
+            }
+            // hx11 w9: a slot of `const [ type, params ] = this.handleMarketTypeAndParams (...)`
+            // that the destructuring hook prints `string` / `string?`
+            const slotType = hx11w9DestructuredSlotArgumentType (csharp, declaration, argument);
+            if (slotType !== undefined) {
+                return slotType;
             }
         }
     }
