@@ -2995,7 +2995,7 @@ class nado extends Exchange {
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
-    public function parse_x18(?string $value) {
+    public function parse_x18(?string $value): ?float {
         if ($value === null) {
             return null;
         }

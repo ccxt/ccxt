@@ -1148,7 +1148,7 @@ class blofin extends Exchange {
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $rate = $this->safe_value($data, $i);
+            $rate = $this->safe_dict($data, $i, array());
             $timestamp = $this->safe_integer($rate, 'fundingTime');
             $rates[] = array(
                 'info' => $rate,

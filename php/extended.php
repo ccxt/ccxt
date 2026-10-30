@@ -2541,8 +2541,8 @@ class extended extends Exchange {
         );
         $msgHash = $this->get_extended_order_msg_hash($settlement);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
-        $r = $this->get_extended_signature_hex($this->safe_string($sig, 0));
-        $s = $this->get_extended_signature_hex($this->safe_string($sig, 1));
+        $r = $this->get_extended_signature_hex($this->safe_string($sig, 0, '0'));
+        $s = $this->get_extended_signature_hex($this->safe_string($sig, 1, '0'));
         $settlement['r'] = $r;
         $settlement['s'] = $s;
         return $settlement;
@@ -2575,8 +2575,8 @@ class extended extends Exchange {
         $msgHash = $this->get_extended_withdrawal_msg_hash($settlement, $starkKey);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
         $settlement['signature'] = array(
-            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0)),
-            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1)),
+            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0, '0')),
+            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1, '0')),
         );
         return $settlement;
     }
@@ -2607,8 +2607,8 @@ class extended extends Exchange {
         $msgHash = $this->get_extended_transfer_msg_hash($settlement);
         $sig = json_decode($this->extended_starknet_sign($msgHash, $this->privateKey, $as_associative_array = true));
         $settlement['signature'] = array(
-            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0)),
-            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1)),
+            'r' => $this->get_extended_signature_hex($this->safe_string($sig, 0, '0')),
+            's' => $this->get_extended_signature_hex($this->safe_string($sig, 1, '0')),
         );
         return $settlement;
     }
@@ -3426,13 +3426,8 @@ class extended extends Exchange {
         return $value;
     }
 
-    public function get_extended_decimal_to_base16(mixed $value): string {
-        $decimalString = '';
-        if (gettype($value) === 'string') {
-            $decimalString = $value;
-        } else {
-            $decimalString = $this->number_to_string($value);
-        }
+    public function get_extended_decimal_to_base16(string $value): string {
+        $decimalString = $value;
         $hexChars = array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' );
         $result = '';
         while (Precise::string_gt($decimalString, '0')) {
@@ -3447,18 +3442,11 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function get_extended_signature_hex(mixed $signature): string {
-        if (gettype($signature) === 'string') {
-            if (mb_strpos($signature, '0x') === 0) {
-                return $signature;
-            }
-            return '0x' . $this->get_extended_decimal_to_base16($signature);
+    public function get_extended_signature_hex(string $signature): string {
+        if (mb_strpos($signature, '0x') === 0) {
+            return $signature;
         }
-        $signatureString = $this->number_to_string($signature);
-        if (mb_strpos($signatureString, '0x') === 0) {
-            return $signatureString;
-        }
-        return '0x' . $this->get_extended_decimal_to_base16($signatureString);
+        return '0x' . $this->get_extended_decimal_to_base16($signature);
     }
 
     public function get_extended_domain_hash() {
