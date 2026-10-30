@@ -1,0 +1,32 @@
+{
+    "exchange": "bitrue",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTrades": [
+            {
+                "description": "swap trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fmarket-ws.bitrue.com/kline-api/ws",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "swap 1h kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "url": "wss://fmarket-ws.bitrue.com/kline-api/ws",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
