@@ -67,6 +67,15 @@ export function c12CoreArgPassThrough (content: string, at: number, helper: stri
     if ((boxes === undefined) || !C12_IDENT.test (argument)) {
         return false
     }
+    const declared = c12DeclaredType (content, at, argument)
+    return (declared !== null) && (boxes.indexOf (declared) !== -1)
+}
+
+/**
+ * The C# type `argument` is declared with in the generated method around offset `at`, or null
+ * when it is unproven (no signature, a conflicting redeclaration, an unknown declaration form).
+ */
+function c12DeclaredType (content: string, at: number, argument: string): string | null {
     const lines = content.split ('\n')
     let lineIndex = 0
     for (let i = 0, off = 0; i < lines.length; i++) {
@@ -84,7 +93,7 @@ export function c12CoreArgPassThrough (content: string, at: number, helper: stri
         }
     }
     if (sig === -1) {
-        return false
+        return null
     }
     const types: { [name: string]: string | null } = {}
     for (const param of c12Params (lines[sig])) {
@@ -104,7 +113,26 @@ export function c12CoreArgPassThrough (content: string, at: number, helper: stri
         }
     }
     const declared = types[argument]
-    return (declared !== undefined) && (declared !== null) && (boxes.indexOf (declared) !== -1)
+    return (declared === undefined) ? null : declared
+}
+
+/**
+ * M358: `ToDoubleArgRequired(x)` on a `double?` operand is `x ?? 0d` (null surfaces as 0, the
+ * boxed double converts to itself), and on `(-x)` of a `double` operand the negation is already
+ * the `double` box. Returns the native operand, or '' when the operand is not one of those.
+ */
+export function c12RequiredDoubleNative (content: string, at: number, helper: string, argument: string): string {
+    if (helper !== 'ToDoubleArgRequired') {
+        return ''
+    }
+    const negated = /^\(-([A-Za-z_]\w*)\)$/.exec (argument)
+    if (negated !== null) {
+        return (c12DeclaredType (content, at, negated[1]) === 'double') ? argument : ''
+    }
+    if (C12_IDENT.test (argument) && (c12DeclaredType (content, at, argument) === 'double?')) {
+        return '(' + argument + ' ?? 0d)'
+    }
+    return ''
 }
 
 // self-test: the nullable/non-nullable boxes, the unproven `object` box, a member operand, and a
@@ -126,6 +154,20 @@ export function c12SnippetChecks (): string[] {
         [ 'required-double-nullable', 'ToDoubleArgRequired', 'amount', [ pad + pad + 'double? amount = 0;', ret ('ToDoubleArgRequired', 'amount') ], false ],
     ]
     const problems: string[] = []
+    const nativeCases: [string, string, string[], string][] = [
+        [ 'amount', 'amount', [ pad + pad + 'double? amount = 0;' ], '(amount ?? 0d)' ],
+        [ 'amount', 'amount', [ pad + pad + 'object amount = 0;' ], '' ],
+        [ '(-amount)', '(-amount)', [ pad + pad + 'double amount = 0;' ], '(-amount)' ],
+        [ '(-amount)', '(-amount)', [ pad + pad + 'double? amount = 0;' ], '' ],
+    ]
+    for (const [ , argName, lines, expected ] of nativeCases) {
+        const text = wrap (lines.concat ([ ret ('ToDoubleArgRequired', argName) ]))
+        const at = text.indexOf ('ToDoubleArgRequired(') + 'ToDoubleArgRequired('.length
+        const got = c12RequiredDoubleNative (text, at, 'ToDoubleArgRequired', argName)
+        if (got !== expected) {
+            problems.push ('[C12] native ' + argName + ' expected ' + expected + ' got ' + got)
+        }
+    }
     for (const [ name, helperName, argName, lines, expected ] of cases) {
         const text = wrap (lines)
         const needle = helperName + '(' + argName + ')'

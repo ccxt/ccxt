@@ -31,7 +31,7 @@ import { hx10w2C02ListHelpers, hx10w2C02SnippetChecks } from './hx10w2-c02.js'
 import { c04Apply, c04SnippetChecks } from './hx10w3-C04.js' // hx10 wave3 C04
 import { bf01Apply, bf01SnippetChecks } from './hx10w4-BF01.js' // hx10 wave4 BF01
 import { hx10w10Bs04Apply, hx10w10SnippetChecks } from './hx10w10-BS04.js' // hx10 wave10 BS04
-import { c12CoreArgPassThrough, c12SnippetChecks } from './hx10w5-C12.js' // hx10 wave5 C12: ToInt64Arg twins
+import { c12CoreArgPassThrough, c12RequiredDoubleNative, c12SnippetChecks } from './hx10w5-C12.js' // hx10 wave5 C12: ToInt64Arg twins
 import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
 import { cp06FromIsIdentity, cp06NativeCoreReturn, cp06SnippetChecks } from './hx10w10-CP06.js' // hx10 wave10 CP06: ToOrderBookSnapshot/ToInt64Value/FromDict
 import { platform } from 'process'
@@ -5813,6 +5813,13 @@ class NewTranspiler {
                     }
                     // C12: an operand already declared in the parameter's own box passes through bare
                     if (c12CoreArgPassThrough (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), helper, trimmed)) {
+                        continue;
+                    }
+                    // M358: a `double?` operand or a negated `double` is the required double natively
+                    const m358native = c12RequiredDoubleNative (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), helper, trimmed)
+                    if (m358native !== '') {
+                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + m358native
+                        changed = true;
                         continue;
                     }
                     // CP04: a null literal converts to `Int64?`/`double?` on its own
