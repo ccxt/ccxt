@@ -5855,7 +5855,7 @@ export class BaseExchange {
         return ohlcv;
     }
 
-    safeNetwork (network: any) {
+    safeNetwork (network: Dict) {
         const withdrawEnabled = this.safeBool (network, 'withdraw');
         const depositEnabled = this.safeBool (network, 'deposit');
         const limits = this.safeDict (network, 'limits');
