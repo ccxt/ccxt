@@ -1694,7 +1694,10 @@ export default class gemini extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
         // timeInForce and postOnly are consumed only by non-trigger orders
         const omitKeys: string[] = [ 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' ];
-        const optionKeys: string[] = (triggerPrice === undefined) ? [ 'timeInForce', 'postOnly' ] : [];
+        let optionKeys: string[] = [];
+        if (triggerPrice === undefined) {
+            optionKeys = [ 'timeInForce', 'postOnly' ];
+        }
         const paramsOmitted: Dict = this.omit (params, this.arrayConcat (omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
@@ -2089,12 +2092,11 @@ export default class gemini extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json (query);
         }
-        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
