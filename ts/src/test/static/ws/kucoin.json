@@ -886,6 +886,272 @@
                 "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
                 "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "rest snapshot arriving after a ws transfer delta merges into the live funding balance object - the delta wins (usdt stays at the post-transfer value, not the stale snapshot one), snapshot-only currencies join the aggregates, and the object handed to the consumer keeps its identity (frames and rest response captured live 2026-10-29, account ids redacted)",
+                "disabledPHP": "the php runtime starts a spawned coroutine synchronously, so loadBalanceSnapshot runs to completion against the instant mocked rest response before watchBalance registers its future - the dropped resolve leaves the watch pending (live rest responses arrive asynchronously, so real usage does not hit this order)",
+                "disabledCS": "the spawned loadBalanceSnapshot may run to completion against the instant mocked rest response before watchBalance registers its future (thread-pool scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledGO": "the spawned loadBalanceSnapshot goroutine may run to completion against the instant mocked rest response before watchBalance registers its future (scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "options": {
+                    "uta": false,
+                    "watchBalance": {
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": false
+                    }
+                },
+                "input": [
+                    {
+                        "type": "main"
+                    }
+                ],
+                "url": "wss://ws-api-spot.kucoin.com/?token=testprivatetoken&privateChannel=true&connectId=private",
+                "httpResponseByUrl": {
+                    "bullet-private": {
+                        "code": "200000",
+                        "data": {
+                            "token": "testprivatetoken",
+                            "instanceServers": [
+                                {
+                                    "endpoint": "wss://ws-api-spot.kucoin.com/",
+                                    "encrypt": true,
+                                    "protocol": "websocket",
+                                    "pingInterval": 18000,
+                                    "pingTimeout": 10000
+                                }
+                            ]
+                        }
+                    },
+                    "/api/v1/accounts": {
+                        "code": "200000",
+                        "data": [
+                            {
+                                "id": "1001",
+                                "currency": "KCS",
+                                "type": "main",
+                                "balance": "9.24328222",
+                                "available": "9.24328222",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1002",
+                                "currency": "EUR",
+                                "type": "main",
+                                "balance": "11.8",
+                                "available": "11.8",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1003",
+                                "currency": "DOGE",
+                                "type": "main",
+                                "balance": "109.96624756",
+                                "available": "109.96624756",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1004",
+                                "currency": "USDT",
+                                "type": "main",
+                                "balance": "4.2107458",
+                                "available": "4.2107458",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1005",
+                                "currency": "NIGHT",
+                                "type": "main",
+                                "balance": "5.72346445",
+                                "available": "5.72346445",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1006",
+                                "currency": "BTC",
+                                "type": "main",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1007",
+                                "currency": "ETH",
+                                "type": "main",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1008",
+                                "currency": "SOL",
+                                "type": "main",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1009",
+                                "currency": "TRX",
+                                "type": "main",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "1010",
+                                "currency": "USDC",
+                                "type": "main",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            }
+                        ]
+                    }
+                },
+                "preWatchMessages": [
+                    {
+                        "type": "message",
+                        "topic": "/account/balance",
+                        "userId": "12345",
+                        "channelType": "private",
+                        "subject": "account.balance",
+                        "data": {
+                            "accountId": "1004",
+                            "available": "2.2107458",
+                            "availableChange": "-2",
+                            "currency": "USDT",
+                            "hold": "0",
+                            "holdChange": "0",
+                            "relationContext": {},
+                            "relationEvent": "main.transfer",
+                            "relationEventId": "6ae320e1599ede0007615648",
+                            "time": "1793269985705",
+                            "total": "2.2107458"
+                        }
+                    }
+                ],
+                "messages": [
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/account/balance",
+                        "response": true,
+                        "privateChannel": true
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponse": {
+                    "info": {
+                        "accountId": "1004",
+                        "available": "2.2107458",
+                        "availableChange": "-2",
+                        "currency": "USDT",
+                        "hold": "0",
+                        "holdChange": "0",
+                        "relationContext": {},
+                        "relationEvent": "main.transfer",
+                        "relationEventId": "6ae320e1599ede0007615648",
+                        "time": "1793269985705",
+                        "total": "2.2107458"
+                    },
+                    "timestamp": 1793269985705,
+                    "datetime": "2026-10-29T10:33:05.705Z",
+                    "USDT": {
+                        "free": 2.2107458,
+                        "used": 0,
+                        "total": 2.2107458
+                    },
+                    "KCS": {
+                        "free": 9.24328222,
+                        "used": 0,
+                        "total": 9.24328222
+                    },
+                    "EUR": {
+                        "free": 11.8,
+                        "used": 0,
+                        "total": 11.8
+                    },
+                    "DOGE": {
+                        "free": 109.96624756,
+                        "used": 0,
+                        "total": 109.96624756
+                    },
+                    "NIGHT": {
+                        "free": 5.72346445,
+                        "used": 0,
+                        "total": 5.72346445
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TRX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USDT": 2.2107458,
+                        "KCS": 9.24328222,
+                        "EUR": 11.8,
+                        "DOGE": 109.96624756,
+                        "NIGHT": 5.72346445,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "TRX": 0,
+                        "USDC": 0
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "KCS": 0,
+                        "EUR": 0,
+                        "DOGE": 0,
+                        "NIGHT": 0,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "TRX": 0,
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDT": 2.2107458,
+                        "KCS": 9.24328222,
+                        "EUR": 11.8,
+                        "DOGE": 109.96624756,
+                        "NIGHT": 5.72346445,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "TRX": 0,
+                        "USDC": 0
+                    }
+                }
+            }
         ]
     }
 }

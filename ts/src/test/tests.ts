@@ -2108,20 +2108,22 @@ class testMainClass {
         return false;
     }
 
-    async injectWsMessages (exchange: any, url: string, messages: List, sequential = false) {
+    async injectWsMessages (exchange: any, url: string, messages: List, sequential = false, beforeWatch = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
-        // runners and the frame's resolution would be dropped
+        // runners and the frame's resolution would be dropped; 'beforeWatch'
+        // frames are replayed before the watch side exists, so they skip the
+        // readiness gates and must resolve no future
         for (let i = 0; i < messages.length; i++) {
             let waited = 0;
-            while (!wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
+            while (!beforeWatch && !wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
                 await exchange.sleep (50);
                 waited = waited + 50;
             }
             // a reply frame must not arrive before its request was sent, or it is dropped
             const frameId = exchange.safeString (messages[i], 'id');
             let waitedSent = 0;
-            while ((frameId !== undefined) && !this.wsRequestWasSent (exchange, url, frameId) && (waitedSent < 5000)) {
+            while (!beforeWatch && (frameId !== undefined) && !this.wsRequestWasSent (exchange, url, frameId) && (waitedSent < 5000)) {
                 await exchange.sleep (50);
                 waitedSent = waitedSent + 50;
             }
@@ -2142,6 +2144,16 @@ class testMainClass {
                 await exchange.sleep (20);
                 settled = settled + 20;
             }
+            if (beforeWatch) {
+                // nothing is awaiting yet, so the settle loop above exits at
+                // once — give the handler chain one tick to finish regardless
+                await exchange.sleep (50);
+            }
+        }
+        if (beforeWatch) {
+            // leave any state the frames created (and any future a handler
+            // registered) untouched for the watch side that starts next
+            return true;
         }
         await exchange.sleep (50);
         if (sequential) {
@@ -2213,7 +2225,13 @@ class testMainClass {
         const url = exchange.safeString (data, 'url');
         setupWsMockTransport (exchange, url);
         const httpResponse = exchange.safeValue (data, 'httpResponse');
-        if (httpResponse !== undefined) {
+        const httpResponsesByUrl = exchange.safeDict (data, 'httpResponseByUrl');
+        if (httpResponsesByUrl !== undefined) {
+            // a watch flow can call several differently-shaped rest endpoints
+            // (e.g. an auth-token fetch plus a balance snapshot) — serve one
+            // body per url fragment, as the static response tests do
+            setFetchResponseByUrl (exchange, httpResponsesByUrl);
+        } else if (httpResponse !== undefined) {
             // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
             setFetchResponse (exchange, httpResponse);
         }
@@ -2223,6 +2241,15 @@ class testMainClass {
         try {
             const messages = exchange.safeList (data, 'messages', []);
             const input = this.sanitizeDataInput (data['input']);
+            // 'preWatchMessages' frames are replayed to completion before the
+            // watch side starts: the message handlers run with no consumer
+            // awaiting, so a rest snapshot fetched by the watch call later has
+            // to merge into the state these frames created — the scenario that
+            // distinguishes an in-place seed from one replacing the object
+            const preWatchMessages = exchange.safeList (data, 'preWatchMessages');
+            if (preWatchMessages !== undefined) {
+                await this.injectWsMessages (exchange, url, preWatchMessages, false, true);
+            }
             const expectedResults = exchange.safeList (data, 'parsedResponses');
             if (expectedResults !== undefined) {
                 // 'parsedResponses' asserts one result per successive watch

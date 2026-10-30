@@ -864,6 +864,176 @@
                     }
                 ]
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "rest snapshot arriving after ws deltas merges into the live balance object - deltas win, the snapshot-only currency joins the aggregates, and the object handed to the consumer keeps its identity (frames and rest response captured live 2026-10-23)",
+                "disabledPHP": "the php runtime starts a spawned coroutine synchronously, so loadBalanceSnapshot runs to completion against the instant mocked rest response before watchBalance registers its future - the dropped resolve leaves the watch pending (live rest responses arrive asynchronously, so real usage does not hit this order)",
+                "disabledCS": "the spawned loadBalanceSnapshot may run to completion against the instant mocked rest response before watchBalance registers its future (thread-pool scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledGO": "the spawned loadBalanceSnapshot goroutine may run to completion against the instant mocked rest response before watchBalance registers its future (scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "options": {
+                    "watchBalance": {
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": false
+                    }
+                },
+                "url": "wss://ws-spot.weex.com/v3/ws/private",
+                "input": [],
+                "httpResponse": {
+                    "makerCommission": 0,
+                    "takerCommission": 0,
+                    "commissionRates": {
+                        "maker": "0.00000000",
+                        "taker": "0.00000000"
+                    },
+                    "canTrade": true,
+                    "canWithdraw": true,
+                    "canDeposit": true,
+                    "updateTime": 1775601317093,
+                    "accountType": "SPOT",
+                    "balances": [
+                        {
+                            "asset": "USDT",
+                            "free": "20.00000000",
+                            "locked": "0.00000000"
+                        },
+                        {
+                            "asset": "ETH",
+                            "free": "0.00000000",
+                            "locked": "0"
+                        },
+                        {
+                            "asset": "DOGE",
+                            "free": "4.67500000",
+                            "locked": "0"
+                        }
+                    ],
+                    "permissions": [
+                        "SPOT"
+                    ],
+                    "uid": 12345678
+                },
+                "preWatchMessages": [
+                    {
+                        "cid": "c0ffee00-0000-0000-0000-000000000000",
+                        "time": "1792744789858",
+                        "event": "connected"
+                    },
+                    {
+                        "e": "account",
+                        "E": 1792744793236,
+                        "v": 221,
+                        "msgEvent": "OrderUpdate",
+                        "d": [
+                            {
+                                "coin": "DOGE",
+                                "equity": "4.67500000",
+                                "available": "4.67500000",
+                                "frozen": "0"
+                            },
+                            {
+                                "coin": "USDT",
+                                "equity": "20.00000000",
+                                "available": "14.89000000",
+                                "frozen": "5.110000"
+                            }
+                        ]
+                    },
+                    {
+                        "e": "account",
+                        "E": 1792744798669,
+                        "v": 224,
+                        "msgEvent": "OrderUpdate",
+                        "d": [
+                            {
+                                "coin": "DOGE",
+                                "equity": "4.67500000",
+                                "available": "4.67500000",
+                                "frozen": "0"
+                            },
+                            {
+                                "coin": "USDT",
+                                "equity": "20.00000000",
+                                "available": "20.00000000",
+                                "frozen": "0"
+                            }
+                        ]
+                    }
+                ],
+                "messages": [
+                    {
+                        "cid": "c0ffee00-0000-0000-0000-000000000000",
+                        "time": "1792744789858",
+                        "event": "connected"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "account"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponse": {
+                    "info": {
+                        "e": "account",
+                        "E": 1792744798669,
+                        "v": 224,
+                        "msgEvent": "OrderUpdate",
+                        "d": [
+                            {
+                                "coin": "DOGE",
+                                "equity": "4.67500000",
+                                "available": "4.67500000",
+                                "frozen": "0"
+                            },
+                            {
+                                "coin": "USDT",
+                                "equity": "20.00000000",
+                                "available": "20.00000000",
+                                "frozen": "0"
+                            }
+                        ]
+                    },
+                    "timestamp": 1792744798669,
+                    "datetime": "2026-10-23T08:39:58.669Z",
+                    "DOGE": {
+                        "free": 4.675,
+                        "used": 0,
+                        "total": 4.675
+                    },
+                    "USDT": {
+                        "free": 20,
+                        "used": 0,
+                        "total": 20
+                    },
+                    "ETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "DOGE": 4.675,
+                        "USDT": 20,
+                        "ETH": 0
+                    },
+                    "used": {
+                        "DOGE": 0,
+                        "USDT": 0,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "DOGE": 4.675,
+                        "USDT": 20,
+                        "ETH": 0
+                    }
+                }
+            }
         ]
     }
 }

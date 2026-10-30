@@ -178,6 +178,98 @@
                     ]
                 ]
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "rest snapshot arriving after a ws delta merges into the live balance object - the delta wins, the snapshot-only currency joins the aggregates, and the object handed to the consumer keeps its identity (frames and rest response reproduce the documented examples - no live keys for this venue)",
+                "disabledPHP": "the php runtime starts a spawned coroutine synchronously, so loadBalanceSnapshot runs to completion against the instant mocked rest response before watchBalance registers its future - the dropped resolve leaves the watch pending (live rest responses arrive asynchronously, so real usage does not hit this order)",
+                "disabledCS": "the spawned loadBalanceSnapshot may run to completion against the instant mocked rest response before watchBalance registers its future (thread-pool scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledGO": "the spawned loadBalanceSnapshot goroutine may run to completion against the instant mocked rest response before watchBalance registers its future (scheduling race) - the dropped resolve then leaves the watch pending, so the lane would flake",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so the snapshot seed that resolves the watch never happens - rest seeding is covered by the other lanes",
+                "options": {
+                    "ws": {
+                        "listenKey": "testlistenkey",
+                        "lastAuthenticatedTime": 99999999999999
+                    }
+                },
+                "url": "wss://stream.toobit.com/api/v1/ws/testlistenkey",
+                "input": [],
+                "httpResponse": {
+                    "userId": "912902020",
+                    "balances": [
+                        {
+                            "asset": "ETH",
+                            "assetId": "ETH",
+                            "assetName": "ETH",
+                            "total": "0.025",
+                            "free": "0.025",
+                            "locked": "0"
+                        }
+                    ]
+                },
+                "preWatchMessages": [
+                    [
+                        {
+                            "e": "outboundAccountInfo",
+                            "E": "1758226989725",
+                            "T": true,
+                            "W": true,
+                            "D": true,
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "f": "6.37242839",
+                                    "l": "0"
+                                }
+                            ]
+                        }
+                    ]
+                ],
+                "messages": [
+                    {
+                        "pong": 1758226990000
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "f": "6.37242839",
+                            "l": "0"
+                        }
+                    ],
+                    "timestamp": 1758226989725,
+                    "datetime": "2025-09-18T20:23:09.725Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "f": "6.37242839",
+                            "l": "0"
+                        },
+                        "free": 6.37242839,
+                        "used": 0,
+                        "total": 6.37242839
+                    },
+                    "ETH": {
+                        "free": 0.025,
+                        "used": 0,
+                        "total": 0.025
+                    },
+                    "free": {
+                        "USDT": 6.37242839,
+                        "ETH": 0.025
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "USDT": 6.37242839,
+                        "ETH": 0.025
+                    }
+                }
+            }
         ]
     }
 }

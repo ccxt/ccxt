@@ -563,6 +563,134 @@
                     "id"
                 ]
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "rest snapshot seed merges into the live balance object - the ws deltas that preceded it win, the snapshot-only currency joins the aggregates (frames and rest response reproduce the documented examples - no live keys for this venue; the awaited authorize handshake defers the watch registration past the instant mocked seed, so this entry locks the merge semantics but cannot turn red on the pre-merge code)",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so watchBalance blocks awaiting the snapshot future - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so watchBalance blocks awaiting the snapshot future - rest seeding is covered by the other lanes",
+                "options": {
+                    "lastNonce": 99999999999998
+                },
+                "url": "wss://api.whitebit.com/ws",
+                "input": [],
+                "httpResponseByUrl": {
+                    "websocket_token": {
+                        "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
+                    },
+                    "trade-account/balance": {
+                        "BTC": {
+                            "available": "0.123",
+                            "freeze": "1"
+                        },
+                        "XMR": {
+                            "available": "3013",
+                            "freeze": "100"
+                        }
+                    }
+                },
+                "preWatchMessages": [
+                    {
+                        "method": "balanceSpot_update",
+                        "params": [
+                            {
+                                "LTC": {
+                                    "available": "0.16587",
+                                    "freeze": "0"
+                                },
+                                "BTC": {
+                                    "available": "0.005",
+                                    "freeze": "0.001"
+                                }
+                            }
+                        ],
+                        "id": null
+                    }
+                ],
+                "messages": [
+                    {
+                        "error": null,
+                        "result": {
+                            "status": "success"
+                        },
+                        "id": 100000000000001
+                    },
+                    {
+                        "method": "balanceSpot_update",
+                        "params": [
+                            {
+                                "LTC": {
+                                    "available": "0.16587",
+                                    "freeze": "0"
+                                },
+                                "BTC": {
+                                    "available": "0.005",
+                                    "freeze": "0.001"
+                                }
+                            }
+                        ],
+                        "id": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 100000000000001,
+                        "method": "authorize",
+                        "params": [
+                            "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y",
+                            "public"
+                        ]
+                    },
+                    {
+                        "id": 100000000000002,
+                        "method": "balanceSpot_subscribe",
+                        "params": []
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponse": {
+                    "info": {
+                        "LTC": {
+                            "available": "0.16587",
+                            "freeze": "0"
+                        },
+                        "BTC": {
+                            "available": "0.005",
+                            "freeze": "0.001"
+                        }
+                    },
+                    "LTC": {
+                        "free": 0.16587,
+                        "used": 0,
+                        "total": 0.16587
+                    },
+                    "BTC": {
+                        "free": 0.005,
+                        "used": 0.001,
+                        "total": 0.006
+                    },
+                    "XMR": {
+                        "free": 3013,
+                        "used": 100,
+                        "total": 3113
+                    },
+                    "free": {
+                        "LTC": 0.16587,
+                        "BTC": 0.005,
+                        "XMR": 3013
+                    },
+                    "used": {
+                        "LTC": 0,
+                        "BTC": 0.001,
+                        "XMR": 100
+                    },
+                    "total": {
+                        "LTC": 0.16587,
+                        "BTC": 0.006,
+                        "XMR": 3113
+                    }
+                }
+            }
         ]
     }
 }

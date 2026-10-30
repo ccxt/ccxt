@@ -773,13 +773,43 @@ export default class hashkey extends hashkeyRest {
                 this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
         }
-        this.balance[type] = {};
+        // reset the cached balance in place: the spawned snapshot must be
+        // authoritative again on a (re)subscription, while references held
+        // by consumers keep receiving updates; deltas that arrive while the
+        // snapshot is in flight land after this point and still win the merge
+        this.balance[type] = this.safeDict (this.balance, type, {});
+        const cachedKeys = Object.keys (this.balance[type]);
+        for (let i = 0; i < cachedKeys.length; i++) {
+            const key = cachedKeys[i];
+            delete this.balance[type][key];
+        }
         // without this comment, transpilation breaks for some reason...
     }
 
     async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        this.balance[type] = this.safeDict (this.balance, type, {});
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance[type])) {
+                this.balance[type][key] = response[key];
+            }
+        }
+        if (!('info' in this.balance[type])) {
+            this.balance[type]['info'] = response['info'];
+            this.balance[type]['timestamp'] = response['timestamp'];
+            this.balance[type]['datetime'] = response['datetime'];
+        }
+        this.balance[type] = this.safeBalance (this.balance[type]);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
