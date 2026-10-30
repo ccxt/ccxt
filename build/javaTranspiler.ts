@@ -5221,7 +5221,7 @@ class NewTranspiler {
 
             log.magenta('→', (javaFile as any).yellow)
 
-            overwriteFileAndFolder(javaFile, file);
+            overwriteFileAndFolder(javaFile, nativeJavaTestCoreArgs(file));
         }
     }
 
@@ -5336,7 +5336,7 @@ class NewTranspiler {
             contentIndentend,
         ].join('\n')
 
-        overwriteFileAndFolder(files.javaFile, file);
+        overwriteFileAndFolder(files.javaFile, nativeJavaTestCoreArgs(file));
     }
 
     async transpileExchangeTests(force = true) {
@@ -5606,7 +5606,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder(tests[idx].javaFile, java);
+            overwriteFileAndFolder(tests[idx].javaFile, nativeJavaTestCoreArgs(java));
         });
     }
 
@@ -7737,6 +7737,24 @@ export function nativeJavaJ22CoreArgs (content: string): string {
         }
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// Test printer: J26/J22 over generated test classes (members sit one level deeper than in exchanges),
+// and a list literal handed to callDynamically already is a List, so its toStringListArg is dropped.
+export function nativeJavaTestCoreArgs (content: string): string {
+    if (!/Helpers\.(?:toMapArg|toStringListArg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const deep = lines.map ((l) => /^        (?:public|private|protected)\b/.test (l));
+    // the exchange test param is a BaseExchange: its market/safeMarket print the Map the J26 proof reads off `this`
+    const shifted = lines.map ((l, i) => (deep[i] ? l.slice (4) : l)).join ('\n').replace (/\bexchange\.(market|safeMarket)\(/g, 'this.$1(');
+    const done = nativeJavaJ22CoreArgs (nativeJavaJ26MapLocals (shifted)).replace (/\bthis\.(market|safeMarket)\(/g, 'exchange.$1(').split ('\n');
+    if (done.length !== lines.length) return content;
+    return done.map ((l, i) => {
+        l = deep[i] ? '    ' + l : l;
+        return l.includes ('Helpers.callDynamically(')
+            ? l.replace (/Helpers\.toStringListArg\((new ArrayList<Object>\(Arrays\.asList\(\w+\)\))\)/g, '$1')
+            : l;
+    }).join ('\n');
 }
 
 function j22CoreArgsSelfTest (): string[] {
