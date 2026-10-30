@@ -13073,7 +13073,10 @@ function g10kLenFunc (fn: string): string {
         }) as any);
     }
     // ClientInterface.GetUrl() is declared `string`; the assertion panics the same either way
-    return lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
+    const out = lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
+    // credential fields are declared `string` (GB09) and GetLength(string) is len() of its bytes
+    const cred = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetLength\\((this\\.(?:' + gb09CredentialFields ().join ('|') + '))\\)', 'g');
+    return out.replace (cred, 'len($1)');
 }
 
 function g10kLenNative (content: string): string {
@@ -13095,6 +13098,8 @@ function g10kLenSelfTest (): string[] {
     ok (f ('', '\tif a {\n\t\tvar d []any = SafeListTyped(m, "d")\n\t\tn := GetArrayLength(d)\n\t}\n').includes ('n := len(d)'), 'block []any');
     ok (f ('s []string', '\tfor _, s := range t {\n\t\tn := GetArrayLength(s)\n\t}\n').includes ('GetArrayLength(s)'), 'range rebind keeps helper');
     ok (f ('', '\tvar u int = ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl())\n').includes ('len(client.(ccxt.ClientInterface).GetUrl())'), 'GetUrl string');
+    ok (f ('', '\tif (ccxt.GetLength(this.Secret) == 88) || (GetLength(this.ApiKey) == 8) {\n\t}\n').includes ('(len(this.Secret) == 88) || (len(this.ApiKey) == 8)'), 'credential string field');
+    ok (f ('', '\tn := GetLength(this.Token)\n\tm := GetLength(this.Secrets)\n\tk := GetLength(that.Secret)\n').split ('GetLength(').length === 4, 'boxed or foreign field keeps helper');
     ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
     return problems;
 }
