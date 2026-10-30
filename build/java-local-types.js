@@ -18712,10 +18712,10 @@ export function installJ17StringReturns (transpiler) {
     };
 }
 
-// hx4 J20 (+ hx11 w8 Opinion.parseWsOrderStatus, an Int param): setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
+// hx4 J20 (+ hx11 w8 Opinion.parseWsOrderStatus, an Int param, + Hyperliquid.buildOutcomeSymbol side; sig is java.util.Map there): setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
 // a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
 // literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
-const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object (\w+)[,)]/;
+const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
 // hx11 w8: Opinion.opinionOutcomeByMarketIdSide(marketId, outcomeSide): both callers pass safeInteger (Long/null); 2nd param.
 const J20_MEMBER_B = /^    public \S+ opinionOutcomeByMarketIdSide\(Object (\w+), Object (\w+)\)/;
 
@@ -18737,14 +18737,14 @@ function j20Rewrite (line, p) {
 }
 
 export function nativeJavaJ20ParamCompare (content) {
-    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object |opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
+    if (!/ (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         const mb = J20_MEMBER_B.exec (lines[i]);
         const m = mb === null ? J20_MEMBER.exec (lines[i]) : [ mb[0], mb[2] ];
         if (m === null) continue;
-        const p = m[1];
+        const p = m[1] || m[2];
         let end = i + 1;
         while (end < lines.length && lines[end] !== '    }') end++;
         // D2: any write or redeclaration of the parameter keeps every helper in the member
