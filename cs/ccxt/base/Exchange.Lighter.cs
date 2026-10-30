@@ -225,7 +225,7 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public object lighterCreateAuthToken(object signer, object request)
+    public string lighterCreateAuthToken(object signer, object request)
     {
         string authToken = ((LighterSigner.Signer)signer).CreateAuthToken(
             Convert.ToInt64(getValue(request, "deadline")),
