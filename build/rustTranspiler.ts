@@ -5536,7 +5536,8 @@ export class RustTranspilerBuilder {
                 const name = dm[1];
                 if (proven.has(name)) continue;
                 const initEnd = this.endOfRustStatement(region, dm.index + dm[0].length);
-                if (initEnd < 0 || !this.isBoolValuedRhs(region.slice(dm.index + dm[0].length, initEnd))) continue;
+                const initRhs = region.slice(dm.index + dm[0].length, initEnd);
+                if (initEnd < 0 || !(this.isBoolValuedRhs(initRhs) || this.isMarketBoolFieldRead(initRhs, region))) continue;
                 // One declaration only: a second `let` of the name makes the
                 // variant unprovable at the read (D2).
                 if ((region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length !== 1) continue;
@@ -5599,6 +5600,17 @@ export class RustTranspilerBuilder {
             } else if (c === ';' && depth === 0) return i;
         }
         return -1;
+    }
+
+    /** `m.as_map()..get("k")..unwrap_or(Null)` where `m` is a `self.market(..)` local
+     *  and `k` a `Bool` field of the TS `MarketInterface`: the payload is Bool or Null. */
+    private isMarketBoolFieldRead(raw: string, region: string): boolean {
+        const m = /^\(?([A-Za-z_]\w*)\.as_map\(\)\.and_then\(\|__m\| __m\.get\("(spot|margin|swap|future|option|index|stock|prediction|contract|linear|inverse|quanto)"\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)\)?$/.exec(raw.trim());
+        if (m === null) return false;
+        const recv = m[1];
+        const decls = region.match(new RegExp(`let (?:mut )?${recv}\\b`, 'g')) ?? [];
+        if (decls.length !== 1) return false;
+        return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*self\\.market\\(`).test(region);
     }
 
     /** True when a printed RHS can only evaluate to `Value::Bool(..)` / Null. */
