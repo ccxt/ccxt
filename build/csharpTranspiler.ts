@@ -563,6 +563,8 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
 // declared C# kinds an operator rule may read: the value the emitted declaration holds
 const CSHARP_OPERATOR_STRING_TYPES = [ 'string', 'string?' ];
 const CSHARP_OPERATOR_NULLABLE_TYPES = [ 'string', 'string?', 'Int64?', 'long?', 'int?', 'double?', 'bool?' ];
+const NATIVE_C07_MARKET_READ_RE = /^\((?:([A-Za-z_]\w*) != null && )?([A-Za-z_]\w*)\.ContainsKey\("(\w+)"\) \? \2\["\3"\] : null\)$/;
+const NATIVE_C07_MARKET_ROW_RE = /^this\.(?:market|safeMarket|safeMarketStructure|parseMarket)\(/;
 const CSHARP_OPERATOR_BOOL_TYPES = [ 'bool', 'bool?' ];
 const CSHARP_OPERATOR_INTEGER_TYPES = [ 'int', 'Int64', 'long' ];
 const CSHARP_OPERATOR_NUMERIC_TYPES = [ 'int', 'Int64', 'long', 'double' ];
@@ -9559,8 +9561,6 @@ function nativeC07NameType (region, name: string, line: number): string | undefi
 
 // `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
 // nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
-const NATIVE_C07_MARKET_READ_RE = /^\((?:([A-Za-z_]\w*) != null && )?([A-Za-z_]\w*)\.ContainsKey\("(\w+)"\) \? \2\["\3"\] : null\)$/;
-const NATIVE_C07_MARKET_ROW_RE = /^this\.(?:market|safeMarket|safeMarketStructure|parseMarket)\(/;
 function nativeC07MarketBoolRead (region, arg: string, line: number): string | undefined {
     const m = NATIVE_C07_MARKET_READ_RE.exec (arg);
     if ((m === null) || ((m[1] !== undefined) && (m[1] !== m[2])) || !MARKET_ROW_BOOL_KEYS.includes (m[3])) return undefined;
