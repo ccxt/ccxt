@@ -22,7 +22,7 @@ import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookCac
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
-import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
+import { hx10G10Pass, hx10G10SelfTest, hx11w9NilGuardInOpPass } from './hx10w2-G10.js';
 import { hx10G02Pass, hx10w3G02SelfCheck } from './hx10w3-G02.js';
 import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
 import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
@@ -3724,6 +3724,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx11w8TickerReadPass (content);  // hx11 w8: TickerMapFromMap(snapshot) sends read the typed cache
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
+    content = hx11w9NilGuardInOpPass (content);  // hx11 w9: nil-guarded *string key into a base map, on the settled output
     return goGofmtSplicedText (content);
 }
 

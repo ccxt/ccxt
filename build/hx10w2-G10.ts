@@ -638,16 +638,17 @@ export function hx10G10SelfTest (): string[] {
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
     ok (f ('', '\tthis.Trades = this.CreateSafeDictionary(true)\n').indexOf ('\tthis.Trades = map[string]any{}') >= 0, 'cache init prints a map literal');
     // a nil-guarded *string key into a base map: one nil check, then the native comma-ok
-    const nilGuard = (sig: string, guard: string, tail = '') => f (sig, '\tif ' + guard + ' {\n\t\tx = GetValue(this.Markets(), symbol)\n\t}' + tail + '\n');
+    const g = (sig: string, body: string) => hx11w9NilGuardInOpPass ('func (this *X) H(' + sig + ') {\n' + body + '}\n');
+    const nilGuard = (sig: string, guard: string, tail = '') => g (sig, '\tif ' + guard + ' {\n\t\tx = GetValue(this.Markets(), symbol)\n\t}' + tail + '\n');
     ok (nilGuard ('symbol *string', '(symbol != nil) && (this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Markets()[*symbol]; ok {\n\t\t\tx = this.Markets()[*symbol]') >= 0, 'guard present goes native');
     ok (nilGuard ('symbol *string', '(!ccxt.IsEqual(symbol, nil)) && (ccxt.InOp(this.Markets_by_id(), symbol))').indexOf ('this.Markets_by_id()[*symbol]; ok') >= 0, 'IsEqual guard goes native');
     ok (nilGuard ('symbol *string', '(this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'guard absent keeps InOp');
     ok (nilGuard ('symbol any', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'an any key keeps InOp');
     ok (nilGuard ('symbol *string', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))', '').indexOf ('x = this.Markets()[*symbol]') >= 0, 'plain tail');
-    ok (f ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\tsymbol = this.SafeString(m, \"s\")\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'a key rebound inside the block keeps InOp');
+    ok (g ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\tsymbol = this.SafeString(m, \"s\")\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'a key rebound inside the block keeps InOp');
     ok (nilGuard ('symbol *string', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))', '\n\tif y {\n\t}').indexOf ('InOp(') < 0, 'a sibling block is left alone');
-    ok (f ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\ta()\n\t} else {\n\t\tb()\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'an else arm keeps InOp');
-    ok (f ('symbol *string', '\tvar known bool = (symbol != nil) && (this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))\n').indexOf ('\tvar known bool\n\tif symbol != nil {\n\t\t_, known = this.Markets()[*symbol]\n\t}') >= 0, 'a bool initialiser goes native');
+    ok (g ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\ta()\n\t} else {\n\t\tb()\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'an else arm keeps InOp');
+    ok (g ('symbol *string', '\tvar known bool = (symbol != nil) && (this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))\n').indexOf ('\tvar known bool\n\tif symbol != nil {\n\t\t_, known = this.Markets()[*symbol]\n\t}') >= 0, 'a bool initialiser goes native');
     // a field outside the family is untouched
     ok (f ('', '\tthis.Balance = this.CreateSafeDictionary(true)\n').indexOf ('this.CreateSafeDictionary(true)') >= 0, 'Balance keeps the sync.Map init');
     return problems;
@@ -701,7 +702,7 @@ function hx11w9Lookup (cond: string, maskedCond: string, decls: Map<string, Decl
     return ((guardAt >= 0) && (guardAt < inopAt) && (terms.filter (isGuard).length === 1) && (rest.length === 0)) ? { key, receiver } : undefined;
 }
 
-function hx11w9NilGuardInOpPass (content: string): string {
+export function hx11w9NilGuardInOpPass (content: string): string {
     if (!/\bInOp\(/.test (content)) {
         return content;
     }
@@ -777,7 +778,7 @@ function hx11w9NilGuardInOpPass (content: string): string {
 
 // the swap runs on the settled output: the inner `if k != nil {` is what the guarded write above printed
 export function hx10G10Pass (content: string): string {
-    const rewritten = hx10G10Rewrite (hx11w9NilGuardInOpPass (content));
+    const rewritten = hx10G10Rewrite (content);
     if (!ANY_FIELD.test (rewritten)) {
         return rewritten;
     }
