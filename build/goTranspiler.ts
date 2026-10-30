@@ -10451,6 +10451,38 @@ function nativeAsyncTupleHolderReads (content: string): string {
 // w8 M40: `var h []any = ListTyped(r.Value)` after `r := <-promiseAll(P)` where P is a `[]any{a, b}` literal (inline or a
 // single unwritten `var P []any = []any{..}`) holds exactly len(P) results (promiseAll returns `results` or panics on error),
 // so a bare `x := GetValue(h, N)` slot read with N < len(P) is `x := h[N]`. Any rewritten holder/task list keeps GetValue.
+// w8: appends to `name` made at the top level of both arms of one plain `if {..} else {..}` block: min of the arms
+function hx11w8IfElseArmAppends (masked: string[], blocks: any[], blk: any, name: string): number {
+    if (!/^\s*if .*\{$/.test (masked[blk.open]) || !/^\s*\}$/.test (masked[blk.close])) {
+        return 0;
+    }
+    const append = new RegExp ('^\\s*' + name + ' = append\\(' + name + ', ');
+    let elseLine = -1;
+    for (let q = blk.open + 1; q < blk.close; q++) {
+        if ((goTextEnclosingBlock (blocks, q) === blk) && /^\s*\}\s*else/.test (masked[q])) {
+            if ((elseLine >= 0) || !/^\s*\} else \{$/.test (masked[q])) {
+                return 0;
+            }
+            elseLine = q;
+        }
+    }
+    if (elseLine < 0) {
+        return 0;
+    }
+    let before = 0;
+    let after = 0;
+    for (let q = blk.open + 1; q < blk.close; q++) {
+        if ((goTextEnclosingBlock (blocks, q) === blk) && append.test (masked[q])) {
+            if (q < elseLine) {
+                before++;
+            } else {
+                after++;
+            }
+        }
+    }
+    return Math.min (before, after);
+}
+
 function hx11w8PromiseAllSlotReads (content: string): string {
     if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
         return content;
@@ -10531,6 +10563,7 @@ function hx11w8PromiseAllSlotReads (content: string): string {
                     let found = -1;
                     let extra = 0;
                     let jumps = false;
+                    const armBlocks: any[] = [];
                     for (let j = fn.open + 1; j < fn.close; j++) {
                         const pd = new RegExp ('^\\s*var ' + arg + ' \\[\\]any = (.+)$').exec (masked[j]);
                         if (/\bgoto\b/.test (masked[j])) {
@@ -10544,13 +10577,21 @@ function hx11w8PromiseAllSlotReads (content: string): string {
                             found = j;
                             arity = literalArity (initText (pd[1], j, fn.close));
                         } else if (new RegExp ('^\\s*' + arg + ' = append\\(' + arg + ', ').test (masked[j])) {
-                            if ((found >= 0) && (j < k) && (goTextEnclosingBlock (blocks, j) === goTextEnclosingBlock (blocks, found))) {
+                            const inBlock = goTextEnclosingBlock (blocks, j);
+                            if ((found >= 0) && (j < k) && (inBlock === goTextEnclosingBlock (blocks, found))) {
                                 extra++;
+                            } else if ((found >= 0) && (j < k) && (inBlock !== undefined) && (inBlock.close < k) && (goTextEnclosingBlock (blocks, inBlock.open) === goTextEnclosingBlock (blocks, found)) && (armBlocks.indexOf (inBlock) < 0)) {
+                                armBlocks.push (inBlock);
                             }
                         } else if (goTextWritesName (masked[j], arg)) {
                             found = -2;
                             break;
                         }
+                    }
+                    // an `if {..} else {..}` whose arms both append unconditionally adds the smaller count
+                    for (const blk of armBlocks) {
+                        const arms = hx11w8IfElseArmAppends (masked, blocks, blk, arg);
+                        extra += arms;
                     }
                     if ((found < 0) || (arity < 0) || (jumps && (extra > 0))) {
                         arity = -1;
@@ -10777,6 +10818,12 @@ function hx11w8PromiseAllSlotSelfTest (): string[] {
     const built = '\tvar promises []any = []any{}\n\tpromises = append(promises, a)\n\tif p != nil {\n\t\tpromises = append(promises, b)\n\t}\n' + take.replace ('[]any{a, this.G(p)}', 'promises');
     const mixed = hx11w8PromiseAllSlotReads (fn (built + '\tx := GetValue(hVariable, 0)\n\ty := GetValue(hVariable, 1)\n\tz := f(GetValue(hVariable, 0), 3)\n'));
     ok (mixed.includes ('x := hVariable[0]') && mixed.includes ('y := GetValue(hVariable, 1)') && mixed.includes ('f(hVariable[0], 3)'), 'unconditional appends bound the slot, conditional ones do not; nested reads');
+    const arms = '\tvar promises []any = []any{}\n\tif p != nil {\n\t\tpromises = append(promises, a)\n\t\tpromises = append(promises, b)\n\t} else {\n\t\tpromises = append(promises, c)\n\t\tpromises = append(promises, d)\n\t}\n' + take.replace ('[]any{a, this.G(p)}', 'promises');
+    const armOut = hx11w8PromiseAllSlotReads (fn (arms + reads + '\tz := GetValue(hVariable, 2)\n'));
+    ok (armOut.includes ('x := hVariable[0]') && armOut.includes ('y := hVariable[1]') && armOut.includes ('GetValue(hVariable, 2)'), 'if/else arms with equal appends bound the slots');
+    ok (hx11w8PromiseAllSlotReads (fn (arms.replace ('\t\tpromises = append(promises, d)\n', '') + reads)).includes ('y := GetValue(hVariable, 1)'), 'shorter else arm keeps GetValue');
+    ok (hx11w8PromiseAllSlotReads (fn (arms.replace ('} else {', '} else if q {') + reads)).includes ('x := GetValue(hVariable, 0)'), 'else-if chain keeps GetValue');
+    ok (hx11w8PromiseAllSlotReads (fn (arms.replace ('\t} else {\n\t\tpromises = append(promises, c)\n\t\tpromises = append(promises, d)\n', '') + reads)).includes ('x := GetValue(hVariable, 0)'), 'if without else keeps GetValue');
     const loopHeld = hx11w8PromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\tv := f(GetValue(hVariable, i))\n\t}\n'));
     ok (loopHeld.includes ('f(hVariable[i])'), 'read under len(holder) loop is native');
     ok (hx11w8PromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\ti++\n\t\tv := f(GetValue(hVariable, i))\n\t}\n')).includes ('GetValue(hVariable, i)'), 'counter written keeps GetValue');
