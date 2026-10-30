@@ -17227,6 +17227,7 @@ export const CSHARP_STRING_PARAMS = {
     'watchExecuteRequest': { 0: 'string?' },
     'watchMany': { 0: 'string?', 2: 'string?' },
     'watchMultiHelper': { 0: 'string' },
+    'pro/upbit.watchPrivate': { 1: 'string', 2: 'string' },
     'watchPrivateSubscribe': { 0: 'string?' },
     'watchRequest': { 0: 'string?' },
     'watchSpotPrivate': { 0: 'string?', 1: 'string?' },
@@ -17241,8 +17242,10 @@ function csharpStringParamType (csharp, node) {
     if ((node?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
         return undefined;
     }
-    const wanted = CSHARP_STRING_PARAMS[owner.name?.text]?.[owner.parameters.indexOf (node)];
     const file = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    // `pro/upbit.watchPrivate` keys one exchange file (same-name methods elsewhere differ)
+    const scoped = file.replace (/^.*\/ts\/src\/(.*)\.ts$/, '$1') + '.' + owner.name?.text;
+    const wanted = (CSHARP_STRING_PARAMS[scoped] ?? CSHARP_STRING_PARAMS[owner.name?.text])?.[owner.parameters.indexOf (node)];
     if ((wanted === undefined) || file.includes ('/test/') || !/(^|\/)ts\/src\//.test (file)) {
         return undefined;
     }
