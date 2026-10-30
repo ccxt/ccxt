@@ -51,6 +51,18 @@ export function installHx11w8CorParams (goTranspiler: any) {
         return;
     }
     goTranspiler[flag] = true;
+    // hx11 w8 printer-go-binance-handleclientorderid-api-isequal-string: a defaulted `method: string = 'GET'` parameter is
+    // bound by GetArgString, so it is a Go `string` at every consumer. The upstream identifier proof stops at
+    // goNativeParameterType (undefined for any defaulted parameter), so a call site `this.f (..., method)` never proved `string`.
+    const upstreamPrinted = goTranspiler.goPrintedArgType;
+    if (typeof upstreamPrinted === 'function') {
+        goTranspiler.goPrintedArgType = function (this: any, arg: any) {
+            const printed = upstreamPrinted.call (this, arg);
+            if ((printed !== undefined) || (arg?.kind !== ts.SyntaxKind.Identifier) || (typeof this.goGetArgParameterType !== 'function')) { return printed; }
+            const decl = this.checkerOrUndefined ()?.getSymbolAtLocation (arg)?.valueDeclaration?.resolve?.();
+            return ((decl?.kind === ts.SyntaxKind.Parameter) && (this.goGetArgParameterType (decl) === 'string')) ? 'string' : printed;
+        };
+    }
     const upstream = goTranspiler.goParameterCallSitesPassType;
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
