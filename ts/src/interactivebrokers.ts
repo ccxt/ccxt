@@ -361,7 +361,6 @@ export default class interactivebrokers extends Exchange {
                 // oauth 1.0a credentials
                 'apiKey': true, // access token
                 'secret': true, // encrypted access token secret
-                'uid': true, // consumer key
             },
             'options': {
                 'accountId': undefined, // default account used by private methods, filled by fetchAccounts
@@ -638,7 +637,7 @@ export default class interactivebrokers extends Exchange {
         const dhResponse = this.safeString (response, 'diffie_hellman_response');
         const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
         const liveSessionToken = this.hmac (this.base16ToBinary (accessTokenSecretHex), this.bigToBytes (sharedSecret), sha1, 'base64');
-        const check = this.hmac (this.encode (this.uid), this.base64ToBinary (liveSessionToken), sha1, 'hex');
+        const check = this.hmac (this.encode (this.options['consumer_key']), this.base64ToBinary (liveSessionToken), sha1, 'hex');
         if (check !== this.safeString (response, 'live_session_token_signature')) {
             throw new AuthenticationError (this.id + ' signIn() live session token validation failed');
         }
@@ -3326,7 +3325,7 @@ export default class interactivebrokers extends Exchange {
         let requestBody: Str = body;
         let requestHeaders: NullableDict = headers;
         this.checkRequiredCredentials ();
-        const oauthParams = this.ibkrOauthBase (this.uid, this.apiKey);
+        const oauthParams = this.ibkrOauthBase (this.options['consumer_key'], this.apiKey);
         if (path.endsWith ('v1/api/oauth/live_session_token')) {
             // the live session token request is signed with RSA-SHA256,
             // its parameters (diffie_hellman_challenge) are sent as oauth parameters in the Authorization header
