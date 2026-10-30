@@ -1179,13 +1179,15 @@ export default class gate extends gateRest {
         //     "channel": "spot.candlesticks",
         //     "event": "update",
         //     "result": {
-        //       "t": "1606292580", // total volume
-        //       "v": "2362.32035", // volume
+        //       "t": "1606292580", // timestamp
+        //       "v": "2362.32035", // volume in the quote currency
         //       "c": "19128.1", // close
         //       "h": "19128.1", // high
         //       "l": "19128.1", // low
         //       "o": "19128.1", // open
-        //       "n": "1m_BTC_USDT" // sub
+        //       "n": "1m_BTC_USDT", // sub
+        //       "a": "0.12349", // volume in the base currency
+        //       "w": false // window closed
         //     }
         //   }
         //
@@ -1213,7 +1215,18 @@ export default class gate extends gateRest {
             const prefix = timeframe + '_';
             const marketId = subscription.replace (prefix, '');
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
-            const parsed = this.parseOHLCV (ohlcv);
+            let parsed = this.parseOHLCV (ohlcv);
+            if (marketType === 'spot') {
+                // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                parsed = [
+                    this.safeTimestamp (ohlcv, 't'),
+                    this.safeNumber (ohlcv, 'o'),
+                    this.safeNumber (ohlcv, 'h'),
+                    this.safeNumber (ohlcv, 'l'),
+                    this.safeNumber (ohlcv, 'c'),
+                    this.safeNumber (ohlcv, 'a'),
+                ];
+            }
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
