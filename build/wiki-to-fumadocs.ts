@@ -38,6 +38,7 @@ const GUIDES: Record<string, { route: string; title: string }> = {
     'Certification.md':                { route: 'certification',               title: 'Certification' },
     'baseSpec.md':                     { route: 'base-spec',                   title: 'API Spec by Method' },
     'OrderRouter.md':                  { route: 'order-router',                title: 'Order Router' },
+    'Replay.md':                       { route: 'replay',                      title: 'Record and Replay' },
     'Exchange-Markets.md':             { route: 'exchange-markets',            title: 'Supported Exchanges' },
     'Exchange-Markets-By-Country.md':  { route: 'exchange-markets-by-country', title: 'Exchanges by Country' },
     'CHANGELOG.md':                    { route: 'changelog',                   title: 'Changelog' },
