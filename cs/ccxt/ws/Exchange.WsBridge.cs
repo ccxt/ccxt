@@ -157,6 +157,7 @@ public partial class BaseExchange
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
             var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
+            client.connectionTimeout = this.safeValue(ws, "connectionTimeout", this.safeValue(this.streaming, "connectionTimeout", 10000));
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
