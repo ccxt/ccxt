@@ -1016,7 +1016,13 @@ class blofin extends \ccxt\async\blofin {
         );
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'pong') {
+            $client->lastPong = $this->milliseconds();
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         // message examples
         //
@@ -1044,29 +1050,24 @@ class blofin extends \ccxt\async\blofin {
             'funding-rate' => array($this, 'handle_funding_rate'),
         );
         $method = null;
-        if ($message === 'pong') {
-            $client->lastPong = $this->milliseconds();
+        $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribe') {
             return;
-        } else {
-            $event = $this->safe_string($message, 'event');
-            if ($event === 'subscribe') {
-                return;
-            } elseif ($event === 'unsubscribe') {
-                $this->handle_unsubscription($client, $message);
-                return;
-            } elseif ($event === 'login') {
-                $future = $this->safe_value($client->futures, 'authenticate_hash');
-                $future->resolve(true);
-                return;
-            } elseif ($event === 'error') {
-                throw new ExchangeError($this->id . ' error => ' . $this->json($message));
-            }
-            $arg = $this->safe_dict($message, 'arg');
-            $channelName = $this->safe_string($arg, 'channel');
-            $method = $this->safe_value($methods, $channelName);
-            if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
-                $method = $methods['candle'];
-            }
+        } elseif ($event === 'unsubscribe') {
+            $this->handle_unsubscription($client, $message);
+            return;
+        } elseif ($event === 'login') {
+            $future = $this->safe_value($client->futures, 'authenticate_hash');
+            $future->resolve(true);
+            return;
+        } elseif ($event === 'error') {
+            throw new ExchangeError($this->id . ' error => ' . $this->json($message));
+        }
+        $arg = $this->safe_dict($message, 'arg');
+        $channelName = $this->safe_string($arg, 'channel');
+        $method = $this->safe_value($methods, $channelName);
+        if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
+            $method = $methods['candle'];
         }
         if ($method !== null) {
             $method($client, $message);

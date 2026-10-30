@@ -85,7 +85,32 @@ class toobit extends \ccxt\async\toobit {
         );
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_list_message(Client $client, array $message) {
+        // private streams
+        $methods = array(
+            'trade' => array($this, 'handle_trades'),
+            'kline' => array($this, 'handle_ohlcv'),
+            'realtimes' => array($this, 'handle_tickers'),
+            'depth' => array($this, 'handle_order_book_partial_snapshot'),
+            'diffDepth' => array($this, 'handle_order_book'),
+            'outboundAccountInfo' => array($this, 'handle_balance'),
+            'outboundContractAccountInfo' => array($this, 'handle_balance'),
+            'executionReport' => array($this, 'handle_order'),
+            'contractExecutionReport' => array($this, 'handle_order'),
+            'ticketInfo' => array($this, 'handle_my_trade'),
+            'outboundContractPositionInfo' => array($this, 'handle_positions'),
+        );
+        for ($i = 0; $i < count($message); $i++) {
+            $item = $message[$i];
+            $event = $this->safe_string($item, 'e');
+            $method = $this->safe_value($methods, $event);
+            if ($method !== null) {
+                $method($client, $item);
+            }
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         // public
         //
@@ -149,19 +174,9 @@ class toobit extends \ccxt\async\toobit {
             'ticketInfo' => array($this, 'handle_my_trade'),
             'outboundContractPositionInfo' => array($this, 'handle_positions'),
         );
-        $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
+        $method = $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);
-        } else {
-            // check private streams
-            for ($i = 0; $i < count($message); $i++) {
-                $item = $message[$i];
-                $event = $this->safe_string($item, 'e');
-                $method2 = ($event === null) ? null : $this->safe_value($methods, $event);
-                if ($method2 !== null) {
-                    $method2($client, $item);
-                }
-            }
         }
     }
 

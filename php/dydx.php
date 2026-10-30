@@ -1860,7 +1860,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $this->omit($params, 'methodName'));
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
@@ -2074,7 +2074,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchTransfers', $code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper('fetchTransfers', $code, $since, $limit, $this->omit($params, 'methodName'));
         $transferIn = $this->filter_by($response, 'type', 'TRANSFER_IN');
         $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
         $rows = $this->array_concat($transferIn, $transferOut);
@@ -2220,7 +2220,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchWithdrawals', $code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper('fetchWithdrawals', $code, $since, $limit, $this->omit($params, 'methodName'));
         $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
@@ -2246,7 +2246,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchDeposits', $code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper('fetchDeposits', $code, $since, $limit, $this->omit($params, 'methodName'));
         $rows = $this->filter_by($response, 'type', 'DEPOSIT');
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
@@ -2272,7 +2272,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchDepositsWithdrawals', $code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper('fetchDepositsWithdrawals', $code, $since, $limit, $this->omit($params, 'methodName'));
         $withdrawals = $this->filter_by($response, 'type', 'WITHDRAWAL');
         $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
         $rows = $this->array_concat($withdrawals, $deposits);
@@ -2280,8 +2280,7 @@ class dydx extends Exchange {
     }
 
     public function fetch_transactions_helper(string $methodName, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
-        $paramsOmitted = $this->omit($params, 'methodName');
-        list($userAddress, $paramsPublicAddress) = $this->handle_public_address($methodName, $paramsOmitted);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address($methodName, $params);
         list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, $methodName, 'subAccountNumber', '0');
         $request = array(
             'address' => $userAddress,

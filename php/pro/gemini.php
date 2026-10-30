@@ -914,7 +914,11 @@ class gemini extends \ccxt\async\gemini {
         throw new ExchangeError($this->json($message));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_list_message(Client $client, array $message) {
+        $this->handle_order($client, $message);
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         //  public
         //     {
@@ -950,11 +954,6 @@ class gemini extends \ccxt\async\gemini {
         //         }
         //     ]
         //
-        $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
-        if ($isArray) {
-            $this->handle_order($client, $message);
-            return;
-        }
         $reason = $this->safe_string($message, 'reason');
         if ($reason === 'error') {
             $this->handle_error($client, $message);

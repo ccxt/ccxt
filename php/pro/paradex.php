@@ -1590,15 +1590,20 @@ class paradex extends \ccxt\async\paradex {
         return false;
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        $parsedMessage = $message;
-        if ($this->is_binary_message($message)) {
-            $parsedMessage = $this->parse_sbe_message($message);
-            if ($parsedMessage === null) {
-                return;
-            }
+    public function handle_binary_message(Client $client, mixed $message) {
+        $parsedMessage = $this->parse_sbe_message($message);
+        if ($parsedMessage === null) {
+            return;
         }
-        if ($this->handle_error_message($client, $parsedMessage) !== true) {
+        $this->handle_stream_message($client, $parsedMessage);
+    }
+
+    public function handle_message(Client $client, array $message) {
+        $this->handle_stream_message($client, $message);
+    }
+
+    public function handle_stream_message(Client $client, array $message) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         //
@@ -1629,12 +1634,12 @@ class paradex extends \ccxt\async\paradex {
         //         }
         //     }
         //
-        $result = $this->safe_dict($parsedMessage, 'result');
+        $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            $this->handle_request_reply($client, $parsedMessage);
+            $this->handle_request_reply($client, $message);
             return;
         }
-        $data = $this->safe_dict($parsedMessage, 'params');
+        $data = $this->safe_dict($message, 'params');
         if ($data !== null) {
             $channel = $this->safe_string($data, 'channel');
             $parts = explode('.', $channel);
@@ -1651,7 +1656,7 @@ class paradex extends \ccxt\async\paradex {
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {
-                $method($client, $parsedMessage);
+                $method($client, $message);
             }
         }
     }

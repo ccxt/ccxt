@@ -6084,7 +6084,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
         //   { "stream": "<streamName>", "data": { "e": "...", ... } }
         $streamWrapper = $this->safe_string($message, 'stream');

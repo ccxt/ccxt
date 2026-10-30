@@ -2783,7 +2783,13 @@ class okx extends \ccxt\async\okx {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'pong') {
+            $this->handle_pong($client, $message);
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
@@ -2826,12 +2832,6 @@ class okx extends \ccxt\async\okx {
         //
         //
         //
-        if (gettype($message) === 'string') {
-            if ($message === 'pong') {
-                $this->handle_pong($client, $message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         $event = $this->safe_string_2($message, 'event', 'op');

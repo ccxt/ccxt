@@ -3265,7 +3265,7 @@ class lbank extends Exchange {
             ), $signedQuery)));
             $encoded = $this->encode($auth);
             $uppercaseHash = strtoupper($this->hash($encoded, 'md5'));
-            $sign = null;
+            $sign = '';
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;

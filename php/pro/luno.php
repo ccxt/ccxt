@@ -458,10 +458,7 @@ class luno extends \ccxt\async\luno {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if ($message === '') {
-            return;
-        }
+    public function handle_message(Client $client, array $message) {
         $subscriptions = is_array($client->subscriptions) ? array_values($client->subscriptions) : array();
         $subscriptionsLength = count($subscriptions);
         if ($subscriptionsLength === 0) {

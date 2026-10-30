@@ -1088,19 +1088,16 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if (gettype($message) === 'string') {
-            $content = strtolower($message);
-            if ($content === 'pong') {
-                $this->handle_pong($client, $message);
-                return;
-            }
-            if ($content === 'ping') {
-                $this->handle_ping($client, $message);
-                return;
-            }
-            return;
+    public function handle_text_message(Client $client, string $message) {
+        $content = strtolower($message);
+        if ($content === 'pong') {
+            $this->handle_pong($client, $message);
+        } elseif ($content === 'ping') {
+            $this->handle_ping($client, $message);
         }
+    }
+
+    public function handle_message(Client $client, array $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'UP') {
             $this->handle_pong($client, $message);

@@ -178,7 +178,7 @@ class mudrex extends \ccxt\async\mudrex {
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->safe_string($message, 'method') === 'PONG') {
             return;
         }

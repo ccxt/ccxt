@@ -210,7 +210,7 @@ class coincheck extends \ccxt\async\coincheck {
         ), $market);
     }
 
-    public function handle_message(Client $client, array $message) {
+    public function handle_list_message(Client $client, array $message) {
         $data = $this->safe_list($message, 0);
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $this->handle_order_book($client, $message);

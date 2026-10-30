@@ -1208,7 +1208,7 @@ class derive extends \ccxt\async\derive {
                 }
             }
         }
-        $method = ($event === null) ? null : $this->safe_value($methods, $event);
+        $method = $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
             return;

@@ -3118,34 +3118,41 @@ class polymarket extends Exchange {
         return 'PING';
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if (gettype($message) === 'string') {
-            $client->lastPong = $this->milliseconds();
-            return;
-        }
-        $events = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) ? $message : array( $message );
-        for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+        $client->lastPong = $this->milliseconds();
+    }
+
+    public function handle_message(Client $client, array $message) {
+        $this->handle_message_event($client, $message);
+    }
+
+    public function handle_list_message(Client $client, array $message) {
+        for ($i = 0; $i < count($message); $i++) {
+            $event = $message[$i];
             if (($event === null) || ($event === null) || (gettype($event) !== 'array')) {
                 continue;
             }
-            $eventType = $this->safe_string($event, 'event_type');
-            if ($eventType === 'book') {
-                $this->handle_order_book_snapshot($client, $event);
-            } elseif ($eventType === 'price_change') {
-                $this->handle_order_book_delta($client, $event);
-            } elseif ($eventType === 'last_trade_price') {
-                $this->handle_trade($client, $event);
-            } elseif ($eventType === 'order') {
-                $this->handle_order($client, $event);
-            } elseif ($eventType === 'trade') {
-                $this->handle_my_trade($client, $event);
-            }
-            // tick_size_change events are silently ignored for now
+            $this->handle_message_event($client, $event);
         }
+    }
+
+    public function handle_message_event(Client $client, array $event) {
+        $eventType = $this->safe_string($event, 'event_type');
+        if ($eventType === 'book') {
+            $this->handle_order_book_snapshot($client, $event);
+        } elseif ($eventType === 'price_change') {
+            $this->handle_order_book_delta($client, $event);
+        } elseif ($eventType === 'last_trade_price') {
+            $this->handle_trade($client, $event);
+        } elseif ($eventType === 'order') {
+            $this->handle_order($client, $event);
+        } elseif ($eventType === 'trade') {
+            $this->handle_my_trade($client, $event);
+        }
+        // tick_size_change events are silently ignored for now
     }
 
     public function handle_order_book_snapshot(Client $client, array $event) {

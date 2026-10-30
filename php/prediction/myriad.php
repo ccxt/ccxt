@@ -3338,21 +3338,21 @@ class myriad extends Exchange {
         return Async\await($this->watch($url, $messageHash, $subscribeMsg, $channel));
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        $lines = explode('\n', $message);
+        $linesLength = count($lines);
+        for ($i = 0; $i < $linesLength; $i++) {
+            $line = $lines[$i];
+            if (strlen($line) > 0) {
+                $parsed = json_decode($line, $as_associative_array = true);
+                $this->handle_centrifugo_frame($client, $parsed);
+            }
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-        if (gettype($message) === 'string') {
-            $lines = explode('\n', $message);
-            $linesLength = count($lines);
-            for ($i = 0; $i < $linesLength; $i++) {
-                $line = $lines[$i];
-                if (strlen($line) > 0) {
-                    $parsed = json_decode($line, $as_associative_array = true);
-                    $this->handle_centrifugo_frame($client, $parsed);
-                }
-            }
-            return;
-        }
         $this->handle_centrifugo_frame($client, $message);
     }
 

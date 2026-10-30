@@ -758,12 +758,12 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $this->handle_crypto_message($client, $message);
-            return;
-        }
+    public function handle_message(Client $client, array $message) {
         $this->handle_trading_message($client, $message);
+    }
+
+    public function handle_list_message(Client $client, array $message) {
+        $this->handle_crypto_message($client, $message);
     }
 
     public function handle_authenticate(Client $client, array $message) {

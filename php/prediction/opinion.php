@@ -1771,7 +1771,7 @@ class opinion extends Exchange {
         return Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscriptionKey));
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
         $msgType = $this->safe_string($message, 'msgType');

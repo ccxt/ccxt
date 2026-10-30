@@ -783,7 +783,7 @@ class upbit extends \ccxt\async\upbit {
             'candle.1s' => array($this, 'handle_ohlcv'),
         );
         $methodName = $this->safe_string($message, 'type');
-        $method = ($methodName === null) ? null : $this->safe_value($methods, $methodName);
+        $method = $this->safe_value($methods, $methodName);
         if ($method !== null) {
             $method($client, $message);
         }

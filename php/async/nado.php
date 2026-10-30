@@ -3328,8 +3328,8 @@ class nado extends Exchange {
             throw new ArgumentsRequired($this->id . ' signHash() requires privateKey');
         }
         $signature = $this->ecdsa($hash, mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = strtolower($this->int_to_base16($this->sum(27, $signature['v'])));
         return '0x' . $this->pad_hex($r, 64) . $this->pad_hex($s, 64) . $v;
     }

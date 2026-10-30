@@ -843,7 +843,7 @@ class bullish extends \ccxt\async\bullish {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $dataType = $this->safe_string($message, 'dataType');
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {

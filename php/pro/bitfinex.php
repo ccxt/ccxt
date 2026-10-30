@@ -1317,8 +1317,43 @@ class bitfinex extends \ccxt\async\bitfinex {
         ), $marketResolved);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_list_message(Client $client, array $message) {
         $channelId = $this->safe_string($message, 0);
+        $heartbeat = $this->safe_string($message, 1);
+        if ($heartbeat === 'hb') {
+            return; // skip heartbeats within subscription channels for now
+        }
+        $subscription = $this->safe_dict($client->subscriptions, $channelId, array());
+        $channel = $this->safe_string($subscription, 'channel');
+        $name = $this->safe_string($message, 1);
+        $publicMethods = array(
+            'book' => array($this, 'handle_order_book'),
+            'cs' => array($this, 'handle_checksum'),
+            'candles' => array($this, 'handle_ohlcv'),
+            'ticker' => array($this, 'handle_ticker'),
+            'trades' => array($this, 'handle_trades'),
+        );
+        $privateMethods = array(
+            'os' => array($this, 'handle_orders'),
+            'ou' => array($this, 'handle_orders'),
+            'on' => array($this, 'handle_orders'),
+            'oc' => array($this, 'handle_orders'),
+            'wu' => array($this, 'handle_balance'),
+            'ws' => array($this, 'handle_balance'),
+            'tu' => array($this, 'handle_my_trade'),
+        );
+        $method = null;
+        if ($channelId === '0') {
+            $method = $this->safe_value($privateMethods, $name);
+        } else {
+            $method = $this->safe_value_2($publicMethods, $name, $channel);
+        }
+        if ($method !== null) {
+            $method($client, $message, $subscription);
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         //     [
         //         1231,
@@ -1344,52 +1379,17 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        }
         //    }
         //
-        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $heartbeat = $this->safe_string($message, 1);
-            if ($heartbeat === 'hb') {
-                return; // skip heartbeats within subscription channels for now
-            }
-            $subscription = $this->safe_dict($client->subscriptions, $channelId, array());
-            $channel = $this->safe_string($subscription, 'channel');
-            $name = $this->safe_string($message, 1);
-            $publicMethods = array(
-                'book' => array($this, 'handle_order_book'),
-                'cs' => array($this, 'handle_checksum'),
-                'candles' => array($this, 'handle_ohlcv'),
-                'ticker' => array($this, 'handle_ticker'),
-                'trades' => array($this, 'handle_trades'),
+        $event = $this->safe_string($message, 'event');
+        if ($event !== null) {
+            $methods = array(
+                'info' => array($this, 'handle_system_status'),
+                'subscribed' => array($this, 'handle_subscription_status'),
+                'unsubscribed' => array($this, 'handle_unsubscription_status'),
+                'auth' => array($this, 'handle_authentication_message'),
             );
-            $privateMethods = array(
-                'os' => array($this, 'handle_orders'),
-                'ou' => array($this, 'handle_orders'),
-                'on' => array($this, 'handle_orders'),
-                'oc' => array($this, 'handle_orders'),
-                'wu' => array($this, 'handle_balance'),
-                'ws' => array($this, 'handle_balance'),
-                'tu' => array($this, 'handle_my_trade'),
-            );
-            $method = null;
-            if ($channelId === '0') {
-                $method = $this->safe_value($privateMethods, $name);
-            } else {
-                $method = $this->safe_value_2($publicMethods, $name, $channel);
-            }
+            $method = $this->safe_value($methods, $event);
             if ($method !== null) {
-                $method($client, $message, $subscription);
-            }
-        } else {
-            $event = $this->safe_string($message, 'event');
-            if ($event !== null) {
-                $methods = array(
-                    'info' => array($this, 'handle_system_status'),
-                    'subscribed' => array($this, 'handle_subscription_status'),
-                    'unsubscribed' => array($this, 'handle_unsubscription_status'),
-                    'auth' => array($this, 'handle_authentication_message'),
-                );
-                $method = $this->safe_value($methods, $event);
-                if ($method !== null) {
-                    $method($client, $message);
-                }
+                $method($client, $message);
             }
         }
     }

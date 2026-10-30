@@ -329,7 +329,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             'OrderBookSnapshot' => array($this, 'handle_order_book'),
             'OrderBookChange' => array($this, 'handle_order_book'),
         );
-        $handler = ($event === null) ? null : $this->safe_value($handlers, $event);
+        $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
             $handler($client, $message);
             return;

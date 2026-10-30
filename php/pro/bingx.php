@@ -1934,14 +1934,13 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if (gettype($message) === 'string') {
-            if ($message === 'Ping') {
-                $this->spawn(array($this, 'pong'), $client, $message);
-            }
-            return;
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'Ping') {
+            $this->spawn(array($this, 'pong'), $client, $message);
         }
+    }
+
+    public function handle_message(Client $client, array $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

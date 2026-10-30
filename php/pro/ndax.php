@@ -628,7 +628,7 @@ class ndax extends \ccxt\async\ndax {
             'TickerDataUpdateEvent' => array($this, 'handle_ohlcv'),
         );
         $event = $this->safe_string($message, 'n');
-        $method = ($event === null) ? null : $this->safe_value($methods, $event);
+        $method = $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
         }

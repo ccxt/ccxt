@@ -1539,7 +1539,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

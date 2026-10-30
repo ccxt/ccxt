@@ -1230,7 +1230,7 @@ class polymarket extends \ccxt\async\polymarket {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             $this->handle_ack($client, $message);

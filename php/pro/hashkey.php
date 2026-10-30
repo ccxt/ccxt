@@ -967,28 +967,32 @@ class hashkey extends \ccxt\async\hashkey {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        $messageInner = $message;
-        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $messageInner = $this->safe_dict($message, 0, array());
-        }
-        $topic = $this->safe_string_2($messageInner, 'topic', 'e');
+    public function handle_list_message(Client $client, array $message) {
+        $this->handle_stream_message($client, $this->safe_dict($message, 0, array()));
+    }
+
+    public function handle_message(Client $client, array $message) {
+        $this->handle_stream_message($client, $message);
+    }
+
+    public function handle_stream_message(Client $client, array $message) {
+        $topic = $this->safe_string_2($message, 'topic', 'e');
         if ($topic === 'kline') {
-            $this->handle_ohlcv($client, $messageInner);
+            $this->handle_ohlcv($client, $message);
         } elseif ($topic === 'realtimes') {
-            $this->handle_ticker($client, $messageInner);
+            $this->handle_ticker($client, $message);
         } elseif ($topic === 'trade') {
-            $this->handle_trades($client, $messageInner);
+            $this->handle_trades($client, $message);
         } elseif ($topic === 'depth') {
-            $this->handle_order_book($client, $messageInner);
+            $this->handle_order_book($client, $message);
         } elseif (($topic === 'contractExecutionReport') || ($topic === 'executionReport')) {
-            $this->handle_order($client, $messageInner);
+            $this->handle_order($client, $message);
         } elseif ($topic === 'ticketInfo') {
-            $this->handle_my_trade($client, $messageInner);
+            $this->handle_my_trade($client, $message);
         } elseif ($topic === 'outboundContractPositionInfo') {
-            $this->handle_position($client, $messageInner);
+            $this->handle_position($client, $message);
         } elseif (($topic === 'outboundAccountInfo') || ($topic === 'outboundContractAccountInfo')) {
-            $this->handle_balance($client, $messageInner);
+            $this->handle_balance($client, $message);
         }
     }
 }

@@ -1532,7 +1532,7 @@ class poloniex extends \ccxt\async\poloniex {
             'cancelAllOrders' => array($this, 'handle_order_request'),
             'auth' => array($this, 'handle_authenticate'),
         );
-        $method = ($type === null) ? null : $this->safe_value($methods, $type);
+        $method = $this->safe_value($methods, $type);
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {

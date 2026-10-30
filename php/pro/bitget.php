@@ -2900,7 +2900,13 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'pong') {
+            $this->handle_pong($client, $message);
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         //   {
         //       "action": "snapshot",
@@ -2981,12 +2987,6 @@ class bitget extends \ccxt\async\bitget {
         //         }
         //     }
         //
-        if (gettype($message) === 'string') {
-            if ($message === 'pong') {
-                $this->handle_pong($client, $message);
-            }
-            return;
-        }
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

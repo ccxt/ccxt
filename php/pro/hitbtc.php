@@ -1500,7 +1500,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'spot_balance' => array($this, 'handle_balance'),
                 'futures_balance' => array($this, 'handle_balance'),
             );
-            $method = ($channel === null) ? null : $this->safe_value($methods, $channel);
+            $method = $this->safe_value($methods, $channel);
             if ($method !== null) {
                 $method($client, $message);
             }

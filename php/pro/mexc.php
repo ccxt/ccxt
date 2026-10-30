@@ -2305,19 +2305,19 @@ class mexc extends \ccxt\async\mexc {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if (gettype($message) === 'string') {
-            if ($message === 'Invalid listen key') {
-                $error = new AuthenticationError($this->id . ' invalid listen key');
-                $client->reject($error);
-                return;
-            }
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'Invalid listen key') {
+            $error = new AuthenticationError($this->id . ' invalid listen key');
+            $client->reject($error);
         }
-        if ($this->is_binary_message($message)) {
-            $decodedMessage = $this->decode_proto_msg($message);
-            $this->handle_protobuf_message($client, $decodedMessage);
-            return;
-        }
+    }
+
+    public function handle_binary_message(Client $client, mixed $message) {
+        $decodedMessage = $this->decode_proto_msg($message);
+        $this->handle_protobuf_message($client, $decodedMessage);
+    }
+
+    public function handle_message(Client $client, array $message) {
         if (is_array($message) && array_key_exists('msg' ?? '', $message)) {
             $this->handle_subscription_status($client, $message);
             return;

@@ -1319,34 +1319,34 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->safe_string($modes, $marginMode, $marginMode);
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if (gettype($message) === 'string') {
-            if ($message === 'pong') {
-                $this->handle_pong($client, $message);
-            }
-        } else {
-            $m = $this->safe_string($message, 'm');
-            if (($m !== null) && ($m !== 'Success')) {
-                $this->handle_error_message($client, $message);
-            }
-            $action = $this->safe_string_2($message, 'a', 'action');
-            if ($action === 'RecvTopicAction') {
-                $this->handle_subscription_status($client, $message);
-            } elseif ($action === 'PO') {
-                $this->handle_ticker($client, $message);
-            } elseif ($action === 'PMT') {
-                $this->handle_trades($client, $message);
-            } elseif ($action === 'PK') {
-                $this->handle_ohlcv($client, $message);
-            } elseif ($action === 'PMO') {
-                $this->handle_order_book($client, $message);
-            } elseif ($action === 'PushTrade') {
-                $this->handle_my_trade($client, $message);
-            } elseif ($action === 'PushOrder') {
-                $this->handle_order($client, $message);
-            } elseif ($action === 'PushPosition') {
-                $this->handle_position($client, $message);
-            }
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'pong') {
+            $this->handle_pong($client, $message);
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
+        $m = $this->safe_string($message, 'm');
+        if (($m !== null) && ($m !== 'Success')) {
+            $this->handle_error_message($client, $message);
+        }
+        $action = $this->safe_string_2($message, 'a', 'action');
+        if ($action === 'RecvTopicAction') {
+            $this->handle_subscription_status($client, $message);
+        } elseif ($action === 'PO') {
+            $this->handle_ticker($client, $message);
+        } elseif ($action === 'PMT') {
+            $this->handle_trades($client, $message);
+        } elseif ($action === 'PK') {
+            $this->handle_ohlcv($client, $message);
+        } elseif ($action === 'PMO') {
+            $this->handle_order_book($client, $message);
+        } elseif ($action === 'PushTrade') {
+            $this->handle_my_trade($client, $message);
+        } elseif ($action === 'PushOrder') {
+            $this->handle_order($client, $message);
+        } elseif ($action === 'PushPosition') {
+            $this->handle_position($client, $message);
         }
     }
 

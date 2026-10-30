@@ -1422,11 +1422,11 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()): PromiseInterface {
+    public function fetch_ledger_entries_by_ids(array $ids, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ledger_entries_by_ids(...))($ids, $code, $params);
     }
 
-    private function do_fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()) {
+    private function do_fetch_ledger_entries_by_ids(array $ids, ?string $code = null, $params = array()) {
         // https://www.kraken.com/features/api#query-ledgers
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2639,11 +2639,11 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_ids(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_ids(...))($ids, $symbol, $params);
     }
 
-    private function do_fetch_orders_by_ids(mixed $ids, ?string $symbol = null, $params = array()) {
+    private function do_fetch_orders_by_ids(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * fetch $orders by the list of $order $id
          *
