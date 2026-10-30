@@ -128,7 +128,7 @@ impl crate::exchange_generated::ExchangeBase for KrakenCore {
                 "fetch_deposit_methods" => self.fetch_deposit_methods(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_deposits" => self.fetch_deposits(&args[..]).await,
                 "fetch_ledger" => self.fetch_ledger(&args[..]).await,
-                "fetch_ledger_entries_by_ids" => self.fetch_ledger_entries_by_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_ledger_entries_by_ids" => self.fetch_ledger_entries_by_ids(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..]).await,
                 "fetch_ledger_entry" => self.fetch_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_markets" => self.fetch_markets(&args[..]).await,
                 "fetch_my_trades" => self.fetch_my_trades(&args[..]).await,
@@ -2052,7 +2052,7 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub async fn fetch_ledger_entries_by_ids(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ledger_entries_by_ids(&mut self, ids: Vec<String>, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2062,7 +2062,7 @@ impl KrakenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut idsValue: Value = join(&ids, &Value::Str(",".into()));
+        let mut idsValue: Value = Value::Str(ids.join(",").into());
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), idsValue);
@@ -2106,7 +2106,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut items: Value = self.fetch_ledger_entries_by_ids(Value::from(vec![id]), &[code, params]).await;
+        let mut items: Value = self.fetch_ledger_entries_by_ids(vec![id.to_string()], &[code, params]).await;
         let mut entry: Value = self.safe_dict(items, Value::Int(0), &[]);
         return entry;
 
@@ -3378,7 +3378,7 @@ impl KrakenCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_855: bool = true;
             while { if !__for_first_855 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_855 = false; i.as_f64().unwrap_or(f64::NAN) < numTradeIds } {
-            if let Value::Arr(__a) = &mut batch { std::sync::Arc::make_mut(__a).push(tradeIds.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)); }
+            if let Value::Arr(__a) = &mut batch { std::sync::Arc::make_mut(__a).push(tradeIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
             if ((batch.len() as i64) as f64) >= batchSize.as_f64().unwrap_or(f64::NAN) {
                 batches.push(batch.clone());
                 batch = Value::from(vec![]);
@@ -3391,7 +3391,7 @@ impl KrakenCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_857: bool = true;
             while { if !__for_first_857 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_857 = false; j.as_f64().unwrap_or(f64::NAN) < ((batches.len() as i64) as f64) } {
-            let mut requestIds: Value = batches.get((j).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut requestIds: Value = batches.get((j).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("txid".to_string(), Value::Str(requestIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -3460,7 +3460,7 @@ impl KrakenCore {
         let __ws_arg_12 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trades".to_string(), Value::Bool(true));
-                m.insert("txid".to_string(), join(&ids, &Value::Str(",".into())));
+                m.insert("txid".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         }), &[params]);
         let mut response: Value = self.private_post_query_orders(&[__ws_arg_12]).await;

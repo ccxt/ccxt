@@ -2623,7 +2623,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchLedger".into()), &[code, since.clone(), limit.clone(), params]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchLedger".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         return self.parse_ledger(response, &[currency, since, limit]);
 
     Value::Null
@@ -2883,7 +2883,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), params]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut transferIn: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
         let mut transferOut: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let mut rows: Value = self.array_concat(transferIn, transferOut);
@@ -3064,7 +3064,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), params]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
 
@@ -3099,7 +3099,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), params]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
 
@@ -3134,7 +3134,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDepositsWithdrawals".into()), &[code, since.clone(), limit.clone(), params]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDepositsWithdrawals".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut withdrawals: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         let mut deposits: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let mut rows: Value = self.array_concat(withdrawals, deposits);
@@ -3151,8 +3151,7 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("methodName".into()), &[]);
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone(), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone(), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();

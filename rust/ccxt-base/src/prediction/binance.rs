@@ -575,7 +575,7 @@ impl BinanceCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1205: bool = true;
             while { if !__for_first_1205 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1205 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength } {
-            let mut rawTopic: Value = rawTopics.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut rawTopic: Value = rawTopics.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut rawMarkets: Value = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]);
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             let mut hasOutcomes: bool = false;
@@ -777,7 +777,7 @@ impl BinanceCore {
             while { if !__for_first_1211 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1211 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("query".to_string(), queries.get((qi).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+                    m.insert("query".to_string(), queries.get((qi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                 m
             });
             request.insert("topK".into(), limitResolved.clone());
@@ -2459,7 +2459,7 @@ impl BinanceCore {
             let mut __for_first_1219: bool = true;
             while { if !__for_first_1219 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1219 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), self.number_to_string(i.clone())).into()), Value::Str("].orderId".into())).into());
-            request.insert(crate::runtime::stringify_param(&key), ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            request.insert(crate::runtime::stringify_param(&key), ids.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
         }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);

@@ -179,6 +179,7 @@ impl crate::exchange_generated::ExchangeBase for BitfinexCore {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_system_status" => self.handle_system_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -217,6 +218,7 @@ impl BitfinexCore {
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_checksum" => { self.handle_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1451,7 +1453,7 @@ impl BitfinexCore {
 
     pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
@@ -1538,7 +1540,7 @@ impl BitfinexCore {
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut status: Option<String> = (match __pro_message.get("status").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -1787,9 +1789,53 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_list_message(&mut self, mut client: Value, mut message: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut channelId: Option<String> = self.safe_string_opt(message.clone(), Value::Int(0), &[]);
+        let mut heartbeat: Option<String> = self.safe_string(message.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        if (heartbeat.as_deref() == Some("hb")) {
+            return;
+        }
+        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), channelId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut channel: Option<String> = self.safe_string_k_opt(subscription.clone(), "channel", &[]);
+        let mut name: Option<String> = self.safe_string_opt(message.clone(), Value::Int(1), &[]);
+        let mut publicMethods: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
+                m.insert("cs".to_string(), Value::Str("handle_checksum".into()).clone());
+                m.insert("candles".to_string(), Value::Str("handle_ohlcv".into()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
+                m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
+            m
+        });
+        let mut privateMethods: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("os".to_string(), Value::Str("handle_orders".into()).clone());
+                m.insert("ou".to_string(), Value::Str("handle_orders".into()).clone());
+                m.insert("on".to_string(), Value::Str("handle_orders".into()).clone());
+                m.insert("oc".to_string(), Value::Str("handle_orders".into()).clone());
+                m.insert("wu".to_string(), Value::Str("handle_balance".into()).clone());
+                m.insert("ws".to_string(), Value::Str("handle_balance".into()).clone());
+                m.insert("tu".to_string(), Value::Str("handle_my_trade".into()).clone());
+            m
+        });
+        let mut method: Value = Value::Null;
+        if (channelId.as_deref() == Some("0")) {
+            method = self.safe_value(Value::Map(privateMethods), name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        }  else {
+            method = self.safe_value2(Value::Map(publicMethods), name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]);
+        }
+        if (method != Value::Null) {
+            self.dispatch_ws_handler(&method, &[client, message, subscription]);
+        }
+}
+
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     [
         //         1231,
@@ -1815,61 +1861,19 @@ impl BitfinexCore {
         //        }
         //    }
         //
-        if (matches!(&message, Value::Arr(_))) {
-            let mut heartbeat: Option<String> = self.safe_string(message.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-            if (heartbeat.as_deref() == Some("hb")) {
-                return;
-            }
-            let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), channelId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut event: Option<String> = match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        if (event.is_some()) {
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut channel: Option<String> = self.safe_string_k_opt(subscription.clone(), "channel", &[]);
-            let mut name: Option<String> = self.safe_string_opt(message.clone(), Value::Int(1), &[]);
-            let mut publicMethods: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
-                    m.insert("cs".to_string(), Value::Str("handle_checksum".into()).clone());
-                    m.insert("candles".to_string(), Value::Str("handle_ohlcv".into()).clone());
-                    m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
-                    m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
+                    m.insert("info".to_string(), Value::Str("handle_system_status".into()).clone());
+                    m.insert("subscribed".to_string(), Value::Str("handle_subscription_status".into()).clone());
+                    m.insert("unsubscribed".to_string(), Value::Str("handle_unsubscription_status".into()).clone());
+                    m.insert("auth".to_string(), Value::Str("handle_authentication_message".into()).clone());
                 m
             });
-            let mut privateMethods: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("os".to_string(), Value::Str("handle_orders".into()).clone());
-                    m.insert("ou".to_string(), Value::Str("handle_orders".into()).clone());
-                    m.insert("on".to_string(), Value::Str("handle_orders".into()).clone());
-                    m.insert("oc".to_string(), Value::Str("handle_orders".into()).clone());
-                    m.insert("wu".to_string(), Value::Str("handle_balance".into()).clone());
-                    m.insert("ws".to_string(), Value::Str("handle_balance".into()).clone());
-                    m.insert("tu".to_string(), Value::Str("handle_my_trade".into()).clone());
-                m
-            });
-            let mut method: Value = Value::Null;
-            if (channelId.as_deref() == Some("0")) {
-                method = self.safe_value(Value::Map(privateMethods), name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            }  else {
-                method = self.safe_value2(Value::Map(publicMethods), name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]);
-            }
+            let mut method: Value = self.safe_value(Value::Map(methods), event.map(Value::from).unwrap_or(Value::Null), &[]);
             if (method != Value::Null) {
-                self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
-            }
-        }  else {
-            let mut event: Option<String> = self.safe_string_k_opt(message.clone(), "event", &[]);
-            if (event.is_some()) {
-                let mut methods: indexmap::IndexMap<String, Value> = ({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), Value::Str("handle_system_status".into()).clone());
-                        m.insert("subscribed".to_string(), Value::Str("handle_subscription_status".into()).clone());
-                        m.insert("unsubscribed".to_string(), Value::Str("handle_unsubscription_status".into()).clone());
-                        m.insert("auth".to_string(), Value::Str("handle_authentication_message".into()).clone());
-                    m
-                });
-                let mut method: Value = self.safe_value(Value::Map(methods), event.map(Value::from).unwrap_or(Value::Null), &[]);
-                if (method != Value::Null) {
-                    self.dispatch_ws_handler(&method, &[client, message]);
-                }
+                self.dispatch_ws_handler(&method, &[client, message]);
             }
         }
 }

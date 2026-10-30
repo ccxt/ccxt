@@ -3971,7 +3971,7 @@ impl LbankCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_926: bool = true;
             while { if !__for_first_926 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_926 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut fee: Value = response.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut fee: Value = response.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut canWithdraw: Value = self.safe_bool_k(fee.clone(), "canWithDraw", &[]);
             if (canWithdraw.as_bool() == Some(true)) {
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(fee.clone(), "assetCode", &[]), &[]);
@@ -4194,7 +4194,7 @@ impl LbankCore {
             let mut auth: Value = self.rawencode(__ws_arg_34, &[]);
             let mut encoded: Value = self.encode(auth);
             let mut uppercaseHash: Value = (self.hash(encoded, Value::Str("md5".into()), &[])).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-            let mut sign: Value = Value::Null;
+            let mut sign: Value = Value::Str("".into());
             if (signatureMethod.as_str() == Some("RSA")) {
                 let mut cacheSecretAsPem: Value = self.safe_bool_k(self.options.clone(), "cacheSecretAsPem", &[Value::Bool(true)]);
                 let mut pem: Value = Value::Null;

@@ -182,6 +182,7 @@ impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
                 "create_public_request" => self.create_public_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "order_book_suffix" => self.order_book_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "parse_position_side" => self.parse_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -233,6 +234,7 @@ impl DeepcoinCore {
             "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_position" => { self.handle_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1193,7 +1195,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
@@ -1809,34 +1811,36 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
+    pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
+        if (message.as_str() == Some("pong")) {
+            self.handle_pong(client, message);
+        }
+}
+
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if matches!(&message, Value::Str(_)) {
-            if (message.as_str() == Some("pong")) {
-                self.handle_pong(client.clone(), message.clone());
-            }
-        }  else {
-            let mut m: Option<String> = self.safe_string_k(message.clone(), "m", &[]).as_str().map(str::to_owned);
-            if (m.is_some()) && (m.as_deref() != Some("Success")) {
-                self.handle_error_message(client.clone(), message.clone());
-            }
-            let mut action: Option<String> = self.safe_string2(message.clone(), Value::Str("a".into()), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
-            if (action.as_deref() == Some("RecvTopicAction")) {
-                self.handle_subscription_status(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PO")) {
-                self.handle_ticker(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PMT")) {
-                self.handle_trades(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PK")) {
-                self.handle_ohlcv(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PMO")) {
-                self.handle_order_book(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PushTrade")) {
-                self.handle_my_trade(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PushOrder")) {
-                self.handle_order(client.clone(), message.clone());
-            }  else if (action.as_deref() == Some("PushPosition")) {
-                self.handle_position(client, message);
-            }
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut m: Option<String> = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (m.is_some()) && (m.as_deref() != Some("Success")) {
+            self.handle_error_message(client.clone(), message.clone());
+        }
+        let mut action: Option<String> = self.safe_string2(message.clone(), Value::Str("a".into()), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
+        if (action.as_deref() == Some("RecvTopicAction")) {
+            self.handle_subscription_status(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PO")) {
+            self.handle_ticker(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PMT")) {
+            self.handle_trades(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PK")) {
+            self.handle_ohlcv(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PMO")) {
+            self.handle_order_book(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PushTrade")) {
+            self.handle_my_trade(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PushOrder")) {
+            self.handle_order(client.clone(), message.clone());
+        }  else if (action.as_deref() == Some("PushPosition")) {
+            self.handle_position(client, message);
         }
 }
 
@@ -1889,17 +1893,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &subscription { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut subHash: Value = (match __pro_message.get("subHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut unsubHash: Value = (match __pro_message.get("unsubHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        self.clean_unsubscription(client, subHash, unsubHash, &[]);
+        let mut subHash: Option<String> = match __pro_message.get("subHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut unsubHash: Option<String> = match __pro_message.get("unsubHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
         self.clean_cache(subscription);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {

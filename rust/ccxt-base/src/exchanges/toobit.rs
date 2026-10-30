@@ -2276,7 +2276,7 @@ impl ToobitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1126: bool = true;
             while { if !__for_first_1126 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1126 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             let mut ticker: Value = self.extend(parsedTicker, &[params.clone()]);
             results.push(ticker);
         }

@@ -98,6 +98,7 @@ impl crate::exchange_generated::ExchangeBase for SxbetCore {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "hex_to_int" => self.hex_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "load_sx_obv3_metadata" => self.load_sx_obv3_metadata().await,
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -559,7 +560,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1485: bool = true;
             while { if !__for_first_1485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1485 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
-            let mut raw: Value = rawMarkets.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut raw: Value = rawMarkets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(raw.clone(), "sportXeventId", &[]).as_str() == sportXeventId.as_str()) {
                 result.push(raw);
             }
@@ -836,7 +837,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1491: bool = true;
             while { if !__for_first_1491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
-            let mut fixtureId: Value = order.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut fixtureId: Value = order.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(fixtureId.clone(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             let mut evMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut evMarketsLength: f64 = ((evMarkets.len() as i64) as f64);
@@ -917,7 +918,7 @@ impl SxbetCore {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1493: bool = true;
             while { if !__for_first_1493 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1493 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
-            let mut query: Value = (queries.get((qi).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut query: Value = (queries.get((qi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             if (query.as_str() == Some("")) {
                 continue;
             }
@@ -2859,7 +2860,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1513: bool = true;
             while { if !__for_first_1513 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1513 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
-            let mut outcomeObj: Value = self.outcome(outcomesList.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomesList.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
             let mut raw: Value = self.safe_dict(rowsByHash.clone(), marketHash, &[]);
             if (raw == Value::Null) {
@@ -3210,31 +3211,31 @@ impl SxbetCore {
     Value::Null
 }
 
+    pub fn handle_text_message(&mut self, mut client: Value, mut message: Value) {
+        let mut lines: Vec<Value> = Value::Array(message.as_str().map(|__s| __s.split("\n").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut linesLength: f64 = ((lines.len() as i64) as f64);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1516: bool = true;
+            while { if !__for_first_1516 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1516 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
+            let mut line: Value = lines.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            if ((line.len() as i64) as f64) > ((0i64) as f64) {
+                let mut parsed: Value = json_parse(&line);
+                self.handle_centrifugo_frame(client.clone(), parsed);
+            }
+        }
+        }
+}
+
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if matches!(&message, Value::Str(_)) {
-            let mut lines: Vec<Value> = Value::Array(message.as_str().map(|__s| __s.split("\n").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut linesLength: f64 = ((lines.len() as i64) as f64);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_1516: bool = true;
-                while { if !__for_first_1516 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1516 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
-                let mut line: Value = lines.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                if ((line.len() as i64) as f64) > ((0i64) as f64) {
-                    let mut parsed: Value = json_parse(&line);
-                    self.handle_centrifugo_frame(client.clone(), parsed);
-                }
-            }
-            }
-            return;
-        }
         self.handle_centrifugo_frame(client, message);
 }
 
     pub fn handle_centrifugo_frame(&mut self, mut client: Value, mut msg: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &msg { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &msg { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut keys: Vec<Value> = object_keys(&msg).as_array().cloned().unwrap_or_default();
         let mut keysLength: f64 = ((keys.len() as i64) as f64);
@@ -3242,12 +3243,12 @@ impl SxbetCore {
             self.spawn(&[Value::Null.clone(), client.clone(), msg.clone()]);
             return;
         }
-        let mut requestIdString: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut requestIdString: Option<String> = match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         let mut pendingRequests: Value = self.safe_dict_k(self.options.clone(), "wsPendingRequests", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut pendingEntry: Value = self.safe_dict(pendingRequests.clone(), requestIdString.clone(), &[]);
+        let mut pendingEntry: Value = self.safe_dict(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut errorReply: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (errorReply != Value::Null) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -3264,7 +3265,7 @@ impl SxbetCore {
                 if (subscription.is_some()) && (__ch.has_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null))) {
                     __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+                { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
                 client.reject(&[Value::from(error.clone()), failedHash.map(Value::from).unwrap_or(Value::Null)]);
             }  else {
                 // an error that cannot be correlated to one command fails the whole connection
@@ -3274,7 +3275,7 @@ impl SxbetCore {
         }
         if (pendingEntry != Value::Null) {
             // a successful command ack - the tracked request has served its purpose
-            { let __be_tmp = self.omit(pendingRequests, requestIdString, &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+            { let __be_tmp = self.omit(pendingRequests, requestIdString.map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
         let mut connectReply: Value = (match __pro_message.get("connect").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (connectReply != Value::Null) {
@@ -3472,7 +3473,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1519: bool = true;
             while { if !__for_first_1519 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut refreshed: Value = self.apply_sxbet_ws_snapshot(rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            let mut refreshed: Value = self.apply_sxbet_ws_snapshot(rows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             let mut refreshedLength: f64 = ((refreshed.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
@@ -3700,7 +3701,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1522: bool = true;
             while { if !__for_first_1522 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1522 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut rawRow: Value = rows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
             let mut sym: Value = self.safe_string_k(trade.clone(), "outcome", &[]);
@@ -3768,7 +3769,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1523: bool = true;
             while { if !__for_first_1523 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1523 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut rawRow: Value = rows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "fill", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_fill(row, &[]);
             let mut sym: Option<String> = self.safe_string_k_opt(trade.clone(), "outcome", &[]);
@@ -3834,7 +3835,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1524: bool = true;
             while { if !__for_first_1524 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1524 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+            let mut rawRow: Value = rows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
             let mut order: Value = self.parse_prediction_order(row, &[]);
             if (self.orders.clone() == Value::Null) {
