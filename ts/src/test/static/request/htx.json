@@ -1337,6 +1337,7 @@
             {
                 "description": "+1m -since +limit +until (contract)",
                 "method": "fetchOHLCV",
+                "forceCheckKeys": [ "from", "to" ],
                 "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1619999760&to=1620000000&contract_code=BTC-USDT",
                 "input": [
                   "BTC/USDT:USDT",
@@ -1346,6 +1347,18 @@
                   {
                     "until": 1620000000000
                   }
+                ]
+            },
+            {
+                "description": "+1m +since, limit past 2000 (contract): the range stops at 2000 candles",
+                "method": "fetchOHLCV",
+                "forceCheckKeys": [ "from", "to" ],
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1620000000&to=1620119940&contract_code=BTC-USDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1620000000000,
+                  3000
                 ]
             },
             {

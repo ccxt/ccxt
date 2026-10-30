@@ -3034,7 +3034,8 @@ export default class htx extends Exchange {
             untilSeconds = this.parseToInt (until / 1000);
         }
         const isContract = (market['contract'] === true);
-        const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
+        // the range sets the count alone, and HTX refuses one wider than 2000 candles
+        const contractLimit: number = (limit !== undefined) ? Math.min (limit, 2000) : 2000;
         let rangeLimit = limit;
         if (isContract) {
             rangeLimit = contractLimit;
