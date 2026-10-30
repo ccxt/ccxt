@@ -27,6 +27,8 @@ try:
 except ImportError:
     MSG_SIZE_OVERHEAD = 0
 
+_MAX_SYNC_MESSAGES = 100
+
 
 class Client(object):
 
@@ -191,14 +193,15 @@ class Client(object):
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         if not self.closed():
-            # let's drain the aiohttp buffer to avoid latency
+            # Drain in batches so a busy socket gives ready watchers, timers
+            # and other connections a turn before consuming its whole backlog.
             if self.buffer and len(self.buffer) > 1:
                 size_delta = 0
-                while len(self.buffer) > 1:
+                for _ in range(min(len(self.buffer) - 1, _MAX_SYNC_MESSAGES)):
                     message, size = self.buffer.popleft()
                     size_delta += size + MSG_SIZE_OVERHEAD
                     self.handle_message(message)
-                # we must update the size of the last message inside WebSocketDataQueue
+                # Charge the manually drained bytes to the next queued message.
                 # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()
                 # which updates the size of the buffer, the _size will overflow and pause the transport
                 # make sure to set the enviroment variable AIOHTTP_NO_EXTENSIONS=Y to check
