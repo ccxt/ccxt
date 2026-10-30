@@ -185487,7 +185487,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.90');
+_define_property(BaseExchange, "ccxtVersion", '4.5.91');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
