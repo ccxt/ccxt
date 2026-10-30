@@ -1,0 +1,65 @@
+{
+    "exchange": "bybit",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {},
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "bybit prediction fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api-testnet.bybit.com/v5/event/instruments-info?limit=100&status=Trading",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "bybit prediction fetchEvents limit 1",
+                "method": "fetchEvents",
+                "url": "https://api-testnet.bybit.com/v5/event/instruments-info?limit=1&status=Trading",
+                "input": [
+                    {
+                        "limit": 1
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "bybit prediction fetchEvent",
+                "method": "fetchEvent",
+                "url": "https://api-testnet.bybit.com/v5/event/instruments-info?limit=100&status=Trading",
+                "input": [
+                    "ETHUSDT-20SEP26-2520"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOutcome": [
+            {
+                "description": "bybit prediction fetchOutcome",
+                "method": "fetchOutcome",
+                "url": "https://api-testnet.bybit.com/v5/event/instruments-info?limit=1&symbol=ETHUSDT-20SEP26-2520-BELOW&status=Trading",
+                "input": [
+                    "ETHUSDT-20SEP26-2520-BELOW:BELOW"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "bybit prediction fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api-testnet.bybit.com/v5/event/orderbook?symbol=ETHUSDT-20SEP26-2520-BELOW",
+                "input": [
+                    "ETHUSDT-20SEP26-2520-BELOW:BELOW",
+                    3
+                ],
+                "output": null
+            }
+        ]
+    }
+}
