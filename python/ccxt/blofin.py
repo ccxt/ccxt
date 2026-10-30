@@ -1131,7 +1131,7 @@ class blofin(Exchange, ImplicitAPI):
         rates = []
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
-            rate = self.safe_value(data, i)
+            rate = self.safe_dict(data, i, {})
             timestamp = self.safe_integer(rate, 'fundingTime')
             rates.append({
                 'info': rate,

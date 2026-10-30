@@ -2839,7 +2839,7 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
 
-    def parse_x18(self, value: Str):
+    def parse_x18(self, value: Str) -> Num:
         if value is None:
             return None
         return self.parse_number(Precise.string_div(value, '1000000000000000000'))

@@ -2420,8 +2420,8 @@ class extended(Exchange, ImplicitAPI):
         }
         msgHash = self.get_extended_order_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
-        r = self.get_extended_signature_hex(self.safe_string(sig, 0))
-        s = self.get_extended_signature_hex(self.safe_string(sig, 1))
+        r = self.get_extended_signature_hex(self.safe_string(sig, 0, '0'))
+        s = self.get_extended_signature_hex(self.safe_string(sig, 1, '0'))
         settlement['r'] = r
         settlement['s'] = s
         return settlement
@@ -2452,8 +2452,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_withdrawal_msg_hash(settlement, starkKey)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(self.safe_string(sig, 0)),
-            's': self.get_extended_signature_hex(self.safe_string(sig, 1)),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0, '0')),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1, '0')),
         }
         return settlement
 
@@ -2482,8 +2482,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_transfer_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(self.safe_string(sig, 0)),
-            's': self.get_extended_signature_hex(self.safe_string(sig, 1)),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0, '0')),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1, '0')),
         }
         return settlement
 
@@ -3230,12 +3230,8 @@ class extended(Exchange, ImplicitAPI):
             return Precise.string_add(prime, valueString)
         return value
 
-    def get_extended_decimal_to_base16(self, value: object) -> str:
-        decimalString = ''
-        if isinstance(value, str):
-            decimalString = value
-        else:
-            decimalString = self.number_to_string(value)
+    def get_extended_decimal_to_base16(self, value: str) -> str:
+        decimalString = value
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         result = ''
         while(Precise.string_gt(decimalString, '0')):
@@ -3247,15 +3243,10 @@ class extended(Exchange, ImplicitAPI):
             return '0'
         return result
 
-    def get_extended_signature_hex(self, signature: object) -> str:
-        if isinstance(signature, str):
-            if signature.find('0x') == 0:
-                return signature
-            return '0x' + self.get_extended_decimal_to_base16(signature)
-        signatureString = self.number_to_string(signature)
-        if signatureString.find('0x') == 0:
-            return signatureString
-        return '0x' + self.get_extended_decimal_to_base16(signatureString)
+    def get_extended_signature_hex(self, signature: str) -> str:
+        if signature.find('0x') == 0:
+            return signature
+        return '0x' + self.get_extended_decimal_to_base16(signature)
 
     def get_extended_domain_hash(self):
         domainTypeHash = self.convert_to_big_int(self.extended_starknet_get_selector_from_name(
