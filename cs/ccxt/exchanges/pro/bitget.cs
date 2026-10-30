@@ -595,7 +595,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         Dictionary<string, object> paramsStock = this.omit(paramsUta, "stock");
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         bool isStockOrUta = (isStockSpot || ((uta == true)));
         var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         var instType = instTypeparamsInstTypeVariable[0];
@@ -992,7 +992,7 @@ public partial class bitget : ccxt.bitget
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
             bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
-            isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+            isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         }
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false);

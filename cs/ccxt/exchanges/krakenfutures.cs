@@ -2791,7 +2791,11 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = null;
+        if ((symbol != null))
+        {
+            symbolResolved = this.symbol(symbol);
+        }
         // todo: lastFillTime: this.iso8601(end)
         Dictionary<string, object> response = await this.privateGetFills(parameters);
         //

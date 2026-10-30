@@ -3425,9 +3425,8 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         string methodName = "fetchOpenSpotOrders";
-        IList<object> methodNameOptionparamsMethodNameVariable = (IList<object>)this.handleParamString(parameters, "methodName", methodName);
-        string? methodNameOption = (string)methodNameOptionparamsMethodNameVariable[0];
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)methodNameOptionparamsMethodNameVariable[1]);
+        string? methodNameOption = this.safeString(parameters, "methodName", methodName);
+        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
@@ -3475,9 +3474,8 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchOpenSwapOrders";
-        IList<object> methodNameOptionparamsMethodNameVariable = (IList<object>)this.handleParamString(parameters, "methodName", methodName);
-        string? methodNameOption = (string)methodNameOptionparamsMethodNameVariable[0];
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)methodNameOptionparamsMethodNameVariable[1]);
+        string? methodNameOption = this.safeString(parameters, "methodName", methodName);
+        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodNameOption) + "() requires a symbol argument for swap market orders")) ;
@@ -4095,9 +4093,8 @@ public partial class hashkey : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string methodName = "fetchPosition";
-        IList<object> methodNameOptionparamsMethodNameVariable = (IList<object>)this.handleParamString(parameters, "methodName", methodName);
-        string? methodNameOption = (string)methodNameOptionparamsMethodNameVariable[0];
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)methodNameOptionparamsMethodNameVariable[1]);
+        string? methodNameOption = this.safeString(parameters, "methodName", methodName);
+        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new NotSupported ((((this.id + " ") + methodNameOption) + "() supports swap markets only")) ;

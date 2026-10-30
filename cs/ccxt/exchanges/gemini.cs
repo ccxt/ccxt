@@ -2000,7 +2000,11 @@ public partial class gemini : Exchange
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
         // timeInForce and postOnly are consumed only by non-trigger orders
         List<object> omitKeys = new List<object>() {"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"};
-        List<object> optionKeys = ((triggerPrice == null)) ? new List<object>() {"timeInForce", "postOnly"} : new List<object>() {};
+        List<object> optionKeys = new List<object>() {};
+        if ((triggerPrice == null))
+        {
+            optionKeys = new List<object>() {"timeInForce", "postOnly"};
+        }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, this.arrayConcat(omitKeys, optionKeys)));
         if (typeValue == "stopLimit")
         {
@@ -2451,7 +2455,6 @@ public partial class gemini : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string fullUrl = (apiUrl + url);
-        Dictionary<string, object> headersResolved = (apiName == "private") ? headersSigned : null;
         string? bodyResolved = null;
         if (((method == "POST")) || ((method == "DELETE")))
         {
@@ -2461,7 +2464,7 @@ public partial class gemini : Exchange
             { "url", fullUrl },
             { "method", method },
             { "body", bodyResolved },
-            { "headers", headersResolved },
+            { "headers", headersSigned },
         };
     }
 
