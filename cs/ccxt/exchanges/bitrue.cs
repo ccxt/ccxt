@@ -3369,7 +3369,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coinSymbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
-            { "transferType", add(((object)(fromId == null ? null : fromId + "_to_")), toId) },
+            { "transferType", ((object)(fromId == null ? null : fromId + "_to_" + toId)) },
         };
         Dictionary<string, object> response = await this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters));
         //

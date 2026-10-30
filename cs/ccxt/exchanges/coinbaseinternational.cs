@@ -849,7 +849,7 @@ public partial class coinbaseinternational : Exchange
         if (!isComboMarket && (isOption || isFuture))
         {
             string? expiryString = this.yymmdd(expiry, "");
-            symbol = add(((object)(symbol == null ? null : symbol + "-")), expiryString);
+            symbol = ((object)(symbol == null ? null : symbol + "-" + expiryString));
         }
         if (!isComboMarket && isOption)
         {
@@ -859,7 +859,7 @@ public partial class coinbaseinternational : Exchange
                 optionTypeLetter = "C";
             }
             string? strikeString = this.numberToString(strike);
-            symbol = add(add(add(add(symbol, "-"), strikeString), "-"), optionTypeLetter);
+            symbol = add(add(((object)(symbol == null ? null : symbol + "-" + strikeString)), "-"), optionTypeLetter);
         }
         Dictionary<string, object> marketStructure = new Dictionary<string, object>() {
             { "id", instrumentName },

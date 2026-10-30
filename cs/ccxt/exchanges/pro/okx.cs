@@ -1757,7 +1757,7 @@ public partial class okx : ccxt.okx
             { "books50-l2-tbt", 50 },
         };
         Int64? limit = this.safeInteger(depths, channel);
-        string? messageHash = ((string)add(((object)(channel == null ? null : channel + ":")), symbol));
+        string? messageHash = ((string)((object)(channel == null ? null : channel + ":" + symbol)));
         if (action == "snapshot")
         {
             for (int i = 0; i < data.Count; i++)

@@ -973,7 +973,7 @@ public partial class phemex : Exchange
         bool isLinear = !inverse;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(add(((object)(bs == null ? null : bs + "/")), quote), ":"), settle) },
+            { "symbol", add(add(((object)(bs == null ? null : bs + "/" + quote)), ":"), settle) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },

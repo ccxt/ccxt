@@ -1076,33 +1076,33 @@ public partial class htx : ccxt.htx
             messageHash = marginPrefix;
             if ((marketCode != null))
             {
-                messageHash = add(add(marginPrefix, "."), marketCode);
+                messageHash = ((object)(marginPrefix == null ? null : marginPrefix + "." + marketCode));
                 channel = messageHash;
             } else
             {
-                channel = add(add(marginPrefix, "."), "*");
+                channel = ((object)(marginPrefix == null ? null : marginPrefix + "." + "*"));
             }
         } else if ((type == "future"))
         {
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
             {
-                channel = add(((object)(prefix == null ? null : prefix + ".")), ((string)baseId).ToLower());
+                channel = ((object)(prefix == null ? null : prefix + "." + ((string)baseId).ToLower()));
                 messageHash = channel;
             } else
             {
-                channel = add(((object)(prefix == null ? null : prefix + ".")), "*");
+                channel = ((object)(prefix == null ? null : prefix + "." + "*"));
             }
         } else
         {
             // inverse swaps: Example: BTC/USD:BTC
             if ((marketCode != null))
             {
-                channel = add(((object)(prefix == null ? null : prefix + ".")), marketCode);
+                channel = ((object)(prefix == null ? null : prefix + "." + marketCode));
                 messageHash = channel;
             } else
             {
-                channel = add(((object)(prefix == null ? null : prefix + ".")), "*");
+                channel = ((object)(prefix == null ? null : prefix + "." + "*"));
             }
         }
         return new List<object>() {channel, messageHash};
@@ -2065,8 +2065,16 @@ public partial class htx : ccxt.htx
         {
             string? symbol = this.safeString(paramsOmitted, "symbol");
             string? currency = this.safeString(paramsOmitted, "currency");
-            Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
-            Dictionary<string, object> currencyCode = ((currency != null)) ? this.currency(currency) : null;
+            IDictionary<string, object> market = null;
+            if ((symbol != null))
+            {
+                market = this.market(symbol);
+            }
+            IDictionary<string, object> currencyCode = null;
+            if ((currency != null))
+            {
+                currencyCode = this.currency(currency);
+            }
             marginMode = this.safeString(paramsOmitted, "margin", "cross");
             string prefix = "accounts";
             messageHash = prefix;

@@ -1067,7 +1067,7 @@ public partial class krakenfutures : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             Int64? fromTimestamp = this.parseToInt(((double?)since / 1000));
             request["from"] = fromTimestamp;
-            Int64? toTimestamp = this.parseToInt(this.sum(fromTimestamp, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))((windowSize * duration), 1)));
+            Int64? toTimestamp = this.parseToInt(this.sum(fromTimestamp, ((windowSize * duration) - 1)));
             Int64 currentTimestamp = this.seconds();
             request["to"] = (((toTimestamp == null || toTimestamp < currentTimestamp))) ? toTimestamp : currentTimestamp;
         } else if ((limitResolved != null))
@@ -1075,7 +1075,7 @@ public partial class krakenfutures : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             Int64 toTimestamp = this.seconds();
             request["to"] = toTimestamp;
-            request["from"] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(toTimestamp, ((duration * windowSize))));
+            request["from"] = this.parseToInt((toTimestamp - ((duration * windowSize))));
         }
         Dictionary<string, object> response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //

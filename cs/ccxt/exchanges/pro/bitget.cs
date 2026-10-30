@@ -3502,7 +3502,7 @@ public partial class bitget : ccxt.bitget
         {
             messageHash = ("unsubscribe:kline:" + symbol);
             subMessageHash = ("kline:" + symbol);
-        } else
+        } else if ((timeframe != null))
         {
             messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
             subMessageHash = ((("candles:" + timeframe) + ":") + symbol);

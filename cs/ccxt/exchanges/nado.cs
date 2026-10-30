@@ -3337,7 +3337,7 @@ public partial class nado : Exchange
         if (left == true)
         {
             string paddedLeft = (zeros + (value));
-            object start = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(paddedLeft.Length, this.parseToInt(length));
+            object start = (paddedLeft.Length - (this.parseToInt(length)));
             return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
         }
         object paddedRight = add(value, zeros);

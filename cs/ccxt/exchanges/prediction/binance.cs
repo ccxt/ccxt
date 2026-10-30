@@ -203,13 +203,13 @@ public partial class binance : PredictionExchange
         }
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
         IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit"}));
-        List<Dictionary<string, object>> rawTopics = await this.FetchRawTopics(maxMarkets, rest);
+        object rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(maxMarkets, rest));
         List<object> parsedEvents = new List<object>() {};
         List<object> flatMarkets = new List<object>() {};
-        int rawTopicsLength = (rawTopics?.Count ?? 0);
+        int rawTopicsLength = getArrayLength(rawTopics);
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
             parsedEvents.Add(parsedEvent);
             List<object> eventMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int eventMarketsLength = eventMarkets.Count;
@@ -252,7 +252,7 @@ public partial class binance : PredictionExchange
         while (true)
         {
             int collectedLength = (collected?.Count ?? 0);
-            object remaining = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(maxTopicsResolved, collectedLength);
+            object remaining = (maxTopicsResolved - collectedLength);
             object reqLimit = (isLessThan(remaining, pageLimit)) ? remaining : pageLimit;
             if (isLessThanOrEqual(reqLimit, 0))
             {
