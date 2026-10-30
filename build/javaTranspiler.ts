@@ -9021,6 +9021,23 @@ export function nativeJavaJ34MapLocals (content: string): string {
         for (let i = from; i < to; i++) {
             const line = lines[i];
             if (/^\s*(?:\/\/|\*)/.test (line)) continue;
+            // hx11w8 parsewstrade-literal-put: a value spanning lines (literal-map `{{ }}` arg) on a fresh local prints a native put
+            const multi = /^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (?!.*\);\s*(?:\/\/.*)?$)/.exec (line);
+            if (multi !== null && isMap (multi[2]) && fresh (multi[2]) && (stringKey (multi[3]) || declaredType (multi[3]) === 'String')) {
+                const rest = lines.slice (i, to).join ('\n');
+                const end = j26StatementEnd (rest, 0);
+                const stmt = end === -1 ? '' : rest.slice (0, end + 1);
+                const open = stmt.indexOf ('(');
+                if (stmt !== '' && stmt.endsWith (');') && j26Close (stmt, open) === stmt.length - 2 && (j26Args (stmt, open) ?? []).length === 3) {
+                    const value = stmt.slice (multi[0].length, -2);
+                    const span = stmt.split ('\n').length;
+                    lines[i] = `${multi[1]}${multi[2]}.put(${multi[3]}, ${value});`;
+                    for (let k = 1; k < span; k++) lines[i + k] = '\u0000'; // dropped below; keeps member indices stable
+                    changed = true;
+                    i += span - 1;
+                    continue;
+                }
+            }
             let next = line;
             next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
                 if (!isMap (recv)) return whole;
@@ -9068,7 +9085,7 @@ export function nativeJavaJ34MapLocals (content: string): string {
             if (next !== line) { lines[i] = next; changed = true; }
         }
     }
-    return changed ? lines.join ('\n') : content;
+    return changed ? lines.filter ((l) => l !== '\u0000').join ('\n') : content;
 }
 
 // hx4 J34: snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
@@ -9101,6 +9118,8 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'param keys', 'Map<String, Object> p', '        return Helpers.objectKeys(p);', undefined ],
         [ 'reassigned from safeDict', 'Object o, Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
         [ 'typed order view put', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);', '        o.put(\"type\", v);' ],
+        [ 'literal-map value spanning lines', 'Object t, Object c', '        Map<String, Object> p = super.parseWsTrade((Map<String, Object>) (t), (Map<String, Object>) null);\n        Helpers.addElementToObject(p, "side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));\n        return p;', '        p.put("side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));\n        return p;' ],
+        [ 'literal-map value on param map keeps helper', 'Map<String, Object> p, Object c', '        Helpers.addElementToObject(p, "side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));', undefined ],
         [ 'typed trade view put', 'Object v', '        Map<String, Object> t = this.parseWsTrade((Map<String, Object>) (v), null);\n        Helpers.addElementToObject(t, \"datetime\", v);', '        t.put(\"datetime\", v);' ],
         [ 'market structure view put', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);', '        m.put("baseId", v);' ],
         [ 'market structure venue override keeps helper', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);\n        return m;\n    }\n    public Object safeMarketStructure(Object x)\n    {\n        return x;', undefined ],
