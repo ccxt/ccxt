@@ -12935,6 +12935,9 @@ function hx4C30Body (name: string): string {
 function hx4C30Bind (name: string, l: string, r: string): string {
     const rank = { 'int': 0, 'Int64': 1, 'double': 2 };
     if (name === 'subtract') {
+        // Int64? beside int/Int64: lifted `-` (null stays null) in place of the object blob
+        const lifted = [ 'int', 'Int64', 'int?', 'Int64?' ];
+        if (lifted.includes (l) && lifted.includes (r) && (l === 'Int64?' || r === 'Int64?')) return 'Int64?';
         return ((l in rank) && (r in rank)) ? [ 'int', 'Int64', 'double' ][Math.max (rank[l], rank[r])] : 'object';
     }
     const integral = [ 'int', 'Int64' ];
