@@ -123,7 +123,7 @@ impl crate::exchange_generated::ExchangeBase for DydxCore {
                 "fetch_positions" => self.fetch_positions(&args[..]).await,
                 "fetch_time" => self.fetch_time(&args[..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_transactions_helper" => self.fetch_transactions_helper(&args[..]).await,
+                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_transfers" => self.fetch_transfers(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "get_wallet_address" => self.get_wallet_address(),
@@ -2623,12 +2623,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_10 = self.extend(params, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("methodName".to_string(), Value::Str("fetchLedger".into()));
-    m
-})]);
-        let mut response: Value = self.fetch_transactions_helper(&[code, since.clone(), limit.clone(), __ws_arg_10]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchLedger".into()), &[code, since.clone(), limit.clone(), params]).await;
         return self.parse_ledger(response, &[currency, since, limit]);
 
     Value::Null
@@ -2888,12 +2883,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_11 = self.extend(params, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("methodName".to_string(), Value::Str("fetchTransfers".into()));
-    m
-})]);
-        let mut response: Value = self.fetch_transactions_helper(&[code, since.clone(), limit.clone(), __ws_arg_11]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), params]).await;
         let mut transferIn: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
         let mut transferOut: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let mut rows: Value = self.array_concat(transferIn, transferOut);
@@ -3074,12 +3064,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_12 = self.extend(params, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("methodName".to_string(), Value::Str("fetchWithdrawals".into()));
-    m
-})]);
-        let mut response: Value = self.fetch_transactions_helper(&[code, since.clone(), limit.clone(), __ws_arg_12]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), params]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
 
@@ -3114,12 +3099,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_13 = self.extend(params, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("methodName".to_string(), Value::Str("fetchDeposits".into()));
-    m
-})]);
-        let mut response: Value = self.fetch_transactions_helper(&[code, since.clone(), limit.clone(), __ws_arg_13]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), params]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
 
@@ -3154,12 +3134,7 @@ impl DydxCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_14 = self.extend(params, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("methodName".to_string(), Value::Str("fetchDepositsWithdrawals".into()));
-    m
-})]);
-        let mut response: Value = self.fetch_transactions_helper(&[code, since.clone(), limit.clone(), __ws_arg_14]).await;
+        let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDepositsWithdrawals".into()), &[code, since.clone(), limit.clone(), params]).await;
         let mut withdrawals: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         let mut deposits: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let mut rows: Value = self.array_concat(withdrawals, deposits);
@@ -3168,7 +3143,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub async fn fetch_transactions_helper(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transactions_helper(&mut self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3176,12 +3151,11 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut methodName: Option<String> = self.safe_string_k_opt(params.clone(), "methodName", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("methodName".into()), &[]);
-        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone().map(Value::from).unwrap_or(Value::Null), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone(), paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName.map(Value::from).unwrap_or(Value::Null), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
+        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3190,8 +3164,8 @@ impl DydxCore {
                 m.insert("subaccountNumber".to_string(), subAccountNumber);
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
-        let mut response: Value = self.indexer_get_transfers(&[__ws_arg_15]).await;
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
+        let mut response: Value = self.indexer_get_transfers(&[__ws_arg_10]).await;
         //
         // {
         //     "transfers": [
@@ -3243,8 +3217,8 @@ impl DydxCore {
                 m.insert("address".to_string(), userAddress);
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsPublicAddress]);
-        let mut response: Value = self.indexer_get_addresses_address(&[__ws_arg_16]).await;
+        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsPublicAddress]);
+        let mut response: Value = self.indexer_get_addresses_address(&[__ws_arg_11]).await;
         //
         // {
         //     "subaccounts": [
@@ -3341,8 +3315,8 @@ impl DydxCore {
                 m.insert("subaccountNumber".to_string(), subaccountNumber);
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsSubaccountNumber]);
-        let mut response: Value = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_17]).await;
+        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsSubaccountNumber]);
+        let mut response: Value = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_12]).await;
         //
         // {
         //     "subaccount": {

@@ -3756,12 +3756,12 @@ impl OkxCore {
 }));
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
         let mut instType: Option<String> = self.safe_string_k_opt(params.clone(), "instType", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("instType".into()), &[]);
-        let mut type_var: Option<String> = self.safe_string_k(paramsOmitted.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: indexmap::IndexMap<String, Value> = self.omit(params, Value::Str("instType".into()), &[]).as_map().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = self.safe_string(Value::Map(paramsOmitted.clone()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (instType.is_some()) {
-            add_element_to_object(&mut paramsOmitted, &Value::Str("type".into()), instType.map(Value::from).unwrap_or(Value::Null));
+            paramsOmitted.insert("type".into(), instType.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.super_handle_market_type_and_params(methodName, market, paramsOmitted, defaultValue);
+        return self.super_handle_market_type_and_params(methodName, market, Value::Map(paramsOmitted), defaultValue);
 
     Value::Null
 }
@@ -11644,7 +11644,7 @@ impl OkxCore {
         self.super_set_sandbox_mode(enable.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
         if enable.as_bool() == Some(true) {
-            if let Value::Dict(__rda) = &mut self.headers { std::sync::Arc::make_mut(__rda).insert("x-simulated-trading".to_string(), Value::Str("1".into())); }
+            if let Value::Dict(__d) = &mut self.headers { std::sync::Arc::make_mut(__d).insert("x-simulated-trading".into(), Value::Str("1".into())); }
         }  else if (matches!(&self.headers, Value::Dict(__d) if __d.contains_key("x-simulated-trading"))) {
             { let __t = self.omit(self.headers.clone(), Value::Str("x-simulated-trading".into()), &[]); self.headers = __t; }
         }

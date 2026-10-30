@@ -1083,11 +1083,11 @@ pub trait ExchangeBase:
         if enabled.as_bool() == Some(true) {
             if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test"))) {
                 if matches!(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str(_)) {
-                    { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackup".to_string(), __be_tmp); } };
-                    { let __be_tmp = crate::value::get_value_k(&self.urls, "test"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+                    { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("apiBackup".into(), __be_tmp); } }
+                    { let __be_tmp = crate::value::get_value_k(&self.urls, "test"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
                 }  else {
-                    { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "api")); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackup".to_string(), __be_tmp); } };
-                    { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "test")); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+                    { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "api")); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("apiBackup".into(), __be_tmp); } }
+                    { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "test")); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
                 }
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" does not have a sandbox URL".into()))));
@@ -1096,9 +1096,9 @@ pub trait ExchangeBase:
             self.isSandboxModeEnabled = Value::Bool(true);
         }  else if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackup"))) {
             if matches!(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str(_)) {
-                { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackup"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+                { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackup"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
             }  else {
-                { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "apiBackup")); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+                { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "apiBackup")); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
             }
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackup".into()), &[]);
             self.urls = newUrls;
@@ -1118,10 +1118,10 @@ pub trait ExchangeBase:
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".into()))));
         }
         if enable.as_bool() == Some(true) {
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("apiBackupDemoTrading".to_string(), __be_tmp); } };
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "demo"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("apiBackupDemoTrading".into(), __be_tmp); } }
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "demo"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
         }  else if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackupDemoTrading"))) {
-            { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackupDemoTrading"); if let Value::Dict(__rda) = &mut self.urls { std::sync::Arc::make_mut(__rda).insert("api".to_string(), __be_tmp); } };
+            { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackupDemoTrading"); if let Value::Dict(__d) = &mut self.urls { std::sync::Arc::make_mut(__d).insert("api".into(), __be_tmp); } }
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".into()), &[]);
             self.urls = newUrls;
         }
@@ -2905,8 +2905,8 @@ pub trait ExchangeBase:
 }
 
     fn safe_balance(&self, mut balance: Value) -> Value {
-        let mut balances: Value = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]);
-        let mut codes: Vec<Value> = object_keys(&balances).as_array().cloned().unwrap_or_default();
+        let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]).as_map().cloned().unwrap_or_default();
+        let mut codes: Vec<Value> = Value::Array(balances.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut freeBalance: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2928,10 +2928,10 @@ pub trait ExchangeBase:
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut total: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("total".into()), &[]);
-            let mut free: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("free".into()), &[]);
-            let mut used: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("used".into()), &[]);
-            let mut debt: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("debt".into()), &[]);
+            let mut total: Value = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
+            let mut free: Value = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]);
+            let mut used: Value = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
+            let mut debt: Option<String> = self.safe_string_opt(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]);
             if (total == Value::Null) && (free != Value::Null) && (used != Value::Null) {
                 total = crate::precise::Precise::stringAdd(&free, &used);
             }
@@ -2955,7 +2955,7 @@ pub trait ExchangeBase:
                 debtBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
                 entry.insert("debt".into(), debtBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
-            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[Value::Map(entry)])); }
+            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
         }
         }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
@@ -4384,9 +4384,11 @@ pub trait ExchangeBase:
 }
 
     fn safe_network(&self, mut network: Value) -> Value {
-        let mut withdrawEnabled: Value = self.safe_bool_k(network.clone(), "withdraw", &[]);
-        let mut depositEnabled: Value = self.safe_bool_k(network.clone(), "deposit", &[]);
-        let mut limits: Value = self.safe_dict_k(network.clone(), "limits", &[]);
+        let __network_empty = indexmap::IndexMap::new();
+        let network = network.as_map().unwrap_or(&__network_empty);
+        let mut withdrawEnabled: Value = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
+        let mut depositEnabled: Value = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
+        let mut limits: Value = (match network.get("limits") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut withdraw: Value = self.safe_dict_k(limits.clone(), "withdraw", &[]);
         let mut deposit: Value = self.safe_dict_k(limits, "deposit", &[]);
         let mut isEnabled: Value = withdrawEnabled.clone();
@@ -4395,15 +4397,15 @@ pub trait ExchangeBase:
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), crate::value::get_value_k(&network, "info"));
-        m.insert("id".to_string(), self.safe_string_k(network.clone(), "id", &[]));
-        m.insert("name".to_string(), self.safe_string_k(network.clone(), "name", &[]));
-        m.insert("network".to_string(), self.safe_string_k(network.clone(), "network", &[]));
-        m.insert("active".to_string(), self.safe_bool_k(network.clone(), "active", &[isEnabled]));
+        m.insert("info".to_string(), network.get("info").cloned().unwrap_or(Value::Null));
+        m.insert("id".to_string(), (match network.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("name".to_string(), (match network.get("name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("network".to_string(), (match network.get("network") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("active".to_string(), (match network.get("active") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => isEnabled }));
         m.insert("deposit".to_string(), depositEnabled);
         m.insert("withdraw".to_string(), withdrawEnabled);
-        m.insert("fee".to_string(), self.safe_number_k(network.clone(), "fee", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(network, "precision", &[]));
+        m.insert("fee".to_string(), (match network.get("fee") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
+        m.insert("precision".to_string(), (match network.get("precision") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({

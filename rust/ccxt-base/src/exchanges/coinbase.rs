@@ -4350,7 +4350,7 @@ if _try_result.is_err() {
         }
         let mut market: Value = self.market(symbol.clone());
         let id: String = self.safe_string_k_opt(self.options.clone(), "brokerId", &[Value::Str("ccxt".into())]).unwrap_or_default();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", id, Value::Str("-".into())).into()), self.uuid(&[])).into()));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4391,7 +4391,7 @@ if _try_result.is_err() {
                     if (endTime.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".into()))));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtd".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4403,9 +4403,9 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4416,7 +4416,7 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }
             }  else if isStopLoss || isTakeProfit {
                 let mut tpslPrice: Value = Value::Null;
@@ -4431,7 +4431,7 @@ if _try_result.is_err() {
                     }
                     tpslPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4442,13 +4442,13 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
             }  else {
                 if (timeInForce.as_deref() == Some("GTD")) || (endTime.is_some()) {
                     if (endTime.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".into()))));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_gtd".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4459,9 +4459,9 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }  else if (timeInForce.as_deref() == Some("IOC")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sor_limit_ioc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4470,9 +4470,9 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }  else if (timeInForce.as_deref() == Some("FOK")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_fok".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4481,9 +4481,9 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                    request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4493,7 +4493,7 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
                 }
             }
         }  else {
@@ -4521,7 +4521,7 @@ if _try_result.is_err() {
                 }  else {
                     total = self.cost_to_precision(symbol.clone(), amount.clone());
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("market_market_ioc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4529,9 +4529,9 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_configuration".into(), Value::Map({
+                request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("market_market_ioc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4539,16 +4539,16 @@ if _try_result.is_err() {
     m
 }));
     m
-})); }
+}));
             }
         }
         let mut paramsBase: Value = (if (paramsMarketBuy == Value::Null) { params } else { paramsMarketBuy });
         let mut marginMode: Option<String> = self.safe_string_k(paramsBase.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         if (marginMode.is_some()) {
             if (marginMode.as_deref() == Some("isolated")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_type".into(), Value::Str("ISOLATED".into())); }
+                request.insert("margin_type".into(), Value::Str("ISOLATED".into()));
             }  else if (marginMode.as_deref() == Some("cross")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_type".into(), Value::Str("CROSS".into())); }
+                request.insert("margin_type".into(), Value::Str("CROSS".into()));
             }
         }
         let mut paramsOmitted: Value = self.omit(paramsBase, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("stopDirection".into()), Value::Str("stop_direction".into()),
@@ -4556,11 +4556,11 @@ if _try_result.is_err() {
         let mut preview: Value = self.safe_bool2(paramsOmitted.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
         if preview.as_bool() == Some(true) {
-            request = self.omit(request.clone(), Value::Str("client_order_id".into()), &[]);
-            let __ws_arg_35 = self.extend(request.clone(), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
+            request = self.omit(Value::Map(request.clone()), Value::Str("client_order_id".into()), &[]).as_map().cloned().unwrap_or_default();
+            let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
             response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_35]).await;
         }  else {
-            let __ws_arg_36 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.v3_private_post_brokerage_orders(&[__ws_arg_36]).await;
         }
         //

@@ -3930,7 +3930,7 @@ impl SxbetCore {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let mut sendAsQuery: bool = method.as_str() == Some("GET");
         if (method.as_str() == Some("DELETE")) {
-            sendAsQuery = !(query.as_map().is_some_and(|__m| __m.contains_key("orders")));
+            sendAsQuery = !(matches!(&query, Value::Dict(__d) if __d.contains_key("orders")));
         }
         let mut bodyValue: Value = Value::Null;
         if sendAsQuery {

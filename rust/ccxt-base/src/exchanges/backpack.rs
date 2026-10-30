@@ -1359,11 +1359,11 @@ impl BackpackCore {
         }
         }
         let mut includeRfq: Value = self.in_array(Value::Str("RFQ".into()), marketTypes.clone());
-        let mut marketQuery: Value = self.omit(query.clone(), Value::Str("marketType".into()), &[]);
+        let mut marketQuery: indexmap::IndexMap<String, Value> = self.omit(query.clone(), Value::Str("marketType".into()), &[]).as_map().cloned().unwrap_or_default();
         if (matches!(&query, Value::Dict(__d) if __d.contains_key("marketType"))) {
-            if let Value::Dict(__d) = &mut marketQuery { std::sync::Arc::make_mut(__d).insert("marketType".into(), marketTypes.clone()); }
+            marketQuery.insert("marketType".into(), marketTypes.clone());
         }
-        let mut response: Value = self.public_get_api_v1_markets(&[marketQuery]).await;
+        let mut response: Value = self.public_get_api_v1_markets(&[Value::Map(marketQuery)]).await;
         let mut securities: Value = Value::from(vec![]);
         if includeRfq.as_bool() == Some(true) {
             securities = self.fetch_securities(&[]).await;
@@ -2116,13 +2116,13 @@ impl BackpackCore {
                 m
             }), Value::Str("id".into()), &[]);
         }
-        let mut orderParams: Value = self.omit(query, Value::from(vec![Value::Str("price".into()), Value::Str("baseAmount".into()), Value::Str("quoteId".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut orderParams: indexmap::IndexMap<String, Value> = self.omit(query, Value::from(vec![Value::Str("price".into()), Value::Str("baseAmount".into()), Value::Str("quoteId".into()), Value::Str("clientOrderId".into())]), &[]).as_map().cloned().unwrap_or_default();
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("clientOrderId".into(), clientOrderId); }
+            orderParams.insert("clientOrderId".into(), clientOrderId);
         }
         let __ws_arg_2 = self.safe_symbol(Value::Null, &[market]);
         let __ws_arg_3 = self.parse_number(quantity, &[]);
-        let __ws_arg_4 = self.extend(orderParams, &[Value::Map({
+        let __ws_arg_4 = self.extend(Value::Map(orderParams), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m

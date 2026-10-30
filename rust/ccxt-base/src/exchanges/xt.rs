@@ -4685,20 +4685,20 @@ impl XtCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
+            request.insert("size".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            request.insert("startTime".into(), since.clone());
         }
         let mut response: Value = Value::Null;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
@@ -4718,79 +4718,79 @@ impl XtCore {
             // the track endpoints do not accept a state filter, and a server-side
             // size would truncate the mixed-state page before the local status
             // filter runs, so the limit is only applied locally after filtering
-            request = self.omit(request.clone(), Value::from(vec![Value::Str("state".into()), Value::Str("size".into())]), &[]);
+            request = self.omit(Value::Map(request.clone()), Value::from(vec![Value::Str("state".into()), Value::Str("size".into())]), &[]).as_map().cloned().unwrap_or_default();
         }  else if (status.as_str() == Some("open")) {
             if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("NOT_TRIGGERED".into())); }
+                request.insert("state".into(), Value::Str("NOT_TRIGGERED".into()));
             }  else if (type_var.as_str() == Some("swap")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("UNFINISHED".into())); }; // NEW & PARTIALLY_FILLED
+                request.insert("state".into(), Value::Str("UNFINISHED".into())); // NEW & PARTIALLY_FILLED
             }
         }  else if (status.as_str() == Some("closed")) {
             if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("TRIGGERED".into())); }
+                request.insert("state".into(), Value::Str("TRIGGERED".into()));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("FILLED".into())); }
+                request.insert("state".into(), Value::Str("FILLED".into()));
             }
         }  else if (status.as_str() == Some("canceled")) {
             if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("USER_REVOCATION".into())); }
+                request.insert("state".into(), Value::Str("USER_REVOCATION".into()));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("CANCELED".into())); }
+                request.insert("state".into(), Value::Str("CANCELED".into()));
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), status.clone()); }
+            request.insert("state".into(), status.clone());
         }
         if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (subType != Value::Null) || (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
             if (since != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+                request.insert("startTime".into(), since.clone());
             }
             if (limit != Value::Null) && (trailing.as_bool() != Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
+                request.insert("size".into(), limit.clone());
             }
         }
         if (trigger.as_bool() == Some(true)) {
             let mut paramsOmitted3: Value = self.omit(paramsSubType.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             if (subType.as_str() == Some("inverse")) {
-                let __ws_arg_46 = self.extend(request.clone(), &[paramsOmitted3.clone()]);
+                let __ws_arg_46 = self.extend(Value::Map(request.clone()), &[paramsOmitted3.clone()]);
                 response = self.private_inverse_get_future_trade_v1_entrust_plan_list(&[__ws_arg_46]).await;
             }  else {
-                let __ws_arg_47 = self.extend(request.clone(), &[paramsOmitted3]);
+                let __ws_arg_47 = self.extend(Value::Map(request.clone()), &[paramsOmitted3]);
                 response = self.private_linear_get_future_trade_v1_entrust_plan_list(&[__ws_arg_47]).await;
             }
         }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
             let mut paramsOmitted2: Value = self.omit(paramsSubType.clone(), Value::Str("stopLossTakeProfit".into()), &[]);
             if (subType.as_str() == Some("inverse")) {
-                let __ws_arg_48 = self.extend(request.clone(), &[paramsOmitted2.clone()]);
+                let __ws_arg_48 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
                 response = self.private_inverse_get_future_trade_v1_entrust_profit_list(&[__ws_arg_48]).await;
             }  else {
-                let __ws_arg_49 = self.extend(request.clone(), &[paramsOmitted2]);
+                let __ws_arg_49 = self.extend(Value::Map(request.clone()), &[paramsOmitted2]);
                 response = self.private_linear_get_future_trade_v1_entrust_profit_list(&[__ws_arg_49]).await;
             }
         }  else if (trailing.as_bool() == Some(true)) {
             let mut paramsOmitted: Value = self.omit(paramsSubType.clone(), Value::Str("trailing".into()), &[]);
             if (status.as_str() == Some("open")) {
                 if (subType.as_str() == Some("inverse")) {
-                    let __ws_arg_50 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                    let __ws_arg_50 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                     response = self.private_inverse_get_future_trade_v1_entrust_track_list(&[__ws_arg_50]).await;
                 }  else {
-                    let __ws_arg_51 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                    let __ws_arg_51 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                     response = self.private_linear_get_future_trade_v1_entrust_track_list(&[__ws_arg_51]).await;
                 }
             }  else {
                 if (subType.as_str() == Some("inverse")) {
-                    let __ws_arg_52 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                    let __ws_arg_52 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                     response = self.private_inverse_get_future_trade_v1_entrust_track_list_history(&[__ws_arg_52]).await;
                 }  else {
-                    let __ws_arg_53 = self.extend(request.clone(), &[paramsOmitted]);
+                    let __ws_arg_53 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
                     response = self.private_linear_get_future_trade_v1_entrust_track_list_history(&[__ws_arg_53]).await;
                 }
             }
         }  else if (subType != Value::Null) || (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
             if (subType.as_str() == Some("inverse")) {
-                let __ws_arg_54 = self.extend(request.clone(), &[paramsSubType.clone()]);
+                let __ws_arg_54 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
                 response = self.private_inverse_get_future_trade_v1_order_list(&[__ws_arg_54]).await;
             }  else {
-                let __ws_arg_55 = self.extend(request.clone(), &[paramsSubType.clone()]);
+                let __ws_arg_55 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
                 response = self.private_linear_get_future_trade_v1_order_list(&[__ws_arg_55]).await;
             }
         }  else {
@@ -4801,19 +4801,19 @@ impl XtCore {
             if (marginMode != Value::Null) {
                 marginOrSpotRequest = Value::Str("LEVER".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".into(), marginOrSpotRequest); }
+            request.insert("bizType".into(), marginOrSpotRequest);
             if (status.as_str() != Some("open")) {
                 if (since != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+                    request.insert("startTime".into(), since.clone());
                 }
                 if (limit != Value::Null) {
-                    request = self.omit(request.clone(), Value::Str("size".into()), &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+                    request = self.omit(Value::Map(request.clone()), Value::Str("size".into()), &[]).as_map().cloned().unwrap_or_default();
+                    request.insert("limit".into(), limit.clone());
                 }
-                let __ws_arg_56 = self.extend(request.clone(), &[paramsMarginMode.clone()]);
+                let __ws_arg_56 = self.extend(Value::Map(request.clone()), &[paramsMarginMode.clone()]);
                 response = self.private_spot_get_history_order(&[__ws_arg_56]).await;
             }  else {
-                let __ws_arg_57 = self.extend(request, &[paramsMarginMode]);
+                let __ws_arg_57 = self.extend(Value::Map(request), &[paramsMarginMode]);
                 response = self.private_spot_get_open_order(&[__ws_arg_57]).await;
             }
         }

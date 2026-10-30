@@ -2461,35 +2461,35 @@ impl BithumbCore {
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = Value::Null;
         if (generation.as_f64() == Some(2.0)) {
-            request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsGeneration.clone()]);
-            response = self.private_post_v2_orders(&[request.clone()]).await;
+            request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsGeneration.clone()]).as_map().cloned().unwrap_or_default();
+            response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payment_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("units".into(), self.amount_to_precision(symbol.clone(), amount)); }
+            request.insert("order_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
+            request.insert("payment_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+            request.insert("units".into(), self.amount_to_precision(symbol.clone(), amount));
             if (type_var.as_str() == Some("limit")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
+                request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
                 let mut typeRequest: Value = Value::Null;
                 if (side.as_str() == Some("buy")) {
                     typeRequest = Value::Str("bid".into());
                 }  else {
                     typeRequest = Value::Str("ask".into());
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), typeRequest); }
-                let __ws_arg_17 = self.extend(request.clone(), &[paramsGeneration.clone()]);
+                request.insert("type".into(), typeRequest);
+                let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 response = self.private_post_trade_place(&[__ws_arg_17]).await;
             }  else if (side.as_str() == Some("buy")) {
-                let __ws_arg_18 = self.extend(request.clone(), &[paramsGeneration.clone()]);
+                let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 response = self.private_post_trade_market_buy(&[__ws_arg_18]).await;
             }  else {
-                let __ws_arg_19 = self.extend(request, &[paramsGeneration]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[paramsGeneration]);
                 response = self.private_post_trade_market_sell(&[__ws_arg_19]).await;
             }
         }
@@ -3329,7 +3329,7 @@ impl BithumbCore {
             if (base.is_none()) || (quote.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a market with defined base and quote".into()))));
             }
-            let mut side_in_params: bool = in_op(&paramsRequest, &Value::Str("side".into()));
+            let mut side_in_params: bool = matches!(&paramsRequest, Value::Dict(__d) if __d.contains_key("side"));
             if !side_in_params {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a `side` parameter (sell or buy)".into()))));
             }
