@@ -3606,6 +3606,11 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
+// Balance is a Go map[string]any, so an entry read prints `any` and compares natively against nil
+function goBalanceEntryNilCompares (content: string): string {
+    return content.replace (/(!?)(?<![\w])(?:ccxt\.)?IsEqual\(this\.Balance\[(\w+)\], nil\)/g, ((_m: string, not: string, key: string) => '(this.Balance[' + key + ']' + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+}
+
 export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
@@ -3676,6 +3681,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w4OG01Pass (content);  // hx10 W4 OG01: balance cache owned by the same loop
     content = hx10w6G01BalanceOwner (content);  // hx10 wave6 G01: typed balance field and account views
     content = hx10w9GB10BalanceWrites (content);  // hx10 wave9 GB10: native Balance stores after the owner passes
+    content = goBalanceEntryNilCompares (content);  // this.Balance[k] is printed by the owner passes above
     content = hx10OG02Pass (content);  // hx10 wave-4 OG02: markets book owned by the load path
     content = hx10OG05Pass (content);  // hx10 w7 OG05: base/quote currencies + transactions published
     content = hx10w4OG03Pass (content);  // hx10w4 OG03: ticker caches + positions owned by the dispatch loop
@@ -11016,7 +11022,8 @@ function h2kG08TypedBoolCompareText (fn: string): string {
 // &sync.Map, map literal or untyped nil, or whose Go type is a map/slice: `== nil` is exact.
 // Credential fields stay: prediction writes a *string into ApiKey.
 function h2kG08FieldNilCompares (content: string): string {
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    // Balance is a Go map[string]any (exchange.go): the field compares natively
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 export function h2kG08NativeEquality (content: string): string {
@@ -11051,7 +11058,9 @@ function h2kG08SelfTest (): string[] {
     const rb = f ('\tvar t bool = true\n\tt, ok := p.(bool)\n\tif IsEqual(t, true) && ok {\n\t}\n');
     ok (rb.indexOf ('IsEqual(t, true)') >= 0, 'a rebound bool keeps the helper: ' + rb);
     const fields = f ('\tif IsEqual(this.Orders, nil) || !IsEqual(this.Positions, nil) || IsEqual(this.ApiKey, nil) || IsEqual(this.Balance, nil) {\n\t}\n');
-    ok (fields.indexOf ('if (this.Orders == nil) || (this.Positions != nil) || IsEqual(this.ApiKey, nil) || IsEqual(this.Balance, nil) {') >= 0, 'cache fields only: ' + fields);
+    ok (fields.indexOf ('if (this.Orders == nil) || (this.Positions != nil) || IsEqual(this.ApiKey, nil) || (this.Balance == nil) {') >= 0, 'cache fields only: ' + fields);
+    const entry = goBalanceEntryNilCompares ('\tif ccxt.IsEqual(this.Balance[accountType], nil) || !IsEqual(this.Balance[k], nil) || IsEqual(this.Options[k], nil) {\n');
+    ok (entry === '\tif (this.Balance[accountType] == nil) || (this.Balance[k] != nil) || IsEqual(this.Options[k], nil) {\n', 'Balance entries compare natively: ' + entry);
     ok (h2kG08NativeEquality (typed) === typed, 'second application is a no-op');
     ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
     return problems;
