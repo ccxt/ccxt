@@ -7571,7 +7571,7 @@ class BaseExchange {
         return $this->handle_option_string_and_params($params, $methodName, 'marginMode', $defaultValue);
     }
 
-    public function throw_exactly_matched_exception(mixed $exact, mixed $string, mixed $message) {
+    public function throw_exactly_matched_exception(array $exact, ?string $string, ?string $message) {
         if ($string === null) {
             return;
         }
@@ -7580,14 +7580,14 @@ class BaseExchange {
         }
     }
 
-    public function throw_broadly_matched_exception(mixed $broad, mixed $string, mixed $message) {
+    public function throw_broadly_matched_exception(array $broad, ?string $string, ?string $message) {
         $broadKey = $this->find_broadly_matched_key($broad, $string);
         if ($broadKey !== null) {
             throw new $broad[$broadKey]($message);
         }
     }
 
-    public function find_broadly_matched_key(mixed $broad, ?string $string) {
+    public function find_broadly_matched_key(array $broad, ?string $string) {
         // a helper for matching error strings exactly vs broadly
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -8854,7 +8854,7 @@ class BaseExchange {
         return $this->to_array($this->filter_by_array($objects, $key, $values, $indexed));
     }
 
-    public function create_ohlcv_object(string $symbol, string $timeframe, mixed $data) {
+    public function create_ohlcv_object(string $symbol, string $timeframe, array $data) {
         $res = array();
         $res[$symbol] = array();
         $res[$symbol][$timeframe] = $data;
@@ -9185,7 +9185,7 @@ class BaseExchange {
         return $this->filter_by_since_limit($this->sort_cursor_paginated_result($result), $since, $limit, ($method === 'fetchOHLCV') ? 0 : 'timestamp');
     }
 
-    public function sort_cursor_paginated_result(mixed $result) {
+    public function sort_cursor_paginated_result(array $result) {
         $first = $this->safe_dict($result, 0);
         if ($first !== null) {
             if (is_array($first) && array_key_exists('timestamp' ?? '', $first)) {
@@ -9198,7 +9198,7 @@ class BaseExchange {
         return $result;
     }
 
-    public function remove_repeated_elements_from_array(mixed $input, bool $fallbackToTimestamp = true) {
+    public function remove_repeated_elements_from_array(array $input, bool $fallbackToTimestamp = true) {
         $uniqueDic = array();
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {

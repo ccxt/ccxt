@@ -1370,7 +1370,7 @@ class bitflyer extends Exchange {
         $feedback = $this->id . ' ' . $body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         $errorMessage = $this->safe_string($response, 'error_message');
-        $statusCode = $this->safe_integer($response, 'status');
+        $statusCode = $this->safe_string($response, 'status');
         if ($errorMessage !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
             throw new ExchangeError($feedback);

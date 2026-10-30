@@ -1153,7 +1153,7 @@ class toobit extends \ccxt\async\toobit {
         }
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         // [
         //     {
@@ -1187,17 +1187,9 @@ class toobit extends \ccxt\async\toobit {
         }
         $cache = $this->positions[$accountType];
         // handleMessage's fallback dispatches one item at a time
-        $rawPositions = $message;
-        if ((gettype($message) !== 'array' || array_keys($message) !== array_keys(array_keys($message)))) {
-            $rawPositions = array( $message );
-        }
-        $newPositions = array();
-        for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $position = $this->parse_ws_position($rawPosition);
-            $newPositions[] = $position;
-            $cache->append($position);
-        }
+        $position = $this->parse_ws_position($message);
+        $newPositions = array( $position );
+        $cache->append($position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

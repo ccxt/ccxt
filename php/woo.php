@@ -3060,7 +3060,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency): array {
+    public function get_currency_from_chaincode(string $networkizedCode, ?array $currency = null): array {
         if ($currency !== null) {
             return $currency;
         } else {
@@ -3155,7 +3155,7 @@ class woo extends Exchange {
         //         "confirmedNumber": null
         //     }
         //
-        $networkizedCode = $this->safe_string($transaction, 'token');
+        $networkizedCode = $this->safe_string($transaction, 'token', '');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $this->safe_string($currencyDefined, 'code');
         $movementDirection = $this->safe_string_lower_n($transaction, array( 'token_side', 'tokenSide', 'type' ));

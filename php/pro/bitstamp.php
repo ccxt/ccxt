@@ -976,7 +976,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         if ($event === 'bts:error') {
             $feedback = $this->id . ' ' . $this->json($message);
             $data = $this->safe_dict($message, 'data', array());
-            $code = $this->safe_number($data, 'code');
+            $code = $this->safe_string($data, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
         }
         return true;

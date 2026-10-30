@@ -545,7 +545,7 @@ class hollaex extends \ccxt\async\hollaex {
         try {
             if ($error !== null) {
                 $feedback = $this->id . ' ' . $this->json($message);
-                $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $error, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $this->safe_string($message, 'error'), $feedback);
             }
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {

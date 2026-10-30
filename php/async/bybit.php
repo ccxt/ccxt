@@ -1696,7 +1696,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type(mixed $method, mixed $market, $params = array()): array {
+    public function get_bybit_type(string $method, ?array $market = null, $params = array()): array {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($method, $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params($method, $market, $paramsMarketType);
         if ($type === 'option' || $type === 'spot') {
