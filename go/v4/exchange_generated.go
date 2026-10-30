@@ -522,12 +522,12 @@ func (this *BaseExchange) HandleDeltas(bookside any, deltas any) {
 func (this *BaseExchange) HandleDelta(bookside any, delta any) {
 	panic(NotSupported(this.Id + " handleDelta not supported yet"))
 }
-func (this *BaseExchange) HandleBookDeltas(orderbook any, deltas any) {
+func (this *BaseExchange) HandleBookDeltas(orderbook OrderBookInterface, deltas any) {
 	for i := 0; i < GetArrayLength(deltas); i++ {
 		this.HandleBookDelta(orderbook, this.SafeValue(deltas, i))
 	}
 }
-func (this *BaseExchange) HandleBookDelta(orderbook any, delta any) {
+func (this *BaseExchange) HandleBookDelta(orderbook OrderBookInterface, delta any) {
 	panic(NotSupported(this.Id + " handleBookDelta not supported yet"))
 }
 func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optionalArgs ...any) {
