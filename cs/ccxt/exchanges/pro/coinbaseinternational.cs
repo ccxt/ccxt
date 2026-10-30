@@ -1041,8 +1041,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         string? symbolResolved = this.symbol(symbol);
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
+        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolResolved), timeframeVar));
     }
 
     /**

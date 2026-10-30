@@ -1374,7 +1374,7 @@ public partial class blofin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = this.safeValue(data, i);
+            IDictionary<string, object> rate = this.safeDict(data, i, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", rate },

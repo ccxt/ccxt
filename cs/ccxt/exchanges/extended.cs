@@ -2850,8 +2850,8 @@ public partial class extended : Exchange
         };
         string? msgHash = this.getExtendedOrderMsgHash(settlement);
         object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
-        string? r = this.getExtendedSignatureHex(this.safeString(sig, 0));
-        string? s = this.getExtendedSignatureHex(this.safeString(sig, 1));
+        string? r = this.getExtendedSignatureHex(this.safeString(sig, 0, "0"));
+        string? s = this.getExtendedSignatureHex(this.safeString(sig, 1, "0"));
         settlement["r"] = r;
         settlement["s"] = s;
         return settlement;
@@ -2887,8 +2887,8 @@ public partial class extended : Exchange
         string? msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
         settlement["signature"] = new Dictionary<string, object>() {
-            { "r", this.getExtendedSignatureHex(this.safeString(sig, 0)) },
-            { "s", this.getExtendedSignatureHex(this.safeString(sig, 1)) },
+            { "r", this.getExtendedSignatureHex(this.safeString(sig, 0, "0")) },
+            { "s", this.getExtendedSignatureHex(this.safeString(sig, 1, "0")) },
         };
         return settlement;
     }
@@ -2922,8 +2922,8 @@ public partial class extended : Exchange
         string? msgHash = this.getExtendedTransferMsgHash(settlement);
         object sig = JsonHelper.Deserialize((string)this.extendedStarknetSign(msgHash, this.privateKey));
         settlement["signature"] = new Dictionary<string, object>() {
-            { "r", this.getExtendedSignatureHex(this.safeString(sig, 0)) },
-            { "s", this.getExtendedSignatureHex(this.safeString(sig, 1)) },
+            { "r", this.getExtendedSignatureHex(this.safeString(sig, 0, "0")) },
+            { "s", this.getExtendedSignatureHex(this.safeString(sig, 1, "0")) },
         };
         return settlement;
     }
@@ -3843,16 +3843,9 @@ public partial class extended : Exchange
         return value;
     }
 
-    public virtual string? getExtendedDecimalToBase16(object value)
+    public virtual string? getExtendedDecimalToBase16(string value)
     {
-        object decimalString = "";
-        if ((value is string))
-        {
-            decimalString = value;
-        } else
-        {
-            decimalString = this.numberToString(value);
-        }
+        string decimalString = value;
         List<object> hexChars = new List<object>() {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
         object result = "";
         while (Precise.stringGt(decimalString, "0"))
@@ -3869,22 +3862,13 @@ public partial class extended : Exchange
         return ((string?)((object)(result)));
     }
 
-    public virtual string? getExtendedSignatureHex(object signature)
+    public virtual string? getExtendedSignatureHex(string signature)
     {
-        if ((signature is string))
+        if ((signature.IndexOf("0x", StringComparison.Ordinal) == 0))
         {
-            if ((getIndexOf(signature, "0x") == 0))
-            {
-                return ((string?)((object)(signature)));
-            }
-            return ("0x" + this.getExtendedDecimalToBase16(signature));
+            return ((string?)((object)(signature)));
         }
-        string signatureString = this.numberToString(signature);
-        if ((signatureString.IndexOf("0x", StringComparison.Ordinal) == 0))
-        {
-            return signatureString;
-        }
-        return ("0x" + this.getExtendedDecimalToBase16(signatureString));
+        return ("0x" + this.getExtendedDecimalToBase16(signature));
     }
 
     public virtual object getExtendedDomainHash()
