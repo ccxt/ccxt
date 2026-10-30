@@ -1875,7 +1875,7 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	// never reach that consumer (same class as kraken issue #26773)
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var messageHash string = "balances"
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = this.SafeList(message, "data", []any{})

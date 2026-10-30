@@ -695,7 +695,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 		return message
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-	var subscription any = this.SafeDict(subscriptionsById, id)
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {

@@ -2281,7 +2281,7 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var cache any = this.WsCacheObjGet("Positions")
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r3 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r3.Err != nil {
@@ -3207,7 +3207,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var messageHash any = "balance"

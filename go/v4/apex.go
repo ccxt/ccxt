@@ -1911,7 +1911,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
 	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
-	var nonce any = "0"
+	var nonce string = "0"
 	if len(subAccounts) > 0 {
 		nonce = (*this.SafeString(subAccounts[0], "nonce", "0"))
 	}

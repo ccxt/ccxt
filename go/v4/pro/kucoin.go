@@ -3975,7 +3975,7 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	var fetchPositionSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.WsCacheObjGet("Positions")
-	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
+	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (cache == nil) {
 
 		r3 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r3.Err != nil {

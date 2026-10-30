@@ -3105,7 +3105,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
 	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
-	var grouping any = "na"
+	var grouping string = "na"
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")

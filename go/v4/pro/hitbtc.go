@@ -405,7 +405,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var snapshot any = this.SafeDict2(message, "snapshot", "data")
+	var snapshot map[string]any = this.SafeDict2Map(message, "snapshot", "data")
 	var data any = this.SafeDict(message, "update", map[string]any{})
 	if snapshot != nil {
 		data = snapshot
@@ -1813,7 +1813,7 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	// issue #26773); the free/used/total aggregates are rebuilt from the
 	// merged currencies by safeBalance
 	var balance map[string]any = this.ParseBalanceList(params)
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var reserved []any = []any{"free", "used", "total"}

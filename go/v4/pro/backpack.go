@@ -2146,9 +2146,9 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 			if code == nil {
 				continue
 			}
-			var account any = this.SafeDict(balances, code)
+			var account map[string]any = this.SafeDictMap(balances, code)
 			if account != nil {
-				result[*code] = account
+				ccxt.AddElementToObject(result, code, account)
 			}
 		}
 

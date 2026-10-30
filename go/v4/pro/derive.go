@@ -963,7 +963,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				return this.SafeDict(orders, orderId)
 			}()
 			if order != nil {
-				var fee any = this.SafeDict(order, "fee")
+				var fee map[string]any = this.SafeDictMap(order, "fee")
 				if fee != nil {
 					ccxt.AddElementToObject(parsed, "fee", fee)
 				}
@@ -1218,7 +1218,7 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchBalance", paramsSnapshot)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
-	if ccxt.IsEqual(this.WsCacheSnapshot("Balance"), nil) {
+	if this.WsCacheSnapshot("Balance") == nil {
 		var emptyBalances map[string]any = map[string]any{}
 		this.WsCacheReplace("Balance", emptyBalances)
 	}
@@ -1399,7 +1399,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey any, entry map[string]an
 		}
 		return "short"
 	}()
-	var opposite any = this.SafeDict(symbolPositions, oppositeSide)
+	var opposite map[string]any = this.SafeDictMap(symbolPositions, oppositeSide)
 	if opposite != nil {
 		var oppositeContracts *string = this.SafeString(opposite, "contracts")
 		if (oppositeContracts != nil) && (oppositeContracts == nil || *oppositeContracts != "0") {
@@ -1449,7 +1449,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	var topicParts []string = strings.Split(*topic, ".")
 	var subaccountIdKey *string = this.SafeString(topicParts, 0)
 	var data []any = ccxt.SafeListTyped(params, "data")
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var subBalance map[string]any = this.SafeDictMap(this.Balance, subaccountIdKey, map[string]any{})

@@ -2399,9 +2399,9 @@ func (this *Weex) HandleBalance(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var url any = client.(ccxt.ClientInterface).GetUrl()
+	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var accountType string = "spot"
-	if ccxt.GetIndexOf(url, "contract") >= 0 {
+	if strings.Index(url, "contract") >= 0 {
 		accountType = "swap"
 	}
 	var messageHash string = accountType + ":balance"
@@ -2687,9 +2687,9 @@ func (this *Weex) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 	return ccxt.PositionToMap(this.ParsePosition(position, market))
 }
 func (this *Weex) GetMarketFromClientAndMessage(client any, message map[string]any) map[string]any {
-	var url any = client.(ccxt.ClientInterface).GetUrl()
+	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var marketType string = "spot"
-	if ccxt.GetIndexOf(url, "contract") >= 0 {
+	if strings.Index(url, "contract") >= 0 {
 		marketType = "swap"
 	}
 	var marketId *string = this.SafeString(message, "s")

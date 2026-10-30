@@ -139,9 +139,12 @@ func (this *Aster) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickerRow ccxt.Ticker
+	if symbolValue != nil {
+		tickerRow = r1.Value[*symbolValue]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickerRow}
 	return nil
 }
 
@@ -366,9 +369,12 @@ func (this *Aster) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickerRow ccxt.Ticker
+	if symbolValue != nil {
+		tickerRow = r1.Value[*symbolValue]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickerRow}
 	return nil
 }
 
@@ -2177,7 +2183,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	//
 	var accountType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
+	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
 	this.WsBalanceEntryForWrite(accountType)["info"] = message
@@ -2260,7 +2266,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.WsCacheObjGet("Positions")
-	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (ccxt.IsEqual(cache, nil)) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r2.Err != nil {
@@ -2647,11 +2653,11 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
 				var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-				var order any = this.SafeDict(orders, orderId)
+				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
 					// accumulate order fees
 					var fees any = this.SafeList(order, "fees", []any{})
-					var fee any = this.SafeDict(order, "fee")
+					var fee map[string]any = this.SafeDictMap(order, "fee")
 					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
@@ -2659,7 +2665,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
 								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
 								var feeCostString any = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
-								ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(order, "fees"), i), "cost", func() any {
+								ccxt.AddElementToObject(ccxt.GetValue(order["fees"], i), "cost", func() any {
 									if feeCostString == nil {
 										return nil
 									}
@@ -2685,13 +2691,21 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 								return ccxt.ParseFloat(feeCostString)
 							}())
 						} else if this.SafeString(fee, "currency") == nil {
-							ccxt.AddElementToObject(order, "fee", tradeFee)
+							if order != nil {
+								order["fee"] = tradeFee
+							}
 						} else {
-							ccxt.AddElementToObject(order, "fees", []any{fee, tradeFee})
-							ccxt.AddElementToObject(order, "fee", nil)
+							if order != nil {
+								order["fees"] = []any{fee, tradeFee}
+							}
+							if order != nil {
+								order["fee"] = nil
+							}
 						}
 					} else {
-						ccxt.AddElementToObject(order, "fee", tradeFee)
+						if order != nil {
+							order["fee"] = tradeFee
+						}
 					}
 					// save this trade in the order
 					var orderTrades any = this.SafeList(order, "trades", []any{})

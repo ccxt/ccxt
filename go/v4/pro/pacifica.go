@@ -805,9 +805,7 @@ func (this *Pacifica) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerMapToMap)
-
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbol))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: r.Value[symbol]}
 	return nil
 }
 

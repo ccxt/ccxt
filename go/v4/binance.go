@@ -17428,19 +17428,19 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Binance) GetExceptionsByUrl(url string, exactOrBroad string) any {
 	// the only callers pass handleErrors' url, which is a non-nullable string everywhere
 	var marketType any = nil
-	var hostname any = "binance.com"
+	var hostname string = "binance.com"
 	if !IsEqual(this.Hostname, nil) {
 		hostname = this.Hostname
 	}
-	if StartsWith(url, Add(Add("https://api.", hostname), "/")) || strings.HasPrefix(url, "https://demo-api") || strings.HasPrefix(url, "https://testnet.binance.vision") {
+	if StartsWith(url, "https://api."+hostname+"/") || strings.HasPrefix(url, "https://demo-api") || strings.HasPrefix(url, "https://testnet.binance.vision") {
 		marketType = "spot"
-	} else if StartsWith(url, Add(Add("https://dapi.", hostname), "/")) || strings.HasPrefix(url, "https://demo-dapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/dapi") {
+	} else if StartsWith(url, "https://dapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-dapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/dapi") {
 		marketType = "inverse"
-	} else if StartsWith(url, Add(Add("https://fapi.", hostname), "/")) || strings.HasPrefix(url, "https://demo-fapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/fapi") {
+	} else if StartsWith(url, "https://fapi."+hostname+"/") || strings.HasPrefix(url, "https://demo-fapi") || strings.HasPrefix(url, "https://testnet.binancefuture.com/fapi") {
 		marketType = "linear"
-	} else if StartsWith(url, Add(Add("https://eapi.", hostname), "/")) {
+	} else if StartsWith(url, "https://eapi."+hostname+"/") {
 		marketType = "option"
-	} else if StartsWith(url, Add(Add("https://papi.", hostname), "/")) {
+	} else if StartsWith(url, "https://papi."+hostname+"/") {
 		marketType = "portfolioMargin"
 	}
 	if marketType != nil {

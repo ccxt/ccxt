@@ -1835,7 +1835,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 	var flexFutures map[string]any = ccxt.SafeMapTyped(message, "flex_futures")
 	var messageHash string = "balances"
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var updatedBalance any = nil

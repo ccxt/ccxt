@@ -931,7 +931,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	}
 	this.SetPositionsCache(client, symbolsNormalized2)
 	var cache any = this.WsCacheObjGet("Positions")
-	if ccxt.IsEqual(cache, nil) {
+	if cache == nil {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r2.Err != nil {

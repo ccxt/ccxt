@@ -1054,7 +1054,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	//
 	var messageHash string = "myAsset"
 	var assets []any = ccxt.SafeListTyped(message, "assets")
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	for i := 0; i < len(assets); i++ {

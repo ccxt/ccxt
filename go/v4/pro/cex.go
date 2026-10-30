@@ -132,7 +132,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = data

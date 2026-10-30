@@ -5041,7 +5041,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var version any = this.Version
+	var version string = this.Version
 	var pathValue string = path
 	if strings.Index(path, "v2/") == 0 {
 		pathValue = strings.Replace(path, "v2/", "", 1)

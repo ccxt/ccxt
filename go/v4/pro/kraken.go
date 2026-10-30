@@ -1361,9 +1361,9 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 	return nil
 }
 func (this *Kraken) Ping(client any) any {
-	var url any = client.(ccxt.ClientInterface).GetUrl()
+	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var request map[string]any = map[string]any{}
-	if ccxt.GetIndexOf(url, "v2") >= 0 {
+	if strings.Index(url, "v2") >= 0 {
 		request["method"] = "ping"
 	} else {
 		request["event"] = "ping"
@@ -2050,7 +2050,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
 				var firstId *string = this.SafeString(first, "id")
 				if (firstId != nil) && (ccxt.InOp(symbolsByOrderId, firstId)) {
-					ccxt.Remove(symbolsByOrderId, firstId)
+					delete(symbolsByOrderId, *firstId)
 				}
 			}
 			stored.(ccxt.Appender).Append(newOrder)
@@ -2276,7 +2276,7 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	// awaiting, so a replaced object would make updates landing in that
 	// window invisible to the consumer forever (issue #26773)
 	var typeVar string = "spot"
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	this.Balance[typeVar] = this.SafeDict(this.Balance, typeVar, map[string]any{})

@@ -3871,7 +3871,7 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var credentials any = this.SafeDict(this.Options, "proxyCredentials")
+	var credentials map[string]any = this.SafeDictMap(this.Options, "proxyCredentials")
 	if credentials != nil {
 		var expires *int64 = this.SafeInteger(credentials, "expires")
 		var margin int64 = *this.SafeInteger(this.Options, "proxyRefreshMargin", 3600000)

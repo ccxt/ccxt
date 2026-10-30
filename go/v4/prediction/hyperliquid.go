@@ -249,7 +249,7 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
 	var targetPrice *string = this.SafeString(desc, "targetPrice", "")
 	var expiry *string = this.SafeString(desc, "expiry", "")
 	// Parse expiry: "20260503-0600" → "20260503"
-	var expiryDate any = ""
+	var expiryDate string = ""
 	if expiry == nil || *expiry != "" {
 		var expiryParts []string = strings.Split(*expiry, "-")
 		expiryDate = expiryParts[0]
@@ -258,14 +258,14 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
 	if ccxt.IsEqual(side, 0) {
 		label = "YES"
 	}
-	var base any = strings.ToUpper(*underlying)
+	var base string = strings.ToUpper(*underlying)
 	if targetPrice == nil || *targetPrice != "" {
-		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
+		base = base + "_ABOVE_" + *targetPrice
 	}
 	if expiryDate != "" {
-		base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
+		base = base + "_" + expiryDate
 	}
-	return ccxt.Add(ccxt.Add(base, ":"), label)
+	return base + ":" + label
 }
 
 /**
@@ -288,7 +288,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 	if underlying == nil || *underlying != "" {
 		var targetPrice *string = this.SafeString(desc, "targetPrice", "")
 		var expiry *string = this.SafeString(desc, "expiry", "")
-		var expiryDate any = ""
+		var expiryDate string = ""
 		if expiry == nil || *expiry != "" {
 			var expiryParts []string = strings.Split(*expiry, "-")
 			expiryDate = expiryParts[0]
@@ -297,11 +297,11 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 		if targetPrice == nil || *targetPrice != "" {
 			targetPart = "_ABOVE_" + *targetPrice
 		}
-		var expiryPart any = ""
+		var expiryPart string = ""
 		if expiryDate != "" {
-			expiryPart = ccxt.Add("_", expiryDate)
+			expiryPart = "_" + expiryDate
 		}
-		return ccxt.Add(strings.ToUpper(*underlying)+targetPart, expiryPart)
+		return strings.ToUpper(*underlying) + targetPart + expiryPart
 	}
 	var questionDescription *string = this.SafeString(question, "description")
 	if (questionDescription != nil) && (questionDescription == nil || *questionDescription != "") {
@@ -310,14 +310,14 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 		if questionClass != nil && *questionClass == "pricebucket" {
 			var questionUnderlying *string = this.SafeString(questionDesc, "underlying")
 			var questionExpiry *string = this.SafeString(questionDesc, "expiry", "")
-			var questionExpiryDate any = ""
+			var questionExpiryDate string = ""
 			if questionExpiry == nil || *questionExpiry != "" {
 				var questionExpiryParts []string = strings.Split(*questionExpiry, "-")
 				questionExpiryDate = questionExpiryParts[0]
 			}
-			var questionExpiryPart any = ""
+			var questionExpiryPart string = ""
 			if questionExpiryDate != "" {
-				questionExpiryPart = ccxt.Add("_", questionExpiryDate)
+				questionExpiryPart = "_" + questionExpiryDate
 			}
 			var thresholdsRaw *string = this.SafeString(questionDesc, "priceThresholds", "")
 			var indexStr *string = this.SafeString(desc, "index")
@@ -354,7 +354,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 			}
 			var isFallbackLike bool = (rawDescription != nil && *rawDescription == "other") || (strings.Index(nameLower, "fallback") >= 0) || (strings.Index(nameLower, "other") >= 0)
 			if ((questionUnderlying != nil) && (questionUnderlying == nil || *questionUnderlying != "")) && isFallbackLike {
-				return ccxt.Add(strings.ToUpper(*questionUnderlying)+"_OTHER", questionExpiryPart)
+				return strings.ToUpper(*questionUnderlying) + "_OTHER" + questionExpiryPart
 			}
 		}
 	}
@@ -527,7 +527,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 		var expPartsLength int = len(expParts)
 		if (expPartsLength >= 1) && (ccxt.GetLength(expParts[0]) == 8) {
 			var ymd *string = ccxt.SafeStringPtr(expParts[0])
-			var hm any = "0000"
+			var hm string = "0000"
 			if expPartsLength >= 2 {
 				hm = expParts[1]
 			}
@@ -2627,7 +2627,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		var partsLength int = len(parts)
 		if (partsLength >= 1) && (ccxt.GetLength(parts[0]) == 8) {
 			var ymd *string = ccxt.SafeStringPtr(parts[0])
-			var hm any = "0000"
+			var hm string = "0000"
 			if partsLength >= 2 {
 				hm = parts[1]
 			}

@@ -1079,7 +1079,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	if rpcUrl == nil {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" approve() has no RPC endpoint configured for chainId ", this.NumberToString(chainId)), " - pass params.rpcUrl")))
 	}
-	var owner any = this.WalletAddress
+	var owner string = this.WalletAddress
 	var nonceCallData *string = ccxt.SafeStringPtr(ccxt.Add("0x7ecebe00", this.PadHexAddress(owner))) // nonces(address)
 
 	r4 := <-this.EthRpcAsync(rpcUrl, "eth_call", []any{map[string]any{

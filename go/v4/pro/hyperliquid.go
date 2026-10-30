@@ -1925,7 +1925,7 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	//     }
 	// }
 	//
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var topic *string = this.SafeString(message, "channel")

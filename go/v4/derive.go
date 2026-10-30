@@ -4661,7 +4661,7 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 			}
 		}
 	}
-	var usdcAccount any = this.SafeDict(result, "USDC")
+	var usdcAccount map[string]any = this.SafeDictMap(result, "USDC")
 	if usdcAccount != nil {
 		var totalUsdc *string = this.SafeString(usdcAccount, "total")
 		var used any = usedUsd

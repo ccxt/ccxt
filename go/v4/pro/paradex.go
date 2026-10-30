@@ -970,7 +970,7 @@ func (this *Paradex) HandleBalance(client any, message map[string]any) {
 	// issue #26773); the free/used/total aggregates are rebuilt from the
 	// merged currencies by safeBalance
 	var balance any = this.ParseWsBalance(data)
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var reserved []any = []any{"free", "used", "total"}

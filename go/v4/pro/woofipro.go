@@ -95,11 +95,11 @@ func (this *Woofipro) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the default id
-	var id any = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY"
+	var id string = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY"
 	if this.AccountId != "" {
 		id = this.AccountId
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(*this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "public", "")+"/", id))
+	var url *string = ccxt.SafeStringPtr(*this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "public", "") + "/" + id)
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1659,7 +1659,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 		var account any = this.Account()
 		if code != nil {
 			if _, ok := this.Balance[*code]; ok {
-				var cachedAccount any = this.SafeDict(this.Balance, code)
+				var cachedAccount map[string]any = this.SafeDictMap(this.Balance, code)
 				if cachedAccount != nil {
 					account = cachedAccount
 				}

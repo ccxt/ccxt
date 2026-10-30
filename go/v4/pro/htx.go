@@ -2223,7 +2223,7 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var url any = client.(ccxt.ClientInterface).GetUrl()
+	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var topic *string = this.SafeString(message, "topic", "")
 	var defaultMarginMode string = "isolated"
 	if topic != nil && *topic == "positions_cross" {

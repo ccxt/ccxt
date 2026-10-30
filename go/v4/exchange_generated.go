@@ -1921,7 +1921,7 @@ func (this *BaseExchange) HasAutocorrect() {
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
-	if IsEqual(this.RateLimit, nil) || (!IsEqual(this.Id, nil) && (this.RateLimit == -1)) {
+	if this.RateLimit == -1 {
 		panic(ExchangeError(this.Id + ".rateLimit property is not configured"))
 	}
 	var refillRate any = this.MAX_VALUE
@@ -9215,15 +9215,15 @@ func (this *BaseExchange) CleanCache(subscription any) {
 				}
 			} else if topic != nil && *topic == "orderbook" {
 				if InOp(this.Orderbooks, symbol) {
-					Remove(this.Orderbooks, symbol)
+					delete(this.Orderbooks, *symbol)
 				}
 			} else if topic != nil && *topic == "ticker" {
 				if this.Tickers.Has(symbol) {
-					this.Tickers.Delete(symbol)
+					this.Tickers.Delete(*symbol)
 				}
 			} else if topic != nil && *topic == "bidsasks" {
 				if this.Bidsasks.Has(symbol) {
-					this.Bidsasks.Delete(symbol)
+					this.Bidsasks.Delete(*symbol)
 				}
 			}
 		}

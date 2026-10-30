@@ -4061,9 +4061,9 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			// the L2 HMAC signs only the request path (no query string), matching
 			// @polymarket/clob-client — query params are sent separately, not signed
 			var requestPath string = "/" + this.ImplodeParams(path, params)
-			var auth any = timestamp + method + requestPath
+			var auth string = timestamp + method + requestPath
 			if bodyValue != nil {
-				auth = ccxt.Add(auth, bodyValue)
+				auth = auth + *bodyValue
 			}
 			// the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
 			// unchained replaceAll: the php transpiler only converts the outermost .replaceAll

@@ -5026,7 +5026,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 		var auth any = ""
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		url += pathWithParams
-		var apiKey any = this.ApiKey
+		var apiKey string = this.ApiKey
 		if strings.Index(this.ApiKey, "ed25519:") < 0 {
 			apiKey = "ed25519:" + this.ApiKey
 		}

@@ -339,7 +339,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
 	// awaiting, so a replaced object would make updates landing in that
 	// window invisible to the consumer forever (issue #26773)
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})

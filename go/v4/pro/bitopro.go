@@ -635,7 +635,7 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	// nobody is awaiting, so a replaced object would make updates landing
 	// in that window invisible to the consumer forever (same class as
 	// issue #26773)
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = data

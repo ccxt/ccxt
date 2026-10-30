@@ -7100,8 +7100,8 @@ func (this *Xt) fetchPositionBody(ch chan AsyncResult[Position], symbol any, opt
 		panic(r1.Err)
 	}
 	var responsebreakResponseVariable []any = ListTyped(r1.Value)
-	response := GetValue(responsebreakResponseVariable, 0)
-	breakResponse := GetValue(responsebreakResponseVariable, 1)
+	response := responsebreakResponseVariable[0]
+	breakResponse := responsebreakResponseVariable[1]
 	//
 	// position/list
 	//
@@ -7204,8 +7204,8 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs
 		panic(r1.Err)
 	}
 	var responsebreakResponseVariable []any = ListTyped(r1.Value)
-	response := GetValue(responsebreakResponseVariable, 0)
-	breakResponse := GetValue(responsebreakResponseVariable, 1)
+	response := responsebreakResponseVariable[0]
+	breakResponse := responsebreakResponseVariable[1]
 	//
 	// position/list
 	//

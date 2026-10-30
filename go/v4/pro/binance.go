@@ -4995,7 +4995,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
+	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
 	this.WsBalanceEntryForWrite(accountType)["info"] = message
@@ -7348,12 +7348,12 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
-				var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-				var order any = this.SafeDict(orders, orderId)
+				var orders map[string]any = this.SafeDictMap(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
 					// accumulate order fees
 					var fees any = this.SafeList(order, "fees")
-					var fee any = this.SafeDict(order, "fee")
+					var fee map[string]any = this.SafeDictMap(order, "fee")
 					if (fees != nil) && !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
@@ -7364,7 +7364,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 								if feeCostString == nil {
 									feeCostString = "0"
 								}
-								ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(order, "fees"), i), "cost", ccxt.ParseFloat(feeCostString))
+								ccxt.AddElementToObject(ccxt.GetValue(order["fees"], i), "cost", ccxt.ParseFloat(feeCostString))
 								insertNewFeeCurrency = false
 								break
 							}
@@ -7382,14 +7382,22 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 								feeCostString = "0"
 							}
 							ccxt.AddElementToObject(ccxt.GetValue(order, "fee"), "cost", ccxt.ParseFloat(feeCostString))
-						} else if ccxt.IsEqual(ccxt.GetValue(fee, "currency"), nil) {
-							ccxt.AddElementToObject(order, "fee", tradeFee)
+						} else if ccxt.IsEqual(fee["currency"], nil) {
+							if order != nil {
+								order["fee"] = tradeFee
+							}
 						} else {
-							ccxt.AddElementToObject(order, "fees", []any{fee, tradeFee})
-							ccxt.AddElementToObject(order, "fee", nil)
+							if order != nil {
+								order["fees"] = []any{fee, tradeFee}
+							}
+							if order != nil {
+								order["fee"] = nil
+							}
 						}
 					} else {
-						ccxt.AddElementToObject(order, "fee", tradeFee)
+						if order != nil {
+							order["fee"] = tradeFee
+						}
 					}
 					// save this trade in the order
 					var orderTrades any = this.SafeList(order, "trades", []any{})
@@ -7478,7 +7486,7 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	//
 	// --- balance ---
 	var accountType string = "option"
-	if ccxt.IsEqual(this.Balance[accountType], nil) {
+	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
 	this.WsBalanceEntryForWrite(accountType)["info"] = message
@@ -7630,7 +7638,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 		return message
 	}()
 	// handle WebSocketAPI
-	var eventMsg any = this.SafeDict(messageValue3, "event")
+	var eventMsg map[string]any = this.SafeDictMap(messageValue3, "event")
 	var messageValue2 any = func() any {
 		if eventMsg != nil {
 			return eventMsg
@@ -7638,7 +7646,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 		return messageValue3
 	}()
 	// handle combined stream wrapper payloads
-	var eventData any = this.SafeDict(messageValue2, "data")
+	var eventData map[string]any = this.SafeDictMap(messageValue2, "data")
 	var messageValue any = func() any {
 		if eventData != nil {
 			return eventData

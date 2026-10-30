@@ -1394,7 +1394,7 @@ func (this *Bydfi) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	// the object keeps its identity and deltas that arrived while the
 	// snapshot was in flight are not overwritten; the free/used/total
 	// aggregates are rebuilt from the merged currencies by safeBalance
-	if ccxt.IsEqual(this.WsCacheSnapshot("Balance"), nil) {
+	if this.WsCacheSnapshot("Balance") == nil {
 		this.WsCacheReplace("Balance", map[string]any{})
 	}
 	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total"}
@@ -1466,7 +1466,7 @@ func (this *Bydfi) HandleBalance(client any, message map[string]any) {
 	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
 	// awaiting, so a replaced object would make updates landing in that
 	// window invisible to the consumer forever (issue #26773)
-	if ccxt.IsEqual(this.Balance, nil) {
+	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")

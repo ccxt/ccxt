@@ -1684,7 +1684,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		for j := 0; j < len(feeKeys); j++ {
 			var feeKey string = feeKeys[j]
-			var fee any = this.SafeDict(feesData, feeKey)
+			var fee map[string]any = this.SafeDictMap(feesData, feeKey)
 			if (fee != nil) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
 				feeData = fee
 				break
@@ -1740,7 +1740,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 			"deposit":  depositLimitsResult,
 			"withdraw": withdrawLimitsResult,
 		}
-		var currencyNetworks any = this.SafeDict(currency, "networks")
+		var currencyNetworks map[string]any = this.SafeDictMap(currency, "networks")
 		if currencyNetworks != nil {
 			limits["networks"] = currencyNetworks
 		}

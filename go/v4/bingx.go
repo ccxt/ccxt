@@ -5085,7 +5085,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var info any = order
-	var newOrder any = this.SafeDict2(order, "newOrderResponse", "orderOpenResponse")
+	var newOrder map[string]any = this.SafeDict2Map(order, "newOrderResponse", "orderOpenResponse")
 	var orderData any = func() any {
 		if newOrder != nil {
 			return newOrder

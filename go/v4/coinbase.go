@@ -4471,10 +4471,10 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 		return market
 	}()
 	var orderConfiguration map[string]any = SafeMapTyped(order, "order_configuration")
-	var limitGTC any = this.SafeDict(orderConfiguration, "limit_limit_gtc")
-	var limitGTD any = this.SafeDict(orderConfiguration, "limit_limit_gtd")
+	var limitGTC map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtc")
+	var limitGTD map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtd")
 	var limitIOC any = this.SafeDict(orderConfiguration, "sor_limit_ioc")
-	var stopLimitGTC any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtc")
+	var stopLimitGTC map[string]any = this.SafeDictMap(orderConfiguration, "stop_limit_stop_limit_gtc")
 	var stopLimitGTD any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtd")
 	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
 	var isLimit bool = ((limitGTC != nil) || (limitGTD != nil) || (limitIOC != nil))
