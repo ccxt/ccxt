@@ -1,0 +1,65 @@
+{
+    "exchange": "xt",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOHLCV": [
+            {
+                "description": "spot ohlcv 1m with a text pong frame",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream.xt.com/public",
+                "messages": [
+                    {
+                        "id": "1792506273406kline@btc_usdt,1m",
+                        "code": 0,
+                        "msg": "SUCCESS",
+                        "method": "subscribe"
+                    },
+                    "pong",
+                    {
+                        "topic": "kline",
+                        "event": "kline@btc_usdt,1m",
+                        "data": {
+                            "s": "btc_usdt",
+                            "t": 1792506240000,
+                            "i": "1m",
+                            "o": "82933.97",
+                            "c": "82937.69",
+                            "h": "82983.99",
+                            "l": "82908.60",
+                            "q": "4.44811",
+                            "v": "368995.4944081"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": "1792506273406kline@btc_usdt,1m",
+                        "params": [
+                            "kline@btc_usdt,1m"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1792506240000,
+                            82933.97,
+                            82983.99,
+                            82908.6,
+                            82937.69,
+                            4.44811
+                        ]
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            }
+        ]
+    }
+}
