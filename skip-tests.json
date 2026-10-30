@@ -2227,6 +2227,16 @@
             }
         }
     },
+    "paribu": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "exchange publishes no trading fee schedule, the commission rate is only observable per fill",
+                "maker": "exchange publishes no trading fee schedule, the commission rate is only observable per fill"
+            }
+        },
+        "preferredSpotSymbol": "BTC/TRY",
+        "until": "2027-03-17"
+    },
     "paradex": {
         "preferredSpotSymbol": "ETH/USDC",
         "skipMethods": {
