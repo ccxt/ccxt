@@ -145,6 +145,9 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
             || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0].replace (/^\w+\.\(\*ccxt\.ArrayCache\)\.Hashmap$/, 'hashmap')))) {
             continue;
         }
+        if (/\bif true \{/.test (maskedFunc)) {
+            continue; // the box is what folds `!Array.isArray(x)` to `if true`; a map prints IsArray
+        }
         if (m43Declarations (maskedFunc, lines[start], name) !== 1) {
             continue;
         }
@@ -229,6 +232,7 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\treturn d\n').includes ('SafeDictMap'), 'no default: a bare return keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\tAddElementToObject(d, \"a\", 1)\n').includes ('SafeDictMap'), 'no default: a write keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(this.Markets(), \"data\")\n\t_ = d == nil\n').includes ('SafeDictMap'), 'no default: other this.* receivers keep the box');
+    ok (!run (decl + '\tif true {\n\t}\n').includes (typed), 'a folded `if true` keeps the box');
     const once = run (decl);
     ok (hx11M43SafeDictLocals (once, 'go/v4/x.go') === once, 'idempotent');
     return problems;
