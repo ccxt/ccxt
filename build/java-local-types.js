@@ -18208,6 +18208,11 @@ function j14Value (printer, node, declaration, type, depth = 0) {
         && value.expression.expression.text === 'Precise') {
         return type === 'String' && PRECISE_STRING_STATICS.has (String (value.expression.name.text)) ? { cast: '' } : undefined;
     }
+    // global parseInt(x) prints Helpers.parseInt(x), declared to return Long
+    if (type === 'Long' && ts.isIdentifier (value.expression) && value.expression.text === 'parseInt' && value.arguments.length === 1
+        && printer.printNode (value, 0).startsWith ('Helpers.parseInt(')) {
+        return { cast: '' };
+    }
     if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, value)) {
         return undefined;
     }
