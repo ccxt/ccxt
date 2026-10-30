@@ -455,7 +455,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any, subscription map[string]any) {
@@ -483,7 +483,7 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		// the book was removed (unwatch/cleanCache) before the snapshot arrived
 		return
@@ -493,9 +493,9 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
 	snapshot["timestamp"] = timestamp
 	snapshot["datetime"] = this.Iso8601(timestamp)
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	// unroll the accumulated deltas
-	var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
+	var messages any = orderbook.GetCache()
 	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 		this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i), orderbook)
 	}
@@ -565,7 +565,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			}
 			var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-			ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+			ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 			chSent = true
 			return nil
 
@@ -654,13 +654,13 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		// no active subscription holds a book for this symbol, drop the delta
 		return
 	}
 	if this.SafeInteger(orderbook, "nonce") == nil {
-		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+		ccxt.AppendToArray(orderbook.GetCache(), message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -675,9 +675,9 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }

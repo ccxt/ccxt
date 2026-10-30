@@ -321,7 +321,7 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -418,7 +418,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -2677,12 +2677,12 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if !(this.Orderbooks.Has(symbol)) {
 		return
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	var messageHash string = "orderbook:" + *symbol
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")

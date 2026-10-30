@@ -804,7 +804,7 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -897,9 +897,9 @@ func (this *Bydfi) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
-	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
+	orderbook.Reset(parsed)
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

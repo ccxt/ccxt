@@ -103,7 +103,7 @@ func (this *Extended) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Extended) HandleOrderBook(client any, message map[string]any) {
@@ -137,11 +137,11 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		return
 	}

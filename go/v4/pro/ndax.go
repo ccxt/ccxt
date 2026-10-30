@@ -521,7 +521,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
@@ -555,7 +555,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.SafeValue(this.Orderbooks, symbol))
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		return
 	}
@@ -647,8 +647,8 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	orderbook.Reset(snapshot)
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

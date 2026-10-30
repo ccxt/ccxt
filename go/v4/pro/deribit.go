@@ -824,7 +824,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
@@ -896,7 +896,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var storedOrderBook ccxt.OrderBookInterface
 	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		storedOrderBook = this.Orderbooks[*symbol]
 	}
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})

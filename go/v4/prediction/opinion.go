@@ -2682,7 +2682,7 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*sym].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*sym]
 	var sideStr *string = this.SafeString(message, "side")
 	var bookSide any = func() any {
 		if sideStr != nil && *sideStr == "bids" {

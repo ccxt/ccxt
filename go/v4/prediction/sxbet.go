@@ -3421,7 +3421,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 		var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
 		var sides map[string]any = this.ParseSxbetV3BookSides(snapshot, isOutcomeOne)
-		var orderbook any = this.SafeValue(this.Orderbooks, sym)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
 		if ccxt.IsEqual(orderbook, nil) {
 			orderbook = this.OrderBook(map[string]any{})
 			if sym != nil {
@@ -3435,7 +3435,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 			"datetime":  this.Iso8601(timestamp),
 			"nonce":     nil,
 		}
-		orderbook.(ccxt.OrderBookInterface).Reset(bookSnapshot)
+		orderbook.Reset(bookSnapshot)
 		refreshed = append(refreshed, sym)
 	}
 	return refreshed
@@ -3455,7 +3455,7 @@ func (this *Sxbet) HandleOrderBook(client any, rows []any) {
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
 			var sym *string = ccxt.SafeStringPtr(ccxt.DerefScalar(refreshed[j]))
-			client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Orderbooks, sym), "orderbook::"+*sym)
+			client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(sym), "orderbook::"+*sym)
 		}
 	}
 }

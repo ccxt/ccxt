@@ -151,7 +151,7 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Derive) HandleOrderBook(client any, message map[string]any) {
@@ -187,10 +187,10 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 }
 
@@ -567,7 +567,7 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.InOp(this.Orderbooks, symbol) {
+	if this.Orderbooks.Has(symbol) {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}

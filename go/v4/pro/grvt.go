@@ -783,7 +783,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
@@ -824,14 +824,14 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")
 	var isSnapshotChannel bool = (stream != nil && *stream == "v1.book.s")
 	var isSnapshotMessage bool = (sequenceNumber == nil || *sequenceNumber <= 0)
 	if isSnapshotChannel || isSnapshotMessage {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})

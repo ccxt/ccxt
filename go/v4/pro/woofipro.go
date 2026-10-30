@@ -159,7 +159,7 @@ func (this *Woofipro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
@@ -192,10 +192,10 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 }
 

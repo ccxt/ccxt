@@ -797,7 +797,7 @@ func (this *Bingx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -930,7 +930,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		// const limit = [ 5, 10, 20, 50, 100 ]
 		var subscriptionHash *string = dataType
@@ -942,7 +942,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
-	orderbook = ccxt.GetValue(this.Orderbooks, symbol)
+	orderbook = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = nil
 	var timestamp *int64 = this.SafeInteger2(message, "timestamp", "ts")
 	timestamp = this.SafeInteger2(data, "timestamp", "ts", timestamp)
@@ -953,7 +953,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	}
 	var nonce *int64 = this.SafeInteger(data, "lastUpdateId")
 	ccxt.AddElementToObject(snapshot, "nonce", nonce)
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	// resolve for "all"

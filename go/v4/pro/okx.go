@@ -1941,7 +1941,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	}
 	var orderbook ccxt.OrderBookInterface = r3.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -2257,7 +2257,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}
 	} else if action != nil && *action == "update" {
-		if ccxt.InOp(this.Orderbooks, symbol) {
+		if this.Orderbooks.Has(symbol) {
 			var orderbook any
 			if symbol != nil {
 				orderbook = this.Orderbooks[*symbol]

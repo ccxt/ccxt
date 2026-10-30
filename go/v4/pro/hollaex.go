@@ -99,7 +99,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
@@ -134,7 +134,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		var timestamp *string = this.SafeString(data, "timestamp")
 		var timestampMs *int64 = this.Parse8601(timestamp)
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
-		var orderbook any = nil
+		var orderbook ccxt.OrderBookInterface
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			orderbook = this.OrderBook(snapshot)
 			this.Orderbooks[*symbol] = orderbook
@@ -143,7 +143,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(orderbook, nil) {
 				return
 			}
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			orderbook.Reset(snapshot)
 		}
 		if channel != nil {
 			var messageHash string = *channel + ":" + *marketIdValue

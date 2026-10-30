@@ -649,7 +649,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -706,7 +706,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) any {

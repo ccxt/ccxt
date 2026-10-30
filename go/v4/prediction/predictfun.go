@@ -4308,14 +4308,14 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 			if _, ok := this.Orderbooks[*outcomeHandle]; !ok {
 				this.Orderbooks[*outcomeHandle] = this.OrderBook(map[string]any{})
 			}
-			var orderbook any = this.Orderbooks[*outcomeHandle]
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*outcomeHandle]
 			var bids []any = yesBids
 			var asks []any = yesAsks
 			if !isYesOutcome {
 				bids = this.SortBy(noBids, 0, true)
 				asks = this.SortBy(noAsks, 0)
 			}
-			orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{
+			orderbook.Reset(map[string]any{
 				"bids":      bids,
 				"asks":      asks,
 				"timestamp": timestamp,

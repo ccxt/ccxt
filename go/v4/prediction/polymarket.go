@@ -4416,11 +4416,11 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	if outcome == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Orderbooks, outcome)) {
+	if !(this.Orderbooks.Has(outcome)) {
 		var seededBook any = this.OrderBook(map[string]any{})
-		ccxt.AddElementToObject(this.Orderbooks, outcome, seededBook)
+		this.Orderbooks.Store(outcome, seededBook)
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcome)
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var rawBids []any = ccxt.SafeListTyped(event, "bids")
 	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
@@ -4435,7 +4435,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcome)
-	orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{
+	orderbook.Reset(map[string]any{
 		"bids":      bids,
 		"asks":      asks,
 		"timestamp": timestamp,
@@ -4455,10 +4455,10 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		var change map[string]any = ccxt.SafeMapTyped(changes, i)
 		var tokenId *string = this.SafeString(change, "asset_id")
 		var outcome any = this.TokenIdToSymbol(tokenId)
-		if (outcome == nil) || !(ccxt.InOp(this.Orderbooks, outcome)) {
+		if (outcome == nil) || !(this.Orderbooks.Has(outcome)) {
 			continue
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
+		var orderbook any = this.Orderbooks.Get(outcome)
 		var price *float64 = this.SafeNumber(change, "price")
 		var size *float64 = this.SafeNumber(change, "size")
 		var isBuy bool = (this.SafeStringUpper(change, "side", "") != nil && *this.SafeStringUpper(change, "side", "") == "BUY")

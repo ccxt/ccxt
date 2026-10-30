@@ -1238,7 +1238,7 @@ func (this *Cex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
@@ -1279,10 +1279,10 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[symbol]; !ok {
 		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = incrementalId
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	ccxt.AddElementToObject(this.Options["orderbook"], symbol, map[string]any{
 		"incrementalId": incrementalId,
 	})
@@ -1322,7 +1322,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	if symbol == "" {
 		return
 	}
-	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var messageHash string = "orderbook:" + symbol
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, *nonce+1)) {

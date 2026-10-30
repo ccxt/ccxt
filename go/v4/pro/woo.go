@@ -247,7 +247,7 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -324,7 +324,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	}
 	var method *string = this.SafeString(strings.Split(*topic, "@"), 1)
 	if method != nil && *method == "orderbookupdate" {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if !(this.Orderbooks.Has(symbol)) {
 			return
 		}
 		var orderbook any
@@ -371,7 +371,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 	} else {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if !(this.Orderbooks.Has(symbol)) {
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(topic)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
@@ -399,11 +399,11 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
 	ccxt.AddElementToObject(orderbook, "timestamp", nil)
 	ccxt.AddElementToObject(orderbook, "datetime", nil)
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 	this.Spawn(this.FetchOrderBookSnapshotAsync, client, message, subscription)
 }
 func (this *Woo) FetchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[bool] {

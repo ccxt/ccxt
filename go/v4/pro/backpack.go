@@ -1630,7 +1630,7 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1760,7 +1760,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var storedOrderBook any
+	var storedOrderBook ccxt.OrderBookInterface
 	if symbol != nil {
 		storedOrderBook = this.Orderbooks[*symbol]
 	}
@@ -1768,9 +1768,9 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
 	if nonce == nil {
-		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
+		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
 		// cache the triggering delta before a synchronous snapshot can inspect the cache
-		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), data)
+		ccxt.AppendToArray(storedOrderBook.GetCache(), data)
 		// stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
 		var market map[string]any = this.Market(symbol)
 		var isStockMarket bool = (market["stock"] == true) || ((marketId != nil) && ((strings.Index(*marketId, ".US_") >= 0) || (strings.Index(*marketId, ".HK_") >= 0)))

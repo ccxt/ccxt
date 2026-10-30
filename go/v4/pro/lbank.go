@@ -1050,7 +1050,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1108,7 +1108,7 @@ func (this *Lbank) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
@@ -1179,12 +1179,12 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	messageHash = "fetchOrderbook:" + *symbol

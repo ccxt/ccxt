@@ -1254,7 +1254,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1394,14 +1394,14 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")
 	var nonce *int64 = this.SafeInteger(message, "u")
 	if event != nil && *event == "depthSnapshot" {
 		var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 		parsed["nonce"] = nonce
-		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
+		orderbook.Reset(parsed)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})

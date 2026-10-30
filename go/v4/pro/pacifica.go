@@ -647,7 +647,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -776,8 +776,8 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
 		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook any = this.Orderbooks[*symbol]
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

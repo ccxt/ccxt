@@ -812,7 +812,7 @@ func (this *BaseExchange) WatchBalance(params ...any) (Balances, error) {
 	var res Balances = r.Value
 	return res, nil
 }
-func (this *BaseExchange) FetchPartialBalance(part any, options ...FetchPartialBalanceOptions) (Balance, error) {
+func (this *BaseExchange) FetchPartialBalance(part string, options ...FetchPartialBalanceOptions) (Balance, error) {
 
 	opts := FetchPartialBalanceOptionsStruct{}
 

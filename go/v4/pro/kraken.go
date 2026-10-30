@@ -1193,7 +1193,7 @@ func (this *Kraken) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1472,9 +1472,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	var b []any = ccxt.SafeListTypedDefault(first, "bids", []any{})
 	var c *int64 = this.SafeInteger(first, "checksum")
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
-	var orderbook any = nil
+	var orderbook ccxt.OrderBookInterface
 	if typeVar != nil && *typeVar == "update" {
-		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
+		orderbook = this.Orderbooks.Get(symbol)
 		var storedAsks any = ccxt.GetValue(orderbook, "asks")
 		var storedBids any = ccxt.GetValue(orderbook, "bids")
 		if a != nil {
@@ -1503,7 +1503,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		}())
 		var depths map[string]any = this.SafeDictMap(this.Options, "wsOrderBookDepths", map[string]any{})
 		var storedDepth *int64 = this.SafeInteger(depths, symbol)
-		if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedDepth == nil || *storedDepth != depth) {
+		if !(this.Orderbooks.Has(symbol)) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
 			if symbol != nil {
@@ -1516,8 +1516,8 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		}
 		// reset in place so that references held by users keep receiving
 		// updates after a reconnect snapshot (a new object would orphan them)
-		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
-		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+		orderbook = this.Orderbooks.Get(symbol)
+		orderbook.Reset(map[string]any{})
 		var keys []string = []string{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
 			var key string = keys[i]
@@ -1528,9 +1528,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 				this.CustomHandleDeltas(bookside, deltas)
 			}
 		}
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
+		orderbook.SetSymbol(symbol)
 	}
-	orderbook.(ccxt.OrderBookInterface).Limit()
+	orderbook.Limit()
 	// checksum temporarily disabled because the exchange checksum was not reliable
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
 	if checksum == true {

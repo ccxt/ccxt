@@ -224,7 +224,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
@@ -280,13 +280,13 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	if isSnapshot != nil && *isSnapshot == true {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})

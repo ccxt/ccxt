@@ -329,7 +329,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
@@ -366,11 +366,11 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	if isSnapshot != nil && *isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})

@@ -524,7 +524,7 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
@@ -534,10 +534,10 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + *symbol
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if !(this.Orderbooks.Has(symbol)) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
 		var bidsSnapshot []any = []any{}
@@ -555,7 +555,7 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 			"bids": bidsSnapshot,
 			"asks": asksSnapshot,
 		}, symbol)
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		return
 	}
@@ -605,7 +605,7 @@ func (this *Gemini) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -796,7 +796,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var ob ccxt.OrderBookInterface = this.OrderBook()
 		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var bids any = orderbook.GetBids()
 	var asks any = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {

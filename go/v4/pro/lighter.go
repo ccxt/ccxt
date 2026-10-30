@@ -258,7 +258,7 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
@@ -266,7 +266,7 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	if typeVar != nil && *typeVar == "subscribed/order_book" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		parsed["nonce"] = this.SafeInteger(data, "offset")
-		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
+		orderbook.Reset(parsed)
 	} else if typeVar != nil && *typeVar == "update/order_book" {
 		this.HandleOrderBookMessage(client, message, orderbook)
 	}
@@ -316,7 +316,7 @@ func (this *Lighter) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -2185,7 +2185,7 @@ func (this *Lighter) HandleOrderBookUnSubscription(client any, marketId any) {
 	var subMessageHash string = this.GetMessageHash("orderbook", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Orderbooks, symbol) {
+	if this.Orderbooks.Has(symbol) {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}

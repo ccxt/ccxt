@@ -1026,7 +1026,7 @@ func (this *Coinbase) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1104,7 +1104,7 @@ func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Coinbase) HandleTrade(client any, message map[string]any) {
@@ -1351,10 +1351,10 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 		} else if _, ok := this.Orderbooks[*symbol]; !ok {
 			continue
 		}
-		var orderbook any = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if typeVar != nil && *typeVar == "snapshot" {
 			// reset in place so consumers holding a reference keep receiving updates after a resync
-			orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+			orderbook.Reset(map[string]any{})
 		}
 		this.HandleOrderBookHelper(orderbook, updates)
 		ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))

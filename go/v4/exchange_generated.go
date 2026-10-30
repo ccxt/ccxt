@@ -9217,7 +9217,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 					delete(this.Trades, *symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {
-				if InOp(this.Orderbooks, symbol) {
+				if this.Orderbooks.Has(symbol) {
 					delete(this.Orderbooks, *symbol)
 				}
 			} else if topic != nil && *topic == "ticker" {

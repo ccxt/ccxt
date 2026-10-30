@@ -127,7 +127,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
@@ -156,13 +156,13 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	if event != nil {
 		var messageHash string = *event + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

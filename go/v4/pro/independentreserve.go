@@ -227,7 +227,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Independentreserve) HandleOrderBook(client any, message map[string]any) {
@@ -277,10 +277,10 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	if _, ok := this.Orderbooks[symbol]; !ok {
 		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if event != nil && *event == "OrderBookSnapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		// write through the parent index: php copies arrays by value, so
 		// mutating the local bind would not persist the flag
 		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, this.Extend(subscription, map[string]any{

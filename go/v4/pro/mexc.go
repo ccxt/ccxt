@@ -1018,12 +1018,12 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 }
 func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -1125,16 +1125,16 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {
-		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache()))
+		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.GetCache()))
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 25))
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), data)
+		ccxt.AppendToArray(storedOrderBook.GetCache(), data)
 		return
 	}
 

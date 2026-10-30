@@ -977,7 +977,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1080,7 +1080,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
@@ -1091,7 +1091,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message any) {
 			this.HandleOrderBookSnapshot(client, message)
 		} else {
 			// cache the updates until the snapshot is received
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+			ccxt.AppendToArray(orderbook.GetCache(), message)
 		}
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
@@ -1106,7 +1106,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
@@ -1132,13 +1132,13 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 	}
 	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
 	var snapshot map[string]any = this.ParseOrderBook(orderedEntries, symbol, timestamp)
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var cachedMessages any = orderbook.(ccxt.OrderBookInterface).GetCache()
+	orderbook.Reset(snapshot)
+	var cachedMessages any = orderbook.GetCache()
 	for j := 0; j < ccxt.GetArrayLength(cachedMessages); j++ {
 		var cachedMessage any = ccxt.GetValue(cachedMessages, j)
 		this.HandleOrderBookMessage(client, cachedMessage, orderbook)
 	}
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 	var messageHash string = "orderbook" + "::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

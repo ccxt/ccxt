@@ -247,7 +247,7 @@ func (this *Luno) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Luno) HandleOrderBook(client any, message map[string]any, subscription map[string]any) {
@@ -289,7 +289,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
 		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
@@ -299,7 +299,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	}
 	if asks != nil {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		this.HandleBookDelta(orderbook, message)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -485,7 +485,7 @@ func (this *Luno) ReduceOrderVolume(orderSide any, orderId *string, tradedAmount
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
 func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol *string) bool {
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}

@@ -551,7 +551,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
@@ -620,14 +620,14 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 			str := *timestampStr
 			return str[0:min(13, len(str))]
 		}())
-		if !(ccxt.InOp(this.Orderbooks, legacySymbol)) {
+		if !(this.Orderbooks.Has(legacySymbol)) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
 			if legacySymbol != nil {
 				this.Orderbooks[*legacySymbol] = ob
 			}
 		}
-		var legacyOrderbook any
+		var legacyOrderbook ccxt.OrderBookInterface
 		if legacySymbol != nil {
 			legacyOrderbook = this.Orderbooks[*legacySymbol]
 		}
@@ -648,7 +648,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp int64 = this.Milliseconds()
@@ -680,7 +680,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		"bids": bidsSnapshot,
 		"asks": asksSnapshot,
 	}, symbol, timestamp)
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

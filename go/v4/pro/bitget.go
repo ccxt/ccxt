@@ -1264,7 +1264,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(ob, "symbol", symbol)
 			this.Orderbooks[*symbol] = ob
 		}
-		var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var action *string = this.SafeString(message, "action")
 		var isSnapshot bool = (action != nil && *action == "snapshot") // snapshot does not have a checksum
 		if isSnapshot {
@@ -1318,7 +1318,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 		}
-		var orderbook any = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1333,7 +1333,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			}
 		}
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
-		orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
+		orderbook.Reset(parsedOrderbook)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
 }

@@ -2153,7 +2153,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		}
 		var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 		return nil
 	}
 
@@ -2341,7 +2341,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -2522,7 +2522,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	var book any = this.Orderbooks[*symbol]
+	var book ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
@@ -2553,19 +2553,19 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var depth *string = this.SafeString(message, "dp", "")
 	var messageHash string = "uta:orderbook:" + *symbol + ":depth:" + *depth
 	if typeVar != nil && *typeVar == "snapshot" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
 		parsed["nonce"] = this.SafeInteger(data, "O")
-		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
+		orderbook.Reset(parsed)
 		this.Orderbooks[*symbol] = orderbook
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
+			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 5)
@@ -2575,13 +2575,13 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, utaParams)
 			}
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), data)
+			ccxt.AppendToArray(orderbook.GetCache(), data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return
 		}
 	}
-	var book any = this.Orderbooks[*symbol]
+	var book ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
@@ -2665,12 +2665,12 @@ func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]a
 		var symbol any = ccxt.GetValue(symbols, i)
 		var storedLimit *int64 = this.SafeInteger(limits, symbol)
 		// reuse the existing book so user-held references keep updating; rebuild only if depth changed
-		if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if !(this.Orderbooks.Has(symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		} else {
-			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			ccxt.AddElementToObject(orderbook, "nonce", nil)
-			orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+			orderbook.SetCache([]any{})
 		}
 		ccxt.AddElementToObject(limits, symbol, limit)
 	}

@@ -985,7 +985,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription map[string]any) {
@@ -1022,7 +1022,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 	var prec *string = this.SafeString(subscription, "prec", "P0")
 	var isRaw bool = (prec != nil && *prec == "R0")
 	// if it is an initial snapshot
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if !(this.Orderbooks.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(subscription, "len")
 		if isRaw {
 			// raw order books
@@ -1095,7 +1095,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 			orderbook = this.Orderbooks[*symbol]
 		}
 		var deltas any = this.SafeValue(message, 1)
-		var orderbookItem any
+		var orderbookItem ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbookItem = this.Orderbooks[*symbol]
 		}
@@ -1154,7 +1154,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var symbol *string = this.SafeSymbol(marketId)
 	var channel string = "book"
 	var messageHash string = channel + ":" + *marketId
-	var book map[string]any = ccxt.SafeMapTyped(this.Orderbooks, symbol)
+	var book map[string]any = ccxt.SafeMapTyped(this.Orderbooks.ToMap(), symbol)
 	if book == nil {
 		return
 	}

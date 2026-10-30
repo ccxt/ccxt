@@ -110,7 +110,7 @@ func (this *Bitstamp) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -238,7 +238,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var delta map[string]any = ccxt.SafeMapTyped(message, "data")
 	var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
@@ -247,14 +247,14 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	}
 	var messageHash string = "orderbook:" + *symbol
 	if nonce == nil {
-		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache()))
+		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.GetCache()))
 		// the rest API is very delayed
 		// usually it takes at least 4-5 deltas to resolve
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 6))
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), delta)
+		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
 		return
 	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
 		return
@@ -1034,12 +1034,12 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 }
 func (this *Bitstamp) HandleSubscriptionStatus(client any, message map[string]any) {
 	//

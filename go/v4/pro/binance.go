@@ -1011,7 +1011,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1420,11 +1420,11 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 		//
 		return
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if nonce == nil {
 		// 2. Buffer the events you receive from the stream.
-		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+		ccxt.AppendToArray(orderbook.GetCache(), message)
 	} else {
 
 		{
@@ -1518,12 +1518,12 @@ func (this *Binance) HandleOrderBookSubscription(client any, message any, subscr
 	// handle list of symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol any = symbols[i]
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
-		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+		orderbook.SetCache([]any{})
 		var symbolSubscription map[string]any = this.Extend(subscription, map[string]any{
 			"symbol": symbol,
 		})

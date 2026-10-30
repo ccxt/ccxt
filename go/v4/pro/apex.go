@@ -337,7 +337,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Apex) WatchTopicsAsync(url any, messageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -447,10 +447,10 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})

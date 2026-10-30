@@ -1918,7 +1918,7 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -2016,9 +2016,9 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	var channelParts []string = strings.Split(*channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isGrouped bool = (channelPartsLength == 5)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if !(this.Orderbooks.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, func() any {
+		this.Orderbooks.Store(symbol, func() any {
 			if isGrouped {
 				return this.OrderBook(map[string]any{}, limit)
 			}
@@ -2027,14 +2027,14 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if !isGrouped && (typeVar == nil || *typeVar != "snapshot") && (nonce == nil) {
 		return
 	}
 	if isGrouped {
-		orderbook.(ccxt.OrderBookInterface).Reset(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks"))
+		orderbook.Reset(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks"))
 	} else {
 		var previousChangeId *int64 = this.SafeInteger(data, "prev_change_id")
 		if (typeVar == nil || *typeVar != "snapshot") && (nonce != nil) && (previousChangeId != nonce && (previousChangeId == nil || nonce == nil || *previousChangeId != *nonce)) {

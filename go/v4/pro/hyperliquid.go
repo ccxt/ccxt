@@ -404,7 +404,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -519,11 +519,11 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = ob
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

@@ -361,7 +361,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
@@ -394,14 +394,14 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var action *string = this.SafeString(message, "action")
 	if action != nil && *action == "snapshot" {
 		var orderBookSnapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 		orderBookSnapshot["nonce"] = this.SafeInteger(data, "seqId")
-		orderbook.(ccxt.OrderBookInterface).Reset(orderBookSnapshot)
+		orderbook.Reset(orderBookSnapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})

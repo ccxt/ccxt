@@ -281,7 +281,7 @@ func (this *Upbit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -406,12 +406,12 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "stream_type")
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
-	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(ccxt.InOp(this.Orderbooks, symbol)) {
+	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(this.Orderbooks.Has(symbol)) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
@@ -440,7 +440,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 		"bids": bidsSnapshot,
 		"asks": asksSnapshot,
 	}, symbol, timestamp)
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

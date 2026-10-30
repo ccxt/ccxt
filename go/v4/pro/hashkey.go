@@ -460,7 +460,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Hashkey) HandleOrderBook(client any, message any) {
@@ -499,13 +499,13 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "id"))
+	orderbook.Reset(snapshot)
+	orderbook.SetNonce(this.SafeInteger(message, "id"))
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

@@ -502,7 +502,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
@@ -540,13 +540,13 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	var dateTime *string = this.SafeString(message, "time")
 	var timestamp *int64 = this.Parse8601(dateTime)
 	var channel string = "book:" + *symbol
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	if typeVar != nil && *typeVar == "ORDER_BOOK_SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
 		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
 		this.HandleBookDeltas(orderbook, changes)

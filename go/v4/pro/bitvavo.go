@@ -976,7 +976,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1042,7 +1042,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1176,7 +1176,7 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = *event + "@" + *this.SafeString(message, "market", "")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		return
 	}
@@ -1194,7 +1194,7 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 			// fetch the snapshot in a separate async call after a warmup delay
 			this.Delay(delay, this.WatchOrderBookSnapshotAsync, client, message, subscription)
 		}
-		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+		ccxt.AppendToArray(orderbook.GetCache(), message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1233,7 +1233,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any) {
@@ -1264,16 +1264,16 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var name string = "book"
 	var messageHash string = name + "@" + *this.SafeString(response, "market", "")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		// the market was unsubscribed while this snapshot request was in flight
 		return
 	}
 	var snapshot map[string]any = this.ParseOrderBook(response, symbol)
 	snapshot["nonce"] = this.SafeInteger(response, "nonce")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	// unroll the accumulated deltas
-	var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
+	var messages any = orderbook.GetCache()
 	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 		var messageItem any = ccxt.GetValue(messages, i)
 		this.HandleOrderBookMessage(client, messageItem, orderbook)
@@ -1295,19 +1295,19 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var limits map[string]any = this.SafeDictMap(this.Options, "orderBookLimits", map[string]any{})
 	var storedLimit *int64 = this.SafeInteger(limits, symbol)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
+	if !(this.Orderbooks.Has(symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 		ccxt.AddElementToObject(limits, symbol, limit)
 		this.Options["orderBookLimits"] = limits
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
-	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+	orderbook.SetCache([]any{})
 }
 func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds []any) {
 	var name string = "book"
@@ -1315,7 +1315,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		var marketId *string = this.SafeString(marketIds, i)
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash string = name + "@" + *this.SafeString(marketIds, i, "")
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if !(this.Orderbooks.Has(symbol)) {
 			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 			var method any = this.SafeValue(subscription, "method")
 			if method != nil {

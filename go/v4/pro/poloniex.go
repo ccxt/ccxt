@@ -970,7 +970,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1806,7 +1806,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var asks []any = ccxt.SafeListTyped(item, "asks")
 		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.SafeValue(this.Orderbooks, symbol))
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			if snapshot && (ccxt.IsEqual(orderbook, nil)) {
 				orderbook = this.OrderBook(map[string]any{}, limit)
 				this.Orderbooks[*symbol] = orderbook
@@ -1819,7 +1819,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 				// replacing it: a consumer awakened earlier keeps a
 				// reference to the old object and would be orphaned
 				// from later updates on a resync/reconnect otherwise
-				orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+				orderbook.Reset(map[string]any{})
 			}
 			if bids != nil {
 				for j := 0; j < len(bids); j++ {

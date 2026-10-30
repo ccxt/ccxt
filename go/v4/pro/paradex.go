@@ -332,7 +332,7 @@ func (this *Paradex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
@@ -393,10 +393,10 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var snapshot map[string]any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = this.SafeInteger(data, "seq_no")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

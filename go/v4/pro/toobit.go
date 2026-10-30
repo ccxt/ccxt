@@ -770,7 +770,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
@@ -811,7 +811,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
@@ -866,10 +866,10 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook any = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }

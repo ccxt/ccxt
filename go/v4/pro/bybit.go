@@ -1377,7 +1377,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1544,12 +1544,12 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		orderbook = this.Orderbooks[*symbol]
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})

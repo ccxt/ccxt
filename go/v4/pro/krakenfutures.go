@@ -154,7 +154,7 @@ func (this *Krakenfutures) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1628,7 +1628,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
@@ -1641,7 +1641,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 		return
 	}
 	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
@@ -1659,7 +1659,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}

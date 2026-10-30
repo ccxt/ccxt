@@ -4696,10 +4696,10 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 		if sym == nil {
 			continue
 		}
-		if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
+		if ccxt.IsEqual(this.Orderbooks.Get(sym), nil) {
 			continue
 		}
-		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, sym))
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
 		var price any = this.FromWei(this.SafeString(change, "price"))
 		var amount any = this.FromWei(this.SafeString(change, "amount"))
 		var sideStr *string = this.SafeString(change, "side")
@@ -4724,7 +4724,7 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
 		var sym *string = ccxt.SafeStringPtr(updatedSymbols[k])
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), "orderbook::"+*sym)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(sym), "orderbook::"+*sym)
 	}
 }
 

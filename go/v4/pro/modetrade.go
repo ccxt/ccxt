@@ -164,7 +164,7 @@ func (this *Modetrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
@@ -199,13 +199,13 @@ func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 }
 

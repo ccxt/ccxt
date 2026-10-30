@@ -98,7 +98,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Coincheck) HandleOrderBook(client any, message any) {

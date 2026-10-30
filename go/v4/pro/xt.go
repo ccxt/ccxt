@@ -915,7 +915,7 @@ func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterf
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1809,7 +1809,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var obAsks []any = ccxt.SafeListTyped(data, "a")
 		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = *event + "::" + tradeType
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if !(this.Orderbooks.Has(symbol)) {
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			if symbol != nil {
@@ -1818,16 +1818,16 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		}
 		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+			orderbook = this.Orderbooks[*symbol]
 		}
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
+			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 25)
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol)
 			}
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), data)
+			ccxt.AppendToArray(orderbook.GetCache(), data)
 			return
 		}
 		if obAsks != nil {

@@ -364,7 +364,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
@@ -426,12 +426,12 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
 			var parsedSnapshot map[string]any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
-			orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
+			orderbook.Reset(parsedSnapshot)
 		} else {
 			var asks []any = ccxt.SafeListTypedDefault(item, "a", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(item, "b", []any{})

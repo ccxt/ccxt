@@ -1393,7 +1393,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -1513,12 +1513,12 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var orderbook any
+	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

@@ -418,7 +418,7 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
@@ -607,7 +607,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook::" + *symbol
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		orderbook = this.Orderbooks[*symbol]
@@ -617,7 +617,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 		// records or only the changed ones, a full set replaces the book,
 		// otherwise stale levels that left the depth window would linger
 		// and cross the book, see https://github.com/ccxt/ccxt/issues/24944
-		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+		orderbook.Reset(map[string]any{})
 	}
 	if bids != nil {
 		for i := 0; i < len(bids); i++ {

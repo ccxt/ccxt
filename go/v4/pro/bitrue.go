@@ -507,9 +507,9 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

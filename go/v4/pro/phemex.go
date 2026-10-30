@@ -811,7 +811,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -961,12 +961,12 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if _, ok := this.Orderbooks[*symbol]; ok {
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})

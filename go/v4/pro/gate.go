@@ -785,7 +785,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -876,9 +876,9 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		var orderbook any = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
-		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+		orderbook.SetCache([]any{})
 	}
 }
 func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
@@ -916,15 +916,15 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(marketIdParts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash string = "orderbook:" + *symbol
-	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
+	if ccxt.IsEqual(this.Orderbooks.Get(symbol), nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, 1000)
 	}
-	var orderbook any = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if full != nil && *full {
 		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
 		snapshopt["nonce"] = this.SafeInteger(result, "u")
 		snapshopt["timestamp"] = this.SafeInteger(result, "t")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshopt)
+		orderbook.Reset(snapshopt)
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaStart *int64 = this.SafeInteger(result, "u")
@@ -1007,12 +1007,12 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(delta, "s")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 	var messageHash string = "orderbook:" + *symbol
-	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.GetOr(symbol, this.OrderBook(map[string]any{}))
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if nonce == nil {
 		var cacheLength int64 = this.ParseToInt(0)
 		if !ccxt.IsEqual(storedOrderBook, nil) {
-			var storedCacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
+			var storedCacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
 			cacheLength = this.ParseToInt(storedCacheLength)
 		}
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 10))
@@ -1026,7 +1026,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{}) // needed for c#, number of args needs to match
 		}
-		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), delta)
+		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
 		return
 	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
@@ -1035,7 +1035,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		ccxt.AddElementToObject(storedOrderBook, "nonce", nil)
-		storedOrderBook.(ccxt.OrderBookInterface).SetCache([]any{})
+		storedOrderBook.SetCache([]any{})
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))

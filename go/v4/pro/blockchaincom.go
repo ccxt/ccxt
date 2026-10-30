@@ -834,7 +834,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	}
 	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
@@ -885,10 +885,10 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.CountedOrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if event != nil && *event == "snapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 	} else if event != nil && *event == "updated" {
 		var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
