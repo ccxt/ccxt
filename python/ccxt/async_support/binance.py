@@ -6893,7 +6893,7 @@ class binance(Exchange, ImplicitAPI):
         brokerId = self.safe_string(broker, idMarketType, defaultId)
         return brokerId + self.uuid22()
 
-    def handle_client_order_id(self, params: dict, api: Str, path: Str, method: str) -> dict:
+    def handle_client_order_id(self, params: dict, api: str, path: str, method: str) -> dict:
         """
  @ignore
         :param dict params: request params
