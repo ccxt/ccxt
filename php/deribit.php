@@ -2134,7 +2134,7 @@ class deribit extends Exchange {
         $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
         $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
         $isMarketOrder = ($type === 'market') || $isStopMarket || $isTakeMarket;
-        $exchangeSpecificPostOnly = $this->safe_value($params, 'post_only');
+        $exchangeSpecificPostOnly = $this->safe_bool($params, 'post_only');
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificPostOnly, $params);
         if ($isLimitOrder) {
             $request['type'] = 'limit';

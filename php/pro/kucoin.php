@@ -2576,7 +2576,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function get_my_trades_message_hash_suffix(mixed $topic): string {
+    public function get_my_trades_message_hash_suffix(string $topic): string {
         $suffix = '-spot';
         if (mb_strpos($topic, 'contractMarket') !== false) {
             $suffix = '-contract';
@@ -2622,7 +2622,7 @@ class kucoin extends \ccxt\async\kucoin {
         $myTrades = $this->myTrades;
         $myTrades->append($parsed);
         $messageHash = 'myTrades';
-        $topic = $this->safe_string($message, 'topic');
+        $topic = $this->safe_string($message, 'topic', '');
         $suffix = $this->get_my_trades_message_hash_suffix($topic);
         $typeSpecificMessageHash = $messageHash . $suffix;
         $client->resolve($this->myTrades, $typeSpecificMessageHash);

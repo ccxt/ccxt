@@ -1717,7 +1717,7 @@ class bybit extends Exchange {
         return $amountString;
     }
 
-    public function get_price(?string $symbol, mixed $price) {
+    public function get_price(?string $symbol, ?string $price): ?string {
         if ($price === null) {
             return $price;
         }
@@ -4396,7 +4396,7 @@ class bybit extends Exchange {
         );
         $hedged = $this->safe_bool($params, 'hedged', false);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
@@ -4610,9 +4610,9 @@ class bybit extends Exchange {
         }
         if (($hasStopLoss || $hasTakeProfit) && !$endpointIsTradingStop) {
             if ($hasStopLoss) {
-                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->get_price($symbolValue, $slTriggerPrice);
-                $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                $slLimitPrice = $this->safe_string($stopLoss, 'price');
                 if ($slLimitPrice !== null) {
                     $request['tpslMode'] = 'Partial';
                     $request['slOrderType'] = 'Limit';
@@ -4629,9 +4629,9 @@ class bybit extends Exchange {
                 }
             }
             if ($hasTakeProfit) {
-                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $request['takeProfit'] = $this->get_price($symbolValue, $tpTriggerPrice);
-                $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                $tpLimitPrice = $this->safe_string($takeProfit, 'price');
                 if ($tpLimitPrice !== null) {
                     $request['tpslMode'] = 'Partial';
                     $request['tpOrderType'] = 'Limit';

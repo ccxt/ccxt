@@ -6139,7 +6139,7 @@ class BaseExchange {
         return $ohlcv;
     }
 
-    public function safe_network(mixed $network) {
+    public function safe_network(array $network) {
         $withdrawEnabled = $this->safe_bool($network, 'withdraw');
         $depositEnabled = $this->safe_bool($network, 'deposit');
         $limits = $this->safe_dict($network, 'limits');
@@ -8410,7 +8410,7 @@ class BaseExchange {
         return $this->handle_trigger_and_params($params);
     }
 
-    public function is_post_only(bool $isMarketOrder, mixed $exchangeSpecificParam, $params = array()) {
+    public function is_post_only(bool $isMarketOrder, ?bool $exchangeSpecificParam, $params = array()) {
         /**
          * @ignore
          * @param {string} type Order type

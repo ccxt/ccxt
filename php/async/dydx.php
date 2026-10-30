@@ -888,7 +888,7 @@ class dydx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function handle_public_address(?string $methodName, array $params): array {
+    public function handle_public_address(string $methodName, array $params): array {
         list($userAux, $paramsUser) = $this->handle_option_string_and_params($params, $methodName, 'user');
         list($user, $paramsAddress) = $this->handle_option_string_and_params($paramsUser, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
@@ -1941,7 +1941,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchLedger' ))));
+        $response = Async\await($this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $params));
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
@@ -2167,7 +2167,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchTransfers' ))));
+        $response = Async\await($this->fetch_transactions_helper('fetchTransfers', $code, $since, $limit, $params));
         $transferIn = $this->filter_by($response, 'type', 'TRANSFER_IN');
         $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
         $rows = $this->array_concat($transferIn, $transferOut);
@@ -2321,7 +2321,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchWithdrawals' ))));
+        $response = Async\await($this->fetch_transactions_helper('fetchWithdrawals', $code, $since, $limit, $params));
         $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
@@ -2351,7 +2351,7 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDeposits' ))));
+        $response = Async\await($this->fetch_transactions_helper('fetchDeposits', $code, $since, $limit, $params));
         $rows = $this->filter_by($response, 'type', 'DEPOSIT');
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
@@ -2381,19 +2381,18 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDepositsWithdrawals' ))));
+        $response = Async\await($this->fetch_transactions_helper('fetchDepositsWithdrawals', $code, $since, $limit, $params));
         $withdrawals = $this->filter_by($response, 'type', 'WITHDRAWAL');
         $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
         $rows = $this->array_concat($withdrawals, $deposits);
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_fetch_transactions_helper(...))($code, $since, $limit, $params);
+    public function fetch_transactions_helper(string $methodName, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_transactions_helper(...))($methodName, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $methodName = $this->safe_string($params, 'methodName');
+    private function do_fetch_transactions_helper(string $methodName, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $paramsOmitted = $this->omit($params, 'methodName');
         list($userAddress, $paramsPublicAddress) = $this->handle_public_address($methodName, $paramsOmitted);
         list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, $methodName, 'subAccountNumber', '0');
