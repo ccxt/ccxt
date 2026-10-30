@@ -1975,14 +1975,6 @@ export default class binance extends binanceRest {
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const unifiedTimeframe = this.findTimeframe (interval);
-        const parsed = [
-            this.safeInteger (kline, 't'),
-            this.safeFloat (kline, 'o'),
-            this.safeFloat (kline, 'h'),
-            this.safeFloat (kline, 'l'),
-            this.safeFloat (kline, 'c'),
-            this.safeFloat (kline, 'v'),
-        ];
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
@@ -1990,7 +1982,19 @@ export default class binance extends binanceRest {
         if (isSpot) {
             marketType = 'spot';
         }
-        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        const inverse = this.safeBool (market, 'inverse');
+        const volumeKey = (inverse === true) ? 'q' : 'v';
+        const parsed = [
+            this.safeInteger (kline, 't'),
+            this.safeFloat (kline, 'o'),
+            this.safeFloat (kline, 'h'),
+            this.safeFloat (kline, 'l'),
+            this.safeFloat (kline, 'c'),
+            this.safeFloat (kline, volumeKey),
+        ];
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), unifiedTimeframe);
