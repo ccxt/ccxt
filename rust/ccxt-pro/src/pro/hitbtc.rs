@@ -674,7 +674,7 @@ impl HitbtcCore {
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
-            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut timestamp: Value = self.safe_integer_k(item.clone(), "t", &[]);
             let mut nonce: Value = self.safe_integer_k(item.clone(), "s", &[]);
             if ((type_var == "snapshot")) {
@@ -1165,7 +1165,7 @@ impl HitbtcCore {
                 stored = ArrayCache::new(tradesLimit);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
-            let mut trades: Value = self.parse_ws_trades(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
+            let mut trades: Value = self.parse_ws_trades((if let (Some(__m), Some(__k)) = (data.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_377: bool = true;
@@ -1352,7 +1352,7 @@ impl HitbtcCore {
                 stored = ArrayCacheByTimestamp::new(limit);
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
-            let mut ohlcvs: Vec<Value> = self.parse_ws_ohlc_vs(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]).as_array().cloned().unwrap_or_default();
+            let mut ohlcvs: Vec<Value> = self.parse_ws_ohlc_vs((if let (Some(__m), Some(__k)) = (data.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_380: bool = true;
@@ -1944,7 +1944,7 @@ impl HitbtcCore {
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), balance.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

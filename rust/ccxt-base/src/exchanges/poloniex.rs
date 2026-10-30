@@ -3934,6 +3934,8 @@ impl PoloniexCore {
 }
 
     pub fn parse_deposit_address_special(&self, mut response: Value, mut currency: Value, mut networkEntry: Value) -> Value {
+        let __currency_empty = indexmap::IndexMap::new();
+        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         if (address == Value::Null) {
             address = self.safe_string(response.clone(), self.safe_string_k(networkEntry.clone(), "id", &[]), &[]);
@@ -3953,7 +3955,7 @@ impl PoloniexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("currency".to_string(), self.safe_string_k(currency, "code", &[]));
+        m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("network".to_string(), self.safe_string_k(networkEntry, "network", &[]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), tag);

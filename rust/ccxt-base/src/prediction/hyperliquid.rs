@@ -2230,7 +2230,7 @@ impl HyperliquidCore {
                 if !(matches!((&deduped, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw.clone()); }
                 }  else {
-                    let mut existingTs: Value = self.safe_integer(deduped.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);
+                    let mut existingTs: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTs: Value = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]);
                     if (currentTs != Value::Null) && ((existingTs == Value::Null) || currentTs.as_f64().unwrap_or(f64::NAN) > existingTs.as_f64().unwrap_or(f64::NAN)) {
                         if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw); }
@@ -2763,7 +2763,7 @@ impl HyperliquidCore {
             let mut __for_first_1249: bool = true;
             while { if !__for_first_1249 { gi += 1; } __for_first_1249 = false; gi < (groupKeys.len() as i64) } {
             let mut key: Value = groupKeys.get(gi as usize).cloned().unwrap_or(Value::Null);
-            let mut groupMarkets: Value = groupMap.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut groupMarkets: Value = (if let (Some(__m), Some(__k)) = (groupMap.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut event: Value = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("parentSymbol".to_string(), key);

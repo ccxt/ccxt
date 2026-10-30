@@ -2986,11 +2986,11 @@ impl CoinsphCore {
             let mut __for_first_581: bool = true;
             while { if !__for_first_581 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_581 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if (matches!(&query.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+            if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i.as_f64() != Some(0.0)) {
                     encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".into())).into());
                 }
-                let mut innerArray: Value = query.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 remainingQuery = self.omit(remainingQuery.clone(), key.clone(), &[]);
                 let mut encodedArrayParam: Value = self.parse_array_param(innerArray, key).map(Value::from).unwrap_or(Value::Null);
                 encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam).into());

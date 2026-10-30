@@ -1600,7 +1600,7 @@ impl BigoneCore {
             let mut __for_first_265: bool = true;
             while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
             let mut price: Value = bidsAsksKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut amount: Value = bidsAsks.as_map().and_then(|__m| price.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.push(Value::from(vec![self.parse_number(price, &[]), self.parse_number(amount, &[])]));
         }
         }

@@ -1250,7 +1250,7 @@ impl CexCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("resolution".to_string(), self.timeframes.as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                m.insert("resolution".to_string(), (if let (Some(__m), Some(__k)) = (self.timeframes.as_map(), timeframe.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m.insert("dataType".to_string(), dataType);
             m
         });
@@ -1362,7 +1362,7 @@ impl CexCore {
             if useKeyAsId.as_bool() == Some(true) {
                 market = self.safe_market(&[key.clone()]);
             }
-            let mut parsed: Value = self.parse_trading_fee(response.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market.clone()]);
             let mut parsedSymbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
             if (parsedSymbol.is_some()) {
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed); }

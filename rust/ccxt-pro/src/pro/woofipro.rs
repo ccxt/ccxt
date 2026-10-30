@@ -475,7 +475,7 @@ impl WoofiproCore {
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut snapshot: Value = self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
@@ -645,8 +645,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_707: bool = true;
-            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (data.len() as i64) } {
+            let mut __for_first_706: bool = true;
+            while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (data.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_0 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
@@ -720,8 +720,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_708: bool = true;
-            while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (data.len() as i64) } {
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (data.len() as i64) } {
             let __ws_arg_1 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ts".to_string(), timestamp.clone());
@@ -933,7 +933,7 @@ impl WoofiproCore {
             let mut stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
-        let mut trades: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut trades: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         trades.append(trade);
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), trades.clone()); }
         client.resolve(&[trades, topic]);
@@ -1422,8 +1422,8 @@ impl WoofiproCore {
         if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_709: bool = true;
-                while { if !__for_first_709 { i += 1; } __for_first_709 = false; i < (data.len() as i64) } {
+                let mut __for_first_708: bool = true;
+                while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
                 if (tradeId != Value::Null) {
@@ -1552,8 +1552,8 @@ impl WoofiproCore {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_710: bool = true;
-                while { if !__for_first_710 { i += 1; } __for_first_710 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_709: bool = true;
+                while { if !__for_first_709 { i += 1; } __for_first_709 = false; i < (symbolsNormalized.len() as i64) } {
                 if (symbolsNormalized == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
                 }
@@ -1618,8 +1618,8 @@ impl WoofiproCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_711: bool = true;
-            while { if !__for_first_711 { i += 1; } __for_first_711 = false; i < (positions.len() as i64) } {
+            let mut __for_first_710: bool = true;
+            while { if !__for_first_710 { i += 1; } __for_first_710 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]);
             if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1684,8 +1684,8 @@ impl WoofiproCore {
         let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_712: bool = true;
-            while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_711: bool = true;
+            while { if !__for_first_711 { i += 1; } __for_first_711 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1853,8 +1853,8 @@ impl WoofiproCore {
         { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_713: bool = true;
-            while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < (keys.len() as i64) } {
+            let mut __for_first_712: bool = true;
+            while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_dict(balances.clone(), key.clone(), &[]);
             let mut code: Value = self.safe_currency_code(key, &[]);

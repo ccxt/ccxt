@@ -4247,7 +4247,7 @@ impl HtxCore {
     m
 })]);
         if (matches!((&futureMarketIdsForSymbols, &symbolOrMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return futureMarketIdsForSymbols.as_map().and_then(|__m| symbolOrMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (futureMarketIdsForSymbols.as_map(), symbolOrMarketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
         let mut futureMarkets: Value = self.filter_by(self.markets.clone(), Value::Str("future".into()), Value::Bool(true), &[]);
         let mut futuresCharsMaps: indexmap::IndexMap<String, Value> = ({
@@ -5904,7 +5904,7 @@ impl HtxCore {
     m
 })]);
         if (matches!((&uniqueNetworkIds, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return uniqueNetworkIds.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (uniqueNetworkIds.as_map(), networkCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             let mut networkTitle: Value = self.super_network_code_to_id(networkCode, &[currencyCode]);
             return self.safe_string(uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);

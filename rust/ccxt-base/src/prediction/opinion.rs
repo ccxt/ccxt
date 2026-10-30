@@ -2735,7 +2735,7 @@ if _try_result.is_err() {
         if !(matches!((&self.orderbooks, &sym), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut sideStr: Option<String> = (match message.get("side") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut bookSide: Value = (if (sideStr.as_deref() == Some("bids")) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
         let mut price: Value = (match message.get("price") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null });
@@ -2889,7 +2889,7 @@ if _try_result.is_err() {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
         }
-        let mut stored: Value = self.trades.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(trade);
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
 }

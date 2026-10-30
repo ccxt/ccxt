@@ -2616,7 +2616,7 @@ impl KrakenCore {
     m
 })]);
         if (matches!((&marketsByAltname, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return marketsByAltname.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (marketsByAltname.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             return self.safe_market(&[id]);
         }
@@ -3315,7 +3315,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
     m
-}), &[result.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)]);
+}), &[(if let (Some(__m), Some(__k)) = (result.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })]);
         return self.parse_order(__ws_arg_11, &[]);
 
     Value::Null

@@ -1787,13 +1787,13 @@ impl ApexCore {
         let mut marketResolved: Value = market.clone();
         if (market == Value::Null) && (marketId != Value::Null) {
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                marketResolved = self.markets.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                marketResolved = self.markets_by_id.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone()).map(Value::from).unwrap_or(Value::Null);
                 if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &newMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    let mut markets: Value = self.markets_by_id.as_map().and_then(|__m| newMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                    let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), newMarketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     let mut numMarkets: Value = get_array_length(&markets);
                     if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &marketId) {

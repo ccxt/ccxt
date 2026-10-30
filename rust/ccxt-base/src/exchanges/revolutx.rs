@@ -961,7 +961,7 @@ impl RevolutxCore {
                 while { if !__for_first_1112 { i += 1; } __for_first_1112 = false; i < (symbols.len() as i64) } {
                 let mut s: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut filtered { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&s), result.as_map().and_then(|__m| s.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+                    if let Value::Dict(__d) = &mut filtered { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&s), (if let (Some(__m), Some(__k)) = (result.as_map(), s.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
                 }
             }
             }

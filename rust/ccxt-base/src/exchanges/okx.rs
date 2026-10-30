@@ -10574,7 +10574,7 @@ impl OkxCore {
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item, &[]);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 if let Value::Dict(__d) = &mut borrowRateStructure { std::sync::Arc::make_mut(__d).insert("period".into(), Value::Int(31536000000)); }
-                let mut borrrowRateCode: Value = borrowRateHistories.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut borrrowRateCode: Value = (if let (Some(__m), Some(__k)) = (borrowRateHistories.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if let Value::Arr(__a) = &mut borrrowRateCode { std::sync::Arc::make_mut(__a).push(borrowRateStructure); };
                 crate::set_value(&mut borrowRateHistories, &code, borrrowRateCode);
             }
@@ -11812,7 +11812,7 @@ impl OkxCore {
             while { if !__for_first_1028 { i += 1; } __for_first_1028 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees((if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }
         return depositWithdrawFees;

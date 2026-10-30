@@ -1879,7 +1879,7 @@ impl WhitebitCore {
             while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees((if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }
         return depositWithdrawFees;
@@ -2186,7 +2186,7 @@ impl WhitebitCore {
             let mut __for_first_1148: bool = true;
             while { if !__for_first_1148 { i += 1; } __for_first_1148 = false; i < (currencyKeys.len() as i64) } {
             let mut code: Value = currencyKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = currenciesData.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut currency: Value = (if let (Some(__m), Some(__k)) = (currenciesData.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if (currency == Value::Null) {
                 continue;
             }

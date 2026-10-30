@@ -801,7 +801,7 @@ impl KalshiCore {
     m
 })); }
                         }
-                        let mut eventEntry: Value = eventsDict.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        let mut eventEntry: Value = (if let (Some(__m), Some(__k)) = (eventsDict.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -1702,7 +1702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (marketTicker == Value::Null) || !(matches!((&outcomesByTicker, &marketTicker), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                let mut grouped: Value = outcomesByTicker.as_map().and_then(|__m| marketTicker.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByTicker.as_map(), marketTicker.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1261: bool = true;

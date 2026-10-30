@@ -3182,7 +3182,7 @@ impl BackpackCore {
                 while { if !__for_first_255 { i += 1; } __for_first_255 = false; i < (assetIds.len() as i64) } {
                 let mut assetId: Value = assetIds.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (matches!((&securityIds, &assetId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    balances.insert(crate::runtime::stringify_param(&assetId), response.as_map().and_then(|__m| assetId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                    balances.insert(crate::runtime::stringify_param(&assetId), (if let (Some(__m), Some(__k)) = (response.as_map(), assetId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 }
             }
             }

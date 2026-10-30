@@ -4918,7 +4918,7 @@ if _try_result.is_err() {
                     let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                     if (networkCode != Value::Null) {
-                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number(withdrawFixOnChains.as_map().and_then(|__m| networkId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]));
+                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), networkId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
                     }
                 }
                 }
@@ -5017,7 +5017,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.parse_number(withdrawFixOnChains.as_map().and_then(|__m| chainKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]));
+        m.insert("fee".to_string(), self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), chainKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));

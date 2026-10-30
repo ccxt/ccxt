@@ -1969,7 +1969,7 @@ impl PolymarketCore {
                 if (tokenId == Value::Null) || !(matches!((&outcomesByTokenId, &tokenId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                let mut outcomeObj: Value = outcomesByTokenId.as_map().and_then(|__m| tokenId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut outcomeObj: Value = (if let (Some(__m), Some(__k)) = (outcomesByTokenId.as_map(), tokenId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut mid: Option<String> = self.safe_string_opt(midpoints.clone(), tokenId.clone(), &[]);
                 let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -4602,7 +4602,7 @@ if _try_result.is_err() {
 })]);
             if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), seededBook); }
         }
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| outcome.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut timestamp: Value = self.parse_poly_timestamp(self.safe_string_k(event, "timestamp", &[]));
         let mut rawBids: Value = (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut rawAsks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -4659,7 +4659,7 @@ if _try_result.is_err() {
             if (outcome == Value::Null) || !(matches!((&self.orderbooks, &outcome), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
-            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| outcome.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut price: Value = self.safe_number_k(change.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(change.clone(), "size", &[]);
             let mut isBuy: bool = self.safe_string_upper_k(change, "side", &[Value::Str("".into())]).as_str() == Some("BUY");
@@ -4678,7 +4678,7 @@ if _try_result.is_err() {
             let mut __for_first_1448: bool = true;
             while { if !__for_first_1448 { k += 1; } __for_first_1448 = false; k < (updatedSymbols.len() as i64) } {
             let mut outcome: Value = updatedSymbols.get(k as usize).cloned().unwrap_or(Value::Null);
-            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| outcome.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             client.resolve(&[orderbook.clone(), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())]);
             client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())]);
         }

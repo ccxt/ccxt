@@ -5625,7 +5625,7 @@ impl AsterCore {
             let mut __for_first_240: bool = true;
             while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = values.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut value: Value = (if let (Some(__m), Some(__k)) = (values.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut isObj: bool = (matches!(&value, Value::Arr(_))) || self.is_dictionary(value.clone()).as_bool() == Some(true);
             let mut valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let mut encoded: Value = self.encode_uri_component(valueJsonified);
@@ -5646,7 +5646,7 @@ impl AsterCore {
             let mut __for_first_241: bool = true;
             while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut capitalizedKey: Value = self.capitalize(key);
             capitalized.insert(crate::runtime::stringify_param(&capitalizedKey), value);
         }

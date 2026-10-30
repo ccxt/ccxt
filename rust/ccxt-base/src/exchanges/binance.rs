@@ -6679,7 +6679,7 @@ impl BinanceCore {
         let mut isLegacyLinear: bool = isLegacy && !isLegacyInverse;
         if matches!(&symbol, Value::Str(_)) {
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut market: Value = self.markets.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut market: Value = (if let (Some(__m), Some(__k)) = (self.markets.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 // begin diff
                 if isLegacy && matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
                     let mut settle: Value = self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]);
@@ -6688,7 +6688,7 @@ impl BinanceCore {
                     }
                     let mut legacySymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), settle).into());
                     if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &legacySymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        return self.markets.as_map().and_then(|__m| legacySymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), legacySymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     }
                 }  else {
                     return market;
@@ -6724,7 +6724,7 @@ impl BinanceCore {
                     }
                     let mut futuresSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
                     if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &futuresSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        return self.markets.as_map().and_then(|__m| futuresSymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), futuresSymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     }
                 }
             }  else if (Value::Int(symbol.as_str().and_then(|__s| __s.find("-C")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) || (Value::Int(symbol.as_str().and_then(|__s| __s.find("-P")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) {
@@ -15547,8 +15547,8 @@ impl BinanceCore {
                 if (matches!((&balances, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let __ws_arg_159 = self.extend(position, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("crossMargin".to_string(), self.safe_value(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
-        m.insert("crossWalletBalance".to_string(), self.safe_value(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
+        m.insert("crossMargin".to_string(), self.safe_value((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("crossMargin".into()), &[]));
+        m.insert("crossWalletBalance".to_string(), self.safe_value((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("crossWalletBalance".into()), &[]));
     m
 })]);
                     let mut parsed: Value = self.parse_account_position(__ws_arg_159, &[market]);

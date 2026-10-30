@@ -3867,7 +3867,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 marketKeys.push(key.clone());
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = outcomesByMarket.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj.clone()); };
             crate::set_value(&mut outcomesByMarket, &key, grouped.clone());
             if let Value::Dict(__d) = &mut outcomesByMarket { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), grouped.clone()); }
@@ -3879,7 +3879,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1359: bool = true;
             while { if !__for_first_1359 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1359 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
             let mut key: Value = marketKeys.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
-            let mut grouped: Value = outcomesByMarket.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut firstOutcome: Value = self.safe_dict(grouped.clone(), Value::Int(0), &[]);
             let mut info: Value = self.safe_dict_k(firstOutcome, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3901,7 +3901,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1361 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
             let mut key: Value = marketKeys.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut response: Value = responses.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut grouped: Value = outcomesByMarket.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1360: bool = true;
@@ -4529,7 +4529,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
                 continue;
             }
-            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut price: Value = self.from_wei(self.safe_string_k(change.clone(), "price", &[]));
             let mut amount: Value = self.from_wei(self.safe_string_k(change.clone(), "amount", &[]));
             let mut sideStr: Option<String> = self.safe_string_k(change, "side", &[]).as_str().map(str::to_owned);
@@ -4547,7 +4547,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1370: bool = true;
             while { if !__for_first_1370 { if let Value::Int(n) = &mut k { *n += 1; } } __for_first_1370 = false; k.as_f64().unwrap_or(f64::NAN) < updatedLength } {
             let mut sym: Value = updatedSymbols.get(k.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            client.resolve(&[self.orderbooks.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
+            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
         }
         }
 }
@@ -4692,7 +4692,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
         }
-        let mut stored: Value = self.trades.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(trade.clone());
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices

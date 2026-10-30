@@ -12735,7 +12735,7 @@ if _try_result.is_err() {
                     if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::from(vec![])); }
                 }
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item, &[]);
-                let mut borrowRateHistoriesCode: Value = borrowRateHistories.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut borrowRateHistoriesCode: Value = (if let (Some(__m), Some(__k)) = (borrowRateHistories.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if let Value::Arr(__a) = &mut borrowRateHistoriesCode { std::sync::Arc::make_mut(__a).push(borrowRateStructure); };
                 crate::set_value(&mut borrowRateHistories, &code, borrowRateHistoriesCode);
             }

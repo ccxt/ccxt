@@ -1050,7 +1050,7 @@ impl PredictfunCore {
                     if (matches!((&orphanMarkets, &marketSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        let mut bucket: Value = orphanMarkets.as_map().and_then(|__m| marketSlug.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        let mut bucket: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), marketSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                         if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
                         crate::set_value(&mut orphanMarkets, &marketSlug, bucket.clone());
                         if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketSlug), bucket); }
@@ -1073,7 +1073,7 @@ impl PredictfunCore {
             let mut orphanSlug: Value = orphanSlugs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             if !(matches!((&seenSlugs, &orphanSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut seenSlugs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true)); }
-                let mut markets: Value = orphanMarkets.as_map().and_then(|__m| orphanSlug.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut first: Value = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4475,7 +4475,7 @@ impl PredictfunCore {
     m
 })]); if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeHandle), __be_tmp); } }
                 }
-                let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| outcomeHandle.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcomeHandle.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut bids: Value = yesBids.clone();
                 let mut asks: Value = yesAsks.clone();
                 if !isYesOutcome {

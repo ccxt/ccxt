@@ -753,7 +753,7 @@ pub trait ExchangeBase:
             let mut __for_first_75: bool = true;
             while { if !__for_first_75 { i += 1; } __for_first_75 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if is_equal(&timeframesResolved.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe) {
+            if is_equal(&(if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe) {
                 return key;
             }
         }
@@ -2123,10 +2123,10 @@ pub trait ExchangeBase:
             while { if !__for_first_81 { i += 1; } __for_first_81 = false; i < (targets.len() as i64) } {
             let mut target: Value = targets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut source: Value = fallbacks.get(target.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut sourceDefined: bool = (matches!((&self.has, &source), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.has.as_map().and_then(|__m| source.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null);
-            let mut targetDefined: bool = (matches!((&self.has, &target), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.has.as_map().and_then(|__m| target.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null);
+            let mut sourceDefined: bool = (matches!((&self.has, &source), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
+            let mut targetDefined: bool = (matches!((&self.has, &target), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), target.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
             if sourceDefined && !targetDefined {
-                { let __be_tmp = self.has.as_map().and_then(|__m| source.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null); if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&target), __be_tmp); } }
+                { let __be_tmp = (if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }); if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&target), __be_tmp); } }
             }
         }
         }
@@ -2219,7 +2219,8 @@ pub trait ExchangeBase:
 
     fn features_mapper(&mut self, mut initialFeatures: Value, mut marketType: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
-        let mut featuresObj: Value = (if (subType != Value::Null) { get_value(&initialFeatures.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &subType) } else { initialFeatures.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) });
+        let mut featuresObj: Value = (if (subType != Value::Null) { get_value(&(if let (Some(__m), Some(__k)) = (initialFeatures.as_map(), marketType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subType) } else { (if let (Some(__m), Some(__k)) = (initialFeatures.as_map(),
+            marketType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) });
         // if exchange does not have that market-type (eg. future>inverse)
         if (featuresObj == Value::Null) {
             return Value::Null;
@@ -2318,7 +2319,7 @@ pub trait ExchangeBase:
         if !(matches!((&self.features, &marketType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
-        let mut methodsContainer: Value = self.features.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut methodsContainer: Value = (if let (Some(__m), Some(__k)) = (self.features.as_map(), marketType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         // if marketType dict undefined
         if (methodsContainer == Value::Null) {
             return defaultValue;
@@ -2360,17 +2361,17 @@ pub trait ExchangeBase:
         }
         let mut dictionary: Value = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]);
         if (dictionary == Value::Null) {
-            return methodDict.as_map().and_then(|__m| parentKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if (subKey.is_none()) {
-                return methodDict.as_map().and_then(|__m| parentKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             // throw an exception for unsupported subKey
-            if !(in_op(&methodDict.as_map().and_then(|__m| parentKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &subKey.clone().map(Value::from).unwrap_or(Value::Null))) {
+            if !(in_op(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null))) {
                 return defaultValue;
             }
-            return get_value(&methodDict.as_map().and_then(|__m| parentKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &subKey.clone().map(Value::from).unwrap_or(Value::Null));
+            return get_value(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null));
         }
 
     Value::Null
@@ -2738,8 +2739,8 @@ pub trait ExchangeBase:
                 let mut __for_first_86: bool = true;
                 while { if !__for_first_86 { j += 1; } __for_first_86 = false; j < (valueKeys.len() as i64) } {
                 let mut valueKey: Value = valueKeys.get(j as usize).cloned().unwrap_or(Value::Null);
-                if (value.as_map().and_then(|__m| valueKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null) {
-                    valueDefined.insert(crate::runtime::stringify_param(&valueKey), value.as_map().and_then(|__m| valueKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                if ((if let (Some(__m), Some(__k)) = (value.as_map(), valueKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null) {
+                    valueDefined.insert(crate::runtime::stringify_param(&valueKey), (if let (Some(__m), Some(__k)) = (value.as_map(), valueKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 }
             }
             }
@@ -2927,10 +2928,10 @@ pub trait ExchangeBase:
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut total: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
-            let mut free: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]);
-            let mut used: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
-            let mut debt: Option<String> = self.safe_string_opt(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]);
+            let mut total: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("total".into()), &[]);
+            let mut free: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("free".into()), &[]);
+            let mut used: Value = self.safe_string((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("used".into()), &[]);
+            let mut debt: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("debt".into()), &[]);
             if (total == Value::Null) && (free != Value::Null) && (used != Value::Null) {
                 total = crate::precise::Precise::stringAdd(&free, &used);
             }
@@ -2954,7 +2955,7 @@ pub trait ExchangeBase:
                 debtBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
                 entry.insert("debt".into(), debtBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
-            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
+            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[Value::Map(entry)])); }
         }
         }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
@@ -3713,7 +3714,7 @@ pub trait ExchangeBase:
 })); }
                 }
                 let mut rateKey: Value = (if (rate == Value::Null) { Value::Str("".into()) } else { rate.clone() });
-                if (in_op(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey)) {
+                if (in_op(&(if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &rateKey)) {
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); };
                 }  else {
                     let mut newRateFee: indexmap::IndexMap<String, Value> = ({
@@ -4069,22 +4070,22 @@ pub trait ExchangeBase:
             while { if !__for_first_107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_107 = false; i.as_f64().unwrap_or(f64::NAN) < ((ohlcvs.len() as i64) as f64) } {
             let mut ts: Value = (if ms.as_bool() == Some(true) { ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { self.parse_to_int((match ((ohlcvs.get((i).as_i64().map_or(usize::MAX,
                 |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
-            let mut resultTimestamp: Value = result.as_map().and_then(|__m| timestamp.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultTimestamp: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), timestamp.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(ts); };
             crate::set_value(&mut result, &timestamp, resultTimestamp);
-            let mut resultOpen: Value = result.as_map().and_then(|__m| open.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultOpen: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), open.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &open, resultOpen);
-            let mut resultHigh: Value = result.as_map().and_then(|__m| high.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultHigh: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), high.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultHigh { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &high, resultHigh);
-            let mut resultLow: Value = result.as_map().and_then(|__m| low.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultLow: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), low.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultLow { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &low, resultLow);
-            let mut resultClose: Value = result.as_map().and_then(|__m| close.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultClose: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), close.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultClose { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &close, resultClose);
-            let mut resultVolume: Value = result.as_map().and_then(|__m| volume.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut resultVolume: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), volume.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut resultVolume { std::sync::Arc::make_mut(__a).push(ohlcvs.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)); };
             crate::set_value(&mut result, &volume, resultVolume);
         }
@@ -4456,8 +4457,8 @@ pub trait ExchangeBase:
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (aliasKeys.len() as i64) } {
             let mut alias: Value = aliasKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (aliases.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, &alias), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return networkIdsByCodes.as_map().and_then(|__m| alias.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, &alias), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                return (if let (Some(__m), Some(__k)) = (networkIdsByCodes.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
         }
         }
@@ -4477,7 +4478,7 @@ pub trait ExchangeBase:
     m
 })]);
             if (matches!((&networks, &unifiedCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return self.safe_string(networks.as_map().and_then(|__m| unifiedCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
+                return self.safe_string((if let (Some(__m), Some(__k)) = (networks.as_map(), unifiedCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("id".into()), &[]);
             }
         }
         }
@@ -5847,8 +5848,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (currencyId == Value::Null) && (currency != Value::Null) {
             return currency;
         }
-        if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (self.currencies_by_id.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) != Value::Null) {
-            return self.currencies_by_id.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.currencies_by_id.as_map(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null) {
+            return (if let (Some(__m), Some(__k)) = (self.currencies_by_id.as_map(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
         let mut code: Value = currencyId.clone();
         if (currencyId != Value::Null) {
@@ -5968,7 +5969,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut credentialValue: Value = self.prop(&key);
             let mut credentialMissing: bool = (credentialValue == Value::Null) || (credentialValue == Value::Null) || ((match &(credentialValue) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
                 Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (credentialValue.as_str() == Some(""));
-            if (self.requiredCredentials.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && credentialMissing {
+            if ((if let (Some(__m), Some(__k)) = (self.requiredCredentials.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_bool() == Some(true)) && credentialMissing {
                 if error.as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires \"".into())).into()), key).into()), Value::Str("\" credential".into()))));
                 }  else {
@@ -6160,7 +6161,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" getSupportedMapping() requires a key argument".into()))));
         }
         if (matches!((&mapping, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return mapping.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (mapping.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             let mut keys: Value = object_keys(&mapping);
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), key).into()), Value::Str(" does not have a value in mapping".into())).into()),
@@ -6462,18 +6463,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn throw_exactly_matched_exception(&self, mut exact: Value, mut string: Value, mut message: Value) {
+        let __exact_empty = indexmap::IndexMap::new();
+        let exact = exact.as_map().unwrap_or(&__exact_empty);
         if (string == Value::Null) {
             return;
         }
-        if (in_op(&exact, &string)) {
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&exact, &string))), &crate::runtime::stringify_param(&(message))));
+        if (matches!(string.as_str(), Some(__k) if exact.contains_key(__k))) {
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&((if let Some(__k) = string.as_str() { exact.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))), &crate::runtime::stringify_param(&(message))));
         }
 }
 
     fn throw_broadly_matched_exception(&self, mut broad: Value, mut string: Value, mut message: Value) {
         let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), string);
         if (broadKey != Value::Null) {
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(message))));
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&((if let (Some(__m), Some(__k)) = (broad.as_map(), broadKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))), &crate::runtime::stringify_param(&(message))));
         }
 }
 
@@ -7112,7 +7115,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (fields.len() as i64) } {
             let mut field: Value = fields.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut current: Option<String> = self.safe_string_opt(result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), field.clone(), &[]);
+            let mut current: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), field.clone(), &[]);
             let mut incoming: Value = self.safe_string(account.clone(), field.clone(), &[]);
             if (current.is_none()) {
                 if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), incoming.clone()); } }
@@ -7148,9 +7151,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut currencies: Value = self.currencies.clone();
             let mut currenciesById: Value = self.currencies_by_id.clone();
             if (matches!((&currencies, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return currencies.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                return (if let (Some(__m), Some(__k)) = (currencies.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else if (currenciesById != Value::Null) && (matches!((&currenciesById, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return currenciesById.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                return (if let (Some(__m), Some(__k)) = (currenciesById.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
         }
         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have currency code ".into())).into()), code)));
@@ -7297,7 +7300,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" currencyToPrecision() requires a code argument".into()))));
         }
-        let mut currency: Value = self.currencies.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut currency: Value = (if let (Some(__m), Some(__k)) = (self.currencies.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut precision: Value = self.safe_value_k(currency.clone(), "precision", &[]);
         if (networkCode != Value::Null) {
             let mut networks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
@@ -8265,7 +8268,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 })]);
         let mut lowercaseAccount: Value = (match &(account) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null });
         if (matches!((&accountsByType, &lowercaseAccount), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return accountsByType.as_map().and_then(|__m| lowercaseAccount.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (accountsByType.as_map(), lowercaseAccount.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();
@@ -9036,10 +9039,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut uniqueResult: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_168 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&input, &i);
+            while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (input.len() as i64) } {
+            let mut entry: Value = input.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut uniqValue: Value = (if fallbackToTimestamp.as_bool() == Some(true) { self.safe_string_n(entry.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("timestamp".into()), Value::Int(0)]), &[]) } else { self.safe_string_k(entry.clone(), "id", &[]) });
             if (uniqValue != Value::Null) && !(matches!((&uniqueDic, &uniqValue), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut uniqueDic { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1)); }
@@ -9105,7 +9108,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(self.in_array(key.clone(), removeKeys.clone()).as_bool() == Some(true)) {
-                newDict.insert(crate::runtime::stringify_param(&key), dict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                newDict.insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             }
         }
         }
@@ -9696,7 +9699,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
                 if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
                 }

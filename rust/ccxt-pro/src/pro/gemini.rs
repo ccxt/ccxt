@@ -553,7 +553,7 @@ impl GeminiCore {
             let mut __for_first_355: bool = true;
             while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut stored: Value = storesForSymbols.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut stored: Value = (if let (Some(__m), Some(__k)) = (storesForSymbols.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
             client.resolve(&[stored, messageHash]);
         }
@@ -745,7 +745,7 @@ impl GeminiCore {
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         if isInitial {
             // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
             let mut bidsSnapshot: Vec<Value> = Vec::new();
@@ -875,7 +875,7 @@ impl GeminiCore {
 }), &[]); if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             add_element_to_object(get_value_mut(&mut self.bidsasks, &symbol), &Value::Str("symbol".into()), symbol.clone());
         }
-        let mut currentBidAsk: Value = self.bidsasks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut currentBidAsk: Value = (if let (Some(__m), Some(__k)) = (self.bidsasks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
         {
                         let mut i: i64 = 0;
@@ -983,7 +983,7 @@ impl GeminiCore {
             let mut ob: Value = self.order_book(&[]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut bids: Value = orderbook.book_field("bids");
         let mut asks: Value = orderbook.book_field("asks");
         {

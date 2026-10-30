@@ -5846,7 +5846,7 @@ impl DigifinexCore {
                     feeStructure.insert("info".into(), Value::from(vec![]));
                     if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure)); }
                 }
-                let mut depositWithdrawFee: Value = depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut depositWithdrawFee: Value = (if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut depositWithdrawInfo: Value = depositWithdrawFee.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut depositWithdrawInfo { std::sync::Arc::make_mut(__a).push(entry.clone()); };
                 let mut networkId: Option<String> = self.safe_string_k_opt(entry.clone(), "chain", &[]);
@@ -5887,7 +5887,7 @@ impl DigifinexCore {
             while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees((if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }
         return depositWithdrawFees;

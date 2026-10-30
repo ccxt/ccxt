@@ -1412,7 +1412,7 @@ impl CoinbaseCore {
             }  else if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
-            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if (type_var.as_deref() == Some("snapshot")) {
                 // reset in place so consumers holding a reference keep receiving updates after a resync
                 orderbook.reset(Value::Map({

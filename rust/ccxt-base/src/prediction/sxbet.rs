@@ -837,7 +837,7 @@ impl SxbetCore {
             let mut __for_first_1491: bool = true;
             while { if !__for_first_1491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
             let mut fixtureId: Value = order.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
-            let mut event: Value = self.parse_event(fixtureId.clone(), grouped.as_map().and_then(|__m| fixtureId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+            let mut event: Value = self.parse_event(fixtureId.clone(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             let mut evMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut evMarketsLength: f64 = ((evMarkets.len() as i64) as f64);
             {
@@ -3714,7 +3714,7 @@ impl SxbetCore {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
             }
-            let mut stored: Value = self.trades.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             stored.append(trade);
             client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
         }

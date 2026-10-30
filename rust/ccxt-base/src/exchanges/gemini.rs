@@ -1637,7 +1637,7 @@ impl GeminiCore {
 })]);
             let mut lowerCaseId: Value = marketIdWithoutPerp.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             if (matches!((&conflictingMarkets, &lowerCaseId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut conflictingMarket: Value = conflictingMarkets.as_map().and_then(|__m| lowerCaseId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut conflictingMarket: Value = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 baseId = self.safe_string_k(conflictingMarket.clone(), "base", &[]);
                 quoteId = self.safe_string_k(conflictingMarket.clone(), "quote", &[]);
                 if isPerp {

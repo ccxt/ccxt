@@ -674,7 +674,7 @@ impl ParadexCore {
                 m.insert("asks".to_string(), Value::from(asks));
             m
         });
-        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut snapshot: Value = self.parse_order_book(Value::Map(orderbookData), symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
         snapshot.set_book_meta("nonce", self.safe_integer_k(data, "seq_no", &[]));
         orderbook.reset(snapshot);
@@ -1203,7 +1203,7 @@ impl ParadexCore {
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), balance.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

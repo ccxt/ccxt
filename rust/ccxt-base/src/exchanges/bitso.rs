@@ -2492,7 +2492,7 @@ impl BitsoCore {
             let mut currencyId: Value = withdrawalKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
-                let mut withdrawFee: Value = self.parse_number(withdrawalResponse.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]);
+                let mut withdrawFee: Value = self.parse_number((if let (Some(__m), Some(__k)) = (withdrawalResponse.as_map(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]);
                 let mut resultValue: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                 if (resultValue == Value::Null) {
                     result.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({

@@ -2784,8 +2784,8 @@ impl KrakenfuturesCore {
             m
         });
         if (matches!((&errors, &status), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && !(self.in_array(status.clone(), omit).as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(errors.as_map().and_then(|__m| status.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null))), &crate::runtime::stringify_param(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                self.id.clone(), Value::Str(": ".into())).into()), method).into()), Value::Str(" failed due to ".into())).into()), status).into())))));
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&((if let (Some(__m), Some(__k)) = (errors.as_map(), status.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))), &crate::runtime::stringify_param(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                Value::Str(format!("{}{}", self.id.clone(), Value::Str(": ".into())).into()), method).into()), Value::Str(" failed due to ".into())).into()), status).into())))));
         }
 }
 
@@ -3945,7 +3945,7 @@ impl KrakenfuturesCore {
             let mut __for_first_881: bool = true;
             while { if !__for_first_881 { i += 1; } __for_first_881 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut balance: Value = balances.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = (if let (Some(__m), Some(__k)) = (balances.as_map(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code == Value::Null) {
                 continue;
@@ -4639,7 +4639,7 @@ impl KrakenfuturesCore {
             m
         });
         if (matches!((&accountByType, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return accountByType.as_map().and_then(|__m| account.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return (if let (Some(__m), Some(__k)) = (accountByType.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut market: Value = self.market(account.clone());
             let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);

@@ -1733,7 +1733,7 @@ impl IndependentreserveCore {
                 let mut __for_first_837: bool = true;
                 while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                query.insert(crate::runtime::stringify_param(&key), paramsDict.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                query.insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (paramsDict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             }
             }
             let mut signedBody: Value = json_stringify(&Value::Map(query));

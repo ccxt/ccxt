@@ -1771,9 +1771,9 @@ impl BitflyerCore {
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
-        let mut statusCode: Value = self.safe_integer_k(response, "status", &[]);
+        let mut statusCode: Option<String> = self.safe_string_k_opt(response, "status", &[]);
         if (errorMessage.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), statusCode, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), statusCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

@@ -5820,7 +5820,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), marketResolved.as_map().and_then(|__m| codeCurrency.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+        m.insert("code".to_string(), (if let (Some(__m), Some(__k)) = (marketResolved.as_map(), codeCurrency.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("status".to_string(), self.parse_margin_status(self.safe_string_k(data, "code", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);

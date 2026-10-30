@@ -185,7 +185,7 @@ impl crate::exchange_generated::ExchangeBase for WooCore {
                 "fetch_transfers" => self.fetch_transfers(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "get_asset_history_rows" => self.get_asset_history_rows(&args[..]).await,
-                "get_currency_from_chaincode" => self.get_currency_from_chaincode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "get_currency_from_chaincode" => self.get_currency_from_chaincode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "get_dedicated_network_id" => self.get_dedicated_network_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -2163,8 +2163,8 @@ impl WooCore {
             let mut customCurrency: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_coin_id".to_string(), id.clone());
-                    m.insert("_tokens_by_id".to_string(), tokensById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
-                    m.insert("_networks_by_id".to_string(), networksById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                    m.insert("_tokens_by_id".to_string(), (if let (Some(__m), Some(__k)) = (tokensById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    m.insert("_networks_by_id".to_string(), (if let (Some(__m), Some(__k)) = (networksById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m
             });
             let mut parsed: Value = self.parse_currency(Value::Map(customCurrency));
@@ -4245,15 +4245,16 @@ impl WooCore {
         return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn get_currency_from_chaincode(&self, mut networkizedCode: Value, mut currency: Value) -> Value {
+    pub fn get_currency_from_chaincode(&self, mut networkizedCode: Value, optional_args: &[Value]) -> Value {
+        let mut currency = get_arg(optional_args, 0, Value::Null);
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Value = split(&networkizedCode, &Value::Str("_".into()));
-            let mut partsLength: Value = parts.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
+            let mut parts: Value = Value::Array(networkizedCode.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut partsLength: f64 = ((parts.len() as i64) as f64);
             let mut firstPart: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
-            if partsLength.as_f64().unwrap_or(f64::NAN) > ((2i64) as f64) {
+            if partsLength > ((2i64) as f64) {
                 currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
             }
             return self.safe_currency(currencyId, &[]);
@@ -4379,8 +4380,8 @@ impl WooCore {
         //         "confirmedNumber": null
         //     }
         //
-        let mut networkizedCode: Option<String> = self.safe_string_k_opt(transaction.clone(), "token", &[]);
-        let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut networkizedCode: Value = self.safe_string_k(transaction.clone(), "token", &[Value::Str("".into())]);
+        let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode, &[currency]);
         let mut code: Option<String> = self.safe_string_k_opt(currencyDefined, "code", &[]);
         let mut movementDirection: Value = self.safe_string_lower_n(transaction.clone(), Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]);
         if (movementDirection.as_str() == Some("withdraw")) {

@@ -760,7 +760,7 @@ impl LimitlessCore {
     m
 })); }
                 }
-                let mut eventGroup: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -780,7 +780,7 @@ impl LimitlessCore {
             let mut __for_first_1298: bool = true;
             while { if !__for_first_1298 { i += 1; } __for_first_1298 = false; i < (eventKeys.len() as i64) } {
             let mut eventKey: Value = eventKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut g: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut g: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), self.parse_event(g)); }
         }
         }
@@ -916,7 +916,7 @@ impl LimitlessCore {
             let mut __for_first_1299: bool = true;
             while { if !__for_first_1299 { i += 1; } __for_first_1299 = false; i < (tokenEntries.len() as i64) } {
             let mut outcomeLabel: Value = tokenEntries.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tokenData: Value = tokens.as_map().and_then(|__m| outcomeLabel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut tokenData: Value = (if let (Some(__m), Some(__k)) = (tokens.as_map(), outcomeLabel.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut tokenId: Value = tokenData;
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(groupId.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), outcomeLabel.clone());
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -2174,7 +2174,7 @@ impl LimitlessCore {
                 if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)])); }
                 bucketOrder.push(key.clone());
             }  else {
-                let mut candle: Value = candles.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut candle: Value = (if let (Some(__m), Some(__k)) = (candles.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut prevHigh: Value = self.safe_number(candle.clone(), Value::Int(2), &[]);
                 if (prevHigh == Value::Null) || (pPrice.as_f64().unwrap_or(f64::NAN) > prevHigh.as_f64().unwrap_or(f64::NAN)) {
                     add_element_to_object(&mut candle, &Value::Int(2), pPrice.clone());
@@ -4012,7 +4012,7 @@ if _try_result.is_err() {
     m
 })); }
                 }
-                let mut eventGroup: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go

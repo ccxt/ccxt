@@ -5112,7 +5112,7 @@ if _try_result.is_err() {
             urlKey = Value::Str("test".into());
         }
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), apiName, &[]);
+        let mut baseApiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map(), urlKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), apiName, &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }

@@ -726,7 +726,7 @@ impl HyperliquidCore {
                 let quote: String = self.safe_string_opt(symbolParts, Value::Int(1), &[]).unwrap_or_default();
                 let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), &[]), Value::Str("/".into())).into()), quote).into());
                 if (matches!((&self.markets, &newSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    return self.markets.as_map().and_then(|__m| newSymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                    return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), newSymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 }
             }
         }
@@ -4591,7 +4591,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if !(matches!((&deduplicatedByOid, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder.clone()); }
                 }  else {
-                    let mut existingTimestamp: Value = self.safe_integer(deduplicatedByOid.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);
+                    let mut existingTimestamp: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]);
                     if (currentTimestamp != Value::Null) && ((existingTimestamp == Value::Null) || currentTimestamp.as_f64().unwrap_or(f64::NAN) > existingTimestamp.as_f64().unwrap_or(f64::NAN)) {
                         if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder); }
@@ -6968,7 +6968,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }) });
             if (matches!((&byType, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return byType.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                return (if let (Some(__m), Some(__k)) = (byType.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
         }
         return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Int(1) }, _ => Value::Int(1) });
