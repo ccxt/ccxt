@@ -29,4 +29,17 @@ export function installHx11w8CreateOrdersSlice (goTranspiler: any) {
         }
         return '[]any';
     };
+    // element reads keep GetValue: the native read would trade it for DerefScalar (a family move)
+    if (typeof goTranspiler.goNativeListElementRead === 'function') {
+        const upstreamRead = goTranspiler.goNativeListElementRead;
+        goTranspiler.goNativeListElementRead = function (this: any, node: any, containerStr: string, keyNode: any, keyStr: string) {
+            const base: any = node?.expression;
+            const decl: any = (base?.kind === ts.SyntaxKind.Identifier) ? this.checkerOrUndefined ()?.getSymbolAtLocation (base)?.valueDeclaration?.resolve () : undefined;
+            const fn: any = decl?.parent;
+            if ((fn?.name?.text === 'createOrders') && (decl.name?.text === 'orders') && (fn.parameters?.[0]?.name?.text === 'orders')) {
+                return undefined;
+            }
+            return upstreamRead.call (this, node, containerStr, keyNode, keyStr);
+        };
+    }
 }

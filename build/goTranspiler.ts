@@ -11619,6 +11619,10 @@ function g05GuardedListReads (lines: string[], masked: string[], start: number, 
             continue;
         }
         const t = typeAt (name, k);
+        // hx11 w8: the createOrders `orders []any` parameter keeps GetValue (a native read trades it for a closure)
+        if ((name === 'orders') && /\bcreateOrdersBody\(/.test (masked[start] ?? '') ) {
+            continue;
+        }
         const ok = ((t === '[]string') || ((t === '[]any') && consumerTail.test (m.substring (0, at)))) && g05IntKey (key, k, maskedFunc, typeAt);
         if (!ok) {
             continue;
