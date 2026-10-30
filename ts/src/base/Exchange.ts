@@ -7053,7 +7053,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
 
-    async fetchPartialBalance (part: any, params: Dict = {}): Promise<Balance> {
+    async fetchPartialBalance (part: string, params: Dict = {}): Promise<Balance> {
         const balance = await this.fetchBalance (params);
         return balance[part];
     }
