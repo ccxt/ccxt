@@ -1942,11 +1942,11 @@ public partial class bybit : ccxt.bybit
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters);
         (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
-        object method = methodparamsMethodVariable.Item1;
+        string method = methodparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         string messageHash = ("liquidations::" + symbolValue);
         string? marketId = this.safeString(market, "id", "");
-        object topic = add(add(method, "."), marketId);
+        string topic = ((method + ".") + marketId);
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsMethod);
         if (this.newUpdates)
         {

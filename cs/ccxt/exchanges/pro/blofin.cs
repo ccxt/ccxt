@@ -630,7 +630,7 @@ public partial class blofin : ccxt.blofin
         {
             throw new NotSupported ((this.id + " watchBalance() is not supported for spot markets yet")) ;
         }
-        object messageHash = (marketType + ":balance");
+        string messageHash = (marketType + ":balance");
         Dictionary<string, object> sub = new Dictionary<string, object>() {
             { "channel", "account" },
         };

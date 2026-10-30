@@ -1361,7 +1361,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subType, string subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, string type, object subType, string subscriptionHash, object parameters)
     {
         if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
@@ -1371,8 +1371,8 @@ public partial class bingx : ccxt.bingx
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true))
         {
-            object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            string messageHash = (type + ":fetchBalanceSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subType});
@@ -1424,12 +1424,12 @@ public partial class bingx : ccxt.bingx
             messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchPositions", market, parameters, "swap");
-        var type = typeparamsMarketTypeVariable[0];
+        string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchPositions", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             throw new NotSupported ((this.id + " watchPositions is not supported for spot markets")) ;
         }
@@ -1460,7 +1460,7 @@ public partial class bingx : ccxt.bingx
         };
         if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
-            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future((type + ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);

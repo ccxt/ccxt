@@ -345,7 +345,7 @@ public partial class phemex : ccxt.phemex
         string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool usePerpetualApi = (this.safeString(paramsMarketType, "settle") == "USDT");
-        object messageHash = "perpetual:balance";
+        string messageHash = "perpetual:balance";
         if (!usePerpetualApi)
         {
             messageHash = (type + ":balance");

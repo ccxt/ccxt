@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**
@@ -4133,7 +4133,7 @@ public partial class binance : ccxt.binance
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
         var typesubTypeparamsValueVariable = this.resolveAuthType("watchBalance", null, parameters);
-        var type = typesubTypeparamsValueVariable[0];
+        string type = (string)typesubTypeparamsValueVariable[0];
         string? subType = (string)typesubTypeparamsValueVariable[1];
         var paramsValue = typesubTypeparamsValueVariable[2];
         await this.authenticate(this.extend(new Dictionary<string, object>() {
@@ -4142,8 +4142,8 @@ public partial class binance : ccxt.binance
         }, paramsValue));
         bool? isPortfolioMargin = this.handleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false).Item1;
         string? url = "";
-        object urlType = type;
-        if ((type is "spot") || (type is "margin"))
+        string urlType = type;
+        if ((type == "spot") || (type == "margin"))
         {
             // route to WebSocket API connection where the user data stream is subscribed
             IDictionary<string, object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
@@ -4154,7 +4154,7 @@ public partial class binance : ccxt.binance
             if ((isPortfolioMargin == true))
             {
                 urlType = "papi";
-            } else if ((type is "option"))
+            } else if ((type == "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if ((demoMode == true) || this.isSandboxModeEnabled)
@@ -4174,9 +4174,9 @@ public partial class binance : ccxt.binance
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(type, ":fetchBalanceSnapshot"));
+            await client.future((type + ":fetchBalanceSnapshot"));
         }
-        object messageHash = add(type, ":balance");
+        string messageHash = (type + ":balance");
         object message = null;
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, type));
     }

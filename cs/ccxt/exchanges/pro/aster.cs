@@ -1239,8 +1239,8 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         string? symbolValue = this.safeSymbol(symbol);
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**
@@ -1589,7 +1589,7 @@ public partial class aster : ccxt.aster
         }
         string? type = null;
         IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
-        var typeMarketType = typeMarketTypeparamsMarketTypeVariable[0];
+        string typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
         if ((type == null))
         {
@@ -1604,16 +1604,16 @@ public partial class aster : ccxt.aster
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(typeMarketType, ":fetchBalanceSnapshot"));
+            await client.future((typeMarketType + ":fetchBalanceSnapshot"));
         }
-        object messageHash = add(typeMarketType, ":balance");
+        string messageHash = (typeMarketType + ":balance");
         object message = null;
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, typeMarketType));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type)
+    public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if (((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))) && ((this.balance != null && type is string inOpKey1 && this.balance.ContainsKey(inOpKey1))))
+        if (((client.subscriptions != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
         {
             return;
         }
@@ -1621,8 +1621,8 @@ public partial class aster : ccxt.aster
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
-            object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            string messageHash = (type + ":fetchBalanceSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});

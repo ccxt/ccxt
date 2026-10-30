@@ -1035,7 +1035,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             string feedback = ((this.id + " ") + this.json(message));
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            double? code = this.safeNumber(data, "code");
+            string? code = this.safeString(data, "code");
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
         }
         return ((bool?)((object)(true)));

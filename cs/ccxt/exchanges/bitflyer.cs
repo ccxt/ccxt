@@ -1471,7 +1471,7 @@ public partial class bitflyer : Exchange
         string feedback = ((this.id + " ") + (body));
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         string? errorMessage = this.safeString(response, "error_message");
-        Int64? statusCode = this.safeInteger(response, "status");
+        string? statusCode = this.safeString(response, "status");
         if ((errorMessage != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), statusCode, feedback);

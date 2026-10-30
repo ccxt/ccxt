@@ -1853,9 +1853,9 @@ public partial class weex : ccxt.weex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate((type + ":balance"), type, "account", isContract, paramsMarketType));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type)
+    public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if (((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))) && ((this.balance != null && type is string inOpKey1 && this.balance.ContainsKey(inOpKey1))))
+        if (((client.subscriptions != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
         {
             return;
         }
@@ -1863,8 +1863,8 @@ public partial class weex : ccxt.weex
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
-            object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            string messageHash = (type + ":fetchBalanceSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});

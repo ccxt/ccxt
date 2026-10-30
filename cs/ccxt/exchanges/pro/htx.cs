@@ -1789,7 +1789,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object messageHash = "";
+        string messageHash = "";
         if ((!this.isEmpty(symbols)) && ((symbols != null)))
         {
             market = this.getMarketFromSymbols(symbols);
@@ -1821,7 +1821,7 @@ public partial class htx : ccxt.htx
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
-        object marginMode = marginModeparamsMarginModeVariable.Item1;
+        string marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         object paramsRequest = paramsMarginMode;
         bool linear = (subType == "linear");
@@ -1830,9 +1830,9 @@ public partial class htx : ccxt.htx
         bool isV5Linear = (linear && (swap || future));
         bool isLinear = (subType == "linear");
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
-        messageHash = add(add(marginMode, ":positions"), messageHash);
+        messageHash = ((marginMode + ":positions") + messageHash);
         string? channel = "positions.*";
-        if ((marginMode is "cross"))
+        if ((marginMode == "cross"))
         {
             channel = "positions_cross.*";
         }

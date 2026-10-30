@@ -1557,7 +1557,7 @@ public partial class gate : ccxt.gate
         });
         // todo: add correct margin support
         string channel = (channelType + ".balances");
-        object messageHash = (type + ".balance");
+        string messageHash = (type + ".balance");
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(url, messageHash, null, channel, paramsSubType, requiresUid));
     }
 

@@ -637,12 +637,12 @@ public partial class deribit : ccxt.deribit
         string? depth = depthparamsDepthVariable.Item1;
         IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
         (string?, object) groupparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
-        object group = groupparamsGroupVariable.Item1;
+        string group = groupparamsGroupVariable.Item1;
         IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable.Item2);
-        object descriptor = interval;
+        string? descriptor = interval;
         if ((useDepthEndpoint == true))
         {
-            descriptor = add(add(add(add(group, "."), depth), "."), interval);
+            descriptor = ((((group + ".") + depth) + ".") + interval);
         }
         object paramsResolved = paramsUseDepthEndpoint;
         if ((useDepthEndpoint == true))
@@ -906,8 +906,8 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) ? ohlcvs[symbolValue] : null), timeframeVar));
     }
 
     /**

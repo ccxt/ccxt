@@ -766,9 +766,9 @@ public partial class poloniex : ccxt.poloniex
         return ccxt.BaseExchange.ToBalances(await this.subscribe(name, name, true, null, parameters));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type)
+    public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if ((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(type)))
         {
             return;
         }
@@ -776,8 +776,8 @@ public partial class poloniex : ccxt.poloniex
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
-            object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            string messageHash = (type + ":fetchBalanceSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});

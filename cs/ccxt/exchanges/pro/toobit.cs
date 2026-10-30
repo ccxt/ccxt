@@ -226,7 +226,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -358,7 +358,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -501,7 +501,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -627,7 +627,7 @@ public partial class toobit : ccxt.toobit
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -687,7 +687,7 @@ public partial class toobit : ccxt.toobit
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public virtual void handleOrderBookPartialSnapshot(WebSocketClient client, object message)
+    public virtual void handleOrderBookPartialSnapshot(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -808,7 +808,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -932,7 +932,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1067,7 +1067,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1223,7 +1223,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // [
@@ -1260,19 +1260,9 @@ public partial class toobit : ccxt.toobit
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
         // handleMessage's fallback dispatches one item at a time
-        object rawPositions = message;
-        if (!((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rawPositions = new List<object>() {message};
-        }
-        List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawPositions); i++)
-        {
-            object rawPosition = getValue(rawPositions, i);
-            Dictionary<string, object> position = this.parseWsPosition(rawPosition);
-            newPositions.Add(position);
-            cache.append(position);
-        }
+        Dictionary<string, object> position = this.parseWsPosition(message);
+        List<object> newPositions = new List<object>() {position};
+        cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

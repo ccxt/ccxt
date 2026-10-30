@@ -3393,15 +3393,15 @@ public partial class woo : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual object getCurrencyFromChaincode(object networkizedCode, object currency)
+    public virtual object getCurrencyFromChaincode(string networkizedCode, object currency = null)
     {
         if ((currency != null))
         {
             return currency;
         } else
         {
-            List<object> parts = ((string)networkizedCode).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            int partsLength = (parts?.Count ?? 0);
+            List<object> parts = networkizedCode.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+            int partsLength = parts.Count;
             string? firstPart = this.safeString(parts, 0);
             object currencyId = this.safeString(parts, 1, firstPart);
             if (partsLength > 2)
@@ -3499,7 +3499,7 @@ public partial class woo : Exchange
         //         "confirmedNumber": null
         //     }
         //
-        string? networkizedCode = this.safeString(transaction, "token");
+        string? networkizedCode = this.safeString(transaction, "token", "");
         object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         string? code = this.safeString(currencyDefined, "code");
         string? movementDirection = this.safeStringLowerN(transaction, new List<object>() {"token_side", "tokenSide", "type"});
