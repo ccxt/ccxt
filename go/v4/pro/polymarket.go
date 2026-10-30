@@ -166,8 +166,8 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"book::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -251,8 +251,8 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	//
 	// every frame is a full snapshot of the top twenty levels, deltas are never sent
 	//
-	var ch *string = this.SafeString(message, "ch", "")
-	var parts []string = strings.Split(*ch, "::")
+	var ch string = *this.SafeString(message, "ch", "")
+	var parts []string = strings.Split(ch, "::")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -295,8 +295,8 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ticker:" + *symbolResolved
+	var symbolResolved string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ticker:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"tickers::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -689,19 +689,19 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(rows, 0)
 	var marketId *string = this.SafeString(first, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if _, ok := this.Trades[*symbol]; !ok {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
-	var trades any = this.Trades[*symbol]
+	var trades any = this.Trades[symbol]
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(row, market)
 		trades.(ccxt.Appender).Append(trade)
 	}
-	var messageHash string = "trade:" + *symbol
+	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -878,12 +878,12 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	//
 	// only the candles touched by fresh trades are included, the array can be empty
 	//
-	var ch *string = this.SafeString(message, "ch", "")
-	var parts []string = strings.Split(*ch, "::")
+	var ch string = *this.SafeString(message, "ch", "")
+	var parts []string = strings.Split(ch, "::")
 	var marketId *string = this.SafeString(parts, 1)
 	var interval *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
 		return
@@ -893,25 +893,25 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if rowsLength == 0 {
 		return
 	}
-	if _, ok := this.Ohlcvs[*symbol]; !ok {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if _, ok := this.Ohlcvs[symbol]; !ok {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+	if !(ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var ohlcv any
 	if timeframe != nil {
-		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+		ohlcv = this.Ohlcvs[symbol][*timeframe]
 	}
 	for i := 0; i < len(rows); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.DerefScalar(rows[i]), market))
 		ohlcv.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash string = "candles:" + *timeframe + ":" + *symbol
+	var messageHash string = "candles:" + *timeframe + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 

@@ -127,11 +127,11 @@ func (this *Backpack) WsVenueMarketId(methodName string, market map[string]any, 
 		panic(ccxt.BadSymbol(this.Id + " " + methodName + "() requires a market"))
 	}
 	this.HandleStockParams(methodName, params, market)
-	var source *string = this.SafeString(params, "source", "Venue")
-	if (source != nil && *source == "External") || (this.SafeString(market, "executionModel") != nil && *this.SafeString(market, "executionModel") == "rfq") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
+	var source string = *this.SafeString(params, "source", "Venue")
+	if (source == "External") || (this.SafeString(market, "executionModel") != nil && *this.SafeString(market, "executionModel") == "rfq") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
 		panic(ccxt.NotSupported(this.Id + " " + methodName + "() requires a venue order-book market; provider and RFQ streams are not documented for this method"))
 	}
-	if source == nil || *source != "Venue" {
+	if source != "Venue" {
 		panic(ccxt.BadRequest(this.Id + " " + methodName + "() source must be Venue"))
 	}
 	return market["id"]
@@ -211,8 +211,8 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			"source": source,
 		})
 		var request any = this.StockDataRequest(methodName, requestParams, market)
-		var tickerSymbol *string = this.SafeString(request, "symbol", "")
-		var topic string = "ticker." + *tickerSymbol
+		var tickerSymbol string = *this.SafeString(request, "symbol", "")
+		var topic string = "ticker." + tickerSymbol
 		if channel != nil {
 			if (channel == nil || *channel != "stockPrice") && (channel == nil || *channel != "stockIndicativeQuote") {
 				panic(ccxt.BadRequest(this.Id + " " + methodName + "() channel must be stockPrice or stockIndicativeQuote"))
@@ -242,8 +242,8 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 				topic = "bookTicker." + *this.SafeString(market, "id", "")
 			}
 		} else if source != nil && *source == "External" {
-			var externalBaseId *string = this.SafeString(market, "baseId", "")
-			topic = "externalTicker." + *externalBaseId + "_USDC"
+			var externalBaseId string = *this.SafeString(market, "baseId", "")
+			topic = "externalTicker." + externalBaseId + "_USDC"
 		} else if (this.SafeString(market, "executionModel") != nil && *this.SafeString(market, "executionModel") == "rfq") && (market["stock"] != true) {
 			panic(ccxt.NotSupported(this.Id + " " + methodName + "() RFQ venue tickers are only mapped for stock data"))
 		}
@@ -621,8 +621,8 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	//     }
 	//
 	var ticker map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
+	var stream string = *this.SafeString(message, "stream", "")
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -717,8 +717,8 @@ func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) map[string]
  */
 func (this *Backpack) HandleStockTicker(client any, message any) bool {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
+	var stream string = *this.SafeString(message, "stream", "")
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -837,8 +837,8 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var stream *string = this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
+	var stream string = *this.SafeString(message, "stream", "")
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -1169,8 +1169,8 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stream *string = this.SafeString(message, "stream", "")
-	var parts []string = strings.Split(*stream, ".")
+	var stream string = *this.SafeString(message, "stream", "")
+	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
 	if symbol != nil {
 		if _, ok := this.Ohlcvs[*symbol]; !ok {
@@ -2029,9 +2029,9 @@ func (this *Backpack) HandleOrder(client any, message any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var event *string = this.SafeString(data, "e", "")
+	var event string = *this.SafeString(data, "e", "")
 	var parsed any = nil
-	if (strings.Index(*event, "rfq") == 0) || (strings.Index(*event, "quote") == 0) {
+	if (strings.Index(event, "rfq") == 0) || (strings.Index(event, "quote") == 0) {
 		parsed = this.ParseWsRfqOrder(data, market)
 	} else {
 		parsed = this.ParseWsOrder(data, market)
@@ -2060,8 +2060,8 @@ func (this *Backpack) HandleOrder(client any, message any) {
 func (this *Backpack) ParseWsRfqOrder(data map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var event *string = this.SafeString(data, "e", "")
-	var quoteEvent bool = (strings.Index(*event, "quote") == 0)
+	var event string = *this.SafeString(data, "e", "")
+	var quoteEvent bool = (strings.Index(event, "quote") == 0)
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	var request map[string]any = map[string]any{
@@ -2084,7 +2084,7 @@ func (this *Backpack) ParseWsRfqOrder(data map[string]any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(this.SafeString(data, "s"), market)
 	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(request, marketResolved))
 	parsed["info"] = data
-	if event != nil && *event == "rfqFilled" {
+	if event == "rfqFilled" {
 		var tradeMicroseconds int64 = *this.SafeInteger(data, "T", 0)
 		parsed["lastTradeTimestamp"] = this.ParseToInt(float64(tradeMicroseconds) / 1000)
 	}
@@ -2647,8 +2647,8 @@ func (this *Backpack) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if code != nil {
-				var msg *string = this.SafeString(error, "message", "")
-				panic(ccxt.ExchangeError(this.Id + " " + *msg))
+				var msg string = *this.SafeString(error, "message", "")
+				panic(ccxt.ExchangeError(this.Id + " " + msg))
 			}
 			return true
 

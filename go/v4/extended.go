@@ -3537,8 +3537,8 @@ func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString any, pr
 	}
 	var msgHash string = this.GetExtendedOrderMsgHash(settlement)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
-	var r any = this.GetExtendedSignatureHex(this.SafeString(sig, 0))
-	var s any = this.GetExtendedSignatureHex(this.SafeString(sig, 1))
+	var r string = this.GetExtendedSignatureHex(*this.SafeString(sig, 0, "0"))
+	var s string = this.GetExtendedSignatureHex(*this.SafeString(sig, 1, "0"))
 	settlement["r"] = r
 	settlement["s"] = s
 	return settlement
@@ -3572,8 +3572,8 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	var msgHash string = this.GetExtendedWithdrawalMsgHash(settlement, starkKey)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	settlement["signature"] = map[string]any{
-		"r": this.GetExtendedSignatureHex(this.SafeString(sig, 0)),
-		"s": this.GetExtendedSignatureHex(this.SafeString(sig, 1)),
+		"r": this.GetExtendedSignatureHex(*this.SafeString(sig, 0, "0")),
+		"s": this.GetExtendedSignatureHex(*this.SafeString(sig, 1, "0")),
 	}
 	return settlement
 }
@@ -3605,8 +3605,8 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency ma
 	var msgHash string = this.GetExtendedTransferMsgHash(settlement)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	settlement["signature"] = map[string]any{
-		"r": this.GetExtendedSignatureHex(this.SafeString(sig, 0)),
-		"s": this.GetExtendedSignatureHex(this.SafeString(sig, 1)),
+		"r": this.GetExtendedSignatureHex(*this.SafeString(sig, 0, "0")),
+		"s": this.GetExtendedSignatureHex(*this.SafeString(sig, 1, "0")),
 	}
 	return settlement
 }
@@ -4772,23 +4772,14 @@ func (this *Extended) GetExtendedEncodeI64(value any) any {
 	}
 	return value
 }
-func (this *Extended) GetExtendedDecimalToBase16(value any) string {
-	var decimalString any = ""
-	if IsString(value) {
-		decimalString = value
-	} else {
-		if derefPtr := this.NumberToString(value); derefPtr != nil {
-			decimalString = *derefPtr
-		} else {
-			decimalString = nil
-		}
-	}
+func (this *Extended) GetExtendedDecimalToBase16(value string) string {
+	var decimalString any = value
 	var hexChars []any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 	var result string = ""
 	for Precise.StringGt(decimalString, "0") {
 		var remainder int64 = this.ParseToInt(Precise.StringMod(decimalString, "16"))
-		var hexChar *string = this.SafeString(hexChars, remainder, "")
-		result = *hexChar + result
+		var hexChar string = *this.SafeString(hexChars, remainder, "")
+		result = hexChar + result
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
 	if result == "" {
@@ -4796,23 +4787,16 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) string {
 	}
 	return result
 }
-func (this *Extended) GetExtendedSignatureHex(signature any) any {
-	if IsString(signature) {
-		if GetIndexOf(signature, "0x") == 0 {
-			return signature
-		}
-		return "0x" + this.GetExtendedDecimalToBase16(signature)
+func (this *Extended) GetExtendedSignatureHex(signature string) string {
+	if strings.Index(signature, "0x") == 0 {
+		return signature
 	}
-	var signatureString *string = this.NumberToString(signature)
-	if strings.Index(*signatureString, "0x") == 0 {
-		return signatureString
-	}
-	return "0x" + this.GetExtendedDecimalToBase16(signatureString)
+	return "0x" + this.GetExtendedDecimalToBase16(signature)
 }
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
-	var restUrl *string = this.SafeString(this.Urls["api"], "rest", "")
-	var isTestnet bool = (strings.Index(*restUrl, "sepolia") >= 0)
+	var restUrl string = *this.SafeString(this.Urls["api"], "rest", "")
+	var isTestnet bool = (strings.Index(restUrl, "sepolia") >= 0)
 	var defaultChainId string = "SN_MAIN"
 	if isTestnet {
 		defaultChainId = "SN_SEPOLIA"

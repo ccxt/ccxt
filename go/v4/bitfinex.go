@@ -2488,11 +2488,11 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	//          "Submitting 1 orders."      // Message
 	//       ]
 	//
-	var status *string = this.SafeString(response, 6, "")
-	if status == nil || *status != "SUCCESS" {
-		var errorCode *string = this.SafeString(response, 5, "")
-		var errorText *string = this.SafeString(response, 7, "")
-		panic(ExchangeError(this.Id + " " + *status + ": " + *errorText + " (#" + *errorCode + ")"))
+	var status string = *this.SafeString(response, 6, "")
+	if status != "SUCCESS" {
+		var errorCode string = *this.SafeString(response, 5, "")
+		var errorText string = *this.SafeString(response, 7, "")
+		panic(ExchangeError(this.Id + " " + status + ": " + errorText + " (#" + errorCode + ")"))
 	}
 	var orders []any = SafeListTyped(response, 4)
 	var order []any = SafeListTyped(orders, 0)
@@ -5461,11 +5461,11 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//         "Submitting update to exchange limit buy order for 0.0002 BTC."
 	//     ]
 	//
-	var status *string = this.SafeString(response, 6, "")
-	if status == nil || *status != "SUCCESS" {
-		var errorCode *string = this.SafeString(response, 5, "")
-		var errorText *string = this.SafeString(response, 7, "")
-		panic(ExchangeError(this.Id + " " + *status + ": " + *errorText + " (#" + *errorCode + ")"))
+	var status string = *this.SafeString(response, 6, "")
+	if status != "SUCCESS" {
+		var errorCode string = *this.SafeString(response, 5, "")
+		var errorText string = *this.SafeString(response, 7, "")
+		panic(ExchangeError(this.Id + " " + status + ": " + errorText + " (#" + errorCode + ")"))
 	}
 	var order []any = SafeListTypedDefault(response, 4, []any{})
 	var newOrder map[string]any = map[string]any{

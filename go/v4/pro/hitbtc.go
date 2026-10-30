@@ -343,13 +343,13 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
 	var name *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
-	var depthValue *string = this.SafeString(params, "depth", "20")  // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
-	var speedValue *string = this.SafeString(params, "speed", "100") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+	var depthValue string = *this.SafeString(params, "depth", "20")  // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+	var speedValue string = *this.SafeString(params, "speed", "100") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"method", "defaultMethod", "depth", "speed"})
 	if name != nil && *name == "orderbook/{depth}/{speed}" {
-		name = ccxt.SafeStringPtr("orderbook/D" + *depthValue + "/" + *speedValue + "ms")
+		name = ccxt.SafeStringPtr("orderbook/D" + depthValue + "/" + speedValue + "ms")
 	} else if name != nil && *name == "orderbook/{depth}/{speed}/batch" {
-		name = ccxt.SafeStringPtr("orderbook/D" + *depthValue + "/" + *speedValue + "ms/batch")
+		name = ccxt.SafeStringPtr("orderbook/D" + depthValue + "/" + speedValue + "ms/batch")
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1084,8 +1084,8 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 			marketIds = append(marketIds, objectKey)
 		}
 	}
-	var channel *string = this.SafeString(message, "ch", "")
-	var splitChannel []string = strings.Split(*channel, "/")
+	var channel string = *this.SafeString(message, "ch", "")
+	var splitChannel []string = strings.Split(channel, "/")
 	var period *string = this.SafeString(splitChannel, 1)
 	var timeframe *string = this.FindTimeframe(period)
 	if timeframe == nil {
@@ -1281,8 +1281,8 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 	}
 	var orders any = this.Orders
 	var marketId *string = this.SafeStringLower2(order, "instrument", "symbol")
-	var method *string = this.SafeString(message, "method", "")
-	var splitMethod []string = strings.Split(*method, "_order")
+	var method string = *this.SafeString(message, "method", "")
+	var splitMethod []string = strings.Split(method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
 	var symbol *string = this.SafeSymbol(marketId)
 	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))

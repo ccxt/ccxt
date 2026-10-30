@@ -817,10 +817,10 @@ func (this *Bithumb) ParseBalanceList(response any) map[string]any {
 			var code string = codes[i]
 			var account map[string]any = this.Account()
 			var currency map[string]any = this.Currency(code)
-			var lowerCurrencyId *string = this.SafeStringLower(currency, "id", "")
-			account["total"] = this.SafeString(balances, "total_"+*lowerCurrencyId)
-			account["used"] = this.SafeString(balances, "in_use_"+*lowerCurrencyId)
-			account["free"] = this.SafeString(balances, "available_"+*lowerCurrencyId)
+			var lowerCurrencyId string = *this.SafeStringLower(currency, "id", "")
+			account["total"] = this.SafeString(balances, "total_"+lowerCurrencyId)
+			account["used"] = this.SafeString(balances, "in_use_"+lowerCurrencyId)
+			account["free"] = this.SafeString(balances, "available_"+lowerCurrencyId)
 			result[code] = account
 		}
 	} else {
@@ -1962,7 +1962,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.CreateOrderRequest(*symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateOrderRequest(*symbol, *typeVar, *side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
@@ -1995,7 +1995,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
 }
-func (this *Bithumb) CreateOrderRequest(symbol string, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2018,12 +2018,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar any, side any, am
 		"market": this.GetGen2MarketId(market),
 	}
 	var sideRequest string
-	if IsEqual(side, "buy") {
+	if side == "buy" {
 		sideRequest = "bid"
-	} else if IsEqual(side, "sell") {
+	} else if side == "sell" {
 		sideRequest = "ask"
 	} else {
-		panic(InvalidOrder(Add(this.Id+" createOrder() invalid side ", side)))
+		panic(InvalidOrder(this.Id + " createOrder() invalid side " + side))
 	}
 	request["side"] = sideRequest
 	var timeInForceRaw *string = this.SafeString2(params, "timeInForce", "time_in_force")
@@ -2039,7 +2039,7 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar any, side any, am
 		}
 		return this.OmitDict(params, "timeInForce")
 	}()
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsTimeInForce)
+	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsTimeInForce)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var isPostOnly bool = postOnly || (timeInForce == "PO")
@@ -2054,13 +2054,13 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar any, side any, am
 	} else if timeInForce == "IOC" {
 		request["time_in_force"] = "ioc"
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["volume"] = this.AmountToPrecision(symbol, amount)
 		request["order_type"] = "limit"
 	} else {
 		var typeRequest string
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			typeRequest = "price"
 			// for market buy it requires the amount of quote currency to spend
 			var costParam *string = this.SafeString(paramsOrder, "cost")

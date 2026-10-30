@@ -5106,8 +5106,8 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	}(), market, nil, marketType)
 	var side *string = this.SafeStringLower2(orderData, "side", "S")
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
-	var transactTime *string = this.SafeString(orderData, "transactTime", "")
-	if len(*transactTime) == 10 {
+	var transactTime string = *this.SafeString(orderData, "transactTime", "")
+	if len(transactTime) == 10 {
 		// spot conditional orders are created with transactTime in seconds
 		timestamp = this.SafeTimestamp(orderData, "transactTime")
 	}
@@ -5538,8 +5538,8 @@ func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	}
 	var parsedIds []any = []any{}
 	for i := 0; i < GetArrayLength(idsToParse); i++ {
-		var id *string = this.SafeString(idsToParse, i, "")
-		var stringId string = *id
+		var id string = *this.SafeString(idsToParse, i, "")
+		var stringId string = id
 		parsedIds = append(parsedIds, stringId)
 	}
 	var response map[string]any = nil

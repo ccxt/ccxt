@@ -4299,13 +4299,13 @@ func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 	var base *string = this.SafeString(baseParts, 0, "")
 	var expiry *string = this.SafeString(optionParts, 1, "")
 	var strike *int64 = this.SafeInteger(optionParts, 2)
-	var strikeAsString *string = this.SafeString(optionParts, 2, "")
-	var optionType *string = this.SafeString(optionParts, 3, "")
+	var strikeAsString string = *this.SafeString(optionParts, 2, "")
+	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	return map[string]any{
-		"id":             *base + "-" + *expiry + "-" + *strikeAsString + "-" + *optionType,
-		"symbol":         *base + "/" + settle + ":" + settle + "-" + *expiry + "-" + *strikeAsString + "-" + *optionType,
+		"id":             *base + "-" + *expiry + "-" + strikeAsString + "-" + optionType,
+		"symbol":         *base + "/" + settle + ":" + settle + "-" + *expiry + "-" + strikeAsString + "-" + optionType,
 		"base":           base,
 		"quote":          settle,
 		"baseId":         base,
@@ -4324,7 +4324,7 @@ func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
 		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
+			if optionType == "C" {
 				return "call"
 			}
 			return "put"

@@ -2510,8 +2510,8 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var orders []any = ccxt.SafeListTypedDefault(message, "result", []any{})
-	var channel *string = this.SafeString(message, "channel", "")
-	var isTrigger bool = (strings.Index(*channel, "autoorders") >= 0) || (strings.Index(*channel, "priceorders") >= 0)
+	var channel string = *this.SafeString(message, "channel", "")
+	var isTrigger bool = (strings.Index(channel, "autoorders") >= 0) || (strings.Index(channel, "priceorders") >= 0)
 	var hashPrefix string = "orders"
 	if isTrigger {
 		hashPrefix = "triggerOrders"
@@ -3122,13 +3122,13 @@ func (this *Gate) HandleMessage(client any, message map[string]any) {
 		this.HandleUnSubscribe(client, message)
 		return
 	}
-	var channel *string = this.SafeString(message, "channel", "")
+	var channel string = *this.SafeString(message, "channel", "")
 	// after supporting more method we can create a mapping for this
-	if channel != nil && *channel == "spot.obu" {
+	if channel == "spot.obu" {
 		this.HandleOrderBook(client, message)
 		return
 	}
-	var channelParts []string = strings.Split(*channel, ".")
+	var channelParts []string = strings.Split(channel, ".")
 	var channelType *string = this.SafeString(channelParts, 1)
 	var v4Methods map[string]any = map[string]any{
 		"usertrades":        this.HandleMyTrades,

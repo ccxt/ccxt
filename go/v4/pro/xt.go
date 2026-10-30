@@ -903,10 +903,10 @@ func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterf
 	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
 	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
-	var marketId *string = this.SafeString(market, "id", "")
-	var name string = "depth_update@" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var name string = "depth_update@" + marketId
 	if levels != nil {
-		name = "depth@" + *marketId + "," + *levels
+		name = "depth@" + marketId + "," + *levels
 	}
 
 	r1 := <-this.SubscribeAsync(name, "public", "watchOrderBook", market, nil, paramsOmitted)
@@ -952,10 +952,10 @@ func (this *Xt) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
 	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
-	var marketId *string = this.SafeString(market, "id", "")
-	var name string = "depth_update@" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var name string = "depth_update@" + marketId
 	if levels != nil {
-		name = "depth@" + *marketId + "," + *levels
+		name = "depth@" + marketId + "," + *levels
 	}
 	var messageHash string = "unsubscribe::" + name
 
@@ -1797,9 +1797,9 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
-		var event *string = this.SafeString(message, "event", "")
-		var splitEvent []string = strings.Split(*event, ",")
-		event = this.SafeString(splitEvent, 0, "")
+		var event string = *this.SafeString(message, "event", "")
+		var splitEvent []string = strings.Split(event, ",")
+		event = *this.SafeString(splitEvent, 0, "")
 		var tradeType string = "spot"
 		if (data != nil) && (ccxt.InOp(data, "fu")) {
 			tradeType = "contract"
@@ -1808,7 +1808,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var obAsks []any = ccxt.SafeListTyped(data, "a")
 		var obBids []any = ccxt.SafeListTyped(data, "b")
-		var messageHash string = *event + "::" + tradeType
+		var messageHash string = event + "::" + tradeType
 		if !(this.Orderbooks.Has(symbol)) {
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")

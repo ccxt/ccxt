@@ -691,12 +691,12 @@ func (this *Bitbns) ParseBalance(response any) map[string]any {
 		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
-			var usedCurrencyId *string = this.SafeString(parts, 1, "")
+			var usedCurrencyId string = *this.SafeString(parts, 1, "")
 			var currencyId *string = this.SafeString(parts, 1)
 			// note that "Money" stands for INR - the only fiat in bitbns
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(data, key)
-			account["used"] = this.SafeString(data, "inorder"+*usedCurrencyId)
+			account["used"] = this.SafeString(data, "inorder"+usedCurrencyId)
 			if currencyId != nil && *currencyId == "Money" {
 				currencyId = SafeStringPtr("INR")
 			}
@@ -1605,7 +1605,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
 	var typeVar *string = this.SafeString(transaction, "type")
-	var expTime *string = this.SafeString(transaction, "expTime", "")
+	var expTime string = *this.SafeString(transaction, "expTime", "")
 	var status *string = nil
 	if typeVar != nil {
 		if func() int {
@@ -1621,7 +1621,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Trans
 				return -1
 			}
 			return strings.Index(*typeVar, "withdraw")
-		}() >= 0) || (strings.Index(*expTime, "withdraw") >= 0) {
+		}() >= 0) || (strings.Index(expTime, "withdraw") >= 0) {
 			typeVar = SafeStringPtr("withdrawal")
 		}
 	}

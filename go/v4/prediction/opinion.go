@@ -1294,9 +1294,9 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount a
 	var priceStr string = this.DecimalToPrecision(this.NumberToString(price), ccxt.ROUND, 6, ccxt.DECIMAL_PLACES)
 	var priceParts []string = strings.Split(priceStr, ".")
 	var priceInt *string = this.SafeString(priceParts, 0, "0")
-	var priceFrac *string = this.SafeString(priceParts, 1, "")
+	var priceFrac string = *this.SafeString(priceParts, 1, "")
 	var priceDenom string = "1000000"
-	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), (*priceFrac + strings.Repeat("0", max(6-len(*priceFrac), 0)))[:6])
+	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), (priceFrac + strings.Repeat("0", max(6-len(priceFrac), 0)))[:6])
 	if priceNum != nil && *priceNum == "0" {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() invalid price " + priceStr))
 	}
@@ -2200,10 +2200,10 @@ func (this *Opinion) HashMessage(message any) any {
 func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
-	var rRaw *string = this.SafeString(signature, "r", "")
-	var sRaw *string = this.SafeString(signature, "s", "")
-	var r string = (strings.Repeat("0", max(64-len(*rRaw), 0)) + *rRaw)[max(len(*rRaw)-64, 0):]
-	var s string = (strings.Repeat("0", max(64-len(*sRaw), 0)) + *sRaw)[max(len(*sRaw)-64, 0):]
+	var rRaw string = *this.SafeString(signature, "r", "")
+	var sRaw string = *this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(rRaw), 0)) + rRaw)[max(len(rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(sRaw), 0)) + sRaw)[max(len(sRaw)-64, 0):]
 	return map[string]any{
 		"r": "0x" + r,
 		"s": "0x" + s,
@@ -2460,8 +2460,8 @@ func (this *Opinion) OpinionWsUrl() any {
 	if ccxt.IsEqual(apiKey, nil) {
 		panic(ccxt.AuthenticationError(this.Id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 	}
-	var wsUrl *string = this.SafeString(this.Urls["api"], "ws", "")
-	return ccxt.Add(*wsUrl+"?apikey=", apiKey)
+	var wsUrl string = *this.SafeString(this.Urls["api"], "ws", "")
+	return ccxt.Add(wsUrl+"?apikey=", apiKey)
 }
 func (this *Opinion) Ping(client any) any {
 	// the venue keeps the socket open only while application-level heartbeats arrive

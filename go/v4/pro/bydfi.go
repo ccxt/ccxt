@@ -218,9 +218,9 @@ func (this *Bydfi) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "ticker::" + symbol
-	var channel string = *marketId + "@ticker"
+	var channel string = marketId + "@ticker"
 
 	r1 := <-this.WatchPublicAsync([]any{messageHash}, []any{channel}, params)
 	if r1.Err != nil {
@@ -299,9 +299,9 @@ func (this *Bydfi) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
-			var marketId *string = this.SafeString(market, "id", "")
+			var marketId string = *this.SafeString(market, "id", "")
 			messageHashes = append(messageHashes, messageHash+symbol)
-			channels = append(channels, *marketId+channel)
+			channels = append(channels, marketId+channel)
 		}
 	}
 
@@ -556,11 +556,11 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
-		var interval *string = this.SafeString(timeframes, tf, "")
-		var channelMarketId *string = this.SafeString(market, "id", "")
-		var channelMarketSymbol *string = this.SafeString(market, "symbol", "")
-		channels = append(channels, *channelMarketId+"@kline_"+*interval)
-		messageHashes = append(messageHashes, "ohlcv::"+*channelMarketSymbol+"::"+*interval)
+		var interval string = *this.SafeString(timeframes, tf, "")
+		var channelMarketId string = *this.SafeString(market, "id", "")
+		var channelMarketSymbol string = *this.SafeString(market, "symbol", "")
+		channels = append(channels, channelMarketId+"@kline_"+interval)
+		messageHashes = append(messageHashes, "ohlcv::"+channelMarketSymbol+"::"+interval)
 	}
 
 	r1 := <-this.WatchPublicAsync(messageHashes, channels, params)
@@ -617,11 +617,11 @@ func (this *Bydfi) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
-		var interval *string = this.SafeString(this.Timeframes, tf, "")
-		var channelMarketId *string = this.SafeString(market, "id", "")
-		var channelMarketSymbol *string = this.SafeString(market, "symbol", "")
-		channels = append(channels, *channelMarketId+"@kline_"+*interval)
-		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+*channelMarketSymbol+"::"+*interval)
+		var interval string = *this.SafeString(this.Timeframes, tf, "")
+		var channelMarketId string = *this.SafeString(market, "id", "")
+		var channelMarketSymbol string = *this.SafeString(market, "symbol", "")
+		channels = append(channels, channelMarketId+"@kline_"+interval)
+		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+channelMarketSymbol+"::"+interval)
 	}
 	var paramsExtended map[string]any = this.Extend(params, map[string]any{
 		"unsubscribe": true,
@@ -793,8 +793,8 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var channelMarketId *string = this.SafeString(market, "id", "")
-		channels = append(channels, *channelMarketId+"@depth"+*depthOption+channelSuffix)
+		var channelMarketId string = *this.SafeString(market, "id", "")
+		channels = append(channels, channelMarketId+"@depth"+*depthOption+channelSuffix)
 		messageHashes = append(messageHashes, "orderbook::"+symbol)
 	}
 
@@ -849,8 +849,8 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var channelMarketId *string = this.SafeString(market, "id", "")
-		channels = append(channels, *channelMarketId+"@depth"+*depthOption+channelSuffix)
+		var channelMarketId string = *this.SafeString(market, "id", "")
+		channels = append(channels, channelMarketId+"@depth"+*depthOption+channelSuffix)
 		messageHashes = append(messageHashes, "unsubscribe::orderbook::"+symbol)
 	}
 	var subscription map[string]any = map[string]any{
@@ -1034,9 +1034,9 @@ func (this *Bydfi) HandleOrder(client any, message map[string]any) {
 	var rawOrder map[string]any = this.SafeDictMap(message, "o", map[string]any{})
 	var marketId *string = this.SafeString(rawOrder, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orders"
-	var symbolMessageHash string = messageHash + "::" + *symbol
+	var symbolMessageHash string = messageHash + "::" + symbol
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1232,9 +1232,9 @@ func (this *Bydfi) HandlePositions(client any, message map[string]any) {
 	var rawPosition map[string]any = this.SafeDictMap(positionsData, 0, map[string]any{})
 	var marketId *string = this.SafeString(rawPosition, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "positions"
-	var symbolMessageHash string = messageHash + "::" + *symbol
+	var symbolMessageHash string = messageHash + "::" + symbol
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}

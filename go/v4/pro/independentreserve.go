@@ -81,15 +81,15 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
-	var baseId *string = this.SafeString(market, "base", "")
-	var quoteId *string = this.SafeString(market, "quote", "")
-	var url string = *wsUrl + "?subscribe=ticker-" + *baseId + "-" + *quoteId
-	var messageHash string = "trades:" + *symbolValue
+	var baseId string = *this.SafeString(market, "base", "")
+	var quoteId string = *this.SafeString(market, "quote", "")
+	var url string = *wsUrl + "?subscribe=ticker-" + baseId + "-" + quoteId
+	var messageHash string = "trades:" + symbolValue
 
 	r1 := <-this.Watch(url, messageHash, nil, messageHash)
 	if r1.Err != nil {
@@ -201,7 +201,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
@@ -213,10 +213,10 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
-	var baseId *string = this.SafeString(market, "base", "")
-	var quoteId *string = this.SafeString(market, "quote", "")
-	var url string = *wsUrl + "/orderbook/" + *limitString + "?subscribe=" + *baseId + "-" + *quoteId
-	var messageHash string = "orderbook:" + *symbolValue + ":" + *limitString
+	var baseId string = *this.SafeString(market, "base", "")
+	var quoteId string = *this.SafeString(market, "quote", "")
+	var url string = *wsUrl + "/orderbook/" + *limitString + "?subscribe=" + baseId + "-" + quoteId
+	var messageHash string = "orderbook:" + symbolValue + ":" + *limitString
 	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,
 	}
@@ -259,7 +259,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		return
 	}
 	var parts []string = strings.Split(*channel, "/")
-	var depth *string = this.SafeString(parts, 1, "")
+	var depth string = *this.SafeString(parts, 1, "")
 	var baseId *string = this.SafeString(parts, 2)
 	var quoteId *string = this.SafeString(parts, 3)
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -269,7 +269,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	}
 	var symbol string = *base + "/" + *quote
 	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
-	var messageHash string = "orderbook:" + symbol + ":" + *depth
+	var messageHash string = "orderbook:" + symbol + ":" + depth
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")

@@ -936,15 +936,15 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 	//
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if error != nil {
-		var errorName *string = this.SafeString(error, "name", "Error")
-		var errorMessage *string = this.SafeString(error, "message", "")
+		var errorName string = *this.SafeString(error, "name", "Error")
+		var errorMessage string = *this.SafeString(error, "message", "")
 		var addedMessage string
-		if len(*errorMessage) > 0 {
-			addedMessage = (" " + *errorMessage)
+		if len(errorMessage) > 0 {
+			addedMessage = (" " + errorMessage)
 		} else {
 			addedMessage = ""
 		}
-		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id + " websocket error " + *errorName + addedMessage))
+		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id + " websocket error " + errorName + addedMessage))
 		return false
 	}
 	if !(ccxt.InOp(message, "status")) {

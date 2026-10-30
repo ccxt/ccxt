@@ -1900,7 +1900,7 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	// emulated using the orders' stream
 	var messageHash string = "myTrades"
-	var symbol *string = this.SafeString(parsedTrade, "symbol", "")
+	var symbol string = *this.SafeString(parsedTrade, "symbol", "")
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1908,7 +1908,7 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	var trades any = this.MyTrades
 	trades.(ccxt.Appender).Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolMessageHash string = messageHash + ":" + *symbol
+	var symbolMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 }
 func (this *Poloniex) HandlePong(client any) {

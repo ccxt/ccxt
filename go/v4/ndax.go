@@ -3036,8 +3036,8 @@ func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) D
 	var depositInfoString *string = this.SafeString(depositAddress, "DepositInfo", "[]")
 	var depositInfo any = JsonParse(depositInfoString)
 	var depositInfoLength int = GetArrayLength(depositInfo)
-	var lastString *string = this.SafeString(depositInfo, depositInfoLength-1, "")
-	var parts []string = strings.Split(*lastString, "?memo=")
+	var lastString string = *this.SafeString(depositInfo, depositInfoLength-1, "")
+	var parts []string = strings.Split(lastString, "?memo=")
 	var address *string = this.SafeString(parts, 0)
 	var tag *string = this.SafeString(parts, 1)
 	var code *string = nil

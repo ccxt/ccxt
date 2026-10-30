@@ -247,8 +247,8 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	// }
 	//
 	var data map[string]any = this.SafeDictMap(message, "order_book", map[string]any{})
-	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = strings.Split(*channel, ":")
+	var channel string = *this.SafeString(message, "channel", "")
+	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -262,12 +262,12 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
-	var typeVar *string = this.SafeString(message, "type", "")
-	if typeVar != nil && *typeVar == "subscribed/order_book" {
+	var typeVar string = *this.SafeString(message, "type", "")
+	if typeVar == "subscribed/order_book" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		parsed["nonce"] = this.SafeInteger(data, "offset")
 		orderbook.Reset(parsed)
-	} else if typeVar != nil && *typeVar == "update/order_book" {
+	} else if typeVar == "update/order_book" {
 		this.HandleOrderBookMessage(client, message, orderbook)
 	}
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
@@ -865,8 +865,8 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 		this.HandleLiquidation(client, message)
 	}
 	var data []any = ccxt.SafeListTyped(message, "trades")
-	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = strings.Split(*channel, ":")
+	var channel string = *this.SafeString(message, "channel", "")
+	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1122,8 +1122,8 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 	//         "type": "update/account_all_trades"
 	//     }
 	//
-	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = strings.Split(*channel, ":")
+	var channel string = *this.SafeString(message, "channel", "")
+	var parts []string = strings.Split(channel, ":")
 	var accountIndex *string = this.SafeString(parts, 1)
 	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = nil
@@ -1376,8 +1376,8 @@ func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
-	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = strings.Split(*channel, ":")
+	var channel string = *this.SafeString(message, "channel", "")
+	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1572,9 +1572,9 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 	//        "type": "update/user_stats"
 	//    }
 	//
-	var channel *string = this.SafeString(message, "channel", "")
+	var channel string = *this.SafeString(message, "channel", "")
 	var typeVar string = "spot"
-	if strings.Index(*channel, "user_stats:") >= 0 {
+	if strings.Index(channel, "user_stats:") >= 0 {
 		typeVar = "swap"
 	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
@@ -2028,8 +2028,8 @@ func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool
 		// the requested state is already reached, so the unWatch call resolves and only
 		// its own channel gets cleaned up. The channel is available solely inside the
 		// message text, a changed text format falls through to the generic reject below
-		var notSubscribedMessage *string = this.SafeString(error, "message", "")
-		var messageParts []string = strings.Split(*notSubscribedMessage, " : ")
+		var notSubscribedMessage string = *this.SafeString(error, "message", "")
+		var messageParts []string = strings.Split(notSubscribedMessage, " : ")
 		var notSubscribedChannel *string = this.SafeString(messageParts, 1)
 		if notSubscribedChannel != nil {
 			var unsubscribed map[string]any = map[string]any{
@@ -2092,53 +2092,53 @@ func (this *Lighter) HandleMessage(client any, message map[string]any) {
 	if !this.HandleErrorMessage(client, message) {
 		return
 	}
-	var typeVar *string = this.SafeString(message, "type", "")
-	if typeVar != nil && *typeVar == "ping" {
+	var typeVar string = *this.SafeString(message, "type", "")
+	if typeVar == "ping" {
 		this.HandlePing(client, message)
 		return
 	}
-	if typeVar != nil && *typeVar == "jsonapi/sendtx" {
+	if typeVar == "jsonapi/sendtx" {
 		this.HandleWsSendtxApi(client, message)
 		return
 	}
-	if typeVar != nil && *typeVar == "unsubscribed" {
+	if typeVar == "unsubscribed" {
 		this.HandleUnSubscription(client, message)
 		return
 	}
-	var channel *string = this.SafeString(message, "channel", "")
-	if strings.Index(*channel, "order_book:") >= 0 {
+	var channel string = *this.SafeString(message, "channel", "")
+	if strings.Index(channel, "order_book:") >= 0 {
 		this.HandleOrderBook(client, message)
 		return
 	}
-	if strings.Index(*channel, "market_stats:") >= 0 {
+	if strings.Index(channel, "market_stats:") >= 0 {
 		this.HandleTicker(client, message)
 		return
 	}
-	if strings.Index(*channel, "trade:") >= 0 {
+	if strings.Index(channel, "trade:") >= 0 {
 		this.HandleTrades(client, message)
 		return
 	}
-	if strings.Index(*channel, "account_all_trades:") >= 0 {
+	if strings.Index(channel, "account_all_trades:") >= 0 {
 		this.HandleMyTrades(client, message)
 		return
 	}
-	if strings.Index(*channel, "account_all_assets:") >= 0 {
+	if strings.Index(channel, "account_all_assets:") >= 0 {
 		this.HandleBalance(client, message)
 		return
 	}
-	if strings.Index(*channel, "user_stats:") >= 0 {
+	if strings.Index(channel, "user_stats:") >= 0 {
 		this.HandleBalance(client, message)
 		return
 	}
-	if strings.Index(*channel, "account_orders:") >= 0 {
+	if strings.Index(channel, "account_orders:") >= 0 {
 		this.HandleOrders(client, message)
 		return
 	}
-	if strings.Index(*channel, "account_all_orders:") >= 0 {
+	if strings.Index(channel, "account_all_orders:") >= 0 {
 		this.HandleOrders(client, message)
 		return
 	}
-	if channel != nil && *channel == "" {
+	if channel == "" {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
@@ -2162,21 +2162,21 @@ func (this *Lighter) HandleUnSubscription(client any, message map[string]any) {
 	// subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
 	// "account_orders:{marketId}", so parts[1] is the market id on every family below
 	//
-	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = strings.Split(*channel, ":")
-	var name *string = this.SafeString(parts, 0, "")
+	var channel string = *this.SafeString(message, "channel", "")
+	var parts []string = strings.Split(channel, ":")
+	var name string = *this.SafeString(parts, 0, "")
 	var channelId *string = this.SafeString(parts, 1)
-	if name != nil && *name == "order_book" {
+	if name == "order_book" {
 		this.HandleOrderBookUnSubscription(client, channelId)
-	} else if name != nil && *name == "market_stats" {
+	} else if name == "market_stats" {
 		this.HandleTickerUnSubscription(client, channelId)
-	} else if name != nil && *name == "trade" {
+	} else if name == "trade" {
 		this.HandleTradesUnSubscription(client, channelId)
-	} else if name != nil && *name == "account_all_trades" {
+	} else if name == "account_all_trades" {
 		this.HandleMyTradesUnSubscription(client)
-	} else if name != nil && *name == "account_orders" {
+	} else if name == "account_orders" {
 		this.HandleOrdersUnSubscription(client, channelId)
-	} else if name != nil && *name == "account_all_orders" {
+	} else if name == "account_all_orders" {
 		this.HandleAllOrdersUnSubscription(client)
 	}
 }

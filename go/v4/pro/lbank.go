@@ -71,8 +71,8 @@ func (this *Lbank) CheckContractMarket(market map[string]any, methodName string)
 	// the spot ws rejects futures ids and lbank's contract ws protocol is not published,
 	// see https://github.com/ccxt/ccxt/issues/26864
 	if (market != nil) && (market["contract"] == true) {
-		var marketType *string = this.SafeString(market, "type", "")
-		panic(ccxt.NotSupported(this.Id + " " + methodName + "() does not support " + *marketType + " markets yet"))
+		var marketType string = *this.SafeString(market, "type", "")
+		panic(ccxt.NotSupported(this.Id + " " + methodName + "() does not support " + marketType + " markets yet"))
 	}
 }
 
@@ -859,12 +859,12 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderUpdate map[string]any = ccxt.SafeMapTyped(order, "orderUpdate")
-	var rawType *string = this.SafeString(orderUpdate, "type", "")
-	var typeParts []string = strings.Split(*rawType, "_")
+	var rawType string = *this.SafeString(orderUpdate, "type", "")
+	var typeParts []string = strings.Split(rawType, "_")
 	var side *string = this.SafeString(typeParts, 0)
 	var exchangeType *string = this.SafeString(typeParts, 1)
 	var typeVar *string = nil
-	if (rawType == nil || *rawType != "buy") && (rawType == nil || *rawType != "sell") {
+	if (rawType != "buy") && (rawType != "sell") {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if exchangeType != nil && *exchangeType == "market" {
 				return "market"
@@ -1199,8 +1199,8 @@ func (this *Lbank) HandleErrorMessage(client any, message map[string]any) {
 	//        TS: '2024-01-16T08:09:43.314'
 	//    }
 	//
-	var errMsg *string = this.SafeString(message, "message", "")
-	error := ccxt.ExchangeError(this.Id + " " + *errMsg)
+	var errMsg string = *this.SafeString(message, "message", "")
+	error := ccxt.ExchangeError(this.Id + " " + errMsg)
 	client.(ccxt.ClientInterface).Reject(error)
 }
 func (this *Lbank) HandlePingAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {

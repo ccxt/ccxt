@@ -1244,7 +1244,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = ccxt.DerefScalar(rawLiquidations[i])
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
-		var symbol *string = this.SafeString(liquidation, "symbol", "")
+		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
@@ -1252,7 +1252,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 		var cache any = this.Liquidations
 		cache.(ccxt.Appender).Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
-		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
+		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+symbol)
 	}
 }
 
@@ -1388,7 +1388,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 			return
 		}
 		var liquidation any = this.ParseWsMyLiquidation(rawLiquidation)
-		var symbol *string = this.SafeString(liquidation, "symbol", "")
+		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
@@ -1396,7 +1396,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 		var cache any = this.Liquidations
 		cache.(ccxt.Appender).Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
-		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+*symbol)
+		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+symbol)
 	}
 }
 func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any {
@@ -3092,8 +3092,8 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 	// filter orders with no last trade id
 	for i := 0; i < len(rawOrders); i++ {
 		var rawOrder any = rawOrders[i]
-		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
-		if len(*tradeId) > 0 {
+		var tradeId string = *this.SafeString(rawOrder, "tradeId", "")
+		if len(tradeId) > 0 {
 			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 			filteredOrders = append(filteredOrders, order)
 		}

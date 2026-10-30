@@ -1607,20 +1607,20 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+*symbol+":", timeframe))
-	if this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+symbol+":", timeframe))
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored any
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored = this.Ohlcvs[symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var isContractMarket bool = (strings.Index(*topic, "contractMarket") >= 0)
@@ -1655,22 +1655,22 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "d")
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(data, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("uta:candles:"+*symbol+":", timeframe))
-	if this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("uta:candles:"+symbol+":", timeframe))
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored any
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored = this.Ohlcvs[symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var parsed []any = []any{this.SafeIntegerProduct(data, "O", 1000), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
@@ -1802,8 +1802,8 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
-		var marketId *string = this.SafeString(marketIds, i, "")
-		subscriptionHashes = append(subscriptionHashes, channelName+*marketId)
+		var marketId string = *this.SafeString(marketIds, i, "")
+		subscriptionHashes = append(subscriptionHashes, channelName+marketId)
 	}
 
 	r2 := <-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params)
@@ -1988,14 +1988,14 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data, market))
-	var symbol *string = this.SafeString(trade, "symbol", "")
-	var messageHash string = "trades:" + *symbol
-	if _, ok := this.Trades[*symbol]; !ok {
+	var symbol string = *this.SafeString(trade, "symbol", "")
+	var messageHash string = "trades:" + symbol
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
-	var cache any = this.Trades[*symbol]
+	var cache any = this.Trades[symbol]
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2019,14 +2019,14 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var trade any = this.ParseWsUtaTrade(data, market)
-	var symbol *string = this.SafeString(trade, "symbol", "")
-	var messageHash string = "uta:trades:" + *symbol
-	if _, ok := this.Trades[*symbol]; !ok {
+	var symbol string = *this.SafeString(trade, "symbol", "")
+	var messageHash string = "uta:trades:" + symbol
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
-	var cache any = this.Trades[*symbol]
+	var cache any = this.Trades[symbol]
 	cache.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2323,7 +2323,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "orderbook:"+symbol)
-		var marketId *string = this.SafeString(marketIds, i, "")
+		var marketId string = *this.SafeString(marketIds, i, "")
 		subscriptionHashes = append(subscriptionHashes, ccxt.Add(ccxt.Add(method, ":"), marketId))
 	}
 	var subscription map[string]any = map[string]any{}
@@ -2554,8 +2554,8 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var depth *string = this.SafeString(message, "dp", "")
-	var messageHash string = "uta:orderbook:" + *symbol + ":depth:" + *depth
+	var depth string = *this.SafeString(message, "dp", "")
+	var messageHash string = "uta:orderbook:" + *symbol + ":depth:" + depth
 	if typeVar != nil && *typeVar == "snapshot" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
 		parsed["nonce"] = this.SafeInteger(data, "O")
@@ -4212,8 +4212,8 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var topic *string = this.SafeString(message, "topic", "")
-	var parts []string = strings.Split(*topic, ":")
+	var topic string = *this.SafeString(message, "topic", "")
+	var parts []string = strings.Split(topic, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "")
 	var cache any = this.Positions

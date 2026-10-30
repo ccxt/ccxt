@@ -1646,8 +1646,8 @@ func (this *Limitless) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 	// sizes are scaled by 10^decimals, USDC uses 6 decimals
 	var scaleStr any = this.ParsePrecision(this.NumberToString(-*decimals))
-	var outcomeLabel *string = this.SafeStringLower(outcomeObj["info"], "outcomeLabel", "yes")
-	var isYes bool = (outcomeLabel == nil || *outcomeLabel != "no")
+	var outcomeLabel string = *this.SafeStringLower(outcomeObj["info"], "outcomeLabel", "yes")
+	var isYes bool = (outcomeLabel != "no")
 	var rawBids any = this.SafeList(response, "bids", []any{})
 	var rawAsks any = this.SafeList(response, "asks", []any{})
 	// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped

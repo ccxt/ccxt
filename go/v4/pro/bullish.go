@@ -297,12 +297,12 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTicker() has no public websocket url"))
 	}
-	var messageHash string = "ticker::" + *symbolValue
+	var messageHash string = "ticker::" + symbolValue
 
 	r1 := <-this.Watch(*wsUrl+"/trading-api/v1/market-data/tick/"+*this.SafeString(market, "id", ""), messageHash, params, messageHash)
 	if r1.Err != nil {
@@ -356,13 +356,13 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	//         }
 	//     }
 	//
-	var updateType *string = this.SafeString(message, "type", "")
+	var updateType string = *this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
-	if updateType != nil && *updateType == "update" {
+	if updateType == "update" {
 		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
 		parsed = ccxt.TickerToMap(this.ParseTicker(this.Extend(this.SafeDict(ticker, "info", map[string]any{}), data), market))
 	}

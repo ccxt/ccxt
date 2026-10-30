@@ -173,7 +173,7 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
 	var isTrailingLimitAmountOrder bool = (trailingLimitAmount != nil)
 	var isTrailingLimitPercentOrder bool = (trailingLimitPercent != nil)
-	var offset *string = this.SafeString(paramsPostOnly, "offset", "") // can set this to - for minus
+	var offset string = *this.SafeString(paramsPostOnly, "offset", "") // can set this to - for minus
 	var trailingAmountString any = nil
 	if trailingAmount != nil {
 		trailingAmountString = ccxt.Add(offset, this.NumberToString(trailingAmount))
@@ -1584,9 +1584,9 @@ func (this *Kraken) CustomHandleDeltas(bookside any, deltas []any) {
 }
 func (this *Kraken) FormatNumber(data any) string {
 	var parts []string = ccxt.Split(data, ".")
-	var integer *string = this.SafeString(parts, 0, "")
-	var decimals *string = this.SafeString(parts, 1, "")
-	var joinedResult string = *integer + *decimals
+	var integer string = *this.SafeString(parts, 0, "")
+	var decimals string = *this.SafeString(parts, 1, "")
+	var joinedResult string = integer + decimals
 	for strings.HasPrefix(joinedResult, "0") {
 		joinedResult = joinedResult[1:]
 	}

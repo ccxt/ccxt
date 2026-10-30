@@ -1710,10 +1710,10 @@ func (this *Hibachi) SignMessage(message any, privateKey string) string {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
 		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
-		var r *string = this.SafeString(signature, "r", "")
-		var s *string = this.SafeString(signature, "s", "")
+		var r string = *this.SafeString(signature, "r", "")
+		var s string = *this.SafeString(signature, "s", "")
 		var v string = this.IntToBase16(signature["v"])
-		return (strings.Repeat("0", max(64-len(*r), 0)) + *r)[max(len(*r)-64, 0):] + (strings.Repeat("0", max(64-len(*s), 0)) + *s)[max(len(*s)-64, 0):] + (strings.Repeat("0", max(2-len(v), 0)) + v)[max(len(v)-2, 0):]
+		return (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):] + (strings.Repeat("0", max(64-len(s), 0)) + s)[max(len(s)-64, 0):] + (strings.Repeat("0", max(2-len(v), 0)) + v)[max(len(v)-2, 0):]
 	}
 }
 

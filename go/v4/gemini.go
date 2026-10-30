@@ -818,8 +818,8 @@ func (this *Gemini) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
-	if method != nil && *method == "fetch_markets_from_web" {
+	var method string = *this.SafeString(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
+	if method == "fetch_markets_from_web" {
 		var promises []any = []any{}
 		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
 		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
@@ -869,8 +869,8 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 	if numTables < 2 {
 		panic(NotSupported(error))
 	}
-	var table *string = this.SafeString(tables, 1, "")
-	var rows []string = strings.Split(*table, "\n<tr>\n") // eslint-disable-line quotes
+	var table string = *this.SafeString(tables, 1, "")
+	var rows []string = strings.Split(table, "\n<tr>\n") // eslint-disable-line quotes
 	var numRows int = len(rows)
 	if numRows < 2 {
 		panic(NotSupported(error))
@@ -896,21 +896,21 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 		//         '<td>0.01 USD', // quote currency price increment
 		//         '</tr>'
 		//     ]
-		var cell0 *string = this.SafeString(cells, 0, "")
-		var marketIdRaw string = strings.Replace(*cell0, "<td>", "", 1)
+		var cell0 string = *this.SafeString(cells, 0, "")
+		var marketIdRaw string = strings.Replace(cell0, "<td>", "", 1)
 		var marketId string = strings.Replace(marketIdRaw, "*", "", 1)
 		// const base = this.safeCurrencyCode (baseId);
-		var cell1 *string = this.SafeString(cells, 1, "")
-		var minAmountString string = strings.Replace(*cell1, "<td>", "", 1)
+		var cell1 string = *this.SafeString(cells, 1, "")
+		var minAmountString string = strings.Replace(cell1, "<td>", "", 1)
 		var minAmountParts []string = strings.Split(minAmountString, " ")
 		var minAmount *float64 = this.SafeNumber(minAmountParts, 0)
-		var cell2 *string = this.SafeString(cells, 2, "")
-		var amountPrecisionString string = strings.Replace(*cell2, "<td>", "", 1)
+		var cell2 string = *this.SafeString(cells, 2, "")
+		var amountPrecisionString string = strings.Replace(cell2, "<td>", "", 1)
 		var amountPrecisionParts []string = strings.Split(amountPrecisionString, " ")
 		var idLength int = len(marketId)
 		var startingIndex int64 = int64(idLength) - 3
-		var cell3 *string = this.SafeString(cells, 3, "")
-		var pricePrecisionString string = strings.Replace(*cell3, "<td>", "", 1)
+		var cell3 string = *this.SafeString(cells, 3, "")
+		var pricePrecisionString string = strings.Replace(cell3, "<td>", "", 1)
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
 		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, strings.Replace(marketId, *quoteId, "", 1))
@@ -1478,8 +1478,8 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
-	if method != nil && *method == "fetchTickerV1" {
+	var method string = *this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
+	if method == "fetchTickerV1" {
 
 		r := <-this.FetchTickerV1Async(symbol, params)
 		if r.Err != nil {
@@ -1488,7 +1488,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		ch <- AsyncResult[Ticker]{Value: r.Value}
 		return nil
 	}
-	if method != nil && *method == "fetchTickerV2" {
+	if method == "fetchTickerV2" {
 
 		r1 := <-this.FetchTickerV2Async(symbol, params)
 		if r1.Err != nil {
@@ -2577,8 +2577,8 @@ func (this *Gemini) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	return nil
 }
 func (this *Gemini) Nonce() int64 {
-	var nonceMethod *string = this.SafeString(this.Options, "nonce", "milliseconds")
-	if nonceMethod != nil && *nonceMethod == "milliseconds" {
+	var nonceMethod string = *this.SafeString(this.Options, "nonce", "milliseconds")
+	if nonceMethod == "milliseconds" {
 		return this.Milliseconds()
 	}
 	return this.Seconds()

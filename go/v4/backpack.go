@@ -744,8 +744,8 @@ func (this *Backpack) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 }
 func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
-	var symbol *string = this.SafeString(rawCurrency, "symbol", "")
-	var stock bool = strings.HasSuffix(*symbol, ".US") || strings.HasSuffix(*symbol, ".HK")
+	var symbol string = *this.SafeString(rawCurrency, "symbol", "")
+	var stock bool = strings.HasSuffix(symbol, ".US") || strings.HasSuffix(symbol, ".HK")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks []any = SafeListTyped(rawCurrency, "tokens")
 	var parsedNetworks map[string]any = map[string]any{}
@@ -1100,8 +1100,8 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var rawType *string = this.SafeString(market, "marketType")
 	var rfq bool = (rawType != nil && *rawType == "RFQ")
 	var security map[string]any = SafeMapTyped(market, "security")
-	var baseSymbol *string = this.SafeString(market, "baseSymbol", "")
-	var stock bool = (this.SafeString(market, "rwaMarketType") != nil && *this.SafeString(market, "rwaMarketType") == "STOCK") || (security != nil) || strings.HasSuffix(*baseSymbol, ".US") || strings.HasSuffix(*baseSymbol, ".HK")
+	var baseSymbol string = *this.SafeString(market, "baseSymbol", "")
+	var stock bool = (this.SafeString(market, "rwaMarketType") != nil && *this.SafeString(market, "rwaMarketType") == "STOCK") || (security != nil) || strings.HasSuffix(baseSymbol, ".US") || strings.HasSuffix(baseSymbol, ".HK")
 	var typeOfMarket *string = this.ParseMarketType(rawType)
 	var linear any = nil
 	var inverse any = nil
@@ -1745,9 +1745,9 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 		}
 		request["source"] = source
 		if IsEqual(methodName, "fetchOHLCV") {
-			var priceType *string = this.SafeString(query, "priceType", "Last")
+			var priceType string = *this.SafeString(query, "priceType", "Last")
 			var price *string = this.SafeString(query, "price")
-			if (priceType == nil || *priceType != "Last") || ((price != nil) && (price == nil || *price != "last")) {
+			if (priceType != "Last") || ((price != nil) && (price == nil || *price != "last")) {
 				panic(BadRequest(this.Id + " fetchOHLCV() External data requires Last prices"))
 			}
 			request["priceType"] = "Last"
@@ -1831,7 +1831,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var selection []any = this.HandleStockParams("fetchTickers", params)
 	var stockOnly *bool = this.SafeBool(selection, 0, false)
 	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
-	var source *string = this.SafeString(query, "source", "Venue")
+	var source string = *this.SafeString(query, "source", "Venue")
 	var symbolsLength int = 0
 	if symbols != nil {
 		symbolsLength = len(symbols)
@@ -1857,9 +1857,9 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		}
 	}
 	var stockExplicitlyDisabled bool = !(*this.SafeBool2(params, "stock", "defaultStock", true))
-	var needsExternalRfqTickers bool = (source != nil && *source == "Venue") && (this.SafeString(query, "source") == nil) && hasRfqSymbol && !stockExplicitlyDisabled
+	var needsExternalRfqTickers bool = (source == "Venue") && (this.SafeString(query, "source") == nil) && hasRfqSymbol && !stockExplicitlyDisabled
 	var requestParams any = query
-	if (source != nil && *source == "External") && ((stockOnly != nil && *stockOnly) || hasStockSymbol) && !stockExplicitlyDisabled {
+	if (source == "External") && ((stockOnly != nil && *stockOnly) || hasStockSymbol) && !stockExplicitlyDisabled {
 		requestParams = this.Extend(query, map[string]any{
 			"stock": true,
 		})
@@ -1875,7 +1875,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var responseById map[string]any = this.IndexBy(response, "symbol")
 	var externalResponse any = []any{}
 	var externalResponseById map[string]any = map[string]any{}
-	if needsExternalRfqTickers || (source != nil && *source == "External") {
+	if needsExternalRfqTickers || (source == "External") {
 		var externalParams map[string]any = this.Extend(query, map[string]any{
 			"stock":  true,
 			"source": "External",
@@ -1897,11 +1897,11 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		}
 		var marketIsRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var ticker any = this.SafeDict(tickers, marketSymbol)
-		if (ticker != nil) && ((source == nil || *source != "External") || (market["stock"] == true)) {
+		if (ticker != nil) && ((source != "External") || (market["stock"] == true)) {
 			result[marketSymbol] = ticker
 		} else if marketIsRfq {
 			var underlyingId string = *this.SafeString(market, "baseId", "") + "_" + *this.SafeString(market, "quoteId", "")
-			var useExternal bool = (source != nil && *source == "External") || needsExternalRfqTickers
+			var useExternal bool = (source == "External") || needsExternalRfqTickers
 			var tickerSource map[string]any = func() map[string]any {
 				if useExternal {
 					return externalResponseById
@@ -2060,8 +2060,8 @@ func (this *Backpack) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	var market map[string]any = this.Market(symbol)
 	var selection []any = this.HandleStockParams("fetchOrderBook", params, market)
 	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
-	var source *string = this.SafeString(query, "source", "Venue")
-	if (source == nil || *source != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
+	var source string = *this.SafeString(query, "source", "Venue")
+	if (source != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
 		panic(NotSupported(this.Id + " fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices"))
 	}
 	var request map[string]any = map[string]any{

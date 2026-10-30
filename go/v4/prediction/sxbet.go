@@ -3619,8 +3619,8 @@ func (this *Sxbet) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var sym *string = this.SafeString(outcomeObj, "outcome", "")
-	var messageHash string = "trades::" + *sym
+	var sym string = *this.SafeString(outcomeObj, "outcome", "")
+	var messageHash string = "trades::" + sym
 
 	r1 := <-this.SubscribeSxbetChannelAsync(messageHash, "recent_trades_v3:global")
 	if r1.Err != nil {
@@ -3749,8 +3749,8 @@ func (this *Sxbet) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 			panic(r.Err)
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		var sym *string = this.SafeString(outcomeObj, "outcome", "")
-		messageHash = "myTrades::" + *sym
+		var sym string = *this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "myTrades::" + sym
 	}
 	var channel string = "account:fills_v3_#" + this.WalletAddress
 
@@ -3825,8 +3825,8 @@ func (this *Sxbet) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 			panic(r.Err)
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		var sym *string = this.SafeString(outcomeObj, "outcome", "")
-		messageHash = "orders::" + *sym
+		var sym string = *this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "orders::" + sym
 	}
 	var channel string = "account:orders_v3_#" + this.WalletAddress
 

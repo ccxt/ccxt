@@ -727,8 +727,8 @@ func (this *Coinbase) fetchAccountsBody(ch chan AsyncResult[[]Account], optional
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchAccounts", "fetchAccountsV3")
-	if method != nil && *method == "fetchAccountsV3" {
+	var method string = *this.SafeString(this.Options, "fetchAccounts", "fetchAccountsV3")
+	if method == "fetchAccountsV3" {
 
 		r := <-this.FetchAccountsV3Async(params)
 		if r.Err != nil {
@@ -1874,8 +1874,8 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			panic(r.Err)
 		}
 	}
-	var method *string = this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
-	if method != nil && *method == "fetchMarketsV3" {
+	var method string = *this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
+	if method == "fetchMarketsV3" {
 
 		r1 := <-this.FetchMarketsV3Async(params)
 		if r1.Err != nil {
@@ -2794,8 +2794,8 @@ func (this *Coinbase) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchTickers", "fetchTickersV3")
-	if method != nil && *method == "fetchTickersV3" {
+	var method string = *this.SafeString(this.Options, "fetchTickers", "fetchTickersV3")
+	if method == "fetchTickersV3" {
 
 		r := <-this.FetchTickersV3Async(symbols, params)
 		if r.Err != nil {
@@ -2853,7 +2853,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan AsyncResult[map[string]Ticker],
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var rates map[string]any = SafeMapTyped(data, "rates")
-	var quoteId *string = this.SafeString(data, "currency", "")
+	var quoteId string = *this.SafeString(data, "currency", "")
 	var result map[string]any = map[string]any{}
 	var baseIds []string = nil
 	if rates != nil {
@@ -2865,7 +2865,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan AsyncResult[map[string]Ticker],
 	var delimiter string = "-"
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = baseIds[i]
-		var marketId string = baseId + delimiter + *quoteId
+		var marketId string = baseId + delimiter + quoteId
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		if symbol != nil {
@@ -3001,8 +3001,8 @@ func (this *Coinbase) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchTicker", "fetchTickerV3")
-	if method != nil && *method == "fetchTickerV3" {
+	var method string = *this.SafeString(this.Options, "fetchTicker", "fetchTickerV3")
+	if method == "fetchTickerV3" {
 
 		r := <-this.FetchTickerV3Async(symbol, params)
 		if r.Err != nil {
@@ -3410,7 +3410,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	var isV3 *bool = this.SafeBool(params, "v3", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"v3"})
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsOmitted)
-	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
+	var method string = *this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
 	if (marketType != nil && *marketType == "future") || (marketType != nil && *marketType == "swap") {
 
 		r1 := <-this.V3PrivateGetBrokerageCfmBalanceSummary(this.Extend(request, paramsMarketType))
@@ -3418,7 +3418,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if (isV3 != nil && *isV3) || (method != nil && *method == "v3PrivateGetBrokerageAccounts") {
+	} else if (isV3 != nil && *isV3) || (method == "v3PrivateGetBrokerageAccounts") {
 		request["limit"] = 250
 
 		r2 := <-this.V3PrivateGetBrokerageAccounts(this.Extend(request, paramsMarketType))
@@ -4140,9 +4140,9 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var id *string = this.SafeString(this.Options, "brokerId", "ccxt")
+	var id string = *this.SafeString(this.Options, "brokerId", "ccxt")
 	var request map[string]any = map[string]any{
-		"client_order_id": *id + "-" + this.Uuid(),
+		"client_order_id": id + "-" + this.Uuid(),
 		"product_id":      market["id"],
 		"side":            strings.ToUpper(side),
 	}

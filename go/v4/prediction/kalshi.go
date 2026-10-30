@@ -579,8 +579,8 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 		// its series ticker — fetch that series' open events (server-side filter, one page in
 		// the common case) and re-check the cache for the exact handle
 		var handleParts []string = ccxt.Split(outcomeSymbol, ":")
-		var marketPart *string = this.SafeString(handleParts, 0, "")
-		var parts []string = strings.Split(*marketPart, "_")
+		var marketPart string = *this.SafeString(handleParts, 0, "")
+		var parts []string = strings.Split(marketPart, "_")
 		var seriesTicker *string = this.SafeString(parts, 0)
 		if (seriesTicker != nil) && (seriesTicker == nil || *seriesTicker != "") {
 

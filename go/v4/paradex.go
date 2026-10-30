@@ -1900,8 +1900,8 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var side *string = this.SafeStringLower(trade, "side")
-	var liability *string = this.SafeStringLower(trade, "liquidity", "taker")
-	var isTaker bool = (liability != nil && *liability == "taker")
+	var liability string = *this.SafeStringLower(trade, "liquidity", "taker")
+	var isTaker bool = (liability == "taker")
 	var takerOrMaker string = "maker"
 	if isTaker {
 		takerOrMaker = "taker"

@@ -416,9 +416,9 @@ func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var channel string
 	var cbId *string = nil
 	if market["swap"] == true {
-		var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-		var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-		var wsId string = "e_" + *baseIdLower + *quoteIdLower
+		var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+		var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+		var wsId string = "e_" + baseIdLower + quoteIdLower
 		channel = "market_" + wsId + "_depth_step0"
 		cbId = ccxt.SafeStringPtr(wsId)
 		url = wsUrls["futurePublic"]
@@ -599,9 +599,9 @@ func (this *Bitrue) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTrades is only supported for swap markets"))
 	}
-	var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-	var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-	var wsId string = "e_" + *baseIdLower + *quoteIdLower
+	var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+	var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+	var wsId string = "e_" + baseIdLower + quoteIdLower
 	var channel string = "market_" + wsId + "_trade_ticker"
 	var messageHash string = "trades:" + *symbolValue
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
@@ -748,9 +748,9 @@ func (this *Bitrue) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV does not support timeframe " + timeframe))
 	}
-	var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-	var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-	var wsId string = "e_" + *baseIdLower + *quoteIdLower
+	var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+	var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+	var wsId string = "e_" + baseIdLower + quoteIdLower
 	var channel string = "market_" + wsId + "_kline_" + *interval
 	var messageHash string = "ohlcv:" + symbol + ":" + timeframe
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
@@ -876,9 +876,9 @@ func (this *Bitrue) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTicker is only supported for swap markets"))
 	}
-	var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-	var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-	var wsId string = "e_" + *baseIdLower + *quoteIdLower
+	var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+	var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+	var wsId string = "e_" + baseIdLower + quoteIdLower
 	var channel string = "market_" + wsId + "_ticker"
 	var messageHash string = "ticker:" + symbol
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")

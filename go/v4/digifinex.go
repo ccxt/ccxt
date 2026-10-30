@@ -779,8 +779,8 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var method *string = this.SafeString(options, "method", "fetch_markets_v2")
-	if method != nil && *method == "fetch_markets_v2" {
+	var method string = *this.SafeString(options, "method", "fetch_markets_v2")
+	if method == "fetch_markets_v2" {
 
 		r := <-this.FetchMarketsV2Async(params)
 		if r.Err != nil {

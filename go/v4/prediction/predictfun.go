@@ -1623,8 +1623,8 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 		// an unmatched indexSet would otherwise return a ticker whose every quote is
 		// undefined, which reads as an empty book rather than as a market that never
 		// carried this outcome
-		var requested *string = this.SafeString(market, "outcome", "")
-		panic(ccxt.BadSymbol(this.Id + " fetchTicker() did not find " + *requested + " among the outcomes of its market"))
+		var requested string = *this.SafeString(market, "outcome", "")
+		panic(ccxt.BadSymbol(this.Id + " fetchTicker() did not find " + requested + " among the outcomes of its market"))
 	}
 	// the venue quotes each outcome on its own side of the book, so no complement is needed
 	var bestBid map[string]any = ccxt.SafeMapTyped(rawOutcome, "bestBid")
@@ -3391,7 +3391,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	if this.PrivateKey == "" {
 		panic(ccxt.ArgumentsRequired(this.Id + " approve() requires a privateKey to sign the on-chain transaction"))
 	}
-	var side *string = this.SafeStringLower(params, "side", "buy")
+	var side string = *this.SafeStringLower(params, "side", "buy")
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var chainKey *string = this.NumberToString(chainId)
 	var rpcUrls map[string]any = ccxt.SafeMapTyped(this.Options, "rpcUrls")
@@ -3418,7 +3418,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		isNegRisk = (this.SafeBool(marketRow, "isNegRisk", false) != nil && *this.SafeBool(marketRow, "isNegRisk", false) == true)
 		isYieldBearing = (this.SafeBool(marketRow, "isYieldBearing", false) != nil && *this.SafeBool(marketRow, "isYieldBearing", false) == true)
 	}
-	if side != nil && *side == "sell" {
+	if side == "sell" {
 		var ctfToken *string = this.SafeString(params, "token", this.ConditionalTokensAddress(isNegRisk, isYieldBearing))
 		var operators []any = []any{}
 		var explicitOperator *string = this.SafeString(params, "spender")

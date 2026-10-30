@@ -669,10 +669,10 @@ func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "server_time")
-	var baseId *string = this.SafeStringLower(market, "baseId", "")
-	var quoteId *string = this.SafeStringLower(market, "quoteId", "")
-	var baseVolume string = "vol_" + *baseId
-	var quoteVolume string = "vol_" + *quoteId
+	var baseId string = *this.SafeStringLower(market, "baseId", "")
+	var quoteId string = *this.SafeStringLower(market, "quoteId", "")
+	var baseVolume string = "vol_" + baseId
+	var quoteVolume string = "vol_" + quoteId
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1055,20 +1055,20 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	if marketResolved != nil {
 		symbol = marketResolved["symbol"]
-		var quoteId *string = this.SafeString(marketResolved, "quoteId", "")
-		var baseId *string = this.SafeString(marketResolved, "baseId", "")
+		var quoteId string = *this.SafeString(marketResolved, "quoteId", "")
+		var baseId string = *this.SafeString(marketResolved, "baseId", "")
 		if (marketResolved["quoteId"] == "idr") && (this.SafeString(order, "order_rp") != nil) {
-			quoteId = SafeStringPtr("rp")
+			quoteId = "rp"
 		}
 		if (marketResolved["baseId"] == "idr") && (this.SafeString(order, "remain_rp") != nil) {
-			baseId = SafeStringPtr("rp")
+			baseId = "rp"
 		}
-		cost = this.SafeString(order, "order_"+*quoteId)
-		amount = this.SafeString(order, "order_"+*baseId)
-		remaining = this.SafeString(order, "remain_"+*baseId)
+		cost = this.SafeString(order, "order_"+quoteId)
+		amount = this.SafeString(order, "order_"+baseId)
+		remaining = this.SafeString(order, "remain_"+baseId)
 		// filled buy orders on idr-quoted markets carry the executed base amount
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-		filled = this.SafeString(order, "receive_"+*baseId)
+		filled = this.SafeString(order, "receive_"+baseId)
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil

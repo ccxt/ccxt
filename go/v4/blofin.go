@@ -1272,9 +1272,9 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if isSpot {
-		var spotBase *string = this.SafeString(marketResolved, "base", "")
-		var spotQuote *string = this.SafeString(marketResolved, "quote", "")
-		var spotSymbol string = *spotBase + "/" + *spotQuote
+		var spotBase string = *this.SafeString(marketResolved, "base", "")
+		var spotQuote string = *this.SafeString(marketResolved, "quote", "")
+		var spotSymbol string = spotBase + "/" + spotQuote
 		var cost *float64 = this.ParseNumber(Precise.StringMul(price, amount))
 		var result map[string]any = map[string]any{
 			"info":         trade,
@@ -1571,7 +1571,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var rates []any = []any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var rate any = this.SafeValue(data, i)
+		var rate map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
@@ -1882,7 +1882,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	request["marginMode"] = marginMode
 	var triggerPriceAny *string = this.SafeStringN(query, []any{"triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var triggerPriceSlTp *string = this.SafeString2(query, "stopLossPrice", "takeProfitPrice")
-	var timeInForce *string = this.SafeString(query, "timeInForce", "GTC")
+	var timeInForce string = *this.SafeString(query, "timeInForce", "GTC")
 	var isHedged *bool = this.SafeBool(query, "hedged", false)
 	if isHedged != nil && *isHedged {
 		request["positionSide"] = func() string {
@@ -1894,7 +1894,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	}
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	query = this.Omit(query, []any{"timeInForce"})
-	var ioc bool = (timeInForce != nil && *timeInForce == "IOC") || (typeVar != nil && *typeVar == "ioc")
+	var ioc bool = (timeInForce == "IOC") || (typeVar != nil && *typeVar == "ioc")
 	var marketIOC bool = (isMarketOrder && ioc)
 	if isMarketOrder || marketIOC {
 		request["orderType"] = "market"
@@ -2867,8 +2867,8 @@ func (this *Blofin) ChainIdToNetworkCode(chainId *string) any {
 		// because a stored strpos result and a two-argument slice do not
 		// survive the php conversion (false-vs-int compare; length arg)
 		var parts []string = strings.Split(*chainId, "(")
-		var tail *string = this.SafeString(parts, 1, "")
-		var tailParts []string = strings.Split(*tail, ")")
+		var tail string = *this.SafeString(parts, 1, "")
+		var tailParts []string = strings.Split(tail, ")")
 		var suffix *string = this.SafeString(tailParts, 0)
 		var suffixCode *string = this.SafeString(this.Options["networkCodesBySuffix"], suffix)
 		if suffixCode != nil {
@@ -2882,8 +2882,8 @@ func (this *Blofin) ChainIdToNetworkCode(chainId *string) any {
 		}
 		// the suffix is not always a chain: 'Optimism (USDT0)' carries
 		// the token name (verified live 2026-09-30), resolve by prefix
-		var head *string = this.SafeString(parts, 0, "")
-		return this.NetworkIdToCode(strings.TrimSpace(*head))
+		var head string = *this.SafeString(parts, 0, "")
+		return this.NetworkIdToCode(strings.TrimSpace(head))
 	}
 	// delegate the paren-free branch to the base resolver so the
 	// currency-scoped networks and the deprecated-network-code aliases

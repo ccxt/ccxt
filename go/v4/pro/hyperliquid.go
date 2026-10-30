@@ -376,8 +376,8 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -435,8 +435,8 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "orderbook:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "orderbook:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var nonce int64 = this.IncrementingNonce()
@@ -555,12 +555,12 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	// the single-symbol path subscribes to the per-coin context channel, which hyperliquid
 	// pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
 	// instead of the aggregate allMids broadcast that only carries mids and arrives at the
 	// server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -615,8 +615,8 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "ticker:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "ticker:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
@@ -1361,8 +1361,8 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var subMessageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "trade:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
@@ -1621,7 +1621,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1636,7 +1636,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 			"interval": timeframe,
 		},
 	}
-	var subMessageHash string = "candles:" + timeframe + ":" + *symbolValue
+	var subMessageHash string = "candles:" + timeframe + ":" + symbolValue
 	var messagehash string = "unsubscribe:" + subMessageHash
 	var message map[string]any = this.Extend(request, params)
 
@@ -2464,16 +2464,16 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
 	//         "data": "Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
 	//     }
 	//
-	var channel *string = this.SafeString(message, "channel", "")
-	if channel != nil && *channel == "error" {
-		var ret_msg *string = this.SafeString(message, "data", "")
-		if strings.Index(*ret_msg, "Already subscribed") >= 0 {
+	var channel string = *this.SafeString(message, "channel", "")
+	if channel == "error" {
+		var ret_msg string = *this.SafeString(message, "data", "")
+		if strings.Index(ret_msg, "Already subscribed") >= 0 {
 			// a duplicate subscribe is harmless - the server-side subscription is intact
 			// and data keeps flowing; rejecting all pending futures here would poison the
 			// whole connection, see https://github.com/ccxt/ccxt/issues/28369
 			return true
 		}
-		error := ccxt.ExchangeError(this.Id + " " + *ret_msg)
+		error := ccxt.ExchangeError(this.Id + " " + ret_msg)
 		client.(ccxt.ClientInterface).Reject(error)
 		return true
 	}

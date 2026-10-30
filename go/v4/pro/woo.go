@@ -106,8 +106,8 @@ func (this *Woo) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash stri
 	if this.Uid != "" {
 		urlUid = "/" + this.Uid
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "public", "")
-	var url string = *apiUrl + urlUid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "public", "")
+	var url string = apiUrl + urlUid
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -135,8 +135,8 @@ func (this *Woo) unwatchPublicBody(ch chan ccxt.AsyncResult[bool], subHash strin
 	if this.Uid != "" {
 		urlUid = "/" + this.Uid
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "public", "")
-	var url string = *apiUrl + urlUid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "public", "")
+	var url string = apiUrl + urlUid
 	var requestId int64 = this.RequestId(url)
 	var unsubHash string = "unsubscribe::" + subHash
 	var message map[string]any = map[string]any{
@@ -216,14 +216,14 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + *method
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + *method
 	var urlUid string = ""
 	if this.Uid != "" {
 		urlUid = "/" + this.Uid
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "public", "")
-	var url string = *apiUrl + urlUid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "public", "")
+	var url string = apiUrl + urlUid
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -280,8 +280,8 @@ func (this *Woo) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var subHash string = *marketId + "@" + *method
+	var marketId string = *this.SafeString(market, "id", "")
+	var subHash string = marketId + "@" + *method
 	var topic string = "orderbook"
 
 	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, paramsMethod)
@@ -524,8 +524,8 @@ func (this *Woo) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	}
 	var name string = "ticker"
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -567,8 +567,8 @@ func (this *Woo) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var subHash string = *marketId + "@" + *method
+	var marketId string = *this.SafeString(market, "id", "")
+	var subHash string = marketId + "@" + *method
 	var topic string = "ticker"
 
 	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, paramsMethod)
@@ -968,10 +968,10 @@ func (this *Woo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 		panic(ccxt.ExchangeError(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
-	var topic string = *marketId + "@" + name + "_" + *interval
+	var topic string = marketId + "@" + name + "_" + *interval
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1023,11 +1023,11 @@ func (this *Woo) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "ohlcv"
 	var name string = "kline"
-	var subHash string = *marketId + "@" + name + "_" + *interval
+	var subHash string = marketId + "@" + name + "_" + *interval
 	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
 
 	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)
@@ -1120,8 +1120,8 @@ func (this *Woo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@trade"
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@trade"
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1169,9 +1169,9 @@ func (this *Woo) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var topic string = "trades"
-	var subHash string = *marketId + "@trade"
+	var subHash string = marketId + "@trade"
 
 	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)
 	if r1.Err != nil {
@@ -1322,8 +1322,8 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "private", "")
-	var url string = *apiUrl + "/" + this.Uid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "private", "")
+	var url string = apiUrl + "/" + this.Uid
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
@@ -1376,8 +1376,8 @@ func (this *Woo) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "private", "")
-	var url string = *apiUrl + "/" + this.Uid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "private", "")
+	var url string = apiUrl + "/" + this.Uid
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1406,8 +1406,8 @@ func (this *Woo) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any], messa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "private", "")
-	var url string = *apiUrl + "/" + this.Uid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "private", "")
+	var url string = apiUrl + "/" + this.Uid
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1797,8 +1797,8 @@ func (this *Woo) HandleMyTrade(client any, message any) {
 	}
 	var trade map[string]any = this.ParseWsTrade(message)
 	myTrades.(ccxt.Appender).Append(trade)
-	var tradeSymbol *string = this.SafeString(trade, "symbol", "")
-	var messageHash string = "myTrades:" + *tradeSymbol
+	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
+	var messageHash string = "myTrades:" + tradeSymbol
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 	messageHash = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
@@ -1854,8 +1854,8 @@ func (this *Woo) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var apiUrl *string = this.SafeString(this.UrlsApi["ws"], "private", "")
-	var url string = *apiUrl + "/" + this.Uid
+	var apiUrl string = *this.SafeString(this.UrlsApi["ws"], "private", "")
+	var url string = apiUrl + "/" + this.Uid
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -1985,8 +1985,8 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition, market))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var marketSymbol *string = this.SafeString(market, "symbol", "")
-		var messageHash string = "positions::" + *marketSymbol
+		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		var messageHash string = "positions::" + marketSymbol
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
@@ -2119,8 +2119,8 @@ func (this *Woo) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate]
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@estfundingrate"
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@estfundingrate"
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -2215,8 +2215,8 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//         "data": "SPOT_BTC_USDT@orderbook"
 	//     }
 	//
-	var subscribeHash *string = this.SafeString(message, "data", "")
-	var unsubscribeHash string = "unsubscribe::" + *subscribeHash
+	var subscribeHash string = *this.SafeString(message, "data", "")
+	var unsubscribeHash string = "unsubscribe::" + subscribeHash
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubscribeHash, map[string]any{})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")

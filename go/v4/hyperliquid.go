@@ -912,12 +912,12 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 		pricePrecision = mathMin(decimalsLeft, pricePrecision)
 	} else {
 		// Count the numbers before the decimal separator
-		var integerPart *string = this.SafeString(priceSplitted, 0, "")
+		var integerPart string = *this.SafeString(priceSplitted, 0, "")
 		// Get significant digits, take the max() of 5 and the integer digits count
 		// significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
 		var digitsLeft int = 0
-		if len(*integerPart) <= 5 {
-			digitsLeft = 5 - (len(*integerPart))
+		if len(integerPart) <= 5 {
+			digitsLeft = 5 - (len(integerPart))
 		}
 		pricePrecision = mathMin(decimalsLeft, digitsLeft)
 	}
@@ -4123,8 +4123,8 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	return nil
 }
 func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
-	var baseName *string = this.SafeString(market, "baseName", "")
-	var part []string = strings.Split(*baseName, ":")
+	var baseName string = *this.SafeString(market, "baseName", "")
+	var part []string = strings.Split(baseName, ":")
 	var partsLength int = len(part)
 	if partsLength > 1 {
 		return this.SafeString(part, 0)
@@ -4719,13 +4719,13 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	}()
 	// standalone stop / take-profit orders carry their trigger in triggerPx - surface it
 	// through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-	var orderTypeRaw *string = this.SafeStringLower(entry, "orderType", "")
+	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
 	var stopLossPrice any = nil
 	var takeProfitPrice any = nil
 	if !IsEqual(triggerPx, nil) {
-		if strings.Index(*orderTypeRaw, "stop") >= 0 {
+		if strings.Index(orderTypeRaw, "stop") >= 0 {
 			stopLossPrice = triggerPx
-		} else if strings.Index(*orderTypeRaw, "take profit") >= 0 {
+		} else if strings.Index(orderTypeRaw, "take profit") >= 0 {
 			takeProfitPrice = triggerPx
 		}
 	}
@@ -5475,8 +5475,8 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginMode *string = this.SafeString(params, "marginMode", "cross")
-	var isCross bool = (marginMode != nil && *marginMode == "cross")
+	var marginMode string = *this.SafeString(params, "marginMode", "cross")
+	var isCross bool = (marginMode == "cross")
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var nonce int64 = this.IncrementingNonce()
 	var params2 any = this.Omit(params, "marginMode")
@@ -6937,9 +6937,9 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 	var hi3TokensByname map[string]any = SafeMapTyped(this.Options, "hip3TokensByName")
 	var hip3Dict map[string]any = SafeMapTyped(hi3TokensByname, coin)
 	if hip3Dict != nil {
-		var quote *string = this.SafeString(hip3Dict, "quote", "USDC")
+		var quote string = *this.SafeString(hip3Dict, "quote", "USDC")
 		var code *string = this.SafeString(hip3Dict, "code", coin)
-		return *code + "/" + *quote + ":" + *quote
+		return *code + "/" + quote + ":" + quote
 	}
 	if (GetIndexOf(coin, "/") > -1) || (GetIndexOf(coin, "@") > -1) {
 		return coin // spot
@@ -6965,16 +6965,16 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	//
 	// {"status":"unknownOid"}
 	//
-	var status *string = this.SafeString(response, "status", "")
+	var status string = *this.SafeString(response, "status", "")
 	var error *string = this.SafeString(response, "error")
 	var message any = nil
-	if status != nil && *status == "err" {
+	if status == "err" {
 		if derefPtr := this.SafeString(response, "response"); derefPtr != nil {
 			message = *derefPtr
 		} else {
 			message = nil
 		}
-	} else if status != nil && *status == "unknownOid" {
+	} else if status == "unknownOid" {
 		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {
 		message = error

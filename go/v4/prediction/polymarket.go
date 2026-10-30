@@ -682,11 +682,11 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 	} else if sort != nil && *sort == "newest" {
 		sortParam = "startDate"
 	}
-	var status *string = this.SafeString(params, "status", "active")
+	var status string = *this.SafeString(params, "status", "active")
 	var eventsStatus any = "active"
-	if (status != nil && *status == "closed") || (status != nil && *status == "inactive") {
+	if (status == "closed") || (status == "inactive") {
 		eventsStatus = "closed"
-	} else if status != nil && *status == "all" {
+	} else if status == "all" {
 		eventsStatus = nil
 	}
 	var rest map[string]any = this.OmitDict(params, []any{"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"})
@@ -4558,8 +4558,8 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	}
 	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId", "")
-	var outcomeValue *string = this.SafeString(outcomeObj, "outcome", "")
-	var messageHash string = "orderbook::" + *outcomeValue
+	var outcomeValue string = *this.SafeString(outcomeObj, "outcome", "")
+	var messageHash string = "orderbook::" + outcomeValue
 	var subscribeHash string = "subscribe::" + *tokenId
 	var subscribeMsg map[string]any = map[string]any{
 		"assets_ids": []any{tokenId},
@@ -4608,8 +4608,8 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId", "")
-	var outcomeValue *string = this.SafeString(outcomeObj, "outcome", "")
-	var messageHash string = "trades::" + *outcomeValue
+	var outcomeValue string = *this.SafeString(outcomeObj, "outcome", "")
+	var messageHash string = "trades::" + outcomeValue
 	var subscribeHash string = "subscribe::" + *tokenId
 	var subscribeMsg map[string]any = map[string]any{
 		"assets_ids": []any{tokenId},
@@ -4778,8 +4778,8 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 		var outcomeObj map[string]any = ccxt.StructResultMap(r1.Value, ccxt.PredictionOutcomeToMap)
 		outcomeResolved = this.SafeString(outcomeObj, "outcome")
-		var outcomeName *string = this.SafeString(outcomeObj, "outcome", "")
-		messageHash = "orders::" + *outcomeName
+		var outcomeName string = *this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "orders::" + outcomeName
 	}
 
 	r2 := <-this.SubscribeUserChannelAsync(messageHash, params)
@@ -4838,8 +4838,8 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 		var outcomeObj map[string]any = ccxt.StructResultMap(r1.Value, ccxt.PredictionOutcomeToMap)
 		outcomeResolved = this.SafeString(outcomeObj, "outcome")
-		var outcomeName *string = this.SafeString(outcomeObj, "outcome", "")
-		messageHash = "myTrades::" + *outcomeName
+		var outcomeName string = *this.SafeString(outcomeObj, "outcome", "")
+		messageHash = "myTrades::" + outcomeName
 	}
 
 	r2 := <-this.SubscribeUserChannelAsync(messageHash, params)

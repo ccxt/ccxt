@@ -1175,7 +1175,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var hasTakeProfit bool = (takeProfit != nil)
 	var isConditional bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
 	var isMarketOrder bool = (orderType == "MARKET")
-	var timeInForce *string = this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
+	var timeInForce string = *this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
 	var paramsOmitted any = this.Omit(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
 	var orderTypeNum int
@@ -1196,10 +1196,10 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		orderExpiry = int64(-1)
 	} else {
 		if !isMarketOrder {
-			if timeInForce != nil && *timeInForce == "ioc" {
+			if timeInForce == "ioc" {
 				timeInForceNum = 0
 				orderExpiry = 0
-			} else if timeInForce != nil && *timeInForce == "gtt" {
+			} else if timeInForce == "gtt" {
 				timeInForceNum = 1
 				orderExpiry = int64(-1)
 			}
@@ -2003,7 +2003,7 @@ func (this *Lighter) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 func (this *Lighter) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "asset_id")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "symbol"))
-	var decimals *string = this.SafeString(rawCurrency, "decimals", "")
+	var decimals string = *this.SafeString(rawCurrency, "decimals", "")
 	var isUSDC bool = (code != nil && *code == "USDC")
 	var depositMin *float64 = nil
 	var withdrawMin *float64 = nil
@@ -2015,7 +2015,7 @@ func (this *Lighter) ParseCurrency(rawCurrency any) map[string]any {
 		"id":        id,
 		"name":      code,
 		"code":      code,
-		"precision": this.ParseNumber("1e-" + *decimals),
+		"precision": this.ParseNumber("1e-" + decimals),
 		"active":    true,
 		"fee":       nil,
 		"networks":  map[string]any{},

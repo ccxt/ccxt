@@ -1204,8 +1204,8 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		return nil
 	}
 	this.CheckRequiredCredentials()
-	var wsBaseUrl *string = this.SafeString(this.Urls["api"], "ws", "")
-	var startIndex int = len(*wsBaseUrl)
+	var wsBaseUrl string = *this.SafeString(this.Urls["api"], "ws", "")
+	var startIndex int = len(wsBaseUrl)
 	var urlParamsIndex int = strings.Index(*url, "?")
 	var urlLength int = len(*url)
 	var endIndex int = func() int {

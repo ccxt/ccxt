@@ -3097,8 +3097,8 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	} else {
-		var marketTypeValue *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " createOrder() is not supported for " + *marketTypeValue + " type of markets"))
+		var marketTypeValue string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " createOrder() is not supported for " + marketTypeValue + " type of markets"))
 	}
 }
 
@@ -3238,8 +3238,8 @@ func (this *Hashkey) CreateOrderRequest(symbol *string, typeVar *string, side *s
 	} else if market["swap"] == true {
 		return this.CreateSwapOrderRequest(symbol, *typeVar, *side, amount, price, params)
 	} else {
-		var marketTypeValue *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + *marketTypeValue + " type of markets"))
+		var marketTypeValue string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + marketTypeValue + " type of markets"))
 	}
 }
 func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -3512,8 +3512,8 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 		}
 		response = r2.Value
 	} else {
-		var marketTypeValue *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + *marketTypeValue + " type of markets"))
+		var marketTypeValue string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + marketTypeValue + " type of markets"))
 	}
 	var result []any = SafeListTyped(response, "result")
 	var responseOrders []any = []any{}
@@ -3664,8 +3664,8 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 		response = r2.Raw
 	} else {
-		var marketTypeValue *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeValue + " type of markets"))
+		var marketTypeValue string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + marketTypeValue + " type of markets"))
 	}
 	var order map[string]any = OrderToMap(this.SafeOrder(response))
 	order["info"] = response
@@ -5337,8 +5337,8 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 		return nil
 	} else {
-		var marketTypeValue *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeValue + " type of markets"))
+		var marketTypeValue string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + marketTypeValue + " type of markets"))
 	}
 }
 

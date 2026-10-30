@@ -5962,8 +5962,8 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 			var isOrderPlacement bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders")
 			if isOrderPlacement {
 				if this.SafeString(params, "clOrdID") == nil {
-					var id *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
-					AddElementToObject(params, "clOrdID", *id+this.Uuid16())
+					var id string = *this.SafeString(this.Options, "brokerId", "CCXT123456")
+					AddElementToObject(params, "clOrdID", id+this.Uuid16())
 				}
 			}
 			payload = this.Json(params)

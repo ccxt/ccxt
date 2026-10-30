@@ -364,10 +364,10 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	//     }
 	//
 	var data []any = ccxt.SafeList2Typed(message, "data", "d")
-	var channel *string = this.SafeString(message, "c", "")
+	var channel string = *this.SafeString(message, "c", "")
 	var marketId *string = this.SafeString(message, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var channelStartsWithSpot bool = strings.HasPrefix(*channel, "spot")
+	var channelStartsWithSpot bool = strings.HasPrefix(channel, "spot")
 	var marketIdIsUndefined bool = (marketId == nil)
 	var isSpot any = func() any {
 		if marketIdIsUndefined {
@@ -1008,8 +1008,8 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	//     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
 	//     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
 	//
-	var msg *string = this.SafeString(message, "msg", "")
-	var parts []string = strings.Split(*msg, "@")
+	var msg string = *this.SafeString(message, "msg", "")
+	var parts []string = strings.Split(msg, "@")
 	var partsLength int = len(parts) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	var marketId *string = this.SafeString(parts, partsLength-1)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1468,7 +1468,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var trade any = nil
 	if market["spot"] == true {
 		trade = this.ParseWsTrade(data, market)
@@ -1485,7 +1485,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
+	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1736,7 +1736,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var futuresMarketId *string = this.SafeString(data, "symbol")
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var parsed any = nil
 	if market["spot"] == true {
 		parsed = this.ParseWsOrder(data, market)
@@ -1757,7 +1757,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	}
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
+	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -2648,19 +2648,19 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 	//    }
 	//
 	// ccxt.Set the default to an empty string if the message is empty during the test.
-	var msg *string = this.SafeString(message, "msg", "")
-	if msg != nil && *msg == "PONG" {
+	var msg string = *this.SafeString(message, "msg", "")
+	if msg == "PONG" {
 		this.HandlePong(client, message)
-	} else if strings.Index(*msg, "Not Subscribed successfully") > -1 {
+	} else if strings.Index(msg, "Not Subscribed successfully") > -1 {
 		// the venue names the refused channel between brackets, reject only that watcher
 		// and drop its subscription so a corrected retry sends a new frame
-		error := ccxt.ExchangeError(this.Id + " " + *msg)
+		error := ccxt.ExchangeError(this.Id + " " + msg)
 		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		var rejected bool = false
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = subscriptionHashes[i]
 			var subscribedChannel *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "channel")
-			if (subscribedChannel != nil) && (strings.Index(*msg, "["+*subscribedChannel+"]") >= 0) {
+			if (subscribedChannel != nil) && (strings.Index(msg, "["+*subscribedChannel+"]") >= 0) {
 				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 				client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
 				rejected = true
@@ -2670,8 +2670,8 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 			// nothing matched, the caller would hang otherwise
 			client.(ccxt.ClientInterface).Reject(error)
 		}
-	} else if strings.Index(*msg, "@") > -1 {
-		var parts []string = strings.Split(*msg, "@")
+	} else if strings.Index(msg, "@") > -1 {
+		var parts []string = strings.Split(msg, "@")
 		var channel *string = this.SafeString(parts, 1)
 		var methods map[string]any = map[string]any{
 			"public.increase.depth.v3.api": this.HandleOrderBookSubscription,
@@ -2702,8 +2702,8 @@ func (this *Mexc) HandleProtobufMessage(client any, message any) bool {
 	//       "windowEnd":"1754737980"
 	//    }
 	// }
-	var channel *string = this.SafeString(message, "channel", "")
-	var channelParts []string = strings.Split(*channel, "@")
+	var channel string = *this.SafeString(message, "channel", "")
+	var channelParts []string = strings.Split(channel, "@")
 	var channelId *string = this.SafeString(channelParts, 1)
 	if channelId != nil && *channelId == "public.kline.v3.api.pb" {
 		this.HandleOHLCV(client, message)

@@ -1573,11 +1573,11 @@ func (this *Dydx) HashMessage(message any) any {
 }
 func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
-	var r *string = this.SafeString(signature, "r", "")
-	var s *string = this.SafeString(signature, "s", "")
+	var r string = *this.SafeString(signature, "r", "")
+	var s string = *this.SafeString(signature, "s", "")
 	return map[string]any{
-		"r": (strings.Repeat("0", max(64-len(*r), 0)) + *r)[max(len(*r)-64, 0):],
-		"s": (strings.Repeat("0", max(64-len(*s), 0)) + *s)[max(len(*s)-64, 0):],
+		"r": (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):],
+		"s": (strings.Repeat("0", max(64-len(s), 0)) + s)[max(len(s)-64, 0):],
 		"v": this.Sum(27, signature["v"]),
 	}
 }
@@ -1613,9 +1613,9 @@ func (this *Dydx) SignDydxTx(privateKey *string, message any, memo any, chainId 
 	encodedTx := GetValue(encodedTxsignDocVariable, 0)
 	signDoc := GetValue(encodedTxsignDocVariable, 1)
 	var signature map[string]any = this.SignHash(encodedTx, privateKey)
-	var signatureR *string = this.SafeString(signature, "r", "")
-	var signatureS *string = this.SafeString(signature, "s", "")
-	return this.EncodeDydxTxRaw(signDoc, *signatureR+*signatureS)
+	var signatureR string = *this.SafeString(signature, "r", "")
+	var signatureS string = *this.SafeString(signature, "s", "")
+	return this.EncodeDydxTxRaw(signDoc, signatureR+signatureS)
 }
 func (this *Dydx) RetrieveCredentials() any {
 	var credentials any = this.SafeDict(this.Options, "dydxCredentials")

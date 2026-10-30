@@ -1615,8 +1615,8 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) map[strin
 		}
 		for i := 0; i < len(keys); i++ {
 			var key string = keys[i]
-			var value *string = this.SafeString(paramsDict, key, "")
-			auth = append(auth, key+"="+*value)
+			var value string = *this.SafeString(paramsDict, key, "")
+			auth = append(auth, key+"="+value)
 		}
 		var message string = strings.Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)

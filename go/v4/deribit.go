@@ -833,13 +833,13 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		settle = baseResolved
 	}
 	// the part of the base before the first underscore, or the whole base when it has none
-	var splitBase *string = this.SafeString(strings.Split(baseResolved, "_"), 0, "")
+	var splitBase string = *this.SafeString(strings.Split(baseResolved, "_"), 0, "")
 	var strike *string = this.SafeString(optionParts, 2, "")
-	var optionType *string = this.SafeString(optionParts, 3, "")
+	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	return map[string]any{
-		"id":             Add(Add(baseResolved+"-", this.ConvertExpireDateToMarketIdDate(expiry)), ("-" + *strike + "-" + *optionType)),
-		"symbol":         Add(Add(*splitBase+"/"+quote+":"+settle+"-", expiry), ("-" + *strike + "-" + *optionType)),
+		"id":             Add(Add(baseResolved+"-", this.ConvertExpireDateToMarketIdDate(expiry)), ("-" + *strike + "-" + optionType)),
+		"symbol":         Add(Add(splitBase+"/"+quote+":"+settle+"-", expiry), ("-" + *strike + "-" + optionType)),
 		"base":           baseResolved,
 		"quote":          quote,
 		"settle":         settle,
@@ -860,7 +860,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"expiry":         this.Parse8601(datetime),
 		"expiryDatetime": datetime,
 		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
+			if optionType == "C" {
 				return "call"
 			}
 			return "put"

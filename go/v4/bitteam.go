@@ -2964,13 +2964,13 @@ func (this *Bitteam) HandleErrors(code int64, reason string, url string, method 
 		if code == 404 {
 			if (strings.Index(url, "/ccxt/order/") >= 0) && (method == "GET") {
 				var parts []string = strings.Split(url, "/order/")
-				var orderId *string = this.SafeString(parts, 1, "")
-				panic(OrderNotFound(this.Id + " order " + *orderId + " not found"))
+				var orderId string = *this.SafeString(parts, 1, "")
+				panic(OrderNotFound(this.Id + " order " + orderId + " not found"))
 			}
 			if strings.Index(url, "/cmc/orderbook/") >= 0 {
 				var parts []string = strings.Split(url, "/cmc/orderbook/")
-				var symbolId *string = this.SafeString(parts, 1, "")
-				panic(BadSymbol(this.Id + " symbolId " + *symbolId + " not found"))
+				var symbolId string = *this.SafeString(parts, 1, "")
+				panic(BadSymbol(this.Id + " symbolId " + symbolId + " not found"))
 			}
 		}
 		var feedback string = this.Id + " " + body

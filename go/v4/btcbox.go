@@ -433,11 +433,11 @@ func (this *Btcbox) ParseBalance(response any) map[string]any {
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
-		var currencyId *string = this.SafeString(currency, "id", "")
-		var free string = *currencyId + "_balance"
+		var currencyId string = *this.SafeString(currency, "id", "")
+		var free string = currencyId + "_balance"
 		if InOp(response, free) {
 			var account map[string]any = this.Account()
-			var used string = *currencyId + "_lock"
+			var used string = currencyId + "_lock"
 			account["free"] = this.SafeString(response, free)
 			account["used"] = this.SafeString(response, used)
 			result[code] = account

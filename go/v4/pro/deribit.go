@@ -110,8 +110,8 @@ func (this *Deribit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
 	for i := 0; i < len(currencies); i++ {
-		var currencyCode *string = this.SafeString(currencies, i, "")
-		channels = append(channels, "user.portfolio."+*currencyCode)
+		var currencyCode string = *this.SafeString(currencies, i, "")
+		channels = append(channels, "user.portfolio."+currencyCode)
 	}
 	var subscribe map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -216,7 +216,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var interval *string = this.SafeString(params, "interval", "100ms")
+	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets() == nil {
 
@@ -225,20 +225,20 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r1.Err)
 		}
 	}
-	if interval != nil && *interval == "raw" {
+	if interval == "raw" {
 
 		r2 := <-this.AuthenticateAsync()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 	}
-	var marketId *string = this.SafeString(market, "id", "")
-	var channel string = "ticker." + *marketId + "." + *interval
+	var marketId string = *this.SafeString(market, "id", "")
+	var channel string = "ticker." + marketId + "." + interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
-			"channels": []any{"ticker." + *marketId + "." + *interval},
+			"channels": []any{"ticker." + marketId + "." + interval},
 		},
 		"id": this.RequestId(),
 	}
@@ -283,7 +283,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var interval *string = this.SafeString(params, "interval", "100ms")
+	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets() == nil {
 
@@ -292,7 +292,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			panic(r1.Err)
 		}
 	}
-	if interval != nil && *interval == "raw" {
+	if interval == "raw" {
 
 		r2 := <-this.AuthenticateAsync()
 		if r2.Err != nil {
@@ -302,7 +302,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
-		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+*interval)
+		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+interval)
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -590,8 +590,8 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var channel *string = this.SafeString(params, "channel", "")
-	var parts []string = strings.Split(*channel, ".")
+	var channel string = *this.SafeString(params, "channel", "")
+	var parts []string = strings.Split(channel, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(marketId)
@@ -614,8 +614,8 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	if symbol != nil {
 		this.Trades[*symbol] = stored
 	}
-	var interval *string = this.SafeString(parts, 2, "")
-	var messageHash string = "trades|" + *symbol + "|" + *interval
+	var interval string = *this.SafeString(parts, 2, "")
+	var messageHash string = "trades|" + *symbol + "|" + interval
 	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
 }
 
@@ -666,9 +666,9 @@ func (this *Deribit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		return nil
 	}()
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var interval *string = this.SafeString(params, "interval", "raw")
+	var interval string = *this.SafeString(params, "interval", "raw")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
-	var channel string = "user.trades.any.any." + *interval
+	var channel string = "user.trades.any.any." + interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
@@ -881,8 +881,8 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var partsLength int = len(parts)
 	var isDetailed bool = (partsLength == 5)
 	if isDetailed {
-		var interval *string = this.SafeString(parts, 4, "")
-		descriptor = *this.SafeString(parts, 2, "") + "." + *this.SafeString(parts, 3, "") + "." + *interval
+		var interval string = *this.SafeString(parts, 4, "")
+		descriptor = *this.SafeString(parts, 2, "") + "." + *this.SafeString(parts, 3, "") + "." + interval
 	} else {
 		descriptor = this.SafeString(parts, 2, "")
 	}
@@ -1011,11 +1011,11 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		return nil
 	}()
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var currency *string = this.SafeString(params, "currency", "any")
-	var interval *string = this.SafeString(params, "interval", "raw")
-	var kind *string = this.SafeString(params, "kind", "any")
+	var currency string = *this.SafeString(params, "currency", "any")
+	var interval string = *this.SafeString(params, "interval", "raw")
+	var kind string = *this.SafeString(params, "kind", "any")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval", "currency", "kind")
-	var channel string = "user.orders." + *kind + "." + *currency + "." + *interval
+	var channel string = "user.orders." + kind + "." + currency + "." + interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
@@ -1218,8 +1218,8 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var channel *string = this.SafeString(params, "channel", "")
-	var parts []string = strings.Split(*channel, ".")
+	var channel string = *this.SafeString(params, "channel", "")
+	var parts []string = strings.Split(channel, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
 	var market map[string]any = this.SafeMarket(marketId)

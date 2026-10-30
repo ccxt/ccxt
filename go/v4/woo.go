@@ -5225,8 +5225,8 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, op
 		}
 		response = r2.Value
 	} else {
-		var marketType *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + *marketType + " markets"))
+		var marketType string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + marketType + " markets"))
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
@@ -5327,8 +5327,8 @@ func (this *Woo) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 		ch <- AsyncResult[map[string]any]{Value: r2.Value}
 		return nil
 	} else {
-		var marketType *string = this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + *marketType + " markets"))
+		var marketType string = *this.SafeString(market, "type", "")
+		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + marketType + " markets"))
 	}
 }
 

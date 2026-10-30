@@ -359,8 +359,8 @@ func (this *Bit2c) ParseBalance(response any) map[string]any {
 		var code string = codes[i]
 		var account map[string]any = this.Account()
 		var currency map[string]any = this.Currency(code)
-		var currencyId *string = this.SafeString(currency, "id", "")
-		var uppercase string = strings.ToUpper(*currencyId)
+		var currencyId string = *this.SafeString(currency, "id", "")
+		var uppercase string = strings.ToUpper(currencyId)
 		if this.SafeString(response, uppercase) != nil {
 			account["free"] = this.SafeString(response, "AVAILABLE_"+uppercase)
 			account["total"] = this.SafeString(response, uppercase)

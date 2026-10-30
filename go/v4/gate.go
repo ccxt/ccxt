@@ -2079,12 +2079,12 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 		}()) // convert 20230728 to 230728
 	}
 	var strike *string = this.SafeString(optionParts, 2, "")
-	var optionType *string = this.SafeString(optionParts, 3, "")
+	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	return map[string]any{
-		"id":             *base + "_" + quote + "-" + "20" + *expiry + "-" + *strike + "-" + *optionType,
-		"symbol":         *base + "/" + quote + ":" + settle + "-" + *expiry + "-" + *strike + "-" + *optionType,
+		"id":             *base + "_" + quote + "-" + "20" + *expiry + "-" + *strike + "-" + optionType,
+		"symbol":         *base + "/" + quote + ":" + settle + "-" + *expiry + "-" + *strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
@@ -2105,7 +2105,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
 		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
+			if optionType == "C" {
 				return "call"
 			}
 			return "put"
@@ -2580,7 +2580,7 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 	if contractSize != nil && *contractSize == "0" {
 		contractSize = SafeStringPtr("1") // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
 	}
-	var status *string = this.SafeString(market, "status", "trading") // or "suspend"
+	var status string = *this.SafeString(market, "status", "trading") // or "suspend"
 	var amountPrecision *float64 = this.ParseNumber("1")
 	var enableDecimal *bool = this.SafeBool(market, "enable_decimal", false)
 	var orderSizeMin *string = this.SafeString(market, "order_size_min")
@@ -2589,7 +2589,7 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 	if swap && (enableDecimal != nil && *enableDecimal) && (orderSizeMin != nil) && (minAmount != nil) && Precise.StringGt(orderSizeMin, "0") {
 		amountPrecision = minAmount
 	}
-	var active bool = (status != nil && *status == "trading")
+	var active bool = (status == "trading")
 	return map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -9969,8 +9969,8 @@ func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 		var requiresURLEncoding bool = false
 		if ((typeVar == "futures") || (typeVar == "delivery")) && (method == "POST") {
 			var pathParts []string = strings.Split(pathImploded, "/")
-			var secondPart *string = this.SafeString(pathParts, 1, "")
-			requiresURLEncoding = (strings.Index(*secondPart, "dual") >= 0) || (strings.Index(*secondPart, "positions") >= 0)
+			var secondPart string = *this.SafeString(pathParts, 1, "")
+			requiresURLEncoding = (strings.Index(secondPart, "dual") >= 0) || (strings.Index(secondPart, "positions") >= 0)
 		}
 		if (method == "GET") || (method == "DELETE") || requiresURLEncoding || (method == "PATCH") {
 			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {

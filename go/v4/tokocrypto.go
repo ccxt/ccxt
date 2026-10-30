@@ -2212,10 +2212,10 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		"TAKE_PROFIT_LIMIT": 6,
 		"LIMIT_MAKER":       7,
 	}
-	var baseId *string = this.SafeString(market, "baseId", "")
-	var quoteId *string = this.SafeString(market, "quoteId", "")
+	var baseId string = *this.SafeString(market, "baseId", "")
+	var quoteId string = *this.SafeString(market, "quoteId", "")
 	var request map[string]any = map[string]any{
-		"symbol": *baseId + "_" + *quoteId,
+		"symbol": baseId + "_" + quoteId,
 		"type":   this.SafeString(reverseOrderTypeMapping, uppercaseType),
 	}
 	if side == "buy" {

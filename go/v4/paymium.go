@@ -434,8 +434,8 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
-	var baseId *string = this.SafeString(marketResolved, "base", "")
-	var amountField string = "traded_" + strings.ToLower(*baseId)
+	var baseId string = *this.SafeString(marketResolved, "base", "")
+	var amountField string = "traded_" + strings.ToLower(baseId)
 	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,

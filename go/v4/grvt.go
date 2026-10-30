@@ -3025,8 +3025,8 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 			panic(ArgumentsRequired(this.Id + " order leg requires a size"))
 		}
 		var sizeParts []string = strings.Split(*size, ".")
-		var sizeDec *string = this.SafeString(sizeParts, 1, "")
-		var sizeDecLength int = len(*sizeDec) + 0 // php tr
+		var sizeDec string = *this.SafeString(sizeParts, 1, "")
+		var sizeDecLength int = len(sizeDec) + 0 // php tr
 		var sizeDigits int64 = ParseInt(strings.Replace(*size, ".", "", 1))
 		var denominator float64 = math.Pow(10, float64(sizeDecLength))
 		var sizeInteger any = ((float64(sizeDigits) * sizeMultiplier) / denominator)
@@ -3039,8 +3039,8 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 		if (limitPrice != nil) && (!IsEqual(this.OmitZero(limitPrice), nil)) {
 			var price *string = limitPrice
 			var limitParts []string = strings.Split(*price, ".")
-			var limitDec *string = this.SafeString(limitParts, 1, "")
-			var limitDecLength int = len(*limitDec) + 0 // php tr
+			var limitDec string = *this.SafeString(limitParts, 1, "")
+			var limitDecLength int = len(limitDec) + 0 // php tr
 			var priceDigits int64 = ParseInt(strings.Replace(*price, ".", "", 1))
 			denominator = math.Pow(10, float64(limitDecLength))
 			var priceInteger any = (float64((priceDigits * int64(priceMultiplier))) / denominator)

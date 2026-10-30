@@ -145,8 +145,8 @@ func (this *Woofipro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var name string = "orderbook"
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -227,8 +227,8 @@ func (this *Woofipro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	}
 	var name string = "ticker"
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -530,8 +530,8 @@ func (this *Woofipro) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name + "_" + *interval
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name + "_" + *interval
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -634,8 +634,8 @@ func (this *Woofipro) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@trade"
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@trade"
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,

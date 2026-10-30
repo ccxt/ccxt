@@ -4060,9 +4060,9 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiType string = api[0]
-	var baseUrl *string = this.SafeString(this.Urls["api"], apiType, "")
+	var baseUrl string = *this.SafeString(this.Urls["api"], apiType, "")
 	var implodedPath string = this.ImplodeParams(path, params)
-	var url string = *baseUrl + "/" + implodedPath
+	var url string = baseUrl + "/" + implodedPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersResolved map[string]any = map[string]any{
 		"Accept": "application/json",
@@ -4079,7 +4079,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			var keys []string = ObjectKeys(query)
 			var keysLength int = len(keys)
 			if keysLength > 0 {
-				url = *baseUrl + "/" + implodedPath + "?" + this.Urlencode(query)
+				url = baseUrl + "/" + implodedPath + "?" + this.Urlencode(query)
 			}
 		}
 		if apiType == "private" {

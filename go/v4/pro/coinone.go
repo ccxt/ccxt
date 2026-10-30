@@ -465,8 +465,8 @@ func (this *Coinone) HandleErrorMessage(client any, message map[string]any) bool
 	//         "message": "Invalid Topic"
 	//     }
 	//
-	var typeVar *string = this.SafeString(message, "response_type", "")
-	if typeVar != nil && *typeVar == "ERROR" {
+	var typeVar string = *this.SafeString(message, "response_type", "")
+	if typeVar == "ERROR" {
 		return true
 	}
 	return false

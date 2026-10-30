@@ -130,8 +130,8 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		return *limit
 	}()
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderbook."+*marketId+".10.", this.NumberToString(limitResolved)))
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderbook."+marketId+".10.", this.NumberToString(limitResolved)))
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -221,8 +221,8 @@ func (this *Derive) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = "ticker_slim." + *marketId + ".100" // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = "ticker_slim." + marketId + ".100" // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -270,8 +270,8 @@ func (this *Derive) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = "ticker_slim." + *marketId + ".100"
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = "ticker_slim." + marketId + ".100"
 	var messageHash string = "unwatch" + topic
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -324,10 +324,10 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsResolved); i++ {
 		var market map[string]any = this.Market(symbolsResolved[i])
-		var marketId *string = this.SafeString(market, "id", "")
-		var marketSymbol *string = this.SafeString(market, "symbol", "")
-		topics = append(topics, "ticker_slim."+*marketId+".100")
-		messageHashes = append(messageHashes, "bidask:"+*marketSymbol)
+		var marketId string = *this.SafeString(market, "id", "")
+		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		topics = append(topics, "ticker_slim."+marketId+".100")
+		messageHashes = append(messageHashes, "bidask:"+marketSymbol)
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId(url)
@@ -458,8 +458,8 @@ func (this *Derive) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 		return *limitRaw
 	}()
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = "orderbook." + *marketId + ".10." + strconv.FormatInt(limit, 10)
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = "orderbook." + marketId + ".10." + strconv.FormatInt(limit, 10)
 	var messageHash string = "unwatch" + topic
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -505,8 +505,8 @@ func (this *Derive) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = "trades." + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = "trades." + marketId
 	var messageHah string = "unwatch" + topic
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -578,9 +578,9 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if _, ok := this.Trades[*symbol]; ok {
-		delete(this.Trades, *symbol)
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; ok {
+		delete(this.Trades, symbol)
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }
@@ -684,8 +684,8 @@ func (this *Derive) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = "trades." + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = "trades." + marketId
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{

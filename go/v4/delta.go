@@ -447,7 +447,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		return 1
 	}()
 	var base *string = this.SafeString(partSource, baseIndex, "")
-	var optionType *string = this.SafeString(optionParts, func() int {
+	var optionType string = *this.SafeString(optionParts, func() int {
 		if hasSlash {
 			return 3
 		}
@@ -483,12 +483,12 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
-	if optionType != nil && *optionType == "C" {
+	if optionType == "C" {
 		optionTypeUnified = "call"
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":             *optionType + "-" + *base + "-" + *strike + "-" + expiry,
-		"symbol":         *base + "/" + quote + ":" + settle + "-" + expiry + "-" + *strike + "-" + *optionType,
+		"id":             optionType + "-" + *base + "-" + *strike + "-" + expiry,
+		"symbol":         *base + "/" + quote + ":" + settle + "-" + expiry + "-" + *strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,

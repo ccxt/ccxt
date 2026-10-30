@@ -142,8 +142,8 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = this.SafeString(market, "id2", "")
-		topics = append(topics, "recentlyTrade.H."+*marketId)
+		var marketId string = *this.SafeString(market, "id2", "")
+		topics = append(topics, "recentlyTrade.H."+marketId)
 		var messageHash string = "trade:" + symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
@@ -325,7 +325,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = this.SafeString(market, "id2", "")
+		var marketId string = *this.SafeString(market, "id2", "")
 		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("orderBook", this.NumberToString(limitValue)), ".H."), marketId))
 		var messageHash string = "orderbook:" + symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -387,8 +387,8 @@ func (this *Apex) GetWsPublicUrl() any {
 	var url *string = this.SafeString(this.Options, "wsPublicUrl")
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var wsEndpoint *string = this.SafeString(this.UrlsApi["ws"], "public", "")
-		this.Options["wsPublicUrl"] = *wsEndpoint + "&timestamp=" + timeStamp
+		var wsEndpoint string = *this.SafeString(this.UrlsApi["ws"], "public", "")
+		this.Options["wsPublicUrl"] = wsEndpoint + "&timestamp=" + timeStamp
 		url = this.SafeString(this.Options, "wsPublicUrl", "")
 	}
 	return url
@@ -397,8 +397,8 @@ func (this *Apex) GetWsPrivateUrl() any {
 	var url *string = this.SafeString(this.Options, "wsPrivateUrl")
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var wsEndpoint *string = this.SafeString(this.UrlsApi["ws"], "private", "")
-		this.Options["wsPrivateUrl"] = *wsEndpoint + "&timestamp=" + timeStamp
+		var wsEndpoint string = *this.SafeString(this.UrlsApi["ws"], "private", "")
+		this.Options["wsPrivateUrl"] = wsEndpoint + "&timestamp=" + timeStamp
 		url = this.SafeString(this.Options, "wsPrivateUrl", "")
 	}
 	return url
@@ -500,11 +500,11 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url any = this.GetWsPublicUrl()
-	var messageHash string = "ticker:" + *symbolValue
-	var marketId *string = this.SafeString(market, "id2", "")
-	var topics []any = []any{"instrumentInfo" + ".H." + *marketId}
+	var messageHash string = "ticker:" + symbolValue
+	var marketId string = *this.SafeString(market, "id2", "")
+	var topics []any = []any{"instrumentInfo" + ".H." + marketId}
 
 	r1 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
 	if r1.Err != nil {
@@ -549,8 +549,8 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = this.SafeString(market, "id2", "")
-		topics = append(topics, "instrumentInfo"+".H."+*marketId)
+		var marketId string = *this.SafeString(market, "id2", "")
+		topics = append(topics, "instrumentInfo"+".H."+marketId)
 		var messageHash string = "ticker:" + symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
@@ -596,16 +596,16 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	//     "cs":44939063,
 	//     "ts":1661500091955487
 	// }
-	var topic *string = this.SafeString(message, "topic", "")
-	var updateType *string = this.SafeString(message, "type", "")
+	var topic string = *this.SafeString(message, "topic", "")
+	var updateType string = *this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var symbol any = nil
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
-	if updateType != nil && *updateType == "snapshot" {
+	if updateType == "snapshot" {
 		parsed = ccxt.TickerToMap(this.ParseTicker(data))
 		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
-	} else if updateType != nil && *updateType == "delta" {
-		var topicParts []string = strings.Split(*topic, ".")
+	} else if updateType == "delta" {
+		var topicParts []string = strings.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil)
@@ -712,10 +712,10 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
-		var marketId *string = this.SafeString(market, "id2", "")
+		var marketId string = *this.SafeString(market, "id2", "")
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		rawHashes = append(rawHashes, "candle."+*timeframeId+"."+*marketId)
+		rawHashes = append(rawHashes, "candle."+*timeframeId+"."+marketId)
 		messageHashes = append(messageHashes, "ohlcv::"+market["symbol"].(string)+"::"+*unfiedTimeframe)
 	}
 	r1 := <-this.WatchTopicsAsync(url, messageHashes, rawHashes, params)
@@ -1234,8 +1234,8 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = this.SafeString(parts, 1, "")
-		var symbols []string = strings.Split(*symbolsString, ",")
+		var symbolsString string = *this.SafeString(parts, 1, "")
+		var symbols []string = strings.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)

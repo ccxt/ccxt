@@ -2962,20 +2962,20 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 		var market map[string]any = SafeMapTyped(futureMarkets, i)
 		var info map[string]any = SafeMapTyped(market, "info")
 		var contractType *string = this.SafeString(info, "contract_type")
-		var contractSuffix *string = this.SafeString(futuresCharsMaps, contractType, "")
-		if contractSuffix != nil && *contractSuffix == "" {
+		var contractSuffix string = *this.SafeString(futuresCharsMaps, contractType, "")
+		if contractSuffix == "" {
 			continue
 		}
-		var marketBase *string = this.SafeString(market, "base", "")
-		var marketQuote *string = this.SafeString(market, "quote", "")
+		var marketBase string = *this.SafeString(market, "base", "")
+		var marketQuote string = *this.SafeString(market, "quote", "")
 		var marketLinear *bool = this.SafeBool(market, "linear", false)
 		var marketSymbol *string = this.SafeString(market, "symbol", "")
 		// see comment on formats a bit above
 		var constructedId string
 		if marketLinear != nil && *marketLinear {
-			constructedId = *marketBase + "-" + *marketQuote + "-" + *contractSuffix
+			constructedId = marketBase + "-" + marketQuote + "-" + contractSuffix
 		} else {
-			constructedId = *marketBase + "_" + *contractSuffix
+			constructedId = marketBase + "_" + contractSuffix
 		}
 		if constructedId == symbolOrMarketId {
 			AddElementToObject(this.Options["futureMarketIdsForSymbols"], symbolOrMarketId, marketSymbol)
@@ -5451,8 +5451,8 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan AsyncResult[[]Order], state
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders") // spot_private_get_v1_order_history
-	if method != nil && *method == "spot_private_get_v1_order_orders" {
+	var method string = *this.SafeString(this.Options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders") // spot_private_get_v1_order_history
+	if method == "spot_private_get_v1_order_orders" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 		}
@@ -5481,7 +5481,7 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan AsyncResult[[]Order], state
 		requestUntil["size"] = *limit
 	}
 	var response map[string]any = nil
-	if method != nil && *method == "spot_private_get_v1_order_orders" {
+	if method == "spot_private_get_v1_order_orders" {
 
 		r1 := <-this.SpotPrivateGetV1OrderOrders(this.Extend(requestUntil, paramsUntil))
 		if r1.Err != nil {
@@ -7067,18 +7067,18 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	if postOnly {
 		orderType = "limit-maker"
 	}
-	var timeInForce *string = this.SafeString(paramsPostOnly, "timeInForce", "GTC")
-	if timeInForce != nil && *timeInForce == "FOK" {
+	var timeInForce string = *this.SafeString(paramsPostOnly, "timeInForce", "GTC")
+	if timeInForce == "FOK" {
 		orderType = orderType + "-fok"
-	} else if timeInForce != nil && *timeInForce == "IOC" {
+	} else if timeInForce == "IOC" {
 		orderType = "ioc"
 	}
 	request["type"] = Add(Add(sideStr, "-"), orderType)
 	var clientOrderId *string = this.SafeString2(paramsPostOnly, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours
 	if clientOrderId == nil {
 		var broker map[string]any = SafeMapTyped(this.Options, "broker")
-		var brokerId *string = this.SafeString(broker, "id", "")
-		request["client-order-id"] = *brokerId + this.Uuid()
+		var brokerId string = *this.SafeString(broker, "id", "")
+		request["client-order-id"] = brokerId + this.Uuid()
 	} else {
 		request["client-order-id"] = clientOrderId
 	}

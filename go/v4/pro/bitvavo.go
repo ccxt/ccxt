@@ -1171,11 +1171,11 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 	//         "asks": []
 	//     }
 	//
-	var event *string = this.SafeString(message, "event", "")
+	var event string = *this.SafeString(message, "event", "")
 	var marketId *string = this.SafeString(message, "market")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = *event + "@" + *this.SafeString(message, "market", "")
+	var messageHash string = event + "@" + *this.SafeString(message, "market", "")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		return
@@ -2613,7 +2613,7 @@ func (this *Bitvavo) BuildMessageHash(action *string, optionalArgs ...any) any {
 func (this *Bitvavo) ActionAndMarketMessageHash(action any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbol *string = this.SafeString(params, "market", "")
+	var symbol string = *this.SafeString(params, "market", "")
 	return ccxt.Add(action, symbol)
 }
 func (this *Bitvavo) ActionAndOrderIdMessageHash(action any, optionalArgs ...any) any {

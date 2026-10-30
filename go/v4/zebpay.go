@@ -477,13 +477,13 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var defaultMarkets []any = []any{"spot", "swap"}
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
 	for i := 0; i < GetArrayLength(types); i++ {
-		var typeVar *string = this.SafeString(types, i, "")
-		if typeVar != nil && *typeVar == "spot" {
+		var typeVar string = *this.SafeString(types, i, "")
+		if typeVar == "spot" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))
-		} else if typeVar != nil && *typeVar == "swap" {
+		} else if typeVar == "swap" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSwapMarketsAsync(params))
 		} else {
-			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + *typeVar + "\" is not a supported market type"))
+			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + typeVar + "\" is not a supported market type"))
 		}
 	}
 

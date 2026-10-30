@@ -4570,8 +4570,8 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 			var chainsLength int = len(childChains)
 			if chainsLength > 0 {
 				for j := 0; j < len(childChains); j++ {
-					var rawNetworkId *string = this.SafeString(childChains, j, "")
-					var networkId string = strings.Replace(*rawNetworkId, *code, "", 1)
+					var rawNetworkId string = *this.SafeString(childChains, j, "")
+					var networkId string = strings.Replace(rawNetworkId, *code, "", 1)
 					var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}

@@ -867,9 +867,9 @@ func (this *Btse) ParseMarket(market any) map[string]any {
 			typeVar = "swap"
 		}
 	}
-	var fees any = this.SafeDict(this.Fees, "contract", map[string]any{})
+	var fees map[string]any = this.SafeDictMap(this.Fees, "contract", map[string]any{})
 	if isSpot {
-		fees = this.SafeDict(this.Fees, "spot", map[string]any{})
+		fees = this.SafeDictMap(this.Fees, "spot", map[string]any{})
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":     id,
@@ -1651,7 +1651,7 @@ func (this *Btse) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	//
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
 	var rows []any = SafeListTyped(response, "data")
-	var data any = this.SafeDict(response, "data", this.SafeDict(rows, 0, map[string]any{}))
+	var data map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
@@ -1740,7 +1740,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	}
 	var response map[string]any = r1.Value
 	var rows []any = SafeListTyped(response, "data")
-	var interest any = this.SafeDict(response, "data", this.SafeDict(rows, 0, map[string]any{}))
+	var interest map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
@@ -1849,7 +1849,7 @@ func (this *Btse) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	}
 	var response map[string]any = r1.Value
 	var rows []any = SafeListTyped(response, "data")
-	var data any = this.SafeDict(response, "data", this.SafeDict(rows, 0, map[string]any{}))
+	var data map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil

@@ -94,10 +94,10 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var messageHash string = "ticker:" + *symbolValue
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	this.SetBrokerHeaders()
-	var baseIdString *string = this.SafeString(market, "baseId", "")
-	var quoteIdString *string = this.SafeString(market, "quoteId", "")
-	var assetId string = strings.ToLower(*baseIdString)
-	assetId = assetId + strings.ToLower(*quoteIdString)
+	var baseIdString string = *this.SafeString(market, "baseId", "")
+	var quoteIdString string = *this.SafeString(market, "quoteId", "")
+	var assetId string = strings.ToLower(baseIdString)
+	assetId = assetId + strings.ToLower(quoteIdString)
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
 		"method": "SUBSCRIBE",
@@ -139,10 +139,10 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
-			var baseIdString *string = this.SafeString(market, "baseId", "")
-			var quoteIdString *string = this.SafeString(market, "quoteId", "")
-			var assetId string = strings.ToLower(*baseIdString)
-			assetId = assetId + strings.ToLower(*quoteIdString)
+			var baseIdString string = *this.SafeString(market, "baseId", "")
+			var quoteIdString string = *this.SafeString(market, "quoteId", "")
+			var assetId string = strings.ToLower(baseIdString)
+			assetId = assetId + strings.ToLower(quoteIdString)
 			assets = append(assets, assetId)
 		}
 	}
@@ -210,9 +210,9 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if priceType != nil && *priceType == "mark" {
 		prefix = "markKline"
 	}
-	var streamBaseId *string = this.SafeString(market, "baseId", "")
-	var streamQuoteId *string = this.SafeString(market, "quoteId", "")
-	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(*streamBaseId) + strings.ToLower(*streamQuoteId)
+	var streamBaseId string = *this.SafeString(market, "baseId", "")
+	var streamQuoteId string = *this.SafeString(market, "quoteId", "")
+	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(streamBaseId) + strings.ToLower(streamQuoteId)
 	var messageHash string = stream
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	this.SetBrokerHeaders()
@@ -257,8 +257,8 @@ func (this *Mudrex) HandleMessage(client any, message any) {
 func (this *Mudrex) HandleErrorMessage(client any, message any) {
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	var code *string = this.SafeString(error, "code")
-	var msg *string = this.SafeString(error, "msg", "")
-	var feedback string = this.Id + " " + *msg
+	var msg string = *this.SafeString(error, "msg", "")
+	var feedback string = this.Id + " " + msg
 	if code != nil && *code == "429" {
 		panic(ccxt.RateLimitExceeded(feedback))
 	}

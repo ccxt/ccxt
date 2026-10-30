@@ -81,8 +81,8 @@ func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = this.SafeString(market, "id", "")
-	var subscriptionHash string = "/stream/" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var subscriptionHash string = "/stream/" + marketId
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
 	}
@@ -224,8 +224,8 @@ func (this *Luno) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = this.SafeString(market, "id", "")
-	var subscriptionHash string = "/stream/" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var subscriptionHash string = "/stream/" + marketId
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
 	}
@@ -519,13 +519,13 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 		// deltas until the fresh snapshot resets the book in place
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		var market map[string]any = this.Market(symbol)
-		var symbolValue *string = this.SafeString(market, "symbol", "")
-		var marketId *string = this.SafeString(market, "id", "")
-		var subscriptionHash string = "/stream/" + *marketId
+		var symbolValue string = *this.SafeString(market, "symbol", "")
+		var marketId string = *this.SafeString(market, "id", "")
+		var subscriptionHash string = "/stream/" + marketId
 		if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 			client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 		}
-		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() received an out-of-sequence update for " + *symbolValue + ", expected " + strconv.FormatInt(expectedSequence, 10) + " but got " + strconv.FormatInt(*messageSequence, 10))
+		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() received an out-of-sequence update for " + symbolValue + ", expected " + strconv.FormatInt(expectedSequence, 10) + " but got " + strconv.FormatInt(*messageSequence, 10))
 		client.(ccxt.ClientInterface).Reset(error)
 		ccxt.Remove(this.Clients, client.(ccxt.ClientInterface).GetUrl())
 		return false

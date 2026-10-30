@@ -2242,8 +2242,8 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"volume":    this.AmountToPrecision(symbol, amount),
 	}
 	var orderRequest any = this.OrderRequest("createOrder", SafeStringPtr(symbol), SafeStringPtr(typeVar), request, amount, price, params)
-	var flags *string = this.SafeString(GetValue(orderRequest, 0), "oflags", "")
-	var isUsingCost bool = (strings.Index(*flags, "viqc") > -1)
+	var flags string = *this.SafeString(GetValue(orderRequest, 0), "oflags", "")
+	var isUsingCost bool = (strings.Index(flags, "viqc") > -1)
 
 	r1 := <-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))
 	if r1.Err != nil {
@@ -2625,8 +2625,8 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 			price = this.SafeString2(orderOmitted, "limitprice", "price")
 		}
 	}
-	var flags *string = this.SafeString(orderOmitted, "oflags", "")
-	var isPostOnly any = (strings.Index(*flags, "post") > -1)
+	var flags string = *this.SafeString(orderOmitted, "oflags", "")
+	var isPostOnly any = (strings.Index(flags, "post") > -1)
 	var average *float64 = this.SafeNumber(orderOmitted, "price")
 	if !IsEqual(marketResolved, nil) {
 		symbol = this.SafeString(marketResolved, "symbol")
@@ -2636,9 +2636,9 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 				"cost": feeCost,
 				"rate": nil,
 			}
-			if strings.Index(*flags, "fciq") >= 0 {
+			if strings.Index(flags, "fciq") >= 0 {
 				AddElementToObject(fee, "currency", this.SafeString(marketResolved, "quote"))
-			} else if strings.Index(*flags, "fcib") >= 0 {
+			} else if strings.Index(flags, "fcib") >= 0 {
 				AddElementToObject(fee, "currency", this.SafeString(marketResolved, "base"))
 			}
 		}
@@ -2812,7 +2812,7 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 			}
 			return nil
 		}() // must use + for this
-		var offset *string = this.SafeString(paramsOmitted2, "offset", "-") // can use + or - for this
+		var offset string = *this.SafeString(paramsOmitted2, "offset", "-") // can use + or - for this
 		var trailingLimitAmountString any = func() any {
 			if trailingLimitAmount != nil {
 				return Add(offset, this.NumberToString(trailingLimitAmount))
@@ -2826,9 +2826,9 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 			if trailingLimitPercent != nil {
 				var trailingLimitPercentString any = func() any {
 					if strings.HasSuffix(*trailingLimitPercent, "%") {
-						return (*offset + *trailingLimitPercent)
+						return (offset + *trailingLimitPercent)
 					}
-					return (*offset + *trailingLimitPercent + "%")
+					return (offset + *trailingLimitPercent + "%")
 				}()
 				request["price"] = trailingPercentString
 				request["price2"] = trailingLimitPercentString

@@ -4480,13 +4480,13 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
 		return accountByType[account]
 	} else if (this.Markets() != nil) && (InOp(this.Markets(), account)) {
 		var market map[string]any = this.Market(account)
-		var marketId *string = this.SafeString(market, "id", "")
-		var splitId []string = strings.Split(*marketId, "_")
-		var splitMarketId *string = this.SafeString(splitId, 1, "")
+		var marketId string = *this.SafeString(market, "id", "")
+		var splitId []string = strings.Split(marketId, "_")
+		var splitMarketId string = *this.SafeString(splitId, 1, "")
 		if market["inverse"] == true {
-			return "fi_" + *splitMarketId
+			return "fi_" + splitMarketId
 		} else {
-			return "fv_" + *splitMarketId
+			return "fv_" + splitMarketId
 		}
 	} else {
 		return account
@@ -4807,7 +4807,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 	var paramsOmitted any = this.Omit(params, "version")
 	var apiAccess map[string]any = SafeMapTyped(this.Options["access"], apiName)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
-	var access *string = this.SafeString(methodAccess, path, "public")
+	var access string = *this.SafeString(methodAccess, path, "public")
 	var endpoint any = *version + "/" + this.ImplodeParams(path, paramsOmitted)
 	var paramsOmitted2 any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var query any = endpoint
@@ -4834,7 +4834,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 		return nil
 	}()
 	var privateHeaders any = nil
-	if (apiName == "private") || (access != nil && *access == "private") {
+	if (apiName == "private") || (access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
 		if apiName != "private" {

@@ -2112,24 +2112,24 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 			}
 			request["endTime"] = until
 		}
-		var method *string = this.SafeString(this.Options, "fetchTradesMethod", "spotPublicGetAggTrades")
-		method = this.SafeString(params, "method", method) // AggTrades, HistoricalTrades, Trades
+		var method string = *this.SafeString(this.Options, "fetchTradesMethod", "spotPublicGetAggTrades")
+		method = *this.SafeString(params, "method", method) // AggTrades, HistoricalTrades, Trades
 		var paramsOmitted map[string]any = this.OmitDict(params, []any{"method"})
-		if method != nil && *method == "spotPublicGetAggTrades" {
+		if method == "spotPublicGetAggTrades" {
 
 			r1 := <-this.SpotPublicGetAggTrades(this.Extend(request, paramsOmitted))
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
 			trades = r1.Raw
-		} else if method != nil && *method == "spotPublicGetHistoricalTrades" {
+		} else if method == "spotPublicGetHistoricalTrades" {
 
 			r2 := <-this.SpotPublicGetHistoricalTrades(this.Extend(request, paramsOmitted))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
 			trades = r2.Raw
-		} else if method != nil && *method == "spotPublicGetTrades" {
+		} else if method == "spotPublicGetTrades" {
 
 			r3 := <-this.SpotPublicGetTrades(this.Extend(request, paramsOmitted))
 			if r3.Err != nil {
@@ -2481,24 +2481,24 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 				}
 			}
 		}
-		var priceType *string = this.SafeString(paramsUntil, "price", "default")
+		var priceType string = *this.SafeString(paramsUntil, "price", "default")
 		var paramsOmitted any = this.Omit(paramsUntil, "price")
 		var response any = nil
-		if priceType != nil && *priceType == "default" {
+		if priceType == "default" {
 
 			r3 := <-this.ContractPublicGetKlineSymbol(this.Extend(request, paramsOmitted))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
 			response = r3.Raw
-		} else if priceType != nil && *priceType == "index" {
+		} else if priceType == "index" {
 
 			r4 := <-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, paramsOmitted))
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
 			response = r4.Raw
-		} else if priceType != nil && *priceType == "mark" {
+		} else if priceType == "mark" {
 
 			r5 := <-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, paramsOmitted))
 			if r5.Err != nil {
@@ -3817,11 +3817,11 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		if limit != nil {
 			request["page_size"] = limit
 		}
-		var method *string = this.SafeString(this.Options, "fetchOrders", "contractPrivateGetOrderListHistoryOrders")
-		method = this.SafeString(query, "method", method)
+		var method string = *this.SafeString(this.Options, "fetchOrders", "contractPrivateGetOrderListHistoryOrders")
+		method = *this.SafeString(query, "method", method)
 		var ordersOfRegular any = []any{}
 		var ordersOfTrigger any = []any{}
-		if method != nil && *method == "contractPrivateGetOrderListHistoryOrders" {
+		if method == "contractPrivateGetOrderListHistoryOrders" {
 
 			r3 := <-this.ContractPrivateGetOrderListHistoryOrders(this.Extend(request, query))
 			if r3.Err != nil {
@@ -4342,20 +4342,20 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		}
 	} else {
 		var trigger *bool = this.SafeBool2(query, "stop", "trigger")
-		var method *string = this.SafeString(this.Options, "cancelOrder", "contractPrivatePostOrderCancel") // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
-		method = this.SafeString(query, "method", method)
+		var method string = *this.SafeString(this.Options, "cancelOrder", "contractPrivatePostOrderCancel") // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+		method = *this.SafeString(query, "method", method)
 		if trigger != nil && *trigger == true {
-			method = SafeStringPtr("contractPrivatePostPlanorderCancel")
+			method = "contractPrivatePostPlanorderCancel"
 		}
 		var response map[string]any = nil
-		if method != nil && *method == "contractPrivatePostOrderCancel" {
+		if method == "contractPrivatePostOrderCancel" {
 
 			r3 := <-this.ContractPrivatePostOrderCancel([]any{id})
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
 			response = r3.Value // the request cannot be changed or extended. This is the only way to send.
-		} else if method != nil && *method == "contractPrivatePostPlanorderCancel" {
+		} else if method == "contractPrivatePostPlanorderCancel" {
 			if symbol == nil {
 				panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument for trigger orders"))
 			}
@@ -4385,7 +4385,7 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		//         ]
 		//     }
 		//
-		if method != nil && *method == "contractPrivatePostPlanorderCancel" {
+		if method == "contractPrivatePostPlanorderCancel" {
 
 			ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 				"id":     id,
@@ -4396,8 +4396,8 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		}
 		data = this.SafeValue(response, "data")
 		var order map[string]any = SafeMapTyped(data, 0)
-		var errorMsg *string = this.SafeString(order, "errorMsg", "")
-		if errorMsg == nil || *errorMsg != "success" {
+		var errorMsg string = *this.SafeString(order, "errorMsg", "")
+		if errorMsg != "success" {
 			panic(InvalidOrder(Add(Add(Add(this.Id+" cancelOrder() the order with id ", id), " cannot be cancelled: "), errorMsg)))
 		}
 	}
@@ -4556,17 +4556,17 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 		// method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
 		// the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
-		var method *string = this.SafeString(this.Options, "cancelAllOrders", "contractPrivatePostOrderCancelAll")
-		method = this.SafeString(paramsMarketType, "method", method)
+		var method string = *this.SafeString(this.Options, "cancelAllOrders", "contractPrivatePostOrderCancelAll")
+		method = *this.SafeString(paramsMarketType, "method", method)
 		var response any = map[string]any{}
-		if method != nil && *method == "contractPrivatePostOrderCancelAll" {
+		if method == "contractPrivatePostOrderCancelAll" {
 
 			r3 := <-this.ContractPrivatePostOrderCancelAll(this.Extend(request, paramsMarketType))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
 			response = r3.Raw
-		} else if method != nil && *method == "contractPrivatePostPlanorderCancelAll" {
+		} else if method == "contractPrivatePostPlanorderCancelAll" {
 
 			r4 := <-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, paramsMarketType))
 			if r4.Err != nil {

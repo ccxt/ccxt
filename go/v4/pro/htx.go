@@ -329,8 +329,8 @@ func (this *Htx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = this.SafeString(market, "id", "")
-	var messageHash string = "market." + *marketId + ".trade.detail"
+	var marketId string = *this.SafeString(market, "id", "")
+	var messageHash string = "market." + marketId + ".trade.detail"
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
 	r1 := <-this.SubscribePublicAsync(url, symbolValue, messageHash, nil, params)
@@ -477,8 +477,8 @@ func (this *Htx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var marketId *string = this.SafeString(market, "id", "")
-	var messageHash string = "market." + *marketId + ".kline." + *interval
+	var marketId string = *this.SafeString(market, "id", "")
+	var messageHash string = "market." + marketId + ".kline." + *interval
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
 
 	r1 := <-this.SubscribePublicAsync(url, symbolValue, messageHash, nil, params)
@@ -529,8 +529,8 @@ func (this *Htx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var marketId *string = this.SafeString(market, "id", "")
-	var subMessageHash string = "market." + *marketId + ".kline." + *interval
+	var marketId string = *this.SafeString(market, "id", "")
+	var subMessageHash string = "market." + marketId + ".kline." + *interval
 	var topic string = "ohlcv"
 	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
 
@@ -641,11 +641,11 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only"))
 	}
 	var messageHash string = ""
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	if market["spot"] == true {
-		messageHash = "market." + *marketId + ".mbp." + strconv.FormatInt(limitResolved, 10)
+		messageHash = "market." + marketId + ".mbp." + strconv.FormatInt(limitResolved, 10)
 	} else {
-		messageHash = "market." + *marketId + ".depth.size_" + strconv.FormatInt(limitResolved, 10) + ".high_freq"
+		messageHash = "market." + marketId + ".depth.size_" + strconv.FormatInt(limitResolved, 10) + ".high_freq"
 	}
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
 	var method any = this.HandleOrderBookSubscription
@@ -702,12 +702,12 @@ func (this *Htx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 	var topic string = "orderbook"
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var depth int64 = this.ParseToInt(this.SafeInteger(options, "depth", 150))
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var subMessageHash string = ""
 	if market["spot"] == true {
-		subMessageHash = "market." + *marketId + ".mbp." + strconv.FormatInt(depth, 10)
+		subMessageHash = "market." + marketId + ".mbp." + strconv.FormatInt(depth, 10)
 	} else {
-		subMessageHash = "market." + *marketId + ".depth.size_" + strconv.FormatInt(depth, 10) + ".high_freq"
+		subMessageHash = "market." + marketId + ".depth.size_" + strconv.FormatInt(depth, 10) + ".high_freq"
 	}
 	if market["spot"] != true {
 		params["data_type"] = "incremental"
@@ -975,8 +975,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	//         "ts":1645023376098
 	//     }
 	//
-	var ch *string = this.SafeString(message, "ch", "")
-	var parts []string = strings.Split(*ch, ".")
+	var ch string = *this.SafeString(message, "ch", "")
+	var parts []string = strings.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1269,9 +1269,9 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	messageHash = prefix
 	if ccxt.IsEqual(subType, "linear") {
 		// USDT Margined Contracts Example: LTC/USDT:USDT
-		var marginMode *string = this.SafeString(paramsOmitted, "margin", "cross")
+		var marginMode string = *this.SafeString(paramsOmitted, "margin", "cross")
 		var marginPrefix *string = prefix
-		if marginMode != nil && *marginMode == "cross" {
+		if marginMode == "cross" {
 			marginPrefix = ccxt.SafeStringPtr(*prefix + "_cross")
 		}
 		messageHash = marginPrefix
@@ -1699,10 +1699,10 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 	if messageHash == nil {
 		return
 	}
-	var lowercaseId *string = this.SafeStringLower(market, "lowercaseId", "")
-	var genericMessageHash string = strings.Replace(*messageHash, "."+*lowercaseId, "", 1)
-	var lowerCaseBaseId *string = this.SafeStringLower(market, "baseId", "")
-	genericMessageHash = strings.Replace(genericMessageHash, "."+*lowerCaseBaseId, "", 1)
+	var lowercaseId string = *this.SafeStringLower(market, "lowercaseId", "")
+	var genericMessageHash string = strings.Replace(*messageHash, "."+lowercaseId, "", 1)
+	var lowerCaseBaseId string = *this.SafeStringLower(market, "baseId", "")
+	genericMessageHash = strings.Replace(genericMessageHash, "."+lowerCaseBaseId, "", 1)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, genericMessageHash)
 }
 func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -2224,9 +2224,9 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	//     }
 	//
 	var url string = client.(ccxt.ClientInterface).GetUrl()
-	var topic *string = this.SafeString(message, "topic", "")
+	var topic string = *this.SafeString(message, "topic", "")
 	var defaultMarginMode string = "isolated"
-	if topic != nil && *topic == "positions_cross" {
+	if topic == "positions_cross" {
 		defaultMarginMode = "cross"
 	}
 	if this.Positions == nil {
@@ -2848,8 +2848,8 @@ func (this *Htx) HandleSubject(client any, message map[string]any) {
 	//         // ?
 	//     }
 	//
-	var ch *string = this.SafeString(message, "ch", "")
-	var parts []string = strings.Split(*ch, ".")
+	var ch string = *this.SafeString(message, "ch", "")
+	var parts []string = strings.Split(ch, ".")
 	var typeVar *string = this.SafeString(parts, 0)
 	if typeVar != nil && *typeVar == "market" {
 		var methodName *string = this.SafeString(parts, 2)
@@ -2869,34 +2869,34 @@ func (this *Htx) HandleSubject(client any, message map[string]any) {
 		}
 	}
 	// private spot subjects
-	var privateParts []string = strings.Split(*ch, "#")
-	var privateType *string = this.SafeString(privateParts, 0, "")
-	if privateType != nil && *privateType == "trade.clearing" {
+	var privateParts []string = strings.Split(ch, "#")
+	var privateType string = *this.SafeString(privateParts, 0, "")
+	if privateType == "trade.clearing" {
 		this.HandleMyTrade(client, message)
 		return
 	}
-	if strings.Index(*privateType, "accounts.update") >= 0 {
+	if strings.Index(privateType, "accounts.update") >= 0 {
 		this.HandleBalance(client, message)
 		return
 	}
-	if privateType != nil && *privateType == "orders" {
+	if privateType == "orders" {
 		this.HandleOrder(client, message)
 		return
 	}
 	// private contract subjects
 	var op *string = this.SafeString(message, "op")
 	if op != nil && *op == "notify" {
-		var topic *string = this.SafeString(message, "topic", "")
-		if strings.Index(*topic, "orders") >= 0 {
+		var topic string = *this.SafeString(message, "topic", "")
+		if strings.Index(topic, "orders") >= 0 {
 			this.HandleOrder(client, message)
 		}
-		if strings.Index(*topic, "trade") >= 0 {
+		if strings.Index(topic, "trade") >= 0 {
 			this.HandleMyTrade(client, message)
 		}
-		if strings.Index(*topic, "account") >= 0 {
+		if strings.Index(topic, "account") >= 0 {
 			this.HandleBalance(client, message)
 		}
-		if strings.Index(*topic, "positions") >= 0 {
+		if strings.Index(topic, "positions") >= 0 {
 			this.HandlePositions(client, message)
 		}
 	}
@@ -3355,10 +3355,10 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 			// however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
 			// since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
 			// so we must remove it
-			var lowercaseId *string = this.SafeStringLower(market, "lowercaseId", "")
-			var genericOrderHash string = strings.Replace(*messageHash, "."+*lowercaseId, "", 1)
-			var lowerCaseBaseId *string = this.SafeStringLower(market, "baseId", "")
-			genericOrderHash = strings.Replace(genericOrderHash, "."+*lowerCaseBaseId, "", 1)
+			var lowercaseId string = *this.SafeStringLower(market, "lowercaseId", "")
+			var genericOrderHash string = strings.Replace(*messageHash, "."+lowercaseId, "", 1)
+			var lowerCaseBaseId string = *this.SafeStringLower(market, "baseId", "")
+			genericOrderHash = strings.Replace(genericOrderHash, "."+lowerCaseBaseId, "", 1)
 			var genericTradesHash string = genericOrderHash + ":" + "trade"
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, genericTradesHash)
 		}

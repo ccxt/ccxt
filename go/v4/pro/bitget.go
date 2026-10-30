@@ -161,8 +161,8 @@ func (this *Bitget) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ticker:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ticker:" + symbolValue
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTicker", "uta", false)
 	instTypeparamsValueVariable := this.GetInstType("watchTicker", market, uta, paramsUta)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsValueVariable[0])
@@ -2938,8 +2938,8 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 		}
 		var parsed map[string]any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
-		var symbol *string = this.SafeString(parsed, "symbol", "")
-		var symbolSpecificMessageHash string = "myTrades:" + *symbol
+		var symbol string = *this.SafeString(parsed, "symbol", "")
+		var symbolSpecificMessageHash string = "myTrades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -3015,8 +3015,8 @@ func (this *Bitget) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	if !isStockOrUta {
 		args["coin"] = "default"
 	}
-	var instTypeLower *string = this.SafeStringLower(args, "instType", "")
-	var messageHash string = "balance:" + *instTypeLower
+	var instTypeLower string = *this.SafeStringLower(args, "instType", "")
+	var messageHash string = "balance:" + instTypeLower
 
 	r := <-this.WatchPrivateAsync(isStockOrUta, messageHash, messageHash, args, paramsRequest)
 	if r.Err != nil {
@@ -3724,11 +3724,11 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "unsubscribe:trade:" + *this.SafeString(market, "symbol", "")
-	var subMessageHash string = "trade:" + *symbol
-	if _, ok := this.Trades[*symbol]; ok {
-		delete(this.Trades, *symbol)
+	var subMessageHash string = "trade:" + symbol
+	if _, ok := this.Trades[symbol]; ok {
+		delete(this.Trades, symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
@@ -3736,7 +3736,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
-	error := ccxt.UnsubscribeError(this.Id + " trades " + *symbol)
+	error := ccxt.UnsubscribeError(this.Id + " trades " + symbol)
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
@@ -3799,19 +3799,19 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash any = nil
 	var subMessageHash any = nil
 	if isUta == true {
-		messageHash = "unsubscribe:kline:" + *symbol
-		subMessageHash = "kline:" + *symbol
+		messageHash = "unsubscribe:kline:" + symbol
+		subMessageHash = "kline:" + symbol
 	} else if timeframe != nil {
-		messageHash = "unsubscribe:candles:" + *timeframe + ":" + *symbol
-		subMessageHash = "candles:" + *timeframe + ":" + *symbol
+		messageHash = "unsubscribe:candles:" + *timeframe + ":" + symbol
+		subMessageHash = "candles:" + *timeframe + ":" + symbol
 	}
-	if _, ok := this.Ohlcvs[*symbol]; ok {
-		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
-			delete(this.Ohlcvs[*symbol], *timeframe)
+	if _, ok := this.Ohlcvs[symbol]; ok {
+		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {
+			delete(this.Ohlcvs[symbol], *timeframe)
 		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)

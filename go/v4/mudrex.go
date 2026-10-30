@@ -375,9 +375,9 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var market map[string]any = this.Market(symbol)
 	var priceType *string = this.SafeString(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-	var baseIdString *string = this.SafeString(market, "baseId", "")
-	var quoteIdString *string = this.SafeString(market, "quoteId", "")
-	var assetPair string = *baseIdString + "/" + *quoteIdString
+	var baseIdString string = *this.SafeString(market, "baseId", "")
+	var quoteIdString string = *this.SafeString(market, "quoteId", "")
+	var assetPair string = baseIdString + "/" + quoteIdString
 	var request map[string]any = map[string]any{
 		"assets":      assetPair,
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),

@@ -935,7 +935,7 @@ func (this *Toobit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...any) {
+func (this *Toobit) SetBalanceCache(client any, marketType *string, optionalArgs ...any) {
 	var subscriptionHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subscriptionHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -944,7 +944,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 		return
 	}
 	var typeVar string = "contract"
-	if ccxt.IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 		typeVar = "spot"
 	}
 	var messageHash string = typeVar + ":fetchBalanceSnapshot"
@@ -1712,8 +1712,8 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 }
 func (this *Toobit) GetUserStreamUrl() string {
 	var wsBaseUrl *string = this.SafeString(this.UrlsApi["ws"], "common", "")
-	var listenKey *string = this.SafeString(this.Options["ws"], "listenKey", "")
-	return *wsBaseUrl + "/api/v1/ws/" + *listenKey
+	var listenKey string = *this.SafeString(this.Options["ws"], "listenKey", "")
+	return *wsBaseUrl + "/api/v1/ws/" + listenKey
 }
 func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//
@@ -1724,8 +1724,8 @@ func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//
 	var code *string = this.SafeString(message, "code")
 	if code != nil {
-		var desc *string = this.SafeString(message, "desc", "")
-		var msg string = this.Id + " code: " + *code + " message: " + *desc
+		var desc string = *this.SafeString(message, "desc", "")
+		var msg string = this.Id + " code: " + *code + " message: " + desc
 		exception := ccxt.ExchangeError(msg) // c# fix
 		client.(ccxt.ClientInterface).Reject(exception)
 		return true

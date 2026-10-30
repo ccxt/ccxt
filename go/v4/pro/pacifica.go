@@ -1881,8 +1881,8 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	// 'rl' key is present only when a rate-limited API key is used
 	// {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
 	//
-	var error *string = this.SafeString(message, "err", "")
-	var postType *string = this.SafeString(message, "type", "")
+	var error string = *this.SafeString(message, "err", "")
+	var postType string = *this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
@@ -1908,7 +1908,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			this.HandleErrors(0, *error, "", *postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, "")
+			this.HandleErrors(0, error, "", postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, "")
 			return nil
 		}(this)
 

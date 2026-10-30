@@ -3002,17 +3002,17 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var market any = this.SafeDict(markets, symbol, map[string]any{})
-	var feeSide *string = this.SafeString(market, "feeSide", "quote")
+	var feeSide string = *this.SafeString(market, "feeSide", "quote")
 	var useQuote bool
-	if feeSide != nil && *feeSide == "get" {
+	if feeSide == "get" {
 		// the fee is always in the currency you get
 		useQuote = (side == "sell")
-	} else if feeSide != nil && *feeSide == "give" {
+	} else if feeSide == "give" {
 		// the fee is always in the currency you give
 		useQuote = (side == "buy")
 	} else {
 		// the fee is always in feeSide currency
-		useQuote = (feeSide != nil && *feeSide == "quote")
+		useQuote = (feeSide == "quote")
 	}
 	var cost *string = this.NumberToString(amount)
 	var key string
@@ -8626,17 +8626,17 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 		var entry any = GetValue(input, i)
 		var id any = this.SafeString(entry, "id")
 		if IsEqual(id, nil) {
-			var price *string = this.SafeString(entry, "price", "")
-			var amount *string = this.SafeString(entry, "amount", "")
+			var price string = *this.SafeString(entry, "price", "")
+			var amount string = *this.SafeString(entry, "amount", "")
 			var timestamp *string = this.SafeString(entry, "timestamp")
-			var side *string = this.SafeString(entry, "side", "")
+			var side string = *this.SafeString(entry, "side", "")
 			// unique trade identifier
 			if timestamp == nil {
 				panic(ExchangeError(this.Id + " removeRepeatedTradesFromArray() missing timestamp"))
 			}
 			// optional parts are empty when absent, separators keep positions distinct
-			id = "t_" + *timestamp + "_" + *side + "_"
-			id = Add(id, (*price + "_" + *amount))
+			id = "t_" + *timestamp + "_" + side + "_"
+			id = Add(id, (price + "_" + amount))
 		}
 		if !IsEqual(id, nil) && !(InOp(uniqueResult, id)) {
 			AddElementToObject(uniqueResult, id, entry)

@@ -1683,8 +1683,8 @@ func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[*string] {
 func (this *Apex) getAccountIdBody(ch chan AsyncResult[*string]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var accountId *string = this.SafeString(this.Options, "accountId", "0")
-	if accountId != nil && *accountId == "0" {
+	var accountId string = *this.SafeString(this.Options, "accountId", "0")
+	if accountId == "0" {
 
 		r := <-this.FetchAccountAsync()
 		if r.Err != nil {

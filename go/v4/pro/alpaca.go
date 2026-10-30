@@ -134,8 +134,8 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-	var tickerSymbol *string = this.SafeString(ticker, "symbol", "")
-	var messageHash string = "ticker:" + *tickerSymbol
+	var tickerSymbol string = *this.SafeString(ticker, "symbol", "")
+	var messageHash string = "ticker:" + tickerSymbol
 	if symbol != nil {
 		this.Tickers.Store(symbol, ticker)
 	}
@@ -316,8 +316,8 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "orderbook" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook" + ":" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":     "subscribe",
 		"orderbooks": []any{market["id"]},
@@ -673,8 +673,8 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	orders.(ccxt.Appender).Append(order)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var orderSymbol *string = this.SafeString(order, "symbol", "")
-	messageHash = "orders:" + *orderSymbol
+	var orderSymbol string = *this.SafeString(order, "symbol", "")
+	messageHash = "orders:" + orderSymbol
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
 func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
@@ -739,8 +739,8 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 		return
 	}
 	myTrades.(ccxt.Appender).Append(trade)
-	var tradeSymbol *string = this.SafeString(trade, "symbol", "")
-	var messageHash string = "myTrades:" + *tradeSymbol
+	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
+	var messageHash string = "myTrades:" + tradeSymbol
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 	messageHash = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
@@ -879,9 +879,9 @@ func (this *Alpaca) HandleErrorMessage(client any, message map[string]any) any {
 	//        "msg": "invalid syntax"
 	//    }
 	//
-	var code *string = this.SafeString(message, "code", "")
+	var code string = *this.SafeString(message, "code", "")
 	var msg *string = this.SafeString(message, "msg")
-	var header string = this.Id + " code: " + *code
+	var header string = this.Id + " code: " + code
 	var errorMessage string = header
 	if msg != nil {
 		errorMessage = header + " message: " + *msg

@@ -63,7 +63,7 @@ func (this *Paradex) GetWsUrl() any {
 	if !(*this.SafeBool(this.Options, "sbe", true)) {
 		return url
 	}
-	var schemaVersion *string = this.SafeString(this.Options, "sbeSchemaVersion", "3")
+	var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
 	return ccxt.Add(ccxt.Add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion)
 }
 func (this *Paradex) GetOrderBookChannel(marketId any) any {

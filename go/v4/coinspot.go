@@ -657,9 +657,9 @@ func (this *Coinspot) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 			panic(r.Err)
 		}
 	}
-	var method *string = this.SafeString(this.Options, "fetchBalance", "privatePostMyBalances")
+	var method string = *this.SafeString(this.Options, "fetchBalance", "privatePostMyBalances")
 	var response map[string]any = nil
-	if (method != nil && *method == "private_post_ro_my_balances") || (method != nil && *method == "privatePostRoMyBalances") {
+	if (method == "private_post_ro_my_balances") || (method == "privatePostRoMyBalances") {
 
 		r1 := <-this.PrivatePostRoMyBalances(params)
 		if r1.Err != nil {

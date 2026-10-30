@@ -3012,8 +3012,8 @@ func (this *Weex) CreateSpotOrderRequest(symbol string, typeVar string, side str
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	if clientOrderId == nil {
-		var partner *string = this.SafeString(paramsOmitted, "partner", "b-WEEX111125")
-		clientOrderId = SafeStringPtr(*partner + "-" + this.Uuid22())
+		var partner string = *this.SafeString(paramsOmitted, "partner", "b-WEEX111125")
+		clientOrderId = SafeStringPtr(partner + "-" + this.Uuid22())
 	}
 	request["newClientOrderId"] = clientOrderId
 	// timeInForce is passed directly from params
@@ -3168,8 +3168,8 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
-		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = SafeStringPtr(*partner + "-" + this.Uuid22())
+		var partner string = *this.SafeString(params, "partner", "b-WEEX111125")
+		clientOrderId = SafeStringPtr(partner + "-" + this.Uuid22())
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName")
 	if isTrigger {

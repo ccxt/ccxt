@@ -1068,7 +1068,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	if symbolsNormalized != nil {
 		streamHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
-	var watchOrderBookRate *string = this.SafeString(this.Options, "watchOrderBookRate", "100")
+	var watchOrderBookRate string = *this.SafeString(this.Options, "watchOrderBookRate", "100")
 	var subParams []any = []any{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -1078,7 +1078,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		subMessageHashes = append(subMessageHashes, "orderbook::"+symbol)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
 		var subscriptionHash string = *this.SafeString(market, "lowercaseId", "") + "@" + name
-		var symbolHash string = subscriptionHash + "@" + *watchOrderBookRate + "ms"
+		var symbolHash string = subscriptionHash + "@" + watchOrderBookRate + "ms"
 		subParams = append(subParams, symbolHash)
 	}
 	var messageHashesLength int = len(subMessageHashes)
@@ -1641,9 +1641,9 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 			var market map[string]any = this.Market(symbol)
 			messageHashes = append(messageHashes, "trade::"+symbol)
 			subscribeHashes = append(subscribeHashes, "trade::"+symbol)
-			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-			var underlying string = *baseIdLower + "" + *quoteIdLower
+			var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+			var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+			var underlying string = baseIdLower + "" + quoteIdLower
 			if _, ok := seenUnderlyings[underlying]; !ok {
 				seenUnderlyings[underlying] = true
 				subParams = append(subParams, underlying+"@optionTrade")
@@ -1756,9 +1756,9 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 			var market map[string]any = this.Market(symbol)
 			subMessageHashes = append(subMessageHashes, "trade::"+symbol)
 			messageHashes = append(messageHashes, "unsubscribe:trade:"+symbol)
-			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
-			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-			var underlying string = *baseIdLower + "" + *quoteIdLower
+			var baseIdLower string = *this.SafeStringLower(market, "baseId", "")
+			var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
+			var underlying string = baseIdLower + "" + quoteIdLower
 			if _, ok := seenUnderlyings[underlying]; !ok {
 				seenUnderlyings[underlying] = true
 				subParams = append(subParams, underlying+"@optionTrade")
@@ -3379,13 +3379,13 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 			} else if isOptionTicker {
 				// eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
 				// market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
-				var marketId *string = this.SafeString(market, "id", "")
-				var parts []string = strings.Split(*marketId, "-")
-				var expiryDate *string = this.SafeString(parts, 1, "")
+				var marketId string = *this.SafeString(market, "id", "")
+				var parts []string = strings.Split(marketId, "-")
+				var expiryDate string = *this.SafeString(parts, 1, "")
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 				var underlying string = *baseIdLower + "" + *quoteIdLower
-				var subscriptionArg string = underlying + "@optionTicker@" + *expiryDate
+				var subscriptionArg string = underlying + "@optionTicker@" + expiryDate
 				if _, ok := seenUnderlyings[subscriptionArg]; !ok {
 					seenUnderlyings[subscriptionArg] = true
 					subscriptionArgs = append(subscriptionArgs, subscriptionArg)
@@ -3567,11 +3567,11 @@ func (this *Binance) ParseWsTicker(message any, marketType any) map[string]any {
 	//
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
-	var event *string = this.SafeString(message, "e", "bookTicker")
-	if event != nil && *event == "24hrTicker" {
-		event = ccxt.SafeStringPtr("ticker")
+	var event string = *this.SafeString(message, "e", "bookTicker")
+	if event == "24hrTicker" {
+		event = "ticker"
 	}
-	if (event != nil && *event == "markPriceUpdate") || (event != nil && *event == "markPrice") {
+	if (event == "markPriceUpdate") || (event == "markPrice") {
 		// handle this separately because some fields clash with the ticker fields
 		// futures use 'p' for mark price; options use 'mp'
 		return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -3584,7 +3584,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) map[string]any {
 		}))
 	}
 	var timestamp *int64 = nil
-	if event != nil && *event == "bookTicker" {
+	if event == "bookTicker" {
 		// take the event timestamp, if available, for spot tickers it is not
 		timestamp = this.SafeInteger2(message, "E", "time")
 	} else {

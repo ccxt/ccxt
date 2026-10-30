@@ -1497,8 +1497,8 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 		// 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
 		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
 		// since bitbank offers no server time endpoint to compensate against
-		var authMethod *string = this.SafeString(this.Options, "authMethod", "timeWindow")
-		var isTimeWindow bool = (authMethod != nil && *authMethod == "timeWindow")
+		var authMethod string = *this.SafeString(this.Options, "authMethod", "timeWindow")
+		var isTimeWindow bool = (authMethod == "timeWindow")
 		var requestTime string = strconv.FormatInt(this.Milliseconds(), 10)
 		var timeWindow *string = this.SafeString(this.Options, "timeWindow", "5000")
 		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)

@@ -1249,9 +1249,9 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(first))
-	var symbol *string = this.SafeString(fundingRate, "symbol", "")
-	this.FundingRates[*symbol] = fundingRate
-	var messageHash string = "fundingRate:" + *symbol
+	var symbol string = *this.SafeString(fundingRate, "symbol", "")
+	this.FundingRates[symbol] = fundingRate
+	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
 func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName any, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -1429,19 +1429,19 @@ func (this *Blofin) HandleUnsubscription(client any, message any) {
 	//     }
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var channel *string = this.SafeString(arg, "channel", "")
+	var channel string = *this.SafeString(arg, "channel", "")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var subMessageHash string = *channel + ":" + *symbol
-	if channel != nil && *channel == "trades" {
+	var subMessageHash string = channel + ":" + *symbol
+	if channel == "trades" {
 		this.CleanCache(map[string]any{
 			"topic":   "trades",
 			"symbols": []any{symbol},
 		})
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
-	} else if strings.HasPrefix(*channel, "candle") {
-		var timeframe *string = this.FindTimeframe(strings.Replace(*channel, "candle", "", 1))
+	} else if strings.HasPrefix(channel, "candle") {
+		var timeframe *string = this.FindTimeframe(strings.Replace(channel, "candle", "", 1))
 		if timeframe != nil {
 			this.CleanCache(map[string]any{
 				"topic":                "ohlcv",

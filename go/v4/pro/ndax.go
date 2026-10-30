@@ -72,9 +72,9 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel1"
-	var messageHash string = name + ":" + *marketId
+	var messageHash string = name + ":" + marketId
 	var url *string = this.SafeString(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -129,9 +129,9 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	if symbol != nil {
 		this.Tickers.Store(symbol, ticker)
 	}
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel1"
-	var messageHash string = name + ":" + *marketId
+	var messageHash string = name + ":" + marketId
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 
@@ -170,9 +170,9 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTrades"
-	var messageHash string = name + ":" + *marketId
+	var messageHash string = name + ":" + marketId
 	var url *string = this.SafeString(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -255,8 +255,8 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = this.SafeString(market, "id", "")
-		var messageHash string = name + ":" + *marketId
+		var marketId string = *this.SafeString(market, "id", "")
+		var messageHash string = name + ":" + marketId
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
@@ -300,9 +300,9 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTicker"
-	var messageHash string = name + ":" + timeframe + ":" + *marketId
+	var messageHash string = name + ":" + timeframe + ":" + marketId
 	var url *string = this.SafeString(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -481,9 +481,9 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
+	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel2"
-	var messageHash string = name + ":" + *marketId
+	var messageHash string = name + ":" + marketId
 	var url *string = this.SafeString(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var requestId int64 = this.RequestId()
 	var limitValue int64 = func() int64 {

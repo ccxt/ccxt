@@ -150,8 +150,8 @@ func (this *Modetrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	}
 	var name string = "orderbook"
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -237,8 +237,8 @@ func (this *Modetrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	}
 	var name string = "ticker"
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -542,8 +542,8 @@ func (this *Modetrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@" + name + "_" + *interval
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@" + name + "_" + *interval
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -650,8 +650,8 @@ func (this *Modetrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var topic string = *marketId + "@trade"
+	var marketId string = *this.SafeString(market, "id", "")
+	var topic string = marketId + "@trade"
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1543,8 +1543,8 @@ func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 		var position any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var marketSymbol *string = this.SafeString(market, "symbol", "")
-		var messageHash string = "positions::" + *marketSymbol
+		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		var messageHash string = "positions::" + marketSymbol
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")

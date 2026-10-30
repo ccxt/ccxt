@@ -3006,8 +3006,8 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
 		var priceFilter map[string]any = SafeMapTyped(market, "priceFilter")
 		var quotePrecision *float64 = this.SafeNumber(lotSizeFilter, "quotePrecision")
-		var marginTrading *string = this.SafeString(market, "marginTrading", "none")
-		var allowsMargin bool = (marginTrading == nil || *marginTrading != "none")
+		var marginTrading string = *this.SafeString(market, "marginTrading", "none")
+		var allowsMargin bool = (marginTrading != "none")
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -3426,7 +3426,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		}
 		var splitId []string = strings.Split(*id, "-")
 		var strike *string = this.SafeString(splitId, 2, "")
-		var optionLetter *string = this.SafeString(splitId, 3, "")
+		var optionLetter string = *this.SafeString(splitId, 3, "")
 		var isActive bool = (status != nil && *status == "Trading")
 		var isInverse bool = (base == settle || (base != nil && settle != nil && *base == *settle))
 		var loadExpiredOptions any = this.HandleOption("fetchMarkets", "loadExpiredOptions")

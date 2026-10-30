@@ -637,8 +637,8 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 	var stored any = this.MyTrades
 	var parsed map[string]any = this.ParseWsTrade(trade)
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol *string = this.SafeString(parsed, "symbol", "")
-	var messageHash string = "myTrades:" + *symbol
+	var symbol string = *this.SafeString(parsed, "symbol", "")
+	var messageHash string = "myTrades:" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -817,8 +817,8 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 		"status": status,
 	}))
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol *string = this.SafeString(parsed, "symbol", "")
-	var messageHash string = "orders:" + *symbol
+	var symbol string = *this.SafeString(parsed, "symbol", "")
+	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -993,7 +993,7 @@ func (this *Whitebit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Whitebit) SetBalanceCache(client any, typeVar any, subscriptionHash string) {
+func (this *Whitebit) SetBalanceCache(client any, typeVar *string, subscriptionHash string) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}

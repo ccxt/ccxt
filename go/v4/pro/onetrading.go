@@ -534,7 +534,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	//         "time": "2022-06-23T15:38:02.751301Z"
 	//     }
 	//
-	var typeVar *string = this.SafeString(message, "type", "")
+	var typeVar string = *this.SafeString(message, "type", "")
 	var marketId *string = this.SafeString(message, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
@@ -544,14 +544,14 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
-	if typeVar != nil && *typeVar == "ORDER_BOOK_SNAPSHOT" {
+	if typeVar == "ORDER_BOOK_SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.Reset(snapshot)
-	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
+	} else if typeVar == "ORDER_BOOK_UPDATE" {
 		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
 		this.HandleBookDeltas(orderbook, changes)
 	} else {
-		panic(ccxt.NotSupported(this.Id + " watchOrderBook() did not recognize message type " + *typeVar))
+		panic(ccxt.NotSupported(this.Id + " watchOrderBook() did not recognize message type " + typeVar))
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", timestamp)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
@@ -733,8 +733,8 @@ func (this *Onetrading) HandleTrading(client any, message map[string]any) {
 	var order any = this.ParseTradingOrder(message)
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(order)
-	var orderSymbol *string = this.SafeString(order, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*orderSymbol)
+	var orderSymbol string = *this.SafeString(order, "symbol", "")
+	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+orderSymbol)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 }
 func (this *Onetrading) ParseTradingOrder(order map[string]any, optionalArgs ...any) any {
@@ -935,15 +935,15 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	var orders any = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
-		var symbol *string = this.SafeString(order, "symbol", "")
+		var symbol string = *this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
-		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
+		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+symbol)
 		var rawTrades []any = ccxt.SafeListTyped(rawOrders[i], "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
 			var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[ii]))
-			symbol = this.SafeString(trade, "symbol", symbol)
+			symbol = *this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
-			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
+			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+symbol)
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")

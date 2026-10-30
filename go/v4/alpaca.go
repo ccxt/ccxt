@@ -863,14 +863,14 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var market map[string]any = this.Market(symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
-	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
+	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
 	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"loc", "method"})
 	var symbolTrades any = nil
-	if method != nil && *method == "marketPublicGetV1beta3CryptoLocTrades" {
+	if method == "marketPublicGetV1beta3CryptoLocTrades" {
 		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
@@ -901,7 +901,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		//
 		var trades map[string]any = SafeMapTyped(response, "trades")
 		symbolTrades = this.SafeList(trades, marketId, []any{})
-	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
+	} else if method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
 		r2 := <-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -925,7 +925,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		var symbolTrade map[string]any = this.SafeDictMap(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
-		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
+		panic(NotSupported(this.Id + " fetchTrades() does not support " + method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
 	var symbolTradesList []any = []any{}
 	if symbolTrades != nil {
@@ -1068,7 +1068,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var market map[string]any = this.Market(symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
-	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
+	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate bool = false
 	var query any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1080,7 +1080,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	query = this.Omit(query, []any{"loc", "method"})
 	var ohlcvs any = nil
-	if method != nil && *method == "marketPublicGetV1beta3CryptoLocBars" {
+	if method == "marketPublicGetV1beta3CryptoLocBars" {
 		if limit != nil {
 			request["limit"] = limit
 		}
@@ -1155,7 +1155,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 				pageToken = this.SafeString(response, "next_page_token")
 			}
 		}
-	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestBars" {
+	} else if method == "marketPublicGetV1beta3CryptoLocLatestBars" {
 
 		r3 := <-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, query))
 		if r3.Err != nil {
@@ -1182,7 +1182,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		var bar map[string]any = this.SafeDictMap(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
-		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + *method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
+		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
@@ -2447,8 +2447,8 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressValue any = address
-	var tagSuffix *string = this.SafeString(params, "tag", "")
-	if tagSuffix == nil || *tagSuffix != "" {
+	var tagSuffix string = *this.SafeString(params, "tag", "")
+	if tagSuffix != "" {
 		addressValue = Add(Add(address, ":"), tagSuffix)
 	}
 	var request map[string]any = map[string]any{
@@ -2767,8 +2767,8 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	if activityType != nil {
 		var netAmount *string = this.SafeString(transaction, "net_amount")
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
-		var date *string = this.SafeString(transaction, "date", "")
-		timestamp = this.Parse8601(*date + "T00:00:00Z")
+		var date string = *this.SafeString(transaction, "date", "")
+		timestamp = this.Parse8601(date + "T00:00:00Z")
 		datetime = this.Iso8601(timestamp)
 		typeVar = SafeStringPtr(func() string {
 			if isIncoming {

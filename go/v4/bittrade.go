@@ -801,9 +801,9 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options["fetchMarkets"], "method", "publicGetCommonSymbols")
+	var method string = *this.SafeString(this.Options["fetchMarkets"], "method", "publicGetCommonSymbols")
 	var response map[string]any = nil
-	if method != nil && *method == "publicGetCommonSymbols" {
+	if method == "publicGetCommonSymbols" {
 
 		r := <-this.PublicGetCommonSymbols(params)
 		if r.Err != nil {
@@ -811,7 +811,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		response = r.Value
 	} else {
-		panic(NotSupported(this.Id + " fetchMarkets() does not support the " + *method + " method"))
+		panic(NotSupported(this.Id + " fetchMarkets() does not support the " + method + " method"))
 	}
 	//
 	//    {
@@ -1772,13 +1772,13 @@ func (this *Bittrade) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var method *string = this.SafeString(this.Options["fetchBalance"], "method", "privateGetAccountAccountsIdBalance")
+	var method string = *this.SafeString(this.Options["fetchBalance"], "method", "privateGetAccountAccountsIdBalance")
 	var account map[string]any = SafeMapTyped(this.Accounts, 0)
 	var request map[string]any = map[string]any{
 		"id": account["id"],
 	}
 	var response map[string]any = nil
-	if method != nil && *method == "privateGetAccountAccountsIdBalance" {
+	if method == "privateGetAccountAccountsIdBalance" {
 
 		r2 := <-this.PrivateGetAccountAccountsIdBalance(this.Extend(request, params))
 		if r2.Err != nil {
@@ -1786,7 +1786,7 @@ func (this *Bittrade) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 		response = r2.Value
 	} else {
-		panic(NotSupported(this.Id + " fetchBalance() does not support the " + *method + " method"))
+		panic(NotSupported(this.Id + " fetchBalance() does not support the " + method + " method"))
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
@@ -1823,9 +1823,9 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan AsyncResult[[]Order], stat
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var method *string = this.SafeString(this.Options["fetchOrdersByStates"], "method", "privateGetOrderOrders")
+	var method string = *this.SafeString(this.Options["fetchOrdersByStates"], "method", "privateGetOrderOrders")
 	var response map[string]any = nil
-	if (method != nil && *method == "private_get_order_history") || (method != nil && *method == "privateGetOrderHistory") {
+	if (method == "private_get_order_history") || (method == "privateGetOrderHistory") {
 
 		r1 := <-this.PrivateGetOrderHistory(this.Extend(request, params))
 		if r1.Err != nil {
@@ -1971,8 +1971,8 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var method *string = this.SafeString(this.Options["fetchOpenOrders"], "method", "fetch_open_orders_v1")
-	if (method != nil && *method == "fetch_open_orders_v2") || (method != nil && *method == "fetchOpenOrdersV2") {
+	var method string = *this.SafeString(this.Options["fetchOpenOrders"], "method", "fetch_open_orders_v1")
+	if (method == "fetch_open_orders_v2") || (method == "fetchOpenOrdersV2") {
 
 		r := <-this.FetchOpenOrdersV2Async(symbol, since, limit, params)
 		if r.Err != nil {
@@ -2343,8 +2343,8 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours
 	if clientOrderId == nil {
-		var brokerId *string = this.SafeString(this.Options["broker"], "id", "")
-		request["client-order-id"] = *brokerId + this.Uuid()
+		var brokerId string = *this.SafeString(this.Options["broker"], "id", "")
+		request["client-order-id"] = brokerId + this.Uuid()
 	} else {
 		request["client-order-id"] = clientOrderId
 	}
@@ -2381,9 +2381,9 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if (typeVar == "limit") || (typeVar == "ioc") || (typeVar == "limit-maker") || (typeVar == "stop-limit") || (typeVar == "stop-limit-fok") {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var method *string = this.SafeString(this.Options["createOrder"], "method", "privatePostOrderOrdersPlace")
+	var method string = *this.SafeString(this.Options["createOrder"], "method", "privatePostOrderOrdersPlace")
 	var response map[string]any = nil
-	if method != nil && *method == "privatePostOrderOrdersPlace" {
+	if method == "privatePostOrderOrdersPlace" {
 
 		r2 := <-this.PrivatePostOrderOrdersPlace(this.Extend(request, paramsOrder))
 		if r2.Err != nil {
@@ -2391,7 +2391,7 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		response = r2.Value
 	} else {
-		panic(NotSupported(this.Id + " createOrder() does not support the " + *method + " method"))
+		panic(NotSupported(this.Id + " createOrder() does not support the " + method + " method"))
 	}
 	var id *string = this.SafeString(response, "data")
 

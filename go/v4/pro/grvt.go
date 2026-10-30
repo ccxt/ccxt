@@ -337,8 +337,8 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
-	var selector *string = this.SafeString(message, "selector", "")
-	var parts []string = strings.Split(*selector, "@")
+	var selector string = *this.SafeString(message, "selector", "")
+	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -474,8 +474,8 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
-	var selector *string = this.SafeString(message, "selector", "")
-	var parts []string = strings.Split(*selector, "@")
+	var selector string = *this.SafeString(message, "selector", "")
+	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -641,13 +641,13 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
-	var selector *string = this.SafeString(message, "selector", "")
-	var parts []string = strings.Split(*selector, "@")
+	var selector string = *this.SafeString(message, "selector", "")
+	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var secondPart *string = this.SafeString(parts, 1, "")
-	var timeframeId string = strings.Replace(*secondPart, "-TRADE", "", 1)
+	var secondPart string = *this.SafeString(parts, 1, "")
+	var timeframeId string = strings.Replace(secondPart, "-TRADE", "", 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if timeframe == nil {
 		return
@@ -814,8 +814,8 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
-	var selector *string = this.SafeString(message, "selector", "")
-	var parts []string = strings.Split(*selector, "@")
+	var selector string = *this.SafeString(message, "selector", "")
+	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")

@@ -90,8 +90,8 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketId *string = this.SafeString(market, "id", "")
-	var messageHash string = "orderbook" + ":" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var messageHash string = "orderbook" + ":" + marketId
 
 	r1 := <-this.WatchPublicAsync(messageHash, params)
 	if r1.Err != nil {
@@ -127,7 +127,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var channel *string = this.SafeString(message, "topic")
 	var market map[string]any = this.SafeMarket(marketId)
-	var marketIdValue *string = this.SafeString(market, "id", "")
+	var marketIdValue string = *this.SafeString(market, "id", "")
 	var symbol *string = this.SafeString(market, "symbol")
 	if symbol != nil {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
@@ -146,7 +146,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 			orderbook.Reset(snapshot)
 		}
 		if channel != nil {
-			var messageHash string = *channel + ":" + *marketIdValue
+			var messageHash string = *channel + ":" + marketIdValue
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}
 	}
@@ -186,8 +186,8 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
-	var messageHash string = "trade" + ":" + *marketId
+	var marketId string = *this.SafeString(market, "id", "")
+	var messageHash string = "trade" + ":" + marketId
 
 	r1 := <-this.WatchPublicAsync(messageHash, params)
 	if r1.Err != nil {
@@ -221,7 +221,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var marketIdValue *string = this.SafeString(market, "id", "")
+	var marketIdValue string = *this.SafeString(market, "id", "")
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
@@ -237,7 +237,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(this.SafeValue(parsedTrades, i))
 	}
 	if channel != nil {
-		var messageHash string = *channel + ":" + *marketIdValue
+		var messageHash string = *channel + ":" + marketIdValue
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
@@ -286,8 +286,8 @@ func (this *Hollaex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		} else {
 			symbolResolved = nil
 		}
-		var marketId *string = this.SafeString(market, "id", "")
-		messageHash = messageHash + ":" + *marketId
+		var marketId string = *this.SafeString(market, "id", "")
+		messageHash = messageHash + ":" + marketId
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash, params)
@@ -414,8 +414,8 @@ func (this *Hollaex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		} else {
 			symbolResolved = nil
 		}
-		var marketId *string = this.SafeString(market, "id", "")
-		messageHash = messageHash + ":" + *marketId
+		var marketId string = *this.SafeString(market, "id", "")
+		messageHash = messageHash + ":" + marketId
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash, params)
@@ -663,7 +663,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 		// that would trigger a new connection on each received message
 		this.Options["ws-expires"] = ccxt.DerefScalar(expires)
 	}
-	var url *string = this.SafeString(this.Urls["api"], "ws", "")
+	var url string = *this.SafeString(this.Urls["api"], "ws", "")
 	var auth string = "CONNECT" + "/stream" + *expires
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{
@@ -671,7 +671,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 		"api-signature": signature,
 		"api-expires":   expires,
 	}
-	var signedUrl string = *url + "?" + this.Urlencode(authParams)
+	var signedUrl string = url + "?" + this.Urlencode(authParams)
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": []any{messageHash},

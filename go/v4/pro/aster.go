@@ -2017,8 +2017,8 @@ func (this *Aster) GetPrivateUrl(optionalArgs ...any) string {
 	var typeVar string = ccxt.GetArgString(optionalArgs, 0, "spot")
 	_ = typeVar
 	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
-	var listenKey *string = this.SafeString(listenKeyOptions, typeVar, "")
-	var url string = *this.SafeString(this.UrlsApiSections["ws"]["private"], typeVar, "") + "/" + *listenKey
+	var listenKey string = *this.SafeString(listenKeyOptions, typeVar, "")
+	var url string = *this.SafeString(this.UrlsApiSections["ws"]["private"], typeVar, "") + "/" + listenKey
 	return url
 }
 
@@ -2082,15 +2082,15 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Aster) SetBalanceCache(client any, typeVar any) {
+func (this *Aster) SetBalanceCache(client any, typeVar *string) {
 	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (this.WsCacheHas("Balance", typeVar)) {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
-		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
-		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
+		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -2808,11 +2808,11 @@ func (this *Aster) HandleOrder(client any, message any) {
 	}
 	var cache any = this.Orders
 	var parsed map[string]any = this.ParseWsOrder(message, market)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	cache.(ccxt.Appender).Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
-		var symbolMessageHash string = messageHash + "::" + *symbol
+		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
 		client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 	}

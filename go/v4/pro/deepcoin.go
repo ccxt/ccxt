@@ -298,8 +298,8 @@ func (this *Deepcoin) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				}
 				response = r1.Value
 			} else if expired {
-				var method *string = this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
-				var getNewKey bool = (method != nil && *method == "privateGetDeepcoinListenkeyAcquire")
+				var method string = *this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
+				var getNewKey bool = (method == "privateGetDeepcoinListenkeyAcquire")
 				if getNewKey {
 
 					r2 := <-this.PrivateGetDeepcoinListenkeyAcquire(params)
@@ -1038,7 +1038,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	// tick was rejected accepted the next coarser level
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var aggregation *string = nil
 	var paramsAggregation any = nil
 	aggregation, paramsAggregation = this.HandleOptionStringAndParams(params, methodName, "aggregation")
@@ -1046,7 +1046,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
 		var tickSize *float64 = this.SafeNumber(precision, "price")
 		if tickSize == nil {
-			panic(ccxt.BadRequest(this.Id + " " + methodName + "() requires a params[\"aggregation\"] price level for " + *symbol + " because the market has no price precision"))
+			panic(ccxt.BadRequest(this.Id + " " + methodName + "() requires a params[\"aggregation\"] price level for " + symbol + " because the market has no price precision"))
 		}
 		aggregation = this.NumberToString(tickSize)
 	}
@@ -1720,8 +1720,8 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message any) {
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 		var subId *int64 = this.SafeInteger(data, "L")
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, subId) // original watch subscription
-		var subHash *string = this.SafeString(subscription, "subHash", "")
-		var unsubHash string = "unsubscribe::" + *subHash
+		var subHash string = *this.SafeString(subscription, "subHash", "")
+		var unsubHash string = "unsubscribe::" + subHash
 		var unsubsciption any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{}) // unWatch subscription
 		this.HandleUnSubscription(client, unsubsciption)
 	}

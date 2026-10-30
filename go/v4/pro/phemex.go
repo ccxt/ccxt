@@ -1784,8 +1784,8 @@ func (this *Phemex) HandleMessage(client any, message any) {
 			return
 		}
 	}
-	var methodName *string = this.SafeString(message, "method", "")
-	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (strings.Index(*methodName, "perp_market24h_pack_p") >= 0) {
+	var methodName string = *this.SafeString(message, "method", "")
+	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (strings.Index(methodName, "perp_market24h_pack_p") >= 0) {
 		this.HandleTicker(client, message)
 		return
 	} else if (ccxt.InOp(message, "trades")) || (ccxt.InOp(message, "trades_p")) {

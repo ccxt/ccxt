@@ -1760,13 +1760,13 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 		panic(ExchangeError(this.Id + " getMarketFromTrade() too many keys: " + this.Json(currencyIds) + " in the trade: " + this.Json(tradeOmitted)))
 	}
 	if numCurrencyIds == 2 {
-		var firstCurrencyId *string = this.SafeString(currencyIds, 0, "")
-		var secondCurrencyId *string = this.SafeString(currencyIds, 1, "")
-		var marketId string = *firstCurrencyId + *secondCurrencyId
+		var firstCurrencyId string = *this.SafeString(currencyIds, 0, "")
+		var secondCurrencyId string = *this.SafeString(currencyIds, 1, "")
+		var marketId string = firstCurrencyId + secondCurrencyId
 		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
-		marketId = *secondCurrencyId + *firstCurrencyId
+		marketId = secondCurrencyId + firstCurrencyId
 		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
@@ -1856,9 +1856,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	amountString = this.SafeString(trade, this.SafeString(marketResolved, "baseId"), amountString)
 	costString = this.SafeString(trade, this.SafeString(marketResolved, "quoteId"), costString)
 	// this endpoint is not aligned with "markets" endpoint
-	var baseIdLower *string = this.SafeStringLower(marketResolved, "baseId", "")
-	var quoteIdLower *string = this.SafeStringLower(marketResolved, "quoteId", "")
-	var dashedIdLower string = *baseIdLower + "_" + *quoteIdLower
+	var baseIdLower string = *this.SafeStringLower(marketResolved, "baseId", "")
+	var quoteIdLower string = *this.SafeStringLower(marketResolved, "quoteId", "")
+	var dashedIdLower string = baseIdLower + "_" + quoteIdLower
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
 	}

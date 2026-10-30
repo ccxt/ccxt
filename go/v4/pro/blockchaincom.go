@@ -296,9 +296,9 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "ticker",
@@ -433,9 +433,9 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = "trades:" + *symbolValue
+	var messageHash string = "trades:" + symbolValue
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trades",
@@ -872,24 +872,24 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	//         "timestamp": "2022-08-08T22:03:19.014680Z"
 	//     }
 	//
-	var event *string = this.SafeString(message, "event", "")
-	if event != nil && *event == "subscribed" {
+	var event string = *this.SafeString(message, "event", "")
+	if event == "subscribed" {
 		return
 	}
-	var typeVar *string = this.SafeString(message, "channel", "")
+	var typeVar string = *this.SafeString(message, "channel", "")
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash string = "orderbook:" + *symbol + ":" + *typeVar
+	var messageHash string = "orderbook:" + *symbol + ":" + typeVar
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.CountedOrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	if event != nil && *event == "snapshot" {
+	if event == "snapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
 		orderbook.Reset(snapshot)
-	} else if event != nil && *event == "updated" {
+	} else if event == "updated" {
 		var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
@@ -897,7 +897,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(datetime)
 	} else {
-		panic(ccxt.NotSupported(this.Id + " watchOrderBook() does not support " + *event + " yet"))
+		panic(ccxt.NotSupported(this.Id + " watchOrderBook() does not support " + event + " yet"))
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

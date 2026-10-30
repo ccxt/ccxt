@@ -1320,9 +1320,9 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbo
 		"id": market["id"],
 	}
 	// publicGetProductsIdTicker or publicGetProductsIdStats
-	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "publicGetProductsIdTicker")
+	var method string = *this.SafeString(this.Options, "fetchTickerMethod", "publicGetProductsIdTicker")
 	var response map[string]any = nil
-	if method != nil && *method == "publicGetProductsIdStats" {
+	if method == "publicGetProductsIdStats" {
 
 		r1 := <-this.PublicGetProductsIdStats(this.Extend(request, params))
 		if r1.Err != nil {

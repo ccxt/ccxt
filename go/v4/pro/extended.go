@@ -1096,12 +1096,12 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 	}
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var timeframe *string = this.SafeString(subscription, "timeframe", "")
-	var candleType *string = this.SafeString(subscription, "candleType", "")
+	var candleType string = *this.SafeString(subscription, "candleType", "")
 	var cacheKey any = nil
-	if candleType != nil && *candleType == "trades" {
+	if candleType == "trades" {
 		cacheKey = timeframe
 	} else {
-		cacheKey = *timeframe + ":" + *candleType
+		cacheKey = *timeframe + ":" + candleType
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	if symbol != nil {

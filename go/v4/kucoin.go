@@ -2117,9 +2117,9 @@ func (this *Kucoin) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, paramsUta)
 	var response map[string]any = nil
 	if utaOption.(*bool) != nil && *utaOption.(*bool) {
-		var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
+		var defaultType string = *this.SafeString(this.Options, "defaultType", "spot")
 		var defaultTradeType string = "FUTURES"
-		if defaultType != nil && *defaultType == "spot" {
+		if defaultType == "spot" {
 			defaultTradeType = "SPOT"
 		}
 		var tradeType *string = this.SafeStringUpper(paramsMarketType, "tradeType", defaultTradeType)
@@ -3638,7 +3638,7 @@ func (this *Kucoin) ParseContractTicker(ticker any, optionalArgs ...any) Ticker 
 		"info":          ticker,
 	}, marketResolved)
 }
-func (this *Kucoin) TypeToTradeType(typeVar any) *string {
+func (this *Kucoin) TypeToTradeType(typeVar *string) *string {
 	var tradeTypes map[string]any = map[string]any{
 		"spot":   "SPOT",
 		"margin": "MARGIN",

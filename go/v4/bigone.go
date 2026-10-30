@@ -1707,10 +1707,10 @@ func (this *Bigone) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 			panic(r.Err)
 		}
 	}
-	var typeVar *string = this.SafeString(params, "type", "")
+	var typeVar string = *this.SafeString(params, "type", "")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	var response map[string]any = nil
-	if (typeVar != nil && *typeVar == "funding") || (typeVar != nil && *typeVar == "fund") {
+	if (typeVar == "funding") || (typeVar == "fund") {
 
 		r1 := <-this.PrivateGetFundAccounts(paramsOmitted)
 		if r1.Err != nil {

@@ -554,30 +554,30 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	//     }
 	// }
 	//
-	var id *string = this.SafeString(message, "id", "")
-	var part []string = strings.Split(*id, "/")
+	var id string = *this.SafeString(message, "id", "")
+	var part []string = strings.Split(id, "/")
 	var interval *string = this.SafeString(part, 1)
 	var timeframe *string = this.FindTimeframe(interval)
 	var marketId *string = this.SafeString(part, 0)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var candles []any = ccxt.SafeListTyped(content, "candles")
-	var messageHash string = "ohlcv:" + *symbol
+	var messageHash string = "ohlcv:" + symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
-	if this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored any
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored = this.Ohlcvs[symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	stored.(ccxt.Appender).Append(parsed)
@@ -600,8 +600,8 @@ func (this *Dydx) HandleErrorMessage(client any, message map[string]any) bool {
 				}
 			}()
 			// try block:
-			var msg *string = this.SafeString(message, "message", "")
-			panic(ccxt.ExchangeError(this.Id + " " + *msg))
+			var msg string = *this.SafeString(message, "message", "")
+			panic(ccxt.ExchangeError(this.Id + " " + msg))
 
 		}(this)
 
