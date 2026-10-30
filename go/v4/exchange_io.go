@@ -44,15 +44,13 @@ func (this *BaseExchange) ExistsFile(path any) bool {
 
 // EnsureWhitelistedFile ensures the file path is ccxt file, so users would be safeguarded
 func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
-	tempDir := this.GetTempDir()
 	sanitized, err := filepath.Abs(derefScalar(filePath).(string))
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	if strings.HasPrefix(sanitized, tempDir) && strings.HasSuffix(sanitized, ".ccxtfile") {
-		return
+	if !strings.HasSuffix(sanitized, ".ccxtfile") {
+		panic("File extension not permitted: " + derefScalar(filePath).(string))
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string))
 }
 
 // GetTempDir returns the temporary directory
