@@ -3034,29 +3034,28 @@ export default class htx extends Exchange {
             untilSeconds = this.parseToInt (until / 1000);
         }
         const isContract = (market['contract'] === true);
-        const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
+        // the range sets the count alone, and HTX refuses one wider than 2000 candles
+        const contractLimit: number = (limit !== undefined) ? Math.min (limit, 2000) : 2000;
         let rangeLimit = limit;
         if (isContract) {
             rangeLimit = contractLimit;
         }
         if (isContract) {
-            if (limit !== undefined) {
-                request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
-                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
-            }
             if (priceType === undefined) {
+                // from & to set the range alone: with size as well, the exchange ignores them and returns the latest candles
+                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
                 const duration = this.parseTimeframe (timeframe);
-                let calcualtedEnd: Int = undefined;
                 if (since === undefined) {
-                    const now = this.seconds ();
-                    request['from'] = now - duration * (contractLimit - 1);
-                    calcualtedEnd = now;
+                    const rangeEnd = (untilSeconds !== undefined) ? untilSeconds : this.seconds ();
+                    request['from'] = rangeEnd - duration * (contractLimit - 1);
+                    request['to'] = rangeEnd;
                 } else {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
-                    calcualtedEnd = this.sum (start, duration * (contractLimit - 1));
+                    request['to'] = (untilSeconds !== undefined) ? untilSeconds : this.sum (start, duration * (contractLimit - 1));
                 }
-                request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
+            } else if (limit !== undefined) {
+                request['size'] = Math.min (limit, 2000);
             }
         }
         let response = undefined;
