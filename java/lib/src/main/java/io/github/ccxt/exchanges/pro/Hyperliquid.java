@@ -1278,7 +1278,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe);
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
         ohlcv.append(parsed);
         String messageHash = ((("candles:" + timeframe) + ":") + symbol);

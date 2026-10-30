@@ -561,7 +561,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe);
         Object parsed = this.parseWsOHLCV(message, (Map<String, Object>) null);
         ohlcv.append(parsed);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);

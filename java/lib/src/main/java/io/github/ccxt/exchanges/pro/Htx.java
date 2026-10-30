@@ -2130,8 +2130,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 String symbol = this.safeString(paramsOmitted, "symbol");
                 String currency = this.safeString(paramsOmitted, "currency");
-                Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
-                Map<String, Object> currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
+                Map<String, Object> market = null;
+                if (!java.util.Objects.equals(symbol, null))
+                {
+                    market = this.market(symbol);
+                }
+                Map<String, Object> currencyCode = null;
+                if (!java.util.Objects.equals(currency, null))
+                {
+                    currencyCode = this.currency((String) (currency));
+                }
                 marginMode = this.safeString(paramsOmitted, "margin", "cross");
                 String prefix = "accounts";
                 messageHash = prefix;

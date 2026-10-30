@@ -970,7 +970,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
-                Object symbol = Helpers.GetValue((List<String>)(symbolsNormalized), i);
+                Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
                 Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("bidask@" + market.get("symbol")));
             }

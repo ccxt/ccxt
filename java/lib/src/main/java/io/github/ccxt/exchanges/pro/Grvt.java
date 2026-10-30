@@ -586,7 +586,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe);
         Object parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));

@@ -800,7 +800,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe);
         stored.append(parsed);
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);

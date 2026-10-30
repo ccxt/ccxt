@@ -697,7 +697,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
                 {
-                    ((List<Object>)messageHashes).add(((channel + ":") + Helpers.GetValue((List<String>)(symbolsNormalized), i)));
+                    ((List<Object>)messageHashes).add(((channel + ":") + (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i))));
                 }
             }
             Map<String, Object> request = this.subscribeRequest(channel);

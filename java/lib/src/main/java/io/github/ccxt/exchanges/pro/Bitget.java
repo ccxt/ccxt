@@ -3619,7 +3619,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             messageHash = ("unsubscribe:kline:" + symbol);
             subMessageHash = ("kline:" + symbol);
-        } else
+        } else if (!java.util.Objects.equals(timeframe, null))
         {
             messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
             subMessageHash = ((("candles:" + timeframe) + ":") + symbol);

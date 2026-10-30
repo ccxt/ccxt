@@ -736,7 +736,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(timeframe);
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market);

@@ -275,7 +275,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
+                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
                 channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -367,7 +367,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
+                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
                 channels.add(("quote." + this.safeString(market, "id", "")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -1050,7 +1050,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>) this.ohlcvs.get(symbol)).get(unifiedTimeframe);
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
