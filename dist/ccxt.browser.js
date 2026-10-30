@@ -231959,19 +231959,16 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         const info = this.safeList(currency, 'info');
         const transferId = this.safeString(info, 0);
         const underlying = this.safeList(info, 4, []);
-        let currencyId = undefined;
         if (type === 'derivatives') {
-            currencyId = this.safeString(underlying, 0, transferId);
-            const isDerivativeCode = currencyId.endsWith('F0');
-            if (!isDerivativeCode) {
-                currencyId = currencyId + 'F0';
+            const derivativesId = this.safeString(underlying, 0, this.safeString(info, 0, ''));
+            if (!derivativesId.endsWith('F0')) {
+                return derivativesId + 'F0';
             }
+            return derivativesId;
         } else if (type !== 'margin') {
-            currencyId = this.safeString(underlying, 1, transferId);
-        } else {
-            currencyId = transferId;
+            return this.safeString(underlying, 1, transferId);
         }
-        return currencyId;
+        return transferId;
     }
     /**
      * @method

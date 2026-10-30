@@ -842,7 +842,7 @@ export declare class BaseExchange {
     fetchBalanceWs(params?: Dict): Promise<Balances>;
     parseBalance(response: Dict): Balances;
     watchBalance(params?: Dict): Promise<Balances>;
-    fetchPartialBalance(part: any, params?: Dict): Promise<Balance>;
+    fetchPartialBalance(part: string, params?: Dict): Promise<Balance>;
     fetchFreeBalance(params?: Dict): Promise<Balance>;
     fetchUsedBalance(params?: Dict): Promise<Balance>;
     fetchTotalBalance(params?: Dict): Promise<Balance>;
