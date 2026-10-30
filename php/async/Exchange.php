@@ -4668,11 +4668,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' watchBalance() is not supported yet');
     }
 
-    public function fetch_partial_balance(mixed $part, $params = array()) {
+    public function fetch_partial_balance(string $part, $params = array()) {
         return Async\async(self::do_fetch_partial_balance(...))($part, $params);
     }
 
-    private function do_fetch_partial_balance(mixed $part, $params = array()) {
+    private function do_fetch_partial_balance(string $part, $params = array()) {
         $balance = Async\await($this->fetch_balance($params));
         return $balance[$part];
     }

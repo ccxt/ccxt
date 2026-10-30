@@ -1158,19 +1158,16 @@ class bitfinex extends Exchange {
         $info = $this->safe_list($currency, 'info');
         $transferId = $this->safe_string($info, 0);
         $underlying = $this->safe_list($info, 4, array());
-        $currencyId = null;
         if ($type === 'derivatives') {
-            $currencyId = $this->safe_string($underlying, 0, $transferId);
-            $isDerivativeCode = str_ends_with($currencyId, 'F0');
-            if (!$isDerivativeCode) {
-                $currencyId = $currencyId . 'F0';
+            $derivativesId = $this->safe_string($underlying, 0, $this->safe_string($info, 0, ''));
+            if (!str_ends_with($derivativesId, 'F0')) {
+                return $derivativesId . 'F0';
             }
+            return $derivativesId;
         } elseif ($type !== 'margin') {
-            $currencyId = $this->safe_string($underlying, 1, $transferId);
-        } else {
-            $currencyId = $transferId;
+            return $this->safe_string($underlying, 1, $transferId);
         }
-        return $currencyId;
+        return $transferId;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
