@@ -359,7 +359,7 @@ public partial class bingx : ccxt.bingx
         }, marketResolved);
     }
 
-    public virtual object getOrderBookLimitByMarketType(string? marketType, Int64? limit = null)
+    public virtual object getOrderBookLimitByMarketType(string marketType, Int64? limit = null)
     {
         if ((limit == null))
         {
@@ -1361,9 +1361,9 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subType, object subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, object type, object subType, string subscriptionHash, object parameters)
     {
-        if ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }

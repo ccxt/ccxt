@@ -2653,7 +2653,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual string? getMarketTypeByUrl(object url)
+    public virtual string? getMarketTypeByUrl(string url)
     {
         Dictionary<string, object> findBy = new Dictionary<string, object>() {
             { "op-", "option" },
@@ -2667,7 +2667,7 @@ public partial class gate : ccxt.gate
         {
             string? key = ((string)keys[i]);
             object value = (key != null && findBy.ContainsKey(key) ? findBy[key] : null);
-            if (((string)url).IndexOf(key, StringComparison.Ordinal) >= 0)
+            if (url.IndexOf(key, StringComparison.Ordinal) >= 0)
             {
                 return ((string?)((object)(value)));
             }

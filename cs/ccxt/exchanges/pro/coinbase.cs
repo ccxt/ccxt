@@ -1056,11 +1056,11 @@ public partial class coinbase : ccxt.coinbase
         }
     }
 
-    public virtual void tryResolveUsdc(WebSocketClient client, object messageHash, object result)
+    public virtual void tryResolveUsdc(WebSocketClient client, string messageHash, object result)
     {
-        if (((string)messageHash).EndsWith("/USD") || ((string)messageHash).EndsWith("-USD"))
+        if (messageHash.EndsWith("/USD") || messageHash.EndsWith("-USD"))
         {
-            client.resolve(result, add(messageHash, "C")); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
+            client.resolve(result, (messageHash + "C")); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 

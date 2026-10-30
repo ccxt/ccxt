@@ -207,7 +207,7 @@ public partial class binance : ccxt.binance
         };
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string url)
     {
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
@@ -283,8 +283,8 @@ public partial class binance : ccxt.binance
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if ((baseUrl.EndsWith("/ws") == true))
             {
-                object prefix = ((baseUrl == null) ? null : baseUrl.Substring(0, Math.Max(Math.Min(((baseUrl.Length - 3) < 0 ? baseUrl.Length + ((baseUrl.Length - 3)) : (baseUrl.Length - 3)), baseUrl.Length), 0)));
-                return ((string?)((object)(add(add(add(prefix, "/"), category), "/ws"))));
+                string? prefix = ((baseUrl == null) ? null : baseUrl.Substring(0, Math.Max(Math.Min(((baseUrl.Length - 3) < 0 ? baseUrl.Length + ((baseUrl.Length - 3)) : (baseUrl.Length - 3)), baseUrl.Length), 0)));
+                return ((string?)((object)((((prefix + "/") + category) + "/ws"))));
             }
             return baseUrl;
         }
@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**

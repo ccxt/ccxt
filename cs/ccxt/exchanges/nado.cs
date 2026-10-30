@@ -3330,17 +3330,17 @@ public partial class nado : Exchange
         return ("0x" + this.padHex(this.intToBase16(productId), 40));
     }
 
-    public virtual string? padHex(object value, object length, bool? left = null)
+    public virtual string? padHex(string value, object length, bool? left = null)
     {
         left ??= true;
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         if (left == true)
         {
-            string paddedLeft = (zeros + (value));
+            string paddedLeft = (zeros + value);
             object start = (paddedLeft.Length - (this.parseToInt(length)));
             return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
         }
-        object paddedRight = add(value, zeros);
+        string paddedRight = (value + zeros);
         return ((string?)((object)(slice(paddedRight, 0, length))));
     }
 

@@ -2466,7 +2466,7 @@ public partial class kalshi : PredictionExchange
         }
         await this.loadOutcome(outcome);
         ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,outcome));
-        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
+        return await this.CreateOrder(outcome,type,side, (amount ?? 0d), price, parameters);
     }
 
     /**

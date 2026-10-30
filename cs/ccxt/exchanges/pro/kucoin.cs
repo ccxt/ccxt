@@ -307,7 +307,7 @@ public partial class kucoin : ccxt.kucoin
         return this.safeString(this.options, "utaToken");
     }
 
-    public async virtual Task<object> unSubscribe(object url, object messageHash, object topic, object subscriptionHash, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> unSubscribe(object url, string messageHash, string topic, string subscriptionHash, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unSubscribeMultiple(url, new List<object>() {messageHash}, topic, new List<object>() {subscriptionHash}, parameters, subscription);

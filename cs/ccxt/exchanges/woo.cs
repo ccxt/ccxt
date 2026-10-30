@@ -5226,7 +5226,7 @@ public partial class woo : Exchange
         };
     }
 
-    public virtual string? defaultNetworkCodeForCurrency(string? code)
+    public virtual string? defaultNetworkCodeForCurrency(string code)
     {
         Dictionary<string, object> currencyItem = this.currency(code);
         object networks = (currencyItem != null && currencyItem.ContainsKey("networks") ? currencyItem["networks"] : null);

@@ -2572,13 +2572,13 @@ public partial class coinsph : Exchange
         }
     }
 
-    public virtual string? parseArrayParam(object array, object key)
+    public virtual string? parseArrayParam(object array, string key)
     {
         string stringifiedArray = this.json(array);
         stringifiedArray = stringifiedArray.Replace("[", (string)"%5B");
         stringifiedArray = stringifiedArray.Replace("]", (string)"%5D");
-        object urlEncodedParam = add(add(key, "="), stringifiedArray);
-        return ((string?)((object)(urlEncodedParam)));
+        string urlEncodedParam = ((key + "=") + stringifiedArray);
+        return urlEncodedParam;
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

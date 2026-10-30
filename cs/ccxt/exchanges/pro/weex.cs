@@ -146,10 +146,10 @@ public partial class weex : ccxt.weex
         return await this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscriptionExtended);
     }
 
-    public virtual void authenticate(object url)
+    public virtual void authenticate(string url)
     {
         this.checkRequiredCredentials();
-        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
+        if (((this.clients != null)) && ((this.clients != null && this.clients.ContainsKey(url))))
         {
             return;
         }
@@ -1855,7 +1855,7 @@ public partial class weex : ccxt.weex
 
     public virtual void setBalanceCache(WebSocketClient client, object type)
     {
-        if (((client.subscriptions != null && type is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))) && ((this.balance != null && type is string inOpKey2 && this.balance.ContainsKey(inOpKey2))))
+        if (((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))) && ((this.balance != null && type is string inOpKey1 && this.balance.ContainsKey(inOpKey1))))
         {
             return;
         }

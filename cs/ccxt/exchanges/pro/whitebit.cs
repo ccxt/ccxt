@@ -853,9 +853,9 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, method, new List<object>() {}, paramsAwaitBalanceSnapshot));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subscriptionHash)
+    public virtual void setBalanceCache(WebSocketClient client, object type, string subscriptionHash)
     {
-        if ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }

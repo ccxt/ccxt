@@ -81,9 +81,9 @@ public partial class aster : ccxt.aster
         });
     }
 
-    public virtual string? getAccountTypeFromUrl(object url)
+    public virtual string? getAccountTypeFromUrl(string url)
     {
-        if (((string)url).IndexOf("fstream", StringComparison.Ordinal) > -1)
+        if (url.IndexOf("fstream", StringComparison.Ordinal) > -1)
         {
             return "swap";
         }
@@ -1239,8 +1239,8 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         string? symbolValue = this.safeSymbol(symbol);
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**

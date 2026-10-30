@@ -1864,14 +1864,14 @@ public partial class bitvavo : ccxt.bitvavo
         return ((string?)((object)(messageHash)));
     }
 
-    public virtual string? actionAndMarketMessageHash(object action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndMarketMessageHash(string action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(parameters, "market", "");
-        return ((string?)((object)(add(action, symbol))));
+        return ((string?)((object)((action + symbol))));
     }
 
-    public virtual string? actionAndOrderIdMessageHash(object action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndOrderIdMessageHash(string action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? orderId = this.safeString(parameters, "orderId");
@@ -1879,7 +1879,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ExchangeError ((this.id + " privateUpdateOrderMessageHash requires a orderId parameter")) ;
         }
-        return ((string?)((object)(add(action, orderId))));
+        return ((string?)((object)((action + orderId))));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)

@@ -73,7 +73,7 @@ public partial class woo : ccxt.woo
         });
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string url)
     {
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);

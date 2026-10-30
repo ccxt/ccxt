@@ -829,9 +829,9 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subscribeHash)
+    public virtual void setBalanceCache(WebSocketClient client, object type, string subscribeHash)
     {
-        if ((client.subscriptions != null && subscribeHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
         {
             return;
         }

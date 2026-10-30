@@ -398,7 +398,7 @@ public partial class upbit : ccxt.upbit
         }
     }
 
-    public async virtual Task<object> watchPrivate(object symbol, object channel, object messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(object symbol, string channel, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.authenticate();
@@ -413,8 +413,8 @@ public partial class upbit : ccxt.upbit
             Dictionary<string, object> market = this.market(symbol);
             string? symbolResolved = this.safeString(market, "symbol", "");
             request["codes"] = this.marketIds(new List<object>() {symbolResolved});
-            messageHashResolved = add(add(messageHash, ":"), symbolResolved);
-            channelKey = add(add(channel, ":"), symbolResolved);
+            messageHashResolved = ((messageHash + ":") + symbolResolved);
+            channelKey = ((channel + ":") + symbolResolved);
         }
         string url = (this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
     { "hostname", this.hostname },

@@ -1296,14 +1296,14 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
      * @returns {string} the hex signature
      */
-    public virtual string? signOrderbookTypedData(IDictionary<string, object> types, IDictionary<string, object> message, object networkId)
+    public virtual string? signOrderbookTypedData(IDictionary<string, object> types, IDictionary<string, object> message, string networkId)
     {
         IDictionary<string, object> chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
         IDictionary<string, object> chainConfig = this.safeDict(chains, networkId, new Dictionary<string, object>() {});
         string? exchangeAddress = this.safeString(chainConfig, "obExchangeAddress");
         if ((exchangeAddress == null))
         {
-            throw new NotSupported ((string)((this.id + " order book trading is not configured for network ") + (networkId))) ;
+            throw new NotSupported (((this.id + " order book trading is not configured for network ") + networkId)) ;
         }
         string? domainName = this.safeString(this.options, "obDomainName", "MyriadCTFExchange");
         string? domainVersion = this.safeString(this.options, "obDomainVersion", "1");
@@ -1332,7 +1332,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book Order struct
      * @returns {string} the hex signature
      */
-    public virtual string? signClobOrder(IDictionary<string, object> message, object networkId)
+    public virtual string? signClobOrder(IDictionary<string, object> message, string networkId)
     {
         List<object> orderStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -2331,7 +2331,7 @@ public partial class myriad : PredictionExchange
         return ((string?)((object)(Precise.stringDiv(decimalString, scale))));
     }
 
-    public virtual object parseTradeTx(object txHash, object quote, IDictionary<string, object> market, string? side)
+    public virtual object parseTradeTx(object txHash, object quote, IDictionary<string, object> market, string side)
     {
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", txHash },

@@ -3433,9 +3433,9 @@ public partial class modetrade : Exchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual string? signHash(object hash, object privateKey)
+    public virtual string? signHash(string hash, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         string? r = this.safeString(signature, "r", "");
         string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));

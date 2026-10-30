@@ -3449,7 +3449,7 @@ public partial class kucoin : Exchange
         }, marketResolved));
     }
 
-    public virtual string? typeToTradeType(string? type)
+    public virtual string? typeToTradeType(string type)
     {
         Dictionary<string, object> tradeTypes = new Dictionary<string, object>() {
             { "spot", "SPOT" },

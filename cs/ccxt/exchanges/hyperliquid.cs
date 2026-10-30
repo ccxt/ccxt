@@ -2520,7 +2520,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrders(ordersToBeParsed);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, string? amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, string amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

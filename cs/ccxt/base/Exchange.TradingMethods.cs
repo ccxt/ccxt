@@ -513,7 +513,7 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         ccxt.BaseExchange.FromOrder(await this.CancelOrderWs(id, symbol));
-        return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
+        return await this.CreateOrderWs(symbol,type,side, (amount ?? 0d), price, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchClosedOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
@@ -698,7 +698,7 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         ccxt.BaseExchange.FromOrder(await this.CancelOrder(id, symbol));
-        return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
+        return await this.CreateOrder(symbol,type,side, (amount ?? 0d), price, parameters);
     }
 
     public async virtual Task<ccxt.Order> EditOrderWithClientOrderId(string clientOrderId, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)

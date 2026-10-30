@@ -458,9 +458,9 @@ public partial class bitopro : ccxt.bitopro
         }
     }
 
-    public virtual void authenticate(object url)
+    public virtual void authenticate(string url)
     {
-        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
+        if (((this.clients != null)) && ((this.clients != null && this.clients.ContainsKey(url))))
         {
             return;
         }

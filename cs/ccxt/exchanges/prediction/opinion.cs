@@ -1098,7 +1098,7 @@ public partial class opinion : PredictionExchange
         return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
-    public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string? side, double? amount, double? price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string side, double? amount, double? price, object decimals)
     {
         string decimalsStr = "1";
         if (!(decimals == null))
@@ -1735,9 +1735,9 @@ public partial class opinion : PredictionExchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(string hash, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches
         string? rRaw = this.safeString(signature, "r", "");
         string? sRaw = this.safeString(signature, "s", "");
@@ -1755,7 +1755,7 @@ public partial class opinion : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual string? signApiKeyAuth(object walletAddress, string? action, string? timestamp)
+    public virtual string? signApiKeyAuth(string walletAddress, string? action, string? timestamp)
     {
         // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         Dictionary<string, object> domain = new Dictionary<string, object>() {

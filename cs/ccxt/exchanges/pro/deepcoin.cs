@@ -108,7 +108,7 @@ public partial class deepcoin : ccxt.deepcoin
         return newValue;
     }
 
-    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, object topicID, object suffix = null, bool? unWatch = null)
+    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, string topicID, object suffix = null, bool? unWatch = null)
     {
         suffix ??= "";
         unWatch ??= false;

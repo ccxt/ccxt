@@ -7890,10 +7890,10 @@ public partial class binance : Exchange
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            return await this.EditSpotOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
+            return await this.EditSpotOrder(id, symbol,type,side, (amount ?? 0d), price, parameters);
         } else
         {
-            return await this.EditContractOrder(id, symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
+            return await this.EditContractOrder(id, symbol,type,side, (amount ?? 0d), price, parameters);
         }
     }
 

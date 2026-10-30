@@ -2785,7 +2785,7 @@ public partial class extended : Exchange
         });
     }
 
-    public virtual string? getExtendedStarkAmount(object amount, object resolution, object roundUp = null)
+    public virtual string? getExtendedStarkAmount(string amount, object resolution, object roundUp = null)
     {
         roundUp ??= false;
         string? resolutionString = this.numberToString(resolution);
@@ -2811,7 +2811,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "account", new Dictionary<string, object>() {}));
     }
 
-    public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, object amountString, object priceString, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, string amountString, string priceString, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? totalFee = this.safeString(parameters, "totalFee");
@@ -2857,7 +2857,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, IDictionary<string, object> currency, object account, object parameters = null)
+    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, string amountString, IDictionary<string, object> currency, object account, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
@@ -2893,7 +2893,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createTransferSettlementData(object amountString, IDictionary<string, object> currency, object account, object toVault, object toL2Key, object parameters = null)
+    public virtual Dictionary<string, object> createTransferSettlementData(string amountString, IDictionary<string, object> currency, object account, string toVault, string toL2Key, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();

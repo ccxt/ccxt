@@ -1868,7 +1868,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} message the message to hash
      * @returns {string} the 0x prefixed hash
      */
-    public virtual string? hashMessage(object message)
+    public virtual string? hashMessage(string message)
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -1887,9 +1887,9 @@ public partial class predictfun : PredictionExchange
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public virtual string? signHash(object hash, object privateKey)
+    public virtual string? signHash(string hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
         string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));

@@ -2410,7 +2410,7 @@ public partial class sxbet : PredictionExchange
         };
     }
 
-    public virtual void setWsOption(object group, object key, object value)
+    public virtual void setWsOption(object group, string key, object value)
     {
         Dictionary<string, object> entry = new Dictionary<string, object>() {};
         entry[(string)key] = value;

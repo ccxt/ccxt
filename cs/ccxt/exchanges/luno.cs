@@ -1587,9 +1587,9 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseLedgerComment(object comment)
+    public virtual Dictionary<string, object> parseLedgerComment(string comment)
     {
-        List<object> words = ((string)comment).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        List<object> words = comment.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "Withdrawal", "fee" },
             { "Trading", "fee" },

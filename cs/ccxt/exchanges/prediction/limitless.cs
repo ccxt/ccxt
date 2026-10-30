@@ -2593,9 +2593,9 @@ public partial class limitless : PredictionExchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual string? signHash(object hash, object privateKey)
+    public virtual string? signHash(string hash, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
@@ -3405,11 +3405,11 @@ public partial class limitless : PredictionExchange
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             List<object> requestedTags = this.safeList(parameters, "tags", new List<object>() {});
-            List<Dictionary<string, object>> listRaw = await this.FetchRawMarketsByTags(requestedTags, parameters);
-            int listRawLength = (listRaw?.Count ?? 0);
+            object listRaw = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsByTags(requestedTags, parameters));
+            int listRawLength = getArrayLength(listRaw);
             for (int i = 0; i < listRawLength; i++)
             {
-                rawMarkets.Add((listRaw != null && i < listRaw.Count ? listRaw[i] : null));
+                rawMarkets.Add(getValue(listRaw, i));
             }
         }
         if ((this.events == null))
@@ -3599,11 +3599,11 @@ public partial class limitless : PredictionExchange
         List<object> allRaw = new List<object>() {};
         for (int ci = 0; ci < categoryIdsLength; ci++)
         {
-            List<Dictionary<string, object>> categoryMarkets = await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null));
-            int categoryMarketsLength = (categoryMarkets?.Count ?? 0);
+            object categoryMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null)));
+            int categoryMarketsLength = getArrayLength(categoryMarkets);
             for (int mi = 0; mi < categoryMarketsLength; mi++)
             {
-                object raw = (categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null);
+                object raw = getValue(categoryMarkets, mi);
                 string? slug = this.safeString(raw, "slug");
                 if (((slug != null)) && !(((slug != null) && seen.ContainsKey(slug))))
                 {

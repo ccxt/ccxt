@@ -489,7 +489,7 @@ public partial class bitrue : ccxt.bitrue
         return null;
     }
 
-    public virtual List<object> parseContractBidsAsks(IList<object> bidsAsks, object symbol)
+    public virtual List<object> parseContractBidsAsks(IList<object> bidsAsks, string symbol)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (bidsAsks?.Count ?? 0); i++)
@@ -503,7 +503,7 @@ public partial class bitrue : ccxt.bitrue
         return result;
     }
 
-    public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
+    public virtual object convertFromRawQuantity(string symbol, object rawQuantity)
     {
         if ((rawQuantity == null))
         {

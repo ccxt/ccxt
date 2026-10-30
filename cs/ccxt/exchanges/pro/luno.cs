@@ -418,14 +418,14 @@ public partial class luno : ccxt.luno
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    public virtual bool reduceOrderVolume(object orderSide, object orderId, object tradedAmount)
+    public virtual bool reduceOrderVolume(object orderSide, string orderId, string tradedAmount)
     {
         int sideLength = getArrayLength(orderSide);
         for (int i = 0; i < sideLength; i++)
         {
             object order = getValue(orderSide, i);
             string? entryId = this.safeString(order, 2);
-            if (isEqual(entryId, orderId))
+            if ((entryId == orderId))
             {
                 double? price = this.safeNumber(order, 0);
                 string? currentAmount = this.safeString(order, 1);
@@ -454,7 +454,7 @@ public partial class luno : ccxt.luno
      * @param {string} symbol unified market symbol of the book
      * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
      */
-    public virtual bool isOrderBookDeltaInSequence(WebSocketClient client, object message, object symbol)
+    public virtual bool isOrderBookDeltaInSequence(WebSocketClient client, object message, string symbol)
     {
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? storedNonce = this.safeInteger(orderbook, "nonce");
