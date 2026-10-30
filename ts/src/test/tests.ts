@@ -3661,6 +3661,76 @@ class testMainClass {
         }
         const clientOrderId = request['client_order_id'];
         assert (clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
+        let requestNotReduceOnly: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDC', 'limit', 'buy', 1, 20000, { 'reduceOnly': false });
+        } catch (e) {
+            requestNotReduceOnly = jsonParse (exchange.last_request_body);
+        }
+        assert (exchange.safeValue (requestNotReduceOnly, 'reduceOnly') === undefined, 'coinbase - reduceOnly false leaked into the order request');
+        let requestClose: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD:USD', 'market', 'sell', 2, undefined, { 'reduceOnly': true, 'clientOrderId': 'myCloseId' });
+        } catch (e) {
+            requestClose = jsonParse (exchange.last_request_body);
+        }
+        assert (requestClose['client_order_id'] === 'myCloseId', 'coinbase - reduceOnly clientOrderId was not sent');
+        assert (requestClose['size'] === '2', 'coinbase - reduceOnly size was not sent as a string');
+        let requestCloseLeftover: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD:USD', 'market', 'sell', 2, undefined, { 'reduceOnly': true, 'timeInForce': 'IOC', 'marginMode': 'cross', 'cost': 100, 'retail_portfolio_id': 'myPortfolio' });
+        } catch (e) {
+            requestCloseLeftover = jsonParse (exchange.last_request_body);
+        }
+        assert (requestCloseLeftover['retail_portfolio_id'] === 'myPortfolio', 'coinbase - reduceOnly raw param was not sent');
+        const leftoverKeys = [ 'timeInForce', 'marginMode', 'cost', 'reduceOnly', 'clientOrderId' ];
+        for (let i = 0; i < leftoverKeys.length; i++) {
+            assert (exchange.safeValue (requestCloseLeftover, leftoverKeys[i]) === undefined, 'coinbase - reduceOnly unified param leaked into close_position: ' + leftoverKeys[i]);
+        }
+        // rejected reduceOnly orders must throw before any request is sent
+        const lastBody = exchange.last_request_body;
+        const lastUrl = exchange.last_request_url;
+        const reduceOnlyCases: Dict[] = [
+            { 'symbol': 'BTC/USDC', 'type': 'market', 'params': { 'reduceOnly': true } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'limit', 'price': 60000, 'params': { 'reduceOnly': true } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'stopLossPrice': 50000 } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'stopLoss': { 'triggerPrice': 50000 } } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'order_configuration': { 'market_market_ioc': { 'base_size': '1' } } } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'postOnly': true } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'timeInForce': 'PO' } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true, 'preview': true } },
+            { 'symbol': 'BTC/USD:USD', 'type': 'market', 'params': { 'reduceOnly': true }, 'missingAmount': true },
+        ];
+        for (let i = 0; i < reduceOnlyCases.length; i++) {
+            const reduceOnlyCase = reduceOnlyCases[i];
+            const caseParams = exchange.safeDict (reduceOnlyCase, 'params', {});
+            const missingAmount = exchange.safeBool (reduceOnlyCase, 'missingAmount', false);
+            if (missingAmount && (isSync () || (this.lang === 'PHP') || (this.lang === 'C#'))) {
+                // php/c# createOrder types amount as non-nullable, and callExchangeMethodDynamically is async-only
+                continue;
+            }
+            let isNotSupported = false;
+            let errorMessage = '';
+            try {
+                if (missingAmount) {
+                    await callExchangeMethodDynamically (exchange, 'createOrder', [ exchange.safeString (reduceOnlyCase, 'symbol'), exchange.safeString (reduceOnlyCase, 'type'), 'sell', undefined, undefined, caseParams ]);
+                } else {
+                    await exchange.createOrder (exchange.safeString (reduceOnlyCase, 'symbol') as string, exchange.safeString (reduceOnlyCase, 'type') as string, 'sell', 1, exchange.safeNumber (reduceOnlyCase, 'price'), caseParams);
+                }
+            } catch (e) {
+                isNotSupported = (e instanceof NotSupported);
+                errorMessage = exceptionMessage (e);
+            }
+            const caseName = 'coinbase - reduceOnly case ' + i.toString ();
+            if (missingAmount) {
+                assert (!isNotSupported, caseName + ' must throw ArgumentsRequired, got: ' + errorMessage);
+                assert (errorMessage.indexOf ('an amount argument for reduceOnly') >= 0, caseName + ' must throw ArgumentsRequired, got: ' + errorMessage);
+            } else {
+                assert (isNotSupported, caseName + ' must throw NotSupported, got: ' + errorMessage);
+            }
+            assert (exchange.last_request_body === lastBody, caseName + ' sent a request body');
+            assert (exchange.last_request_url === lastUrl, caseName + ' sent a request');
+        }
         if (!isSync ()) {
             await close (exchange);
         }
