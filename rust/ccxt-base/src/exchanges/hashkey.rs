@@ -3941,9 +3941,8 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut methodName: Value = Value::Str("fetchOpenSpotOrders".into());
-        let methodNameOptionparamsMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("methodName".into()), &[methodName]).as_array().cloned().unwrap_or_default();
-        let mut methodNameOption: Value = methodNameOptionparamsMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethodName: Value = methodNameOptionparamsMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[methodName]);
+        let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3999,9 +3998,8 @@ impl HashkeyCore {
     m
 }));
         let mut methodName: Value = Value::Str("fetchOpenSwapOrders".into());
-        let methodNameOptionparamsMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("methodName".into()), &[methodName]).as_array().cloned().unwrap_or_default();
-        let mut methodNameOption: Value = methodNameOptionparamsMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethodName: Value = methodNameOptionparamsMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[methodName]);
+        let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption).into()), Value::Str("() requires a symbol argument for swap market orders".into()))));
         }
@@ -4646,9 +4644,8 @@ impl HashkeyCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut methodName: Value = Value::Str("fetchPosition".into());
-        let methodNameOptionparamsMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("methodName".into()), &[methodName]).as_array().cloned().unwrap_or_default();
-        let mut methodNameOption: Value = methodNameOptionparamsMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethodName: Value = methodNameOptionparamsMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[methodName]);
+        let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption).into()), Value::Str("() supports swap markets only".into()))));
         }

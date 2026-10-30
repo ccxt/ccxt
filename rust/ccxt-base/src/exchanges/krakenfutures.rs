@@ -3371,7 +3371,10 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol });
+        let mut symbolResolved: Value = Value::Null;
+        if (symbol != Value::Null) {
+            symbolResolved = self.symbol(symbol.clone());
+        }
         // todo: lastFillTime: this.iso8601(end)
         let mut response: Value = self.private_get_fills(&[params]).await;
         //

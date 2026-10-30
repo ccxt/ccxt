@@ -3765,7 +3765,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("kalshi")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[self.safe_string_k(baseUrls.clone(), "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);

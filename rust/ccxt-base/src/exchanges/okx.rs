@@ -11516,7 +11516,7 @@ impl OkxCore {
         let mut maxLimit: Value = Value::Int(100);
         let mut effectiveLimit: Value = self.parse_to_int(Value::Int(100));
         if (limit != Value::Null) && (((100i64) as f64) > limit.as_f64().unwrap_or(f64::NAN)) {
-            effectiveLimit = limit.clone();
+            effectiveLimit = self.parse_to_int(limit.clone());
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), effectiveLimit.clone()); }
