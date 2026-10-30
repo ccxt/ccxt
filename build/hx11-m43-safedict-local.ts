@@ -128,6 +128,31 @@ function m43GuardedLines (masked: string[], start: number, end: number, name: st
     return guarded;
 }
 
+// receiver of a typed SafeDict read: a plain value, or the this.Options / this.Balance map fields (this.Fees too with a literal default)
+function m43PlainReceiver (recv: string, ws: boolean, noDefault = false): boolean {
+    const fields = noDefault ? [ 'this.Options', 'this.Balance' ] : [ 'this.Options', 'this.Balance', 'this.Fees' ];
+    if ((recv.indexOf ('this.') >= 0) && !fields.includes (recv)) {
+        return false;
+    }
+    return !(ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (recv.replace (/^\w+\.\(\*ccxt\.ArrayCache\)\.Hashmap$/, 'hashmap')));
+}
+
+// `this.SafeDict(a, k, <literal default>)`: the decoded map or the never-nil default (itself such a call)
+function m43LiteralCall (fn: string, argText: string, ws: boolean): boolean {
+    const args = m43SplitArgs (argText, m43Mask (argText));
+    const wanted = (fn === 'SafeDict2') ? 4 : 3;
+    return (args !== undefined) && (args.length === wanted) && !args.slice (0, wanted - 1).some ((a) => a === '')
+        && m43PlainReceiver (args[0], ws) && m43LiteralDefault (args[wanted - 1], ws);
+}
+
+function m43LiteralDefault (text: string, ws: boolean = false): boolean {
+    if (text === 'map[string]any{}') {
+        return true;
+    }
+    const call = /^this\.(SafeDict2?)\((.*)\)$/.exec (text);
+    return (call !== null) && m43LiteralCall (call[1], call[2], ws);
+}
+
 function m43Func (lines: string[], masked: string[], start: number, end: number, ws: boolean): void {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     for (let k = start + 1; k < end; k++) {
@@ -143,9 +168,8 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         const args = m43SplitArgs (decl[4], maskedDecl[4]);
         const wanted = (decl[3] === 'SafeDict2') ? 4 : 3;
         const noDefault = (args !== undefined) && (args.length === wanted - 1);  // nil map reads are safe: only nil tests and plain reads may use it
-        if ((args === undefined) || !(noDefault || ((args.length === wanted) && (args[wanted - 1] === 'map[string]any{}')))
-            || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && (args[0] !== 'this.Options') && (args[0] !== 'this.Balance'))
-            || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0].replace (/^\w+\.\(\*ccxt\.ArrayCache\)\.Hashmap$/, 'hashmap')))) {
+        if ((args === undefined) || !(noDefault || ((args.length === wanted) && m43LiteralDefault (args[wanted - 1], ws)))
+            || args.slice (0, wanted - 1).some ((a) => a === '') || !m43PlainReceiver (args[0], ws, noDefault)) {
             continue;
         }
         if (m43Declarations (maskedFunc, lines[start], name) !== 1) {
@@ -153,8 +177,15 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         }
         const use = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
         const guarded = noDefault ? m43GuardedLines (masked, start, end, name) : [];
+        const rebinds: number[] = [];
         let keeps = true;
         for (let j = start + 1; (j < end) && keeps; j++) {
+            const rebind = noDefault ? null : new RegExp ('^\\s*' + name + ' = this\\.(SafeDict2?)\\((.*)\\)$').exec (lines[j]);
+            if ((rebind !== null) && (rebind[1] === decl[3]) && (lines[j].indexOf ('//') < 0) && m43LiteralCall (rebind[1], rebind[2], ws)
+                && !new RegExp ('(?<![\\w.])' + name + '(?!\\w)').test (rebind[2])) {
+                rebinds.push (j);  // every write is again a never-nil literal-default SafeDict: one map type
+                continue;
+            }
             for (let m = use.exec (masked[j]); m !== null; m = use.exec (masked[j])) {
                 if ((j === k) && (m.index === decl[1].length + 4)) {
                     continue; // the declaration itself
@@ -167,6 +198,9 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         }
         if (keeps) {
             lines[k] = decl[1] + 'var ' + name + ' map[string]any = this.' + decl[3] + 'Map(' + decl[4] + ')';
+            for (const j of rebinds) {
+                lines[j] = lines[j].replace ('= this.' + decl[3] + '(', '= this.' + decl[3] + 'Map(');
+            }
         }
     }
 }
@@ -216,7 +250,10 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(p, "data")\n\treturn d\n').includes ('SafeDictMap'), 'no literal default keeps the box');
     ok (run ('\tvar d any = this.SafeDict(this.Options, "data", map[string]any{})\n\treturn d\n').includes ('SafeDictMap(this.Options, "data", map[string]any{})'), 'this.Options and this.Balance are plain map fields: a literal default types the local');
     ok (run ('\tvar d any = this.SafeDict(this.Balance, k, map[string]any{})\n\treturn d\n').includes ('var d map[string]any = this.SafeDictMap(this.Balance, k, map[string]any{})'), 'this.Balance receiver');
-    ok (!run ('\tvar d any = this.SafeDict(this.Fees, "data", map[string]any{})\n').includes ('SafeDictMap'), 'other field receivers keep the box');
+    ok (run ('\tvar d any = this.SafeDict(this.Fees, "data", map[string]any{})\n\tif p != nil {\n\t\td = this.SafeDict(this.Fees, "b", map[string]any{})\n\t}\n\t_ = this.SafeNumber(d, "k")\n').includes ('d = this.SafeDictMap(this.Fees, "b", map[string]any{})'), 'this.Fees receiver; a rebind that is again a literal-default SafeDict keeps one map type');
+    ok (!run ('\tvar d any = this.SafeDict(this.Markets(), "data", map[string]any{})\n').includes ('SafeDictMap'), 'other field receivers keep the box');
+    ok (!run (decl + '\td = this.SafeDict(p, "b")\n').includes (typed), 'a rebind without a literal default keeps the box');
+    ok (run ('\tvar d any = this.SafeDict(p, "data", this.SafeDict(q, 0, map[string]any{}))\n\treturn d\n').includes ('var d map[string]any = this.SafeDictMap(p, "data", this.SafeDict(q, 0, map[string]any{}))'), 'a default that is a literal-default SafeDict types the local');
     ok (!run ('\tvar d any = this.SafeDict(p, "data", this.Fees)\n').includes ('SafeDictMap'), 'a computed default keeps the box');
     ok (run (decl, 'go/v4/pro/x.go').includes (typed), 'ws files type a plain decoded-message receiver');
     ok (!run ('\tvar d any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws client/cache receivers keep the box');
