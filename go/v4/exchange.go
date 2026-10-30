@@ -165,7 +165,7 @@ type BaseExchange struct {
 	Tickers        TickerCache
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
-	Orderbooks     map[string]any
+	Orderbooks     OrderBookCache
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   map[string]any
 	Bidsasks       TickerCache
@@ -263,7 +263,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
 	this.Trades = map[string]any{}
 	this.Tickers = TickerCache{}
-	this.Orderbooks = map[string]any{}
+	this.Orderbooks = OrderBookCache{}
 	this.Ohlcvs = map[string]map[string]any{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)

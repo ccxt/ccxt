@@ -145,8 +145,6 @@ func (this *BaseExchange) wsCacheStop() {
 
 func (this *BaseExchange) wsCacheField(name string) map[string]any {
 	switch name {
-	case "Orderbooks":
-		return this.Orderbooks
 	case "Trades":
 		return this.Trades
 	case "FundingRates":
@@ -197,6 +195,12 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 			*field = req.value
 		}
 		return nil
+	}
+	if req.op == wsOpApplySnapshot {
+		return this.wsApplyOrderBookSnapshot(req)
+	}
+	if req.field == "Orderbooks" {
+		return this.wsOrderBookApply(req)
 	}
 	cache := this.wsCacheField(req.field)
 	if (cache == nil) && (req.op == wsOpReset) && (req.field == "Ohlcvs") {
@@ -275,28 +279,77 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 			delete(cache, k)
 		}
 		return nil
-	case wsOpApplySnapshot:
-		// loadOrderBook applies a REST snapshot to the cached book: reading the book's cache,
-		// resetting it and feeding it deltas must happen on the owner like every handler does
-		book, bookIsMap := req.value.(map[string]any)
-		orderBook, orderBookIsInterface := req.key.(OrderBookInterface)
-		if !bookIsMap || !orderBookIsInterface {
-			return false
-		}
-		deltas, deltasAreList := (*orderBook.GetCache()).([]any)
-		if !deltasAreList {
-			return false
-		}
-		index := ToFloat64(this.DerivedExchange.GetCacheIndex(book, deltas))
-		if index < 0 {
-			return false
-		}
-		orderBook.Reset(book)
-		this.DerivedExchange.HandleBookDeltas(req.key, deltas[int(index):])
-		orderBook.SetCache(map[string]any{})
-		return true
 	}
 	return nil
+}
+
+// wsOrderBookApply is wsCacheApply for the typed order book cache: the same operations on
+// OrderBookCache, which holds books rather than boxed values.
+func (this *BaseExchange) wsOrderBookApply(req *wsCacheOp) any {
+	cache := this.Orderbooks
+	key, keyIsString := derefScalar(req.key).(string)
+	switch req.op {
+	case wsOpGet, wsOpGetScalar:
+		if keyIsString {
+			return wsCacheRead{value: cache[key], exists: true}
+		}
+		return wsCacheRead{}
+	case wsOpHas:
+		if keyIsString {
+			_, exists := cache[key]
+			return exists
+		}
+		return false
+	case wsOpSet:
+		if keyIsString {
+			cache.Store(key, req.value)
+		}
+		return nil
+	case wsOpReplace:
+		clear(cache)
+		for k, v := range MapTyped(req.value) {
+			cache.Store(k, v)
+		}
+		return nil
+	case wsOpDelete:
+		cache.Delete(key)
+		return nil
+	case wsOpKeys:
+		return cache.Keys()
+	case wsOpSnapshot:
+		return cache.ToMap()
+	case wsOpReset:
+		if this.Orderbooks == nil {
+			this.Orderbooks = OrderBookCache{}
+		}
+		clear(this.Orderbooks)
+		return nil
+	}
+	return nil
+}
+
+// wsApplyOrderBookSnapshot applies a REST snapshot to the cached book on the owner:
+// reading the book's cache, resetting it and feeding it deltas happen where handlers run.
+func (this *BaseExchange) wsApplyOrderBookSnapshot(req *wsCacheOp) any {
+	// loadOrderBook applies a REST snapshot to the cached book: reading the book's cache,
+	// resetting it and feeding it deltas must happen on the owner like every handler does
+	book, bookIsMap := req.value.(map[string]any)
+	orderBook, orderBookIsInterface := req.key.(OrderBookInterface)
+	if !bookIsMap || !orderBookIsInterface {
+		return false
+	}
+	deltas, deltasAreList := (*orderBook.GetCache()).([]any)
+	if !deltasAreList {
+		return false
+	}
+	index := ToFloat64(this.DerivedExchange.GetCacheIndex(book, deltas))
+	if index < 0 {
+		return false
+	}
+	orderBook.Reset(book)
+	this.DerivedExchange.HandleBookDeltas(req.key, deltas[int(index):])
+	orderBook.SetCache(map[string]any{})
+	return true
 }
 
 // ---- ws client registry: owned by the same dispatch goroutine ----
