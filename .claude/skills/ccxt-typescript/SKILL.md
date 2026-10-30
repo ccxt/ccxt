@@ -1228,6 +1228,35 @@ the question, so a compromised or buggy router response cannot steer orders into
 
 Full reference: [Order Router in the CCXT Manual](https://docs.ccxt.com/#/?id=order-router).
 
+## Record and Replay (Node.js only)
+
+Record the HTTP traffic of a session and replay it offline through the real parsers, without API keys. Testing and debugging only: record mode still sends real requests, including real orders.
+
+```typescript
+// record
+const recorder = await ccxt.Recorder.open ({ file: './session.jsonl', privacy: 'local' });
+const live = new ccxt.binance ({ apiKey, secret });
+recorder.attach (live, { instanceId: 'binance-1' });   // attach before loadMarkets
+await live.loadMarkets ();
+await live.fetchBalance ();
+await recorder.close ();                                // writes the session.end footer
+
+// replay, no credentials, no network
+const replay = await ccxt.Replay.open ({ file: './session.jsonl' });
+const offline = new ccxt.binance ();
+replay.attach (offline, { instanceId: 'binance-1' });
+await offline.loadMarkets ();
+const balance = await offline.fetchBalance ();          // parsed from the recorded body
+await replay.assertConsumed ();
+await replay.close ();
+```
+
+- Strict matching: calls must repeat the recorded requests in order; each one is consumed once. Errors: `ReplayMismatch` (`.field` names the first difference), `ReplayExhausted`, `ReplayDeadlock`, `ReplayIncomplete`, `ReplayUnsupported`.
+- Random client order ids need `ignoreParams: ['newClientOrderId']` on `attach`, or pass the id explicitly.
+- Use `enableRateLimit: false` for replay tests; the limiter is not virtualized.
+- `ccxt.Replay.inspect (file)` / `ccxt.Replay.validate (file)` summarize and check a session.
+- Full guide: `wiki/Replay.md`.
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

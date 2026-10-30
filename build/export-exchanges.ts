@@ -786,7 +786,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'OrderRouter', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'OrderRouter', 'Recorder', 'Replay', 'ReplayError', 'ReplayMismatch', 'ReplayExhausted', 'ReplayDeadlock', 'ReplayIncomplete', 'ReplayUnsupported', 'RecorderError', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 

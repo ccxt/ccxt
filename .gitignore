@@ -107,3 +107,7 @@ rust/tests.bin
 rust/BUILD_OPTIMIZATION.md
 PR_RESPONSE.md
 
+
+# session files written by examples/ts/record-replay.ts
+examples/ts/record-replay-session.jsonl
+examples/js/record-replay-session.jsonl
