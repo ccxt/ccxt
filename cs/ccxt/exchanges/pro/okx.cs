@@ -2979,6 +2979,14 @@ public partial class okx : ccxt.okx
         return ((bool?)((object)(true)));
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "pong"))
+        {
+            this.handlePong(client, message);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         if (!(this.handleErrorMessage(client, message) == true))
@@ -3024,14 +3032,6 @@ public partial class okx : ccxt.okx
         //
         //
         //
-        if ((message is string))
-        {
-            if ((message is "pong"))
-            {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         string? eventVar = this.safeString2(message, "event", "op");

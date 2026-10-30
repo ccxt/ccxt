@@ -2524,25 +2524,25 @@ public partial class sxbet : PredictionExchange
         return await this.watch(url, messageHash, subscribeMsg, channel);
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
+        int linesLength = lines.Count;
+        for (int i = 0; i < linesLength; i++)
+        {
+            string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
+            if (line.Length > 0)
+            {
+                object parsed = JsonHelper.Deserialize(line);
+                this.handleCentrifugoFrame(client, parsed);
+            }
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if ((message is string))
-        {
-            List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
-            int linesLength = lines.Count;
-            for (int i = 0; i < linesLength; i++)
-            {
-                string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
-                if (line.Length > 0)
-                {
-                    object parsed = JsonHelper.Deserialize(line);
-                    this.handleCentrifugoFrame(client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame(client, message);
     }
 

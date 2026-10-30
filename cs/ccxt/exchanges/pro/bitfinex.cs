@@ -1061,7 +1061,7 @@ public partial class bitfinex : ccxt.bitfinex
         return account;
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, object message)
+    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1074,7 +1074,7 @@ public partial class bitfinex : ccxt.bitfinex
         return message;
     }
 
-    public virtual bool handleUnsubscriptionStatus(WebSocketClient client, object message)
+    public virtual bool handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -1100,7 +1100,7 @@ public partial class bitfinex : ccxt.bitfinex
         return true;
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1131,7 +1131,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "trades", "trades" },
         };
         string? unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("key")))
+        if (message.ContainsKey("key"))
         {
             // handle ohlcv differently because the message is different
             string? key = this.safeString(message, "key", "");
@@ -1178,7 +1178,7 @@ public partial class bitfinex : ccxt.bitfinex
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         string messageHash = "authenticated";
         string? status = this.safeString(message, "status");
@@ -1420,9 +1420,49 @@ public partial class bitfinex : ccxt.bitfinex
         }, marketResolved);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, object message)
     {
         string? channelId = this.safeString(message, 0);
+        string? heartbeat = this.safeString(message, 1);
+        if (heartbeat == "hb")
+        {
+            return;  // skip heartbeats within subscription channels for now
+        }
+        IDictionary<string, object> subscription = this.safeDict(client.subscriptions, channelId, new Dictionary<string, object>() {});
+        string? channel = this.safeString(subscription, "channel");
+        string? name = this.safeString(message, 1);
+        Dictionary<string, object> publicMethods = new Dictionary<string, object>() {
+            { "book", this.handleOrderBook },
+            { "cs", this.handleChecksum },
+            { "candles", this.handleOHLCV },
+            { "ticker", this.handleTicker },
+            { "trades", this.handleTrades },
+        };
+        Dictionary<string, object> privateMethods = new Dictionary<string, object>() {
+            { "os", this.handleOrders },
+            { "ou", this.handleOrders },
+            { "on", this.handleOrders },
+            { "oc", this.handleOrders },
+            { "wu", this.handleBalance },
+            { "ws", this.handleBalance },
+            { "tu", this.handleMyTrade },
+        };
+        object method = null;
+        if (channelId == "0")
+        {
+            method = this.safeValue(privateMethods, name);
+        } else
+        {
+            method = this.safeValue2(publicMethods, name, channel);
+        }
+        if ((method != null))
+        {
+            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+        }
+    }
+
+    public override void handleMessage(WebSocketClient client, object message)
+    {
         //
         //     [
         //         1231,
@@ -1448,60 +1488,19 @@ public partial class bitfinex : ccxt.bitfinex
         //        }
         //    }
         //
-        if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        string? eventVar = this.safeString(message, "event");
+        if ((eventVar != null))
         {
-            string? heartbeat = this.safeString(message, 1);
-            if (heartbeat == "hb")
-            {
-                return;  // skip heartbeats within subscription channels for now
-            }
-            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, channelId, new Dictionary<string, object>() {});
-            string? channel = this.safeString(subscription, "channel");
-            string? name = this.safeString(message, 1);
-            Dictionary<string, object> publicMethods = new Dictionary<string, object>() {
-                { "book", this.handleOrderBook },
-                { "cs", this.handleChecksum },
-                { "candles", this.handleOHLCV },
-                { "ticker", this.handleTicker },
-                { "trades", this.handleTrades },
+            Dictionary<string, object> methods = new Dictionary<string, object>() {
+                { "info", this.handleSystemStatus },
+                { "subscribed", this.handleSubscriptionStatus },
+                { "unsubscribed", this.handleUnsubscriptionStatus },
+                { "auth", this.handleAuthenticationMessage },
             };
-            Dictionary<string, object> privateMethods = new Dictionary<string, object>() {
-                { "os", this.handleOrders },
-                { "ou", this.handleOrders },
-                { "on", this.handleOrders },
-                { "oc", this.handleOrders },
-                { "wu", this.handleBalance },
-                { "ws", this.handleBalance },
-                { "tu", this.handleMyTrade },
-            };
-            object method = null;
-            if (channelId == "0")
-            {
-                method = this.safeValue(privateMethods, name);
-            } else
-            {
-                method = this.safeValue2(publicMethods, name, channel);
-            }
+            Delegate method = ((Delegate)this.safeValue(methods, eventVar));
             if ((method != null))
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
-            }
-        } else
-        {
-            string? eventVar = this.safeString(message, "event");
-            if ((eventVar != null))
-            {
-                Dictionary<string, object> methods = new Dictionary<string, object>() {
-                    { "info", this.handleSystemStatus },
-                    { "subscribed", this.handleSubscriptionStatus },
-                    { "unsubscribed", this.handleUnsubscriptionStatus },
-                    { "auth", this.handleAuthenticationMessage },
-                };
-                Delegate method = ((Delegate)this.safeValue(methods, eventVar));
-                if ((method != null))
-                {
-                    DynamicInvoker.InvokeMethod(method, new object[] { client, message});
-                }
+                DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
     }

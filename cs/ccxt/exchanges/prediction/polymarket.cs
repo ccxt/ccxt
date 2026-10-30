@@ -829,10 +829,10 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {(requestedTags != null && ti < requestedTags.Count ? requestedTags[ti] : null)};
-                List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
-                for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
+                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
+                for (int ei = 0; ei < getArrayLength(tagEvents); ei++)
                 {
-                    object rawEvent = tagEvents[ei];
+                    object rawEvent = getValue(tagEvents, ei);
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
@@ -3665,41 +3665,50 @@ public partial class polymarket : PredictionExchange
         return "PING";
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, object message)
     {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if ((message is string))
+        client.lastPong = this.milliseconds();
+    }
+
+    public override void handleMessage(WebSocketClient client, object message)
+    {
+        this.handleMessageEvent(client, message);
+    }
+
+    public override void handleListMessage(WebSocketClient client, object message)
+    {
+        for (int i = 0; i < getArrayLength(message); i++)
         {
-            client.lastPong = this.milliseconds();
-            return;
-        }
-        object events = ((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? message : new List<object>() {message};
-        for (int i = 0; i < getArrayLength(events); i++)
-        {
-            object eventVar = getValue(events, i);
+            object eventVar = getValue(message, i);
             if (((eventVar == null)) || ((eventVar == null)) || (!(eventVar is IDictionary<string, object>)))
             {
                 continue;
             }
-            string? eventType = this.safeString(eventVar, "event_type");
-            if (eventType == "book")
-            {
-                this.handleOrderBookSnapshot(client, eventVar);
-            } else if (eventType == "price_change")
-            {
-                this.handleOrderBookDelta(client, eventVar);
-            } else if (eventType == "last_trade_price")
-            {
-                this.handleTrade(client, eventVar);
-            } else if (eventType == "order")
-            {
-                this.handleOrder(client, eventVar);
-            } else if (eventType == "trade")
-            {
-                this.handleMyTrade(client, eventVar);
-            }
+            this.handleMessageEvent(client, eventVar);
+        }
+    }
+
+    public virtual void handleMessageEvent(WebSocketClient client, object eventVar)
+    {
+        string? eventType = this.safeString(eventVar, "event_type");
+        if (eventType == "book")
+        {
+            this.handleOrderBookSnapshot(client, eventVar);
+        } else if (eventType == "price_change")
+        {
+            this.handleOrderBookDelta(client, eventVar);
+        } else if (eventType == "last_trade_price")
+        {
+            this.handleTrade(client, eventVar);
+        } else if (eventType == "order")
+        {
+            this.handleOrder(client, eventVar);
+        } else if (eventType == "trade")
+        {
+            this.handleMyTrade(client, eventVar);
         }
     }
 

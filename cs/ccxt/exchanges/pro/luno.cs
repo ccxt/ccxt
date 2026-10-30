@@ -508,10 +508,6 @@ public partial class luno : ccxt.luno
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if ((message is ""))
-        {
-            return;
-        }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Values);
         int subscriptionsLength = subscriptions.Count;
         if ((subscriptionsLength == 0))

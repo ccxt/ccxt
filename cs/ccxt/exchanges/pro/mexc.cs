@@ -2411,24 +2411,24 @@ public partial class mexc : ccxt.mexc
         return true;
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "Invalid listen key"))
+        {
+            var error = new AuthenticationError((this.id + " invalid listen key"));
+            client.reject(error);
+        }
+    }
+
+    public override void handleBinaryMessage(WebSocketClient client, object message)
+    {
+        object decodedMessage = this.decodeProtoMsg(message);
+        this.handleProtobufMessage(client, decodedMessage);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if ((message is string))
-        {
-            if ((message is "Invalid listen key"))
-            {
-                var error = new AuthenticationError((this.id + " invalid listen key"));
-                client.reject(error);
-                return;
-            }
-        }
-        if (this.isBinaryMessage(message))
-        {
-            object decodedMessage = this.decodeProtoMsg(message);
-            this.handleProtobufMessage(client, decodedMessage);
-            return;
-        }
-        if (inOp(message, "msg"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("msg")))
         {
             this.handleSubscriptionStatus(client, message);
             return;

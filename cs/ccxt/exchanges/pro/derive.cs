@@ -1252,7 +1252,7 @@ public partial class derive : ccxt.derive
                 }
             }
         }
-        object method = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
+        Delegate method = ((Delegate)this.safeValue(methods, eventVar));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

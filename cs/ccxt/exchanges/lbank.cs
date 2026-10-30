@@ -3433,7 +3433,7 @@ public partial class lbank : Exchange
             }, signedQuery)));
             string? encoded = this.encode(auth);
             string uppercaseHash = ((string)this.hash(encoded, md5)).ToUpper();
-            string? sign = null;
+            string sign = "";
             if (signatureMethod == "RSA")
             {
                 bool? cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);

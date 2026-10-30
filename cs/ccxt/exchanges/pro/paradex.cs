@@ -1769,18 +1769,24 @@ public partial class paradex : ccxt.paradex
         return ((bool?)((object)(false)));
     }
 
+    public override void handleBinaryMessage(WebSocketClient client, object message)
+    {
+        object parsedMessage = this.parseSbeMessage(message);
+        if ((parsedMessage == null))
+        {
+            return;
+        }
+        this.handleStreamMessage(client, parsedMessage);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object parsedMessage = message;
-        if (this.isBinaryMessage(message))
-        {
-            parsedMessage = this.parseSbeMessage(message);
-            if ((parsedMessage == null))
-            {
-                return;
-            }
-        }
-        if (!(this.handleErrorMessage(client, parsedMessage) == true))
+        this.handleStreamMessage(client, message);
+    }
+
+    public virtual void handleStreamMessage(WebSocketClient client, object message)
+    {
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1812,13 +1818,13 @@ public partial class paradex : ccxt.paradex
         //         }
         //     }
         //
-        IDictionary<string, object> result = this.safeDict(parsedMessage, "result");
+        IDictionary<string, object> result = this.safeDict(message, "result");
         if ((result != null))
         {
-            this.handleRequestReply(client, parsedMessage);
+            this.handleRequestReply(client, message);
             return;
         }
-        IDictionary<string, object> data = this.safeDict(parsedMessage, "params");
+        IDictionary<string, object> data = this.safeDict(message, "params");
         if ((data != null))
         {
             string? channel = this.safeString(data, "channel");
@@ -1837,7 +1843,7 @@ public partial class paradex : ccxt.paradex
             Delegate method = ((Delegate)this.safeValue(methods, name));
             if ((method != null))
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, parsedMessage});
+                DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
     }

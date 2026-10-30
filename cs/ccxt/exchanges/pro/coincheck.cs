@@ -211,7 +211,7 @@ public partial class coincheck : ccxt.coincheck
         }, market);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, object message)
     {
         List<object> data = this.safeList(message, 0);
         if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))

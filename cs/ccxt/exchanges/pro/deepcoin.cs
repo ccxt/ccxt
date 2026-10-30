@@ -1363,47 +1363,46 @@ public partial class deepcoin : ccxt.deepcoin
         return this.safeString(modes, marginMode, marginMode);
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "pong"))
+        {
+            this.handlePong(client, message);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if ((message is string))
+        string? m = this.safeString(message, "m");
+        if (((m != null)) && (m != "Success"))
         {
-            if ((message is "pong"))
-            {
-                this.handlePong(client, message);
-            }
-        } else
+            this.handleErrorMessage(client, (Dictionary<string, object>)message);
+        }
+        string? action = this.safeString2(message, "a", "action");
+        if (action == "RecvTopicAction")
         {
-            string? m = this.safeString(message, "m");
-            if (((m != null)) && (m != "Success"))
-            {
-                this.handleErrorMessage(client, (Dictionary<string, object>)message);
-            }
-            string? action = this.safeString2(message, "a", "action");
-            if (action == "RecvTopicAction")
-            {
-                this.handleSubscriptionStatus(client, (Dictionary<string, object>)message);
-            } else if (action == "PO")
-            {
-                this.handleTicker(client, (Dictionary<string, object>)message);
-            } else if (action == "PMT")
-            {
-                this.handleTrades(client, (Dictionary<string, object>)message);
-            } else if (action == "PK")
-            {
-                this.handleOHLCV(client, (Dictionary<string, object>)message);
-            } else if (action == "PMO")
-            {
-                this.handleOrderBook(client, (Dictionary<string, object>)message);
-            } else if (action == "PushTrade")
-            {
-                this.handleMyTrade(client, (Dictionary<string, object>)message);
-            } else if (action == "PushOrder")
-            {
-                this.handleOrder(client, (Dictionary<string, object>)message);
-            } else if (action == "PushPosition")
-            {
-                this.handlePosition(client, (Dictionary<string, object>)message);
-            }
+            this.handleSubscriptionStatus(client, (Dictionary<string, object>)message);
+        } else if (action == "PO")
+        {
+            this.handleTicker(client, (Dictionary<string, object>)message);
+        } else if (action == "PMT")
+        {
+            this.handleTrades(client, (Dictionary<string, object>)message);
+        } else if (action == "PK")
+        {
+            this.handleOHLCV(client, (Dictionary<string, object>)message);
+        } else if (action == "PMO")
+        {
+            this.handleOrderBook(client, (Dictionary<string, object>)message);
+        } else if (action == "PushTrade")
+        {
+            this.handleMyTrade(client, (Dictionary<string, object>)message);
+        } else if (action == "PushOrder")
+        {
+            this.handleOrder(client, (Dictionary<string, object>)message);
+        } else if (action == "PushPosition")
+        {
+            this.handlePosition(client, (Dictionary<string, object>)message);
         }
     }
 

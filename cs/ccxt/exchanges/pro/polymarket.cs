@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual object sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual Dictionary<string, object> sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -139,7 +139,7 @@ public partial class polymarket : ccxt.polymarket
         Dictionary<string, object> market = this.market(symbol);
         string? symbolResolved = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbolResolved);
-        object request = this.sendSubscription("sub", new List<object>() {("book::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {("book::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
         return (orderbook as IOrderBook).limit().Copy();
@@ -167,7 +167,7 @@ public partial class polymarket : ccxt.polymarket
             { "topic", "orderbook" },
             { "symbol", symbolResolved },
         };
-        object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
+        Dictionary<string, object> request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -224,7 +224,7 @@ public partial class polymarket : ccxt.polymarket
         Dictionary<string, object> market = this.market(symbol);
         string? symbolResolved = this.safeString(market, "symbol", "");
         string messageHash = ("ticker:" + symbolResolved);
-        object request = this.sendSubscription("sub", new List<object>() {("tickers::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {("tickers::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
@@ -251,7 +251,7 @@ public partial class polymarket : ccxt.polymarket
             { "topic", "ticker" },
             { "symbol", symbolResolved },
         };
-        object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
+        Dictionary<string, object> request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -286,7 +286,7 @@ public partial class polymarket : ccxt.polymarket
                 channels.Add(("tickers::" + this.safeString(market, "id", "")));
             }
         }
-        object request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates)
         {
@@ -360,7 +360,7 @@ public partial class polymarket : ccxt.polymarket
             messageHashes.Add(("bidask:" + this.safeString(market, "symbol", "")));
             channels.Add(("bbo::" + this.safeString(market, "id", "")));
         }
-        object request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
         object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates)
         {
@@ -425,7 +425,7 @@ public partial class polymarket : ccxt.polymarket
         Dictionary<string, object> market = this.market(symbol);
         string? symbolResolved = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbolResolved);
-        object request = this.sendSubscription("sub", new List<object>() {("trades::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {("trades::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object trades = await this.watch(url, messageHash, request, messageHash);
         Int64? limitResolved = limit;
@@ -458,7 +458,7 @@ public partial class polymarket : ccxt.polymarket
             { "topic", "trades" },
             { "symbol", symbolResolved },
         };
-        object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
+        Dictionary<string, object> request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -589,7 +589,7 @@ public partial class polymarket : ccxt.polymarket
         }
         string messageHash = ((("candles:" + (timeframeVar)) + ":") + symbolResolved);
         string channel = ((("klines::" + this.safeString(market, "id", "")) + "::") + interval);
-        object request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         Int64? limitResolved = limit;
@@ -628,7 +628,7 @@ public partial class polymarket : ccxt.polymarket
             { "symbol", symbolResolved },
             { "timeframe", timeframeVar },
         };
-        object request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
+        Dictionary<string, object> request = this.sendSubscription("unsub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, context, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -753,7 +753,7 @@ public partial class polymarket : ccxt.polymarket
             messageHash = ("orders:" + resolvedSymbol);
         }
         List<object> subscribeHashes = new List<object>() {"orders"};
-        object request = this.sendSubscription("sub", new List<object>() {"orders"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"orders"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object orders = await this.watch(url, messageHash, request, "orders");
         Int64? limitResolved = limit;
@@ -855,7 +855,7 @@ public partial class polymarket : ccxt.polymarket
             messageHash = ("myTrades:" + resolvedSymbol);
         }
         List<object> subscribeHashes = new List<object>() {"fills"};
-        object request = this.sendSubscription("sub", new List<object>() {"fills"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"fills"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         object trades = await this.watch(url, messageHash, request, "fills");
         Int64? limitResolved = limit;
@@ -965,7 +965,7 @@ public partial class polymarket : ccxt.polymarket
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
-        object request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         object newPositions = await this.watch(url, "positions", request, "portfolio");
         if (this.newUpdates)
         {
@@ -1040,7 +1040,7 @@ public partial class polymarket : ccxt.polymarket
             return ccxt.BaseExchange.ToBalances(snapshot);
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
-        object request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"balance"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
+        Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"balance"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, "balance", request, "portfolio"));
     }
 

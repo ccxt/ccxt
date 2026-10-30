@@ -1174,35 +1174,32 @@ public partial class bithumb : ccxt.bithumb
         }, market);
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        string content = ((string)message).ToLower();
+        if (content == "pong")
+        {
+            this.handlePong(client, message);
+        } else if (content == "ping")
+        {
+            this.handlePing(client, message);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if ((message is string))
-        {
-            string content = ((string)message).ToLower();
-            if (content == "pong")
-            {
-                this.handlePong(client, message);
-                return;
-            }
-            if (content == "ping")
-            {
-                this.handlePing(client, message);
-                return;
-            }
-            return;
-        }
         string? status = this.safeString(message, "status");
         if (status == "UP")
         {
             this.handlePong(client, message);
             return;
         }
-        if ((inOp(message, "pong")) || (inOp(message, "PINGPONG")))
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("pong"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("PINGPONG"))))
         {
             this.handlePong(client, message);
             return;
         }
-        if (inOp(message, "ping"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
         {
             this.handlePing(client, message);
             return;

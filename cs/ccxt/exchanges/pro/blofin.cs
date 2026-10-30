@@ -1079,6 +1079,14 @@ public partial class blofin : ccxt.blofin
         };
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "pong"))
+        {
+            client.lastPong = this.milliseconds();
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         //
@@ -1106,36 +1114,29 @@ public partial class blofin : ccxt.blofin
             { "funding-rate", this.handleFundingRate },
         };
         object method = null;
-        if ((message is "pong"))
+        string? eventVar = this.safeString(message, "event");
+        if (eventVar == "subscribe")
         {
-            client.lastPong = this.milliseconds();
             return;
-        } else
+        } else if (eventVar == "unsubscribe")
         {
-            string? eventVar = this.safeString(message, "event");
-            if (eventVar == "subscribe")
-            {
-                return;
-            } else if (eventVar == "unsubscribe")
-            {
-                this.handleUnsubscription(client, message);
-                return;
-            } else if (eventVar == "login")
-            {
-                Future future = client.getFuture("authenticate_hash");
-                (future as Future).resolve(true);
-                return;
-            } else if (eventVar == "error")
-            {
-                throw new ExchangeError (((this.id + " error: ") + this.json(message))) ;
-            }
-            IDictionary<string, object> arg = this.safeDict(message, "arg");
-            string? channelName = this.safeString(arg, "channel");
-            method = this.safeValue(methods, channelName);
-            if (((method == null)) && (channelName.IndexOf("candle", StringComparison.Ordinal) >= 0))
-            {
-                method = methods["candle"];
-            }
+            this.handleUnsubscription(client, message);
+            return;
+        } else if (eventVar == "login")
+        {
+            Future future = client.getFuture("authenticate_hash");
+            (future as Future).resolve(true);
+            return;
+        } else if (eventVar == "error")
+        {
+            throw new ExchangeError (((this.id + " error: ") + this.json(message))) ;
+        }
+        IDictionary<string, object> arg = this.safeDict(message, "arg");
+        string? channelName = this.safeString(arg, "channel");
+        method = this.safeValue(methods, channelName);
+        if (((method == null)) && (channelName.IndexOf("candle", StringComparison.Ordinal) >= 0))
+        {
+            method = methods["candle"];
         }
         if ((method != null))
         {

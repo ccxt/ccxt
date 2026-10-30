@@ -2083,23 +2083,23 @@ public partial class bingx : ccxt.bingx
         client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
     }
 
+    // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "Ping"))
+        {
+            this.spawn(this.pong, new object[] { client, message});
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if ((message is string))
-        {
-            if ((message is "Ping"))
-            {
-                this.spawn(this.pong, new object[] { client, message});
-            }
-            return;
-        }
         if (!this.handleErrorMessage(client, message))
         {
             return;
         }
         // public subscriptions
-        if (inOp(message, "ping"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
         {
             this.spawn(this.pong, new object[] { client, message});
             return;

@@ -652,7 +652,7 @@ public partial class ndax : ccxt.ndax
             { "TickerDataUpdateEvent", this.handleOHLCV },
         };
         string? eventVar = this.safeString(message, "n");
-        object method = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
+        Delegate method = ((Delegate)this.safeValue(methods, eventVar));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

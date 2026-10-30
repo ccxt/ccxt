@@ -74,6 +74,34 @@ public partial class toobit : ccxt.toobit
         };
     }
 
+    public override void handleListMessage(WebSocketClient client, object message)
+    {
+        // private streams
+        Dictionary<string, object> methods = new Dictionary<string, object>() {
+            { "trade", this.handleTrades },
+            { "kline", this.handleOHLCV },
+            { "realtimes", this.handleTickers },
+            { "depth", this.handleOrderBookPartialSnapshot },
+            { "diffDepth", this.handleOrderBook },
+            { "outboundAccountInfo", this.handleBalance },
+            { "outboundContractAccountInfo", this.handleBalance },
+            { "executionReport", this.handleOrder },
+            { "contractExecutionReport", this.handleOrder },
+            { "ticketInfo", this.handleMyTrade },
+            { "outboundContractPositionInfo", this.handlePositions },
+        };
+        for (int i = 0; i < getArrayLength(message); i++)
+        {
+            object item = getValue(message, i);
+            string? eventVar = this.safeString(item, "e");
+            Delegate method = ((Delegate)this.safeValue(methods, eventVar));
+            if ((method != null))
+            {
+                DynamicInvoker.InvokeMethod(method, new object[] { client, item});
+            }
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         //
@@ -141,23 +169,10 @@ public partial class toobit : ccxt.toobit
             { "ticketInfo", this.handleMyTrade },
             { "outboundContractPositionInfo", this.handlePositions },
         };
-        object method = ((topic == null)) ? null : this.safeValue(methods, topic);
+        Delegate method = ((Delegate)this.safeValue(methods, topic));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
-        } else
-        {
-            // check private streams
-            for (int i = 0; i < getArrayLength(message); i++)
-            {
-                object item = getValue(message, i);
-                string? eventVar = this.safeString(item, "e");
-                object method2 = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
-                if ((method2 != null))
-                {
-                    DynamicInvoker.InvokeMethod(method2, new object[] { client, item});
-                }
-            }
         }
     }
 

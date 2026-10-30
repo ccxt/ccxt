@@ -1591,7 +1591,7 @@ public partial class poloniex : ccxt.poloniex
             { "cancelAllOrders", this.handleOrderRequest },
             { "auth", this.handleAuthenticate },
         };
-        object method = ((type == null)) ? null : this.safeValue(methods, type);
+        Delegate method = ((Delegate)this.safeValue(methods, type));
         if (type == "auth")
         {
             this.handleAuthenticate(client, message);

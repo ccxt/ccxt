@@ -827,7 +827,7 @@ public partial class upbit : ccxt.upbit
             { "candle.1s", this.handleOHLCV },
         };
         string? methodName = this.safeString(message, "type");
-        object method = ((methodName == null)) ? null : this.safeValue(methods, methodName);
+        Delegate method = ((Delegate)this.safeValue(methods, methodName));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

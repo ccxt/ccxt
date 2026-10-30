@@ -89,7 +89,7 @@ public partial class alpaca : ccxt.alpaca
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -191,7 +191,7 @@ public partial class alpaca : ccxt.alpaca
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -252,7 +252,7 @@ public partial class alpaca : ccxt.alpaca
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -345,7 +345,7 @@ public partial class alpaca : ccxt.alpaca
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -703,7 +703,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -788,12 +788,12 @@ public partial class alpaca : ccxt.alpaca
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            this.handleCryptoMessage(client, message);
-            return;
-        }
         this.handleTradingMessage(client, message);
+    }
+
+    public override void handleListMessage(WebSocketClient client, object message)
+    {
+        this.handleCryptoMessage(client, message);
     }
 
     public virtual void handleAuthenticate(WebSocketClient client, object message)

@@ -3176,6 +3176,14 @@ public partial class bitget : ccxt.bitget
         }
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "pong"))
+        {
+            this.handlePong(client, message);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         //
@@ -3258,14 +3266,6 @@ public partial class bitget : ccxt.bitget
         //         }
         //     }
         //
-        if ((message is string))
-        {
-            if ((message is "pong"))
-            {
-                this.handlePong(client, message);
-            }
-            return;
-        }
         if ((this.handleErrorMessage(client, message) == true))
         {
             return;

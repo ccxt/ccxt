@@ -344,7 +344,7 @@ public partial class independentreserve : ccxt.independentreserve
             { "OrderBookSnapshot", this.handleOrderBook },
             { "OrderBookChange", this.handleOrderBook },
         };
-        object handler = ((eventVar == null)) ? null : this.safeValue(handlers, eventVar);
+        Delegate handler = ((Delegate)this.safeValue(handlers, eventVar));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

@@ -169,7 +169,7 @@ public partial class gemini : ccxt.gemini
         }, market);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -705,7 +705,7 @@ public partial class gemini : ccxt.gemini
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleL2Updates(WebSocketClient client, object message)
+    public virtual void handleL2Updates(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -792,7 +792,7 @@ public partial class gemini : ccxt.gemini
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, object message)
+    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -807,7 +807,7 @@ public partial class gemini : ccxt.gemini
         return message;
     }
 
-    public virtual object handleSubscription(WebSocketClient client, object message)
+    public virtual object handleSubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -956,6 +956,11 @@ public partial class gemini : ccxt.gemini
         throw new ExchangeError (this.json(message)) ;
     }
 
+    public override void handleListMessage(WebSocketClient client, object message)
+    {
+        this.handleOrder(client, message);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         //
@@ -993,12 +998,6 @@ public partial class gemini : ccxt.gemini
         //         }
         //     ]
         //
-        bool isArray = ((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (isArray)
-        {
-            this.handleOrder(client, message);
-            return;
-        }
         string? reason = this.safeString(message, "reason");
         if (reason == "error")
         {
