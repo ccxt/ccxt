@@ -166,7 +166,7 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue (methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }

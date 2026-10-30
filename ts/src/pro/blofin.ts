@@ -970,6 +970,9 @@ export default class blofin extends blofinRest {
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
             return;
+        } else if (event === 'unsubscribe') {
+            this.handleUnsubscription (client, message);
+            return;
         } else if (event === 'login') {
             const future = this.safeValue (client.futures, 'authenticate_hash');
             future.resolve (true);
