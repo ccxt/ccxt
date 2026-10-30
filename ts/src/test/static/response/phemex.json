@@ -3,6 +3,176 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a 4h contract gets all 6 settlements of the day; with a fixed 8h step the 24h window gets only its first 3 rows",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "JUP/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454399000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "symbol=.JUPUSDTFR8H&limit=3&end=1792454399000": {
+                        "code": 0,
+                        "msg": "OK",
+                        "data": {
+                            "rows": [
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792411200000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792425600000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792440000000,
+                                    "intervalSeconds": 14400
+                                }
+                            ]
+                        }
+                    },
+                    "symbol=.JUPUSDTFR8H&limit=3&end=1792411199999": {
+                        "code": 0,
+                        "msg": "OK",
+                        "data": {
+                            "rows": [
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792368000000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792382400000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792396800000,
+                                    "intervalSeconds": 14400
+                                }
+                            ]
+                        }
+                    },
+                    "symbol=.JUPUSDTFR8H&start=1792368000000&limit=3&end=1792454399000": {
+                        "code": 0,
+                        "msg": "OK",
+                        "data": {
+                            "rows": [
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792368000000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792382400000,
+                                    "intervalSeconds": 14400
+                                },
+                                {
+                                    "symbol": ".JUPUSDTFR8H",
+                                    "fundingRate": "0.00005",
+                                    "fundingTime": 1792396800000,
+                                    "intervalSeconds": 14400
+                                }
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792368000000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792382400000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792396800000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792411200000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792411200000,
+                        "datetime": "2026-10-19T12:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792425600000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": ".JUPUSDTFR8H",
+                            "fundingRate": "0.00005",
+                            "fundingTime": 1792440000000,
+                            "intervalSeconds": 14400
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchPositionHistory": [
             {
                 "description": "default",
