@@ -8880,6 +8880,17 @@ export function nativeJavaJ34MapLocals (content: string): string {
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
         const to = starts[s + 1];
+        // hx11w8 super-parsetrade-parsed-put: `Object x = super.parseTrade(..)` (base returns the Trade view, a Map) written once becomes a Map local
+        for (let i = from; i < to; i++) {
+            const decl = /^(\s*)Object ([A-Za-z_]\w*) = (super\.(?:parseTrade|parseWsTrade|parseOrder|parseWsOrder)\()(.*)\);(\s*\/\/.*)?$/.exec (lines[i]);
+            if (decl === null || j26Close (decl[3] + decl[4] + ')', decl[3].length - 1) !== decl[3].length + decl[4].length) continue;
+            const name = decl[2];
+            // the only write is the declaration; no lambda parameter or instanceof test of the same name
+            const body = lines.slice (from, to).filter ((l, k) => from + k !== i && !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
+            if (new RegExp (`(?<![\\w.])${name}\\s*(?:=(?!=)|\\+=|\\+\\+|--)|(?<![\\w.])${name} instanceof |(?<![\\w.])${name} ->|, ${name}\\) ->`).test (body)) continue;
+            lines[i] = `${decl[1]}Map<String, Object> ${name} = ${decl[3]}${decl[4]});${decl[5] ?? ''}`;
+            changed = true;
+        }
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (member)) continue;
         const sig = lines[from];
@@ -8917,7 +8928,7 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain
                 // raw.put on that LinkedHashMap/HashMap (safeTrade already puts natively into it), never a ConcurrentHashMap, so the helper's null-remove arm cannot fire.
                 // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
-                const typedCall = /^this\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // hx11w8 baseexchange-map-writes: MarketInterface view over a fresh deepExtend LinkedHashMap
+                const typedCall = /^(?:this|super)\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // hx11w8 baseexchange-map-writes: MarketInterface view over a fresh deepExtend LinkedHashMap
                 const typedView = typedCall !== null && j26Close (rhs, typedCall[0].length - 1) === rhs.length - 1
                     && !new RegExp (`public (?!(?:io\\.github\\.ccxt\\.types\\.)?(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
                 const isFresh = /^new (?:java\.util\.)?(?:Linked)?HashMap<String, Object>\(\) \{\{/.test (rhs)
@@ -9027,6 +9038,8 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'typed balance view keeps helper', 'Object v', '        Map<String, Object> b = (Map<String, Object>) this.parseBalance(v);\n        Helpers.addElementToObject(b, \"timestamp\", v);', undefined ],
         [ 'order view reassigned from safeDict', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        o = (Map<String, Object>) this.safeDict(v, \"x\");\n        Helpers.addElementToObject(o, \"type\", v);', undefined ],
         [ 'order view venue override returns Object', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);\n        return o;\n    }\n    public Object parseOrder(Object order, Map<String, Object> market)\n    {\n        return order;', undefined ],
+        [ 'super parseTrade local put', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        Helpers.addElementToObject(p, \"side\", v);', '        Map<String, Object> p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p.put(\"side\", v);' ],
+        [ 'super parseTrade local reassigned keeps helper', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p = v;\n        Helpers.addElementToObject(p, \"side\", v);', undefined ],
         [ 'extend of 3', 'Object p, Object q, Object v', '        Map<String, Object> r = (Map<String, Object>) this.extend(p, q, new HashMap<String, Object>() {{}});\n        Helpers.addElementToObject(r, "a", v);', undefined ],
     ];
     for (const [ name, sig, body, expect ] of cases) {
