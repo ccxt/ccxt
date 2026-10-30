@@ -5282,7 +5282,7 @@ class BaseExchange(object):
             ]
         return ohlcv
 
-    def safe_network(self, network: object):
+    def safe_network(self, network: dict):
         withdrawEnabled = self.safe_bool(network, 'withdraw')
         depositEnabled = self.safe_bool(network, 'deposit')
         limits = self.safe_dict(network, 'limits')
@@ -7095,7 +7095,7 @@ class BaseExchange(object):
         # for backwards compatibility
         return self.handle_trigger_and_params(params)
 
-    def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam: object, params: dict = {}):
+    def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam: Bool, params: dict = {}):
         """
  @ignore
         :param str type: Order type

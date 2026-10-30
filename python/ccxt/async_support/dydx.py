@@ -845,7 +845,7 @@ class dydx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def handle_public_address(self, methodName: Str, params: dict) -> list:
+    def handle_public_address(self, methodName: str, params: dict) -> list:
         userAux, paramsUser = self.handle_option_string_and_params(params, methodName, 'user')
         user, paramsAddress = self.handle_option_string_and_params(paramsUser, methodName, 'address', userAux)
         if (user is not None) and (user != ''):
@@ -1769,7 +1769,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
+        response = await self.fetch_transactions_helper('fetchLedger', code, since, limit, params)
         return self.parse_ledger(response, currency, since, limit)
 
     async def estimate_tx_fee(self, message: dict, memo: Str, account: dict) -> dict:
@@ -1965,7 +1965,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchTransfers'}))
+        response = await self.fetch_transactions_helper('fetchTransfers', code, since, limit, params)
         transferIn = self.filter_by(response, 'type', 'TRANSFER_IN')
         transferOut = self.filter_by(response, 'type', 'TRANSFER_OUT')
         rows = self.array_concat(transferIn, transferOut)
@@ -2103,7 +2103,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchWithdrawals'}))
+        response = await self.fetch_transactions_helper('fetchWithdrawals', code, since, limit, params)
         rows = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
@@ -2126,7 +2126,7 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDeposits'}))
+        response = await self.fetch_transactions_helper('fetchDeposits', code, since, limit, params)
         rows = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
@@ -2149,14 +2149,13 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDepositsWithdrawals'}))
+        response = await self.fetch_transactions_helper('fetchDepositsWithdrawals', code, since, limit, params)
         withdrawals = self.filter_by(response, 'type', 'WITHDRAWAL')
         deposits = self.filter_by(response, 'type', 'DEPOSIT')
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
-        methodName = self.safe_string(params, 'methodName')
+    async def fetch_transactions_helper(self, methodName: str, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         paramsOmitted = self.omit(params, 'methodName')
         userAddress, paramsPublicAddress = self.handle_public_address(methodName, paramsOmitted)
         subAccountNumber, paramsSubAccountNumber = self.handle_option_string_and_params(paramsPublicAddress, methodName, 'subAccountNumber', '0')

@@ -2054,7 +2054,7 @@ class deribit(Exchange, ImplicitAPI):
         isStopOrder = isStopLossOrder or isTakeProfitOrder
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
-        exchangeSpecificPostOnly = self.safe_value(params, 'post_only')
+        exchangeSpecificPostOnly = self.safe_bool(params, 'post_only')
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly, params)
         if isLimitOrder:
             request['type'] = 'limit'

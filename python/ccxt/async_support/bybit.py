@@ -1699,7 +1699,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.amount_to_precision(symbol, amount)
         return amountString
 
-    def get_price(self, symbol: Str, price: object):
+    def get_price(self, symbol: Str, price: Str) -> Str:
         if price is None:
             return price
         market = self.market(symbol)
@@ -4138,7 +4138,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         hedged = self.safe_bool(params, 'hedged', False)
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
@@ -4318,9 +4318,9 @@ class bybit(Exchange, ImplicitAPI):
             request['reduceOnly'] = True
         if (hasStopLoss or hasTakeProfit) and not endpointIsTradingStop:
             if hasStopLoss:
-                slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                 request['stopLoss'] = self.get_price(symbolValue, slTriggerPrice)
-                slLimitPrice = self.safe_value(stopLoss, 'price')
+                slLimitPrice = self.safe_string(stopLoss, 'price')
                 if slLimitPrice is not None:
                     request['tpslMode'] = 'Partial'
                     request['slOrderType'] = 'Limit'
@@ -4333,9 +4333,9 @@ class bybit(Exchange, ImplicitAPI):
                 if (market['spot'] is True) and isMarketOrder:
                     raise InvalidOrder(self.id + ' createOrder(): attached stopLoss is not supported for spot market orders')
             if hasTakeProfit:
-                tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                 request['takeProfit'] = self.get_price(symbolValue, tpTriggerPrice)
-                tpLimitPrice = self.safe_value(takeProfit, 'price')
+                tpLimitPrice = self.safe_string(takeProfit, 'price')
                 if tpLimitPrice is not None:
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'

@@ -2246,7 +2246,7 @@ class kucoin(ccxt.async_support.kucoin):
             limitResolved = trades.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    def get_my_trades_message_hash_suffix(self, topic: object) -> str:
+    def get_my_trades_message_hash_suffix(self, topic: str) -> str:
         suffix = '-spot'
         if topic.find('contractMarket') >= 0:
             suffix = '-contract'
@@ -2289,7 +2289,7 @@ class kucoin(ccxt.async_support.kucoin):
         myTrades = self.myTrades
         myTrades.append(parsed)
         messageHash = 'myTrades'
-        topic = self.safe_string(message, 'topic')
+        topic = self.safe_string(message, 'topic', '')
         suffix = self.get_my_trades_message_hash_suffix(topic)
         typeSpecificMessageHash = messageHash + suffix
         client.resolve(self.myTrades, typeSpecificMessageHash)
