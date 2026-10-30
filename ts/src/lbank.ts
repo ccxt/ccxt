@@ -3124,7 +3124,7 @@ export default class lbank extends Exchange {
             }, signedQuery)));
             const encoded = this.encode (auth);
             const uppercaseHash = this.hash (encoded, md5).toUpperCase ();
-            let sign: Str = undefined;
+            let sign: string = '';
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem: Str = undefined;
