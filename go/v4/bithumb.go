@@ -1917,12 +1917,12 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bithumb) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1938,13 +1938,13 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	if generation != 2 {
 		panic(BadRequest(this.Id + " createOrders is only supported for the generation 2 API"))
 	}
-	var ordersCount int = GetArrayLength(orders)
+	var ordersCount int = len(orders)
 	if ordersCount == 0 {
 		panic(ArgumentsRequired(this.Id + " createOrders() requires a non-empty orders array"))
 	}
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {

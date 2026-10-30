@@ -1539,12 +1539,12 @@ func (this *PredictionExchange) fetchOpenInterestBody(ch chan AsyncResult[Predic
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
+func (this *PredictionExchange) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
 	ch := make(chan AsyncResult[[]PredictionOrder], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[[]PredictionOrder], orders any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[[]PredictionOrder], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

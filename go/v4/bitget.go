@@ -8964,12 +8964,12 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	}
 	return this.Extend(request, paramsMarketType)
 }
-func (this *Bitget) CreateUtaOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bitget) CreateUtaOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createUtaOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8985,7 +8985,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders any
 	var firstOrder map[string]any = SafeMapTyped(orders, 0)
 	var symbol *string = this.SafeString(firstOrder, "symbol")
 	var marginMode *string = nil
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
@@ -9054,12 +9054,12 @@ func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bitget) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9099,7 +9099,7 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders any, o
 	var firstOrder map[string]any = SafeMapTyped(orders, 0)
 	var symbol *string = this.SafeString(firstOrder, "symbol")
 	var marginMode *string = nil
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {

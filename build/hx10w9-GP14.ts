@@ -18,6 +18,8 @@
 // the printed Go type the core gave this positional parameter, or undefined (annotation only)
 export function gp14ParamGoType (param: any): string | undefined {
     const goType = param?.goType;
+    // the typed wrapper keeps `[]OrderRequest` (it converts to the core's []any); only the core is retyped
+    if ((goType === '[]any') && /OrderRequest\[\]$/.test (String (param?.type ?? ''))) { return undefined; }
     return ((typeof goType === 'string') && (goType.length > 0)) ? goType : undefined;
 }
 

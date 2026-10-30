@@ -134,7 +134,7 @@ type IFetchMyTrades interface { // W3
 	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type ICreateOrders interface { // W3
-	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order]
+	CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type ICancelOrders interface { // W3
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order]
