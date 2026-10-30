@@ -2557,7 +2557,7 @@ func (this *Derive) HashOrderMessage(order []any) any {
 	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
-func (this *Derive) SignOrder(order []any, privateKey any) string {
+func (this *Derive) SignOrder(order []any, privateKey string) string {
 	var hashOrder any = this.HashOrderMessage(order)
 	return this.SignHash(hashOrder, privateKey)
 }
@@ -2587,15 +2587,15 @@ func (this *Derive) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Derive) SignHash(hash any, privateKey any) string {
+func (this *Derive) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = this.SafeString(signature, "r", "")
 	var s *string = this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + (strings.Repeat("0", max(64-len(*r), 0)) + *r)[max(len(*r)-64, 0):] + (strings.Repeat("0", max(64-len(*s), 0)) + *s)[max(len(*s)-64, 0):] + v
 }
-func (this *Derive) SignMessage(message any, privateKey any) string {
+func (this *Derive) SignMessage(message any, privateKey string) string {
 	return this.SignHash(this.HashMessage(message), privateKey)
 }
 func (this *Derive) ParseUnits(num *string, optionalArgs ...any) *string {

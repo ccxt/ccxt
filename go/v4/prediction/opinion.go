@@ -2210,8 +2210,8 @@ func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 		"v": this.Sum(27, signature["v"]),
 	}
 }
-func (this *Opinion) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, int64(-64), nil))
+func (this *Opinion) SignMessage(message any, privateKey string) any {
+	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp *string) string {
 	// EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)

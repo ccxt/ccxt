@@ -4105,11 +4105,11 @@ func (this *Nado) SignFetchTriggerOrders(tx map[string]any, chainId *string, end
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, tx)
 	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
-func (this *Nado) SignHash(hash any, privateKey any) string {
-	if IsEqual(privateKey, nil) {
+func (this *Nado) SignHash(hash any, privateKey string) string {
+	if false {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
-	var signature map[string]any = Ecdsa(hash, Slice(privateKey, int64(-64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(hash, privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))

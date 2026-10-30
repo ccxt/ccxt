@@ -1581,8 +1581,8 @@ func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
 		"v": this.Sum(27, signature["v"]),
 	}
 }
-func (this *Dydx) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, int64(-64), nil))
+func (this *Dydx) SignMessage(message any, privateKey string) any {
+	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Dydx) SignOnboardingAction() any {
 	var message map[string]any = map[string]any{

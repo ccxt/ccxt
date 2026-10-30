@@ -2151,10 +2151,13 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(this.Omit(dataRequest, "symbol"), "fetchOHLCV", "until")
-	until := untilparamsUntilVariable[0]
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
-	if !IsEqual(until, nil) {
-		request["endTime"] = this.ParseToInt(float64(*until.(*int64)) / 1000) // convert milliseconds to seconds
+	if until != nil {
+		request["endTime"] = this.ParseToInt(float64(*until) / 1000) // convert milliseconds to seconds
 	}
 	var defaultLimit int = 100
 	var limitResolved any = limit
@@ -2170,15 +2173,15 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	var startTime any = nil
 	if since == nil {
 		var endTime int64 = this.Seconds()
-		if !IsEqual(until, nil) && !IsEqual(until, 0) {
-			endTime = this.ParseToInt(float64(*until.(*int64)) / 1000)
+		if until != nil && *until != 0 {
+			endTime = this.ParseToInt(float64(*until) / 1000)
 		}
 		startTime = (endTime - (windowLimit * duration))
 	} else {
 		startTime = this.ParseToInt(float64(*since) / 1000) // convert milliseconds to seconds
 	}
 	request["startTime"] = startTime
-	if IsEqual(until, nil) {
+	if until == nil {
 		var currentMs int64 = this.Seconds() // default to current time in seconds
 		var windowEnd any = this.Sum(startTime, (windowLimit * duration))
 		var minTimestamp any = mathMin(currentMs, windowEnd)

@@ -8347,7 +8347,10 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
+	var maxCallsPaginationCalls *int64 = nil
+	if p, ok := maxCallsPaginationCallsparamsPaginationCallsVariable[0].(*int64); ok {
+		maxCallsPaginationCalls = p
+	}
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
@@ -8362,7 +8365,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	var timeframe *string = this.SafeString(paramsMaxEntriesPerRequest, "timeframe")
 	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
 	var shouldBreak bool = false
-	for i := 0; maxCallsPaginationCalls.(*int64) != nil && int64(i) < *maxCallsPaginationCalls.(*int64); i++ {
+	for i := 0; maxCallsPaginationCalls != nil && int64(i) < *maxCallsPaginationCalls; i++ {
 
 		{
 			func(this *BaseExchange) (ret_ any) {

@@ -889,8 +889,8 @@ func (this *Sxbet) HashEip712Digest(encoded any) any {
  * @param {string} privateKey the signer's private key
  * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
  */
-func (this *Sxbet) SignDigest(digest any, privateKey any) string {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
+func (this *Sxbet) SignDigest(digest any, privateKey string) string {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to bare locals before padStart — the php transpiler's str_pad regex only
 	// matches a simple identifier, an expression form leaks a raw padStart() call
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])

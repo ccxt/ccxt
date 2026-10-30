@@ -2920,8 +2920,8 @@ func (this *Limitless) SignHash(hash any, privateKey string) string {
 	var result string = "0x" + rPadded + sPadded + v
 	return strings.ToLower(result)
 }
-func (this *Limitless) SignMessage(message any, privateKey any) string {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, int64(-64), nil))
+func (this *Limitless) SignMessage(message any, privateKey string) string {
+	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex

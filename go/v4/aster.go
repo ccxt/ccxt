@@ -5471,8 +5471,8 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 func (this *Aster) KeccakMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Aster) SignMessage(message any, privateKey any) string {
-	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, int64(-64), nil))
+func (this *Aster) SignMessage(message any, privateKey string) string {
+	return this.SignHash(this.KeccakMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Aster) SignWithdrawPayload(withdrawPayload map[string]any, network any) string {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")

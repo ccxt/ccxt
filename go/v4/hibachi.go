@@ -1702,14 +1702,14 @@ func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string,
 func (this *Hibachi) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Hibachi) SignMessage(message any, privateKey any) string {
-	if GetLength(privateKey) == 44 {
+func (this *Hibachi) SignMessage(message any, privateKey string) string {
+	if len(privateKey) == 44 {
 		// For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
-		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 		var r *string = this.SafeString(signature, "r", "")
 		var s *string = this.SafeString(signature, "s", "")
 		var v string = this.IntToBase16(signature["v"])
@@ -2970,10 +2970,13 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchMySettlementHistory", "until")
-	until := untilparamsUntilVariable[0]
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
-	if !IsEqual(until, nil) {
-		request["endTime"] = this.ParseToInt(float64(*until.(*int64)) / 1000)
+	if until != nil {
+		request["endTime"] = this.ParseToInt(float64(*until) / 1000)
 	}
 
 	r1 := <-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, paramsUntil))

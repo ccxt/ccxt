@@ -842,15 +842,15 @@ func (this *Lighter) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Lighter) SignHash(hash any, privateKey any) string {
+func (this *Lighter) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) string {
+func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey string) string {
 	var hashMessage any = this.HashMessage(message)
 	var signature string = this.SignHash(hashMessage, privateKey)
 	var decTxInfo map[string]any = this.Extend(map[string]any{}, this.ParseJson(txInfo))

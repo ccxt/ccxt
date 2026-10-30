@@ -1203,7 +1203,10 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		"period": period,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
-	until := untilparamsUntilVariable[0]
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 
 	r1 := <-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))
@@ -1226,7 +1229,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	if IsEqual(until, nil) {
+	if until == nil {
 
 		ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(data, market, since, limit))}
 		return nil
@@ -1236,7 +1239,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	for i := 0; i < len(rates); i++ {
 		var rate any = rates[i]
 		var timestamp *int64 = this.SafeInteger(rate, "timestamp")
-		if (timestamp == nil) || (until.(*int64) != nil && *timestamp <= *until.(*int64)) {
+		if (timestamp == nil) || (until != nil && *timestamp <= *until) {
 			result = append(result, rate)
 		}
 	}
@@ -2003,7 +2006,10 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
-	until := untilparamsUntilVariable[0]
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
 
 	r1 := <-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))
@@ -2030,7 +2036,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	if IsEqual(until, nil) {
+	if until == nil {
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 		return nil
@@ -2040,7 +2046,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	for i := 0; i < len(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-		if (timestamp == nil) || (until.(*int64) != nil && *timestamp <= *until.(*int64)) {
+		if (timestamp == nil) || (until != nil && *timestamp <= *until) {
 			result = append(result, trade)
 		}
 	}
