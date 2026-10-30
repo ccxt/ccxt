@@ -941,7 +941,7 @@ export default class bitstamp extends bitstampRest {
         if (event === 'bts:error') {
             const feedback = this.id + ' ' + this.json (message);
             const data = this.safeDict (message, 'data', {});
-            const code = this.safeNumber (data, 'code');
+            const code = this.safeString (data, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         }
         return true;

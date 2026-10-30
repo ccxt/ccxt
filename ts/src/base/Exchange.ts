@@ -7340,7 +7340,7 @@ export class BaseExchange {
         return this.handleOptionStringAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exact: any, string: any, message: any) {
+    throwExactlyMatchedException (exact: Dict, string: Str, message: Str) {
         if (string === undefined) {
             return;
         }
@@ -7349,14 +7349,14 @@ export class BaseExchange {
         }
     }
 
-    throwBroadlyMatchedException (broad: any, string: any, message: any) {
+    throwBroadlyMatchedException (broad: Dict, string: Str, message: Str) {
         const broadKey = this.findBroadlyMatchedKey (broad, string);
         if (broadKey !== undefined) {
             throw new broad[broadKey] (message);
         }
     }
 
-    findBroadlyMatchedKey (broad: any, string: Str): Str {
+    findBroadlyMatchedKey (broad: Dict, string: Str): Str {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
