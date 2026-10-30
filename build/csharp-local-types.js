@@ -18905,6 +18905,7 @@ for (const [ name, type ] of Object.entries (HX4_C12_RETURN_TYPES)) {
 const HX4_C12_STRING_PARAMS = {
     'constructCurrencyObject': { 1: 'string?' }, 'createAuthToken': { 2: 'string?' }, 'createContractOrderRequest': { 0: 'string?' },
     'getCurrencyName': { 0: 'string?' }, 'getDexFromSymbols': { 0: 'string?' }, 'getMarketType': { 0: 'string?' },
+    'handleOrder': { 2: 'string?' },
     'parseLedgerEntryType': { 0: 'string?' }, 'parseLedgerType': { 0: 'string?' }, 'parseOrderStatus': { 0: 'string?' },
     'parseStatus': { 0: 'string?' }, 'parseTransactionStatus': { 1: 'string?' }, 'parseTransactionStatusByType': { 1: 'string?' },
     'parseTransactionWithType': { 2: 'string?' }, 'parseTransferStatus': { 0: 'string?' }, 'pow': { 0: 'string?' },
