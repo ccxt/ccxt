@@ -102,6 +102,29 @@ function m43UseIsNilTestOrRead (s: string, col: number, name: string): boolean {
     return /(?:\bthis\.Safe\w+|\bccxt\.GetValue|\bccxt\.Safe\w+Typed\w*)\($/.test (before) && /^\s*,/.test (after);
 }
 
+// per line: true when the line sits inside an `if name != nil {` block (non-nil map there)
+function m43GuardedLines (masked: string[], start: number, end: number, name: string): boolean[] {
+    const guarded: boolean[] = [];
+    const stack: boolean[] = [];
+    const header = new RegExp ('^\\s*(?:\\}\\s*)?(?:else\\s+)?if\\s+(.*)\\{\\s*$');
+    const test = new RegExp ('(?:^|[(\\s&])' + name + '\\s*!=\\s*nil\\b');
+    for (let j = start; j <= end; j++) {
+        guarded[j] = stack.some ((g) => g);
+        const line = masked[j];
+        const h = header.exec (line);
+        const guard = (h !== null) && (h[1].indexOf ('||') < 0) && test.test (h[1]);
+        const last = line.lastIndexOf ('{');
+        for (let c = 0; c < line.length; c++) {
+            if (line[c] === '{') {
+                stack.push ((c === last) && guard);
+            } else if (line[c] === '}') {
+                stack.pop ();
+            }
+        }
+    }
+    return guarded;
+}
+
 function m43Func (lines: string[], masked: string[], start: number, end: number, ws: boolean): void {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     for (let k = start + 1; k < end; k++) {
@@ -119,20 +142,21 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         const noDefault = (args !== undefined) && (args.length === wanted - 1);  // nil map reads are safe: only nil tests and plain reads may use it
         if ((args === undefined) || !(noDefault || ((args.length === wanted) && (args[wanted - 1] === 'map[string]any{}')))
             || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && (args[0] !== 'this.Options') && (args[0] !== 'this.Balance'))
-            || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0]))) {
+            || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0].replace (/^\w+\.\(\*ccxt\.ArrayCache\)\.Hashmap$/, 'hashmap')))) {
             continue;
         }
         if (m43Declarations (maskedFunc, lines[start], name) !== 1) {
             continue;
         }
         const use = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
+        const guarded = noDefault ? m43GuardedLines (masked, start, end, name) : [];
         let keeps = true;
         for (let j = start + 1; (j < end) && keeps; j++) {
             for (let m = use.exec (masked[j]); m !== null; m = use.exec (masked[j])) {
                 if ((j === k) && (m.index === decl[1].length + 4)) {
                     continue; // the declaration itself
                 }
-                if (!m43UseKeepsMap (masked[j], m.index, name) || (noDefault && !m43UseIsNilTestOrRead (masked[j], m.index, name))) {
+                if (!m43UseKeepsMap (masked[j], m.index, name) || (noDefault && !guarded[j] && !m43UseIsNilTestOrRead (masked[j], m.index, name))) {
                     keeps = false;
                     break;
                 }
@@ -193,7 +217,11 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(p, "data", this.Fees)\n').includes ('SafeDictMap'), 'a computed default keeps the box');
     ok (run (decl, 'go/v4/pro/x.go').includes (typed), 'ws files type a plain decoded-message receiver');
     ok (!run ('\tvar d any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws client/cache receivers keep the box');
-    ok (!run ('\tvar d any = this.SafeDict(cached.(*ccxt.ArrayCache).Hashmap, \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws cache receivers keep the box');
+    ok (run ('\tvar d any = this.SafeDict(cached.(*ccxt.ArrayCache).Hashmap, "k", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'the ArrayCache Hashmap field is a map of maps: a plain receiver');
+    ok (!run ('\tvar d any = this.SafeDict(cached.(*ccxt.ArrayCache).Other, "k", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'other ws cache receivers keep the box');
+    ok (run ('\tvar d any = this.SafeDict(p, "k")\n\tif d != nil {\n\t\tAddElementToObject(d, "a", 1)\n\t\t_ = GetValue(d, "a")\n\t}\n').includes ('var d map[string]any = this.SafeDictMap(p, "k")'), 'no default: uses inside the non-nil guard type the local');
+    ok (!run ('\tvar d any = this.SafeDict(p, "k")\n\tif d != nil {\n\t}\n\tAddElementToObject(d, "a", 1)\n').includes ('SafeDictMap'), 'no default: a write after the guard keeps the box');
+    ok (!run ('\tvar d any = this.SafeDict(p, "k")\n\tif d != nil {\n\t} else {\n\t\tAddElementToObject(d, "a", 1)\n\t}\n').includes ('SafeDictMap'), 'no default: the else branch is not guarded');
     ok (!run (decl, 'go/v4/prediction/x.go').includes ('SafeDictMap'), 'prediction files keep the box');
     ok (!run (decl, 'go/v4/exchange_generated.go').includes ('SafeDictMap'), 'base files keep the box');
     ok (run ('\tvar d any = this.SafeDict(p, \"data\")\n\tif d != nil {\n\t\t_ = this.SafeString(d, \"k\")\n\t}\n').includes ('var d map[string]any = this.SafeDictMap(p, \"data\")'), 'no default: nil test + plain read type the local');
