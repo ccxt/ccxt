@@ -69,6 +69,23 @@ export function installHx11w8CorParams (goTranspiler: any) {
             return (constant && (init?.kind === ts.SyntaxKind.CallExpression) && (init.expression?.name?.text === 'handleMarketTypeAndParams')) ? '*string' : printed;
         };
     }
+    // hx11 w8 printer-go-bingx-getorderbooklimitbymarkettype: pro/bingx only, keyed by class + method (never the
+    // global string table). The method has no caller in ts/src, so its required `marketType: string` is a Go string.
+    const upstreamNative = goTranspiler.goNativeParameterTypeOf;
+    if (typeof upstreamNative === 'function') {
+        goTranspiler.goNativeParameterTypeOf = function (this: any, param: any) {
+            const result = upstreamNative.call (this, param);
+            const fn: any = param?.parent;
+            if ((result !== undefined) || (fn?.kind !== ts.SyntaxKind.MethodDeclaration) || (fn.name?.text !== 'getOrderBookLimitByMarketType')
+                || (this.goEnclosingClassName (fn) !== 'bingx') || (fn.parameters.indexOf (param) !== 0) || (param.initializer !== undefined)
+                || !/[\\/]pro[\\/]bingx\.ts$/.test (fn.getSourceFile ().fileName) || (this.goRequiredStringParameterType (param) !== 'string')
+                || this.goHasTreeCallSite (fn) || (this.goTsSrcTree (fn.getSourceFile ())?.callIndex.get ('getOrderBookLimitByMarketType') ?? []).length > 0) {
+                return result;
+            }
+            return (this.goLocalIsSafeToType (fn.body, param, param.name.text, 'string')
+                && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
+        };
+    }
     const upstream = goTranspiler.goParameterCallSitesPassType;
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
