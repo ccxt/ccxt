@@ -457,7 +457,7 @@ export default class nado extends Exchange {
         timestamp: Int;
         datetime: string | undefined;
         id: Str;
-        amount: number | undefined;
+        amount: Num;
     };
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -469,7 +469,7 @@ export default class nado extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderTimeInForce(timeInForce: Str): Str;
     convertToX18(value: Str): Str;
-    parseX18(value: Str): number | undefined;
+    parseX18(value: Str): Num;
     createOrderNonce(recvWindow: Int): Str;
     createOrderAppendix(isTriggerOrder: boolean, params?: Dict): Str;
     createSubaccount(walletAddress: Str, subaccount?: Str): string;

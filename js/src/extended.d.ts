@@ -527,8 +527,8 @@ export default class extended extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     getExtendedStringToFelt(value: string): bigint;
     getExtendedEncodeI64(value: any): any;
-    getExtendedDecimalToBase16(value: any): string;
-    getExtendedSignatureHex(signature: any): string;
+    getExtendedDecimalToBase16(value: string): string;
+    getExtendedSignatureHex(signature: string): string;
     getExtendedDomainHash(): bigint;
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;

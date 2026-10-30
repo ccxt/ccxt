@@ -1146,7 +1146,7 @@ export default class blofin extends Exchange {
         const rates = [];
         const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const rate = this.safeValue(data, i);
+            const rate = this.safeDict(data, i, {});
             const timestamp = this.safeInteger(rate, 'fundingTime');
             rates.push({
                 'info': rate,

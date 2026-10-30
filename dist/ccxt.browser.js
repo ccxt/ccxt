@@ -275524,7 +275524,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const rates = [];
         const data = this.safeList(response, 'data', []);
         for(let i = 0; i < data.length; i++){
-            const rate = this.safeValue(data, i);
+            const rate = this.safeDict(data, i, {});
             const timestamp = this.safeInteger(rate, 'fundingTime');
             rates.push({
                 'info': rate,
@@ -356787,8 +356787,8 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         };
         const msgHash = this.getExtendedOrderMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex(this.safeString(sig, 0));
-        const s = this.getExtendedSignatureHex(this.safeString(sig, 1));
+        const r = this.getExtendedSignatureHex(this.safeString(sig, 0, '0'));
+        const s = this.getExtendedSignatureHex(this.safeString(sig, 1, '0'));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -356820,8 +356820,8 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         const msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(this.safeString(sig, 0)),
-            's': this.getExtendedSignatureHex(this.safeString(sig, 1))
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0'))
         };
         return settlement;
     }
@@ -356851,8 +356851,8 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         const msgHash = this.getExtendedTransferMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(this.safeString(sig, 0)),
-            's': this.getExtendedSignatureHex(this.safeString(sig, 1))
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0'))
         };
         return settlement;
     }
@@ -357717,12 +357717,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         return value;
     }
     getExtendedDecimalToBase16(value) {
-        let decimalString = '';
-        if (typeof value === 'string') {
-            decimalString = value;
-        } else {
-            decimalString = this.numberToString(value);
-        }
+        let decimalString = value;
         const hexChars = [
             '0',
             '1',
@@ -357754,17 +357749,10 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         return result;
     }
     getExtendedSignatureHex(signature) {
-        if (typeof signature === 'string') {
-            if (signature.indexOf('0x') === 0) {
-                return signature;
-            }
-            return '0x' + this.getExtendedDecimalToBase16(signature);
+        if (signature.indexOf('0x') === 0) {
+            return signature;
         }
-        const signatureString = this.numberToString(signature);
-        if (signatureString.indexOf('0x') === 0) {
-            return signatureString;
-        }
-        return '0x' + this.getExtendedDecimalToBase16(signatureString);
+        return '0x' + this.getExtendedDecimalToBase16(signature);
     }
     getExtendedDomainHash() {
         const domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'));
