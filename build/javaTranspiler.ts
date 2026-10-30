@@ -7752,7 +7752,7 @@ export function nativeJavaTestCoreArgs (content: string): string {
     return done.map ((l, i) => {
         l = deep[i] ? '    ' + l : l;
         return l.includes ('Helpers.callDynamically(')
-            ? l.replace (/Helpers\.toStringListArg\((new ArrayList<Object>\(Arrays\.asList\(\w+\)\))\)/g, '$1')
+            ? l.replace (/Helpers\.toStringListArg\((new (?:java\.util\.)?ArrayList<Object>\((?:java\.util\.)?Arrays\.asList\(\w+\)\))\)/g, '$1')
             : l;
     }).join ('\n');
 }
