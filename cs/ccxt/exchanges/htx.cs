@@ -4529,7 +4529,7 @@ public partial class htx : Exchange
             } else
             {
                 await this.loadAccounts();
-                string accountId = await this.FetchAccountIdByType(type, null, null, paramsMarginMode);
+                object accountId = await this.FetchAccountIdByType(type, null, null, paramsMarginMode);
                 request["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode));
             }
@@ -6293,7 +6293,7 @@ public partial class htx : Exchange
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        string accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
+        object accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -9849,7 +9849,7 @@ public partial class htx : Exchange
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500));
         }
-        string accountId = await this.FetchAccountIdByType("spot", null, null, paramsPaginate);
+        object accountId = await this.FetchAccountIdByType("spot", null, null, paramsPaginate);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
         };
@@ -10443,7 +10443,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string accountId = await this.FetchAccountIdByType("spot", "isolated", symbol, parameters);
+        object accountId = await this.FetchAccountIdByType("spot", "isolated", symbol, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -10488,7 +10488,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string accountId = await this.FetchAccountIdByType("spot", "cross", null, parameters);
+        object accountId = await this.FetchAccountIdByType("spot", "cross", null, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },

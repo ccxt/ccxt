@@ -803,8 +803,8 @@ public partial class bitfinex : ccxt.bitfinex
                 {
                     object delta = deltas[i];
                     double? delta2 = this.safeNumber(delta, 2);
-                    object size = ((delta2 != null) && isLessThan(delta2, 0)) ? (delta2 = -delta2) : delta2;
-                    string side = ((delta2 != null) && isLessThan(delta2, 0)) ? "asks" : "bids";
+                    object size = ((delta2 != null) && (!(delta2 >= 0))) ? (delta2 = -delta2) : delta2;
+                    string side = ((delta2 != null) && (!(delta2 >= 0))) ? "asks" : "bids";
                     object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
                     string? idString = this.safeString(delta, 0);
                     double? price = this.safeFloat(delta, 1);
@@ -823,8 +823,8 @@ public partial class bitfinex : ccxt.bitfinex
                     }
                     double? counter = this.safeNumber(delta, 1);
                     double? price = this.safeNumber(delta, 0);
-                    object size = (isLessThan(deltaAmount, 0)) ? (deltaAmount = -deltaAmount) : deltaAmount;
-                    string side = (isLessThan(deltaAmount, 0)) ? "asks" : "bids";
+                    object size = ((!(deltaAmount >= 0))) ? (deltaAmount = -deltaAmount) : deltaAmount;
+                    string side = ((!(deltaAmount >= 0))) ? "asks" : "bids";
                     object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
@@ -840,8 +840,8 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 string? price = this.safeString(deltas, 1);
                 double? deltas2 = this.safeNumber(deltas, 2);
-                object size = ((deltas2 != null) && isLessThan(deltas2, 0)) ? (deltas2 = -deltas2) : deltas2;
-                string side = ((deltas2 != null) && isLessThan(deltas2, 0)) ? "asks" : "bids";
+                object size = ((deltas2 != null) && (!(deltas2 >= 0))) ? (deltas2 = -deltas2) : deltas2;
+                string side = ((deltas2 != null) && (!(deltas2 >= 0))) ? "asks" : "bids";
                 object bookside = (orderbookItem != null && side != null && orderbookItem.ContainsKey(side) ? orderbookItem[side] : null);
                 // price = 0 means that you have to remove the order from your book
                 object amount = Precise.stringGt(price, "0") ? size : "0";

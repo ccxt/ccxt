@@ -1380,7 +1380,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object topic)
+    public virtual void handleOrder(WebSocketClient client, object message, string? topic)
     {
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
@@ -1413,7 +1413,7 @@ public partial class woo : ccxt.woo
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            object messageHashSymbol = add(add(topic, ":"), symbol);
+            string messageHashSymbol = ((topic + ":") + symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }

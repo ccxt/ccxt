@@ -1045,7 +1045,7 @@ public partial class modetrade : ccxt.modetrade
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object topic)
+    public virtual void handleOrder(WebSocketClient client, object message, string? topic)
     {
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
@@ -1078,7 +1078,7 @@ public partial class modetrade : ccxt.modetrade
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            client.resolve(this.orders, add(add(topic, ":"), symbol));
+            client.resolve(this.orders, ((topic + ":") + symbol));
         }
     }
 

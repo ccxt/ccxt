@@ -7972,7 +7972,7 @@ public partial class BaseExchange
         string? year = ((date == null) ? null : date.Substring(0, Math.Min(2, date.Length)));
         string? monthRaw = ((date == null) ? null : date.Substring(Math.Min(2, date.Length), Math.Min(4, date.Length) - Math.Min(2, date.Length)));
         string? month = null;
-        object day = ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)));
+        string? day = ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)));
         if (monthRaw == "01")
         {
             month = "JAN";
@@ -8014,7 +8014,7 @@ public partial class BaseExchange
         {
             throw new BadSymbol (((this.id + " invalid expiry date ") + date)) ;
         }
-        string? reconstructedDate = ((string)add(add(day, month), year));
+        string reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
 
@@ -8048,12 +8048,12 @@ public partial class BaseExchange
         string? year = ((datePadded == null) ? null : ((string)datePadded).Substring(0, Math.Min(2, ((string)datePadded).Length)));
         string? monthName = ((datePadded == null) ? null : ((string)datePadded).Substring(Math.Min(2, ((string)datePadded).Length), Math.Min(5, ((string)datePadded).Length) - Math.Min(2, ((string)datePadded).Length)));
         string? month = this.safeString(monthMappping, monthName);
-        object day = ((datePadded == null) ? null : ((string)datePadded).Substring(Math.Min(5, ((string)datePadded).Length), Math.Min(7, ((string)datePadded).Length) - Math.Min(5, ((string)datePadded).Length)));
+        string? day = ((datePadded == null) ? null : ((string)datePadded).Substring(Math.Min(5, ((string)datePadded).Length), Math.Min(7, ((string)datePadded).Length) - Math.Min(5, ((string)datePadded).Length)));
         if ((month == null))
         {
             throw new BadSymbol (((this.id + " invalid expiry date ") + date)) ;
         }
-        string? reconstructedDate = ((string)add(add(day, month), year));
+        string reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
 

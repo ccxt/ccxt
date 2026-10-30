@@ -497,7 +497,7 @@ public partial class kucoin : ccxt.kucoin
         (string?, object) spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams2(paramsUta, "watchTickers", "method", "spotMethod", "/market/ticker");
         string? spotMethod = spotMethodparamsSpotMethodVariable.Item1;
         IDictionary<string, object> paramsSpotMethod = ((IDictionary<string, object>)spotMethodparamsSpotMethodVariable.Item2);
-        object method = spotMethod;
+        string? method = spotMethod;
         if (isFuturesMethod)
         {
             method = "/contractMarket/ticker";
@@ -516,14 +516,14 @@ public partial class kucoin : ccxt.kucoin
                 string? symbol = ((string)symbolsNormalized[i]);
                 messageHashes.Add(("ticker:" + symbol));
                 Dictionary<string, object> market = this.market(symbol);
-                topics.Add(add(add(method, ":"), this.safeString(market, "id", "")));
+                topics.Add(((method + ":") + this.safeString(market, "id", "")));
             }
         }
         object url = await this.negotiate(false, isFuturesMethod);
         object tickers = null;
         if ((symbolsNormalized == null))
         {
-            string? allTopic = ((string)add(method, ":all"));
+            string? allTopic = ((string)(method + ":all"));
             tickers = await this.subscribe(url, messageHash, allTopic, query);
             if (this.newUpdates)
             {
@@ -532,7 +532,7 @@ public partial class kucoin : ccxt.kucoin
         } else
         {
             IList<object> marketIds = this.marketIds(symbolsNormalized);
-            string? symbolsTopic = ((string)add(add(method, ":"), String.Join(",", marketIds.ToArray())));
+            string? symbolsTopic = ((string)((method + ":") + String.Join(",", marketIds.ToArray())));
             tickers = await this.subscribeMultiple(url, messageHashes, symbolsTopic, topics, query);
             if (this.newUpdates)
             {
