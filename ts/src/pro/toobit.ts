@@ -95,7 +95,7 @@ export default class toobit extends toobitRest {
         for (let i = 0; i < message.length; i++) {
             const item = message[i];
             const event = this.safeString (item, 'e');
-            const method = (event === undefined) ? undefined : this.safeValue (methods, event);
+            const method = this.safeValue (methods, event);
             if (method !== undefined) {
                 method.call (this, client, item);
             }
@@ -166,7 +166,7 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
+        const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }
