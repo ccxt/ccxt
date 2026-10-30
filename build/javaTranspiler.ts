@@ -96,6 +96,7 @@ function overwriteFileAndFolder(path: string, content: string) {
         if (path.includes('/java/lib/')) { content = nativeJ05CallReceiverReads(content); } // hx10 wave-7 J05
         content = j12AsyncThrows(content); // hx10 wave-7 J12
         if (path.includes('/java/lib/')) { const typed = hx11w8JavaParseTyped(content); content = typed === content ? content : ensureJavaImports(typed, [ HX11W8_JSPARSE_IMPORT ]); } // hx11w8 parse
+        if (path.includes('/java/lib/')) { content = hx11w8PaginationCursorPuts(content); } // hx11 w8 pagination cursor, after the final element-write passes
     }
     overwriteFile(path, content);
 }
@@ -5857,7 +5858,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8JavaParseSelfTest(), hx11w8GetValueBaseReturnSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8JavaParseSelfTest(), hx11w8GetValueBaseReturnSelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -8864,6 +8865,74 @@ function hx11w8UrlsPlainMap (content: string): boolean {
         } else if (!/^\(Map<String, Object>\) this\.safeValue\(extendedProperties, "urls"\)$/.test (rhs)) return false;
     }
     return !/\bConcurrentHashMap<[^>]*>\s*\([^)]*\)[^;]*\burls\b/.test (content);
+}
+
+// hx11 w8 addPaginationCursorToResult: the cursor is written into a list element and the element stored back at its own index
+// (TS `first[k] = cursor; data[0] = first`). Inside the `cursor != null` / `size > 0` guards both helper calls are plain Map.put / List.set.
+export function hx11w8PaginationCursorPuts (content: string): string {
+    if (!/\baddPaginationCursorToResult\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let from = 0; from < lines.length; from++) {
+        if (!/^    public [^=;]* addPaginationCursorToResult\(/.test (lines[from])) continue;
+        let to = from + 1;
+        while (to < lines.length && !/^    (?:public|private|protected)\b/.test (lines[to])) to++;
+        const member = lines.slice (from, to).join ('\n');
+        const data = /\b(?:List<Object>|java\.util\.List<Object>|Object) (data)\b/.exec (member)?.[1];
+        const lenMatch = /Integer (\w+) = \(\(List<\?>\)data\)\.size\(\);/.exec (member);
+        if (data === undefined || lenMatch === null) continue;
+        const len = lenMatch[1];
+        if ((member.match (/\bInteger \w+ = /g) ?? []).length !== 1 || !new RegExp (`${len} != null && ${len} > 0`).test (member)) continue;
+        if (new RegExp (`(?<![\\w.])data\\s*=(?!=)`).test (member.replace (/(?:List<Object>|Object) data = /g, ''))) continue;
+        const dataIsList = new RegExp (`List<Object> data\\b`).test (member);
+        const listRef = dataIsList ? 'data' : '((List<Object>) data)';
+        const idxOk = (idx: string) => idx === '0' || idx === `(((long) ${len}) - 1L)`;
+        const stringGuarded = (v: string, at: number) => new RegExp (`String ${v} = [^\\n]*;`).test (member)
+            && (member.match (new RegExp (`(?<![\\w.])${v}\\s*=(?!=)`, 'g')) ?? []).length === 1
+            && lines.slice (from, at).some ((l) => l.includes (`!java.util.Objects.equals(${v}, null)`));
+        for (let i = from; i < to; i++) {
+            const line = lines[i];
+            const put = /^(\s*)Helpers\.addElementToObject\((\w+), ("\w+"), (\w+)\);$/.exec (line);
+            if (put !== null) {
+                const [ , ind, recv, key, v ] = put;
+                const elem = new RegExp (`^\\s*Object ${recv} = \\(data == null \\|\\| .*\\? null : .*data\\)?\\.get\\(.*\\)\\);$`);
+                const readBack = lines.slice (i + 1, to).some ((l) => new RegExp (`^\\s*Helpers\\.addElementToObject\\(data, (.+), ${recv}\\);$`).exec (l) !== null);
+                if (lines.slice (from, i).filter ((l) => elem.test (l)).length === 1 && readBack
+                    && (member.match (new RegExp (`\\b\\w+(?:<[^>]*>)? ${recv} = `, 'g')) ?? []).length === 1 && stringGuarded (v, i)) {
+                    lines[i] = `${ind}((Map<String, Object>)${recv}).put(${key}, ${v});`;
+                    changed = true;
+                }
+                continue;
+            }
+            const set = /^(\s*)Helpers\.addElementToObject\(data, (0|\(\(\(long\) \w+\) - 1L\)), (\w+)\);$/.exec (line);
+            if (set !== null && idxOk (set[2]) && lines.slice (from, i).some ((l) => new RegExp (`\\b${len} != null && ${len} > 0`).test (l))) {
+                lines[i] = `${set[1]}${listRef}.set(${set[2] === '0' ? '0' : `(int) ${set[2]}`}, ${set[3]});`;
+                changed = true;
+            }
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+export function hx11w8PaginationCursorSelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (sig: string, body: string) => `public class X\n{\n    public List<Object> addPaginationCursorToResult(${sig})\n    {\n${body}\n        return data;\n    }\n}\n`;
+    const guard = '        Integer dataLength = ((List<?>)data).size();\n        if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))\n        {\n';
+    const first = '            Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));\n';
+    const cases: [string, string, string, string | undefined][] = [
+        [ 'elem put and set', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
+        [ 'Object data last', 'String cursor, Object data', guard.replace ('Integer dataLength', 'Integer dataLength') + '            Helpers.addElementToObject(data, (((long) dataLength) - 1L), data);\n        }', '((List<Object>) data).set((int) (((long) dataLength) - 1L), data);' ],
+        [ 'unguarded cursor keeps helper', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n        Integer dataLength = ((List<?>)data).size();\n        if (dataLength != null && dataLength > 0)\n        {\n' + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', 'data.set(0, first)' ],
+    ];
+    for (const [ name, sig, body, expect ] of cases) {
+        const input = cls (sig, body);
+        const out = hx11w8PaginationCursorPuts (input);
+        const ok = name === 'unguarded cursor keeps helper'
+            ? out.includes ('Helpers.addElementToObject(first, "k", cursor)') && out.includes ('data.set(0, first)')
+            : out.includes (expect!);
+        if (!ok) problems.push (`hx11w8 pagination ${name}\n${out}`);
+    }
+    return problems;
 }
 
 // hx4 J34
