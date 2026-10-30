@@ -1704,7 +1704,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: Str, price: any) {
+    getPrice (symbol: Str, price: Str): Str {
         if (price === undefined) {
             return price;
         }
@@ -4314,7 +4314,7 @@ export default class bybit extends Exchange {
         };
         const hedged = this.safeBool (params, 'hedged', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly');
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
@@ -4528,9 +4528,9 @@ export default class bybit extends Exchange {
         }
         if ((hasStopLoss || hasTakeProfit) && !endpointIsTradingStop) {
             if (hasStopLoss) {
-                const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.getPrice (symbolValue, slTriggerPrice);
-                const slLimitPrice = this.safeValue (stopLoss, 'price');
+                const slLimitPrice = this.safeString (stopLoss, 'price');
                 if (slLimitPrice !== undefined) {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
@@ -4547,9 +4547,9 @@ export default class bybit extends Exchange {
                 }
             }
             if (hasTakeProfit) {
-                const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.getPrice (symbolValue, tpTriggerPrice);
-                const tpLimitPrice = this.safeValue (takeProfit, 'price');
+                const tpLimitPrice = this.safeString (takeProfit, 'price');
                 if (tpLimitPrice !== undefined) {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
