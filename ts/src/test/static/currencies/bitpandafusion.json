@@ -1,0 +1,42 @@
+{
+    "BTC": {
+        "info": { "symbol": "BTC", "name": "Bitcoin", "type": "crypto" },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": { "min": null, "max": null },
+            "withdraw": { "min": null, "max": null },
+            "deposit": { "min": null, "max": null }
+        }
+    },
+    "EUR": {
+        "info": { "symbol": "EUR", "name": "Euro", "type": "fiat" },
+        "id": "EUR",
+        "numericId": null,
+        "code": "EUR",
+        "precision": null,
+        "type": "fiat",
+        "name": "Euro",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": { "min": null, "max": null },
+            "withdraw": { "min": null, "max": null },
+            "deposit": { "min": null, "max": null }
+        }
+    }
+}
