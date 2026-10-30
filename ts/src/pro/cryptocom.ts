@@ -357,11 +357,9 @@ export default class cryptocom extends cryptocomRest {
         const trades = await this.watchPublicMultiple (topics, topics, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -465,11 +463,9 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const trades = await this.watchPrivateSubscribe (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -757,11 +753,9 @@ export default class cryptocom extends cryptocomRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -847,11 +841,9 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const orders = await this.watchPrivateSubscribe (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined) {

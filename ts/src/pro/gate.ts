@@ -992,11 +992,9 @@ export default class gate extends gateRest {
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -1110,11 +1108,9 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, messageHash, payload, channel, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -1281,11 +1277,9 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, messageHash, payload, channel, paramsSubType, requiresUid);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbol, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict) {
@@ -1718,11 +1712,9 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleOrder (client: Client, message: Dict) {

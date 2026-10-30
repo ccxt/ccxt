@@ -360,11 +360,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             channel = 'user.orders.' + market['id'] + '.' + interval;
         }
         const orders = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -393,11 +391,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             channels.push ('user.orders.' + this.marketId (symbolsResolved[i]) + '.' + interval);
         }
         const orders = await this.subscribe (channels, channels, true, paramsInterval);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (undefined, limit);
-        }
-        const ordersForSymbols = this.filterByArray (orders, 'symbol', symbolsResolved, false);
+        const cacheRead = this.getCacheRead (orders, undefined, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const ordersForSymbols = this.filterByArray (cacheRead['data'], 'symbol', symbolsResolved, false);
         return this.filterBySinceLimit (ordersForSymbols, since, limitResolved, 'timestamp', true);
     }
 
@@ -936,11 +932,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeString (resolved, 0);
         const timeframe = this.safeString (resolved, 1);
         const ohlcv = this.safeValue (resolved, 2);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol as string, timeframe as string, filtered);
     }
 
@@ -1070,13 +1064,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             channels.push ('trades.' + market['id'] + '.' + interval);
         }
         const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
-        let limitResolved: Int = limit;
+        let tradeSymbol: Str = undefined;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            tradeSymbol = this.safeString (first, 'symbol');
         }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        return this.filterBySinceLimit (cacheRead['data'], since, this.safeInteger (cacheRead, 'limit'), 'timestamp', true);
     }
 
     /**

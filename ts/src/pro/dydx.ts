@@ -60,11 +60,9 @@ export default class dydx extends dydxRest {
             'id': market['id'],
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -294,11 +292,9 @@ export default class dydx extends dydxRest {
             'id': market['id'] + '/' + resolution,
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**

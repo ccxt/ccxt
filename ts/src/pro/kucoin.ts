@@ -932,11 +932,9 @@ export default class kucoin extends kucoinRest {
             const topic = channelName + market['id'] + '_' + period;
             ohlcv = await this.subscribe (url, messageHash, topic, paramsUta);
         }
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -1144,11 +1142,9 @@ export default class kucoin extends kucoinRest {
             const trades = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsUta);
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
-            let limitResolved: Int = limit;
-            if (this.newUpdates) {
-                limitResolved = trades.getLimit (tradeSymbol, limit);
-            }
-            return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+            const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+            const limitResolved = this.safeInteger (cacheRead, 'limit');
+            return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
         }
         return await this.watchTradesForSymbols ([ symbol ], since, limit, paramsUta);
     }
@@ -1194,11 +1190,9 @@ export default class kucoin extends kucoinRest {
         const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -2030,11 +2024,9 @@ export default class kucoin extends kucoinRest {
             };
             orders = await this.subscribe (url, messageHash, topic, this.extend (request, paramsMarketType));
         }
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     getOrdersMessageHashSuffix (topic: Str): string {
@@ -2458,11 +2450,9 @@ export default class kucoin extends kucoinRest {
             }
             trades = await this.subscribe (url, messageHash, topic, this.extend (request, paramsTopic));
         }
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     getMyTradesMessageHashSuffix (topic: any): string {

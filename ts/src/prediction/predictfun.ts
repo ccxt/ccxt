@@ -3132,11 +3132,9 @@ export default class predictfun extends Exchange {
             await this.loadOutcomes ();
         }
         const orders = await this.watchWalletEvents (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (outcomeResolved, limitResolved);
-        }
-        return this.filterByOutcomeSinceLimit (orders, outcomeResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, outcomeResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterByOutcomeSinceLimit (cacheRead['data'], outcomeResolved, since, limitResolved, true);
     }
 
     /**
@@ -3164,11 +3162,9 @@ export default class predictfun extends Exchange {
             await this.loadOutcomes ();
         }
         const trades = await this.watchWalletEvents (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (outcomeResolved, limitResolved);
-        }
-        return this.filterByOutcomeSinceLimit (trades, outcomeResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, outcomeResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterByOutcomeSinceLimit (cacheRead['data'], outcomeResolved, since, limitResolved, true);
     }
 
     /**

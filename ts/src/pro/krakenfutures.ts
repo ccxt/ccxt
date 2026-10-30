@@ -264,11 +264,9 @@ export default class krakenfutures extends krakenfuturesRest {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -470,11 +468,9 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const orders = await this.subscribePrivate (name, messageHash, paramsVerbose);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (orders, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -499,11 +495,9 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate (name, messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**

@@ -3298,11 +3298,9 @@ export default class polymarket extends Exchange {
             messageHash = 'orders::' + outcomeResolved;
         }
         const orders = await this.subscribeUserChannel (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (outcomeResolved, limitResolved);
-        }
-        return this.filterByOutcomeSinceLimit (orders, outcomeResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, outcomeResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterByOutcomeSinceLimit (cacheRead['data'], outcomeResolved, since, limitResolved, true);
     }
 
     /**
@@ -3326,11 +3324,9 @@ export default class polymarket extends Exchange {
             messageHash = 'myTrades::' + outcomeResolved;
         }
         const trades = await this.subscribeUserChannel (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (outcomeResolved, limitResolved);
-        }
-        return this.filterByOutcomeSinceLimit (trades, outcomeResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, outcomeResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterByOutcomeSinceLimit (cacheRead['data'], outcomeResolved, since, limitResolved, true);
     }
 
     async subscribeUserChannel (messageHash: string, params: Dict = {}) {

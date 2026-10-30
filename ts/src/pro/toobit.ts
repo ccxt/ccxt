@@ -212,11 +212,9 @@ export default class toobit extends toobitRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -327,11 +325,9 @@ export default class toobit extends toobitRest {
             'event': 'sub',
         };
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -847,11 +843,9 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const orders: ArrayCache = await this.watch (url, messageHash, params, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -971,11 +965,9 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const trades: ArrayCache = await this.watch (url, messageHash, params, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {

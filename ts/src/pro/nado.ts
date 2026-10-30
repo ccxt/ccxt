@@ -98,11 +98,9 @@ export default class nado extends nadoRest {
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
         const trades = await this.watchPublic ('trade', market, messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -147,11 +145,9 @@ export default class nado extends nadoRest {
         const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -297,11 +293,9 @@ export default class nado extends nadoRest {
         };
         const result = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
         const stored = result[2];
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -336,11 +330,9 @@ export default class nado extends nadoRest {
             }, params));
         }
         const [ resultSymbol, resultTimeframe, stored ] = await this.watchPublicMultiple ('latest_candlestick', markets, messageHashes, params, subscriptionParams);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (resultSymbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, resultSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (resultSymbol, resultTimeframe, filtered);
     }
 
@@ -584,11 +576,9 @@ export default class nado extends nadoRest {
             'product_id': productId,
         };
         const orders = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -660,11 +650,9 @@ export default class nado extends nadoRest {
             'product_id': productId,
         };
         const trades = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**

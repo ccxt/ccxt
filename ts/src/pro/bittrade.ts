@@ -154,11 +154,9 @@ export default class bittrade extends bittradeRest {
             'params': params,
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict): Dict {
@@ -241,11 +239,9 @@ export default class bittrade extends bittradeRest {
             'params': params,
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {

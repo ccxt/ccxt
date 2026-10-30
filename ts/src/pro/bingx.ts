@@ -405,11 +405,9 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const result = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
@@ -956,11 +954,9 @@ export default class bingx extends bingxRest {
         };
         const result = await this.watch (url, messageHash, this.extend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -1059,11 +1055,9 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const orders: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1133,11 +1127,9 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**

@@ -678,11 +678,9 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -780,11 +778,9 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     /**
@@ -1009,11 +1005,9 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1050,11 +1044,9 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, paramsOmitted);
         const trades = await this.watchPrivate (messageHash, message);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {

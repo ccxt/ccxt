@@ -503,11 +503,9 @@ export default class derive extends deriveRest {
             'params': params,
         };
         const trades = await this.watchPublic (topic, request, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbol, since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -618,11 +616,9 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const orders = await this.watchPrivate (messageHash, message, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -775,11 +771,9 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const trades = await this.watchPrivate (messageHash, message, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {

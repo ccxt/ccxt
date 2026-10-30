@@ -511,11 +511,9 @@ export default class hyperliquid extends hyperliquidRest {
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
         await this.waitForPendingUnsubscribe (url, 'myTrades');
         const trades: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -832,11 +830,9 @@ export default class hyperliquid extends hyperliquidRest {
         const message = this.extend (request, params);
         await this.waitForPendingUnsubscribe (url, messageHash);
         const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -1005,11 +1001,9 @@ export default class hyperliquid extends hyperliquidRest {
         const message = this.extend (request, params);
         await this.waitForPendingUnsubscribe (url, messageHash);
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -1516,11 +1510,9 @@ export default class hyperliquid extends hyperliquidRest {
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
         await this.waitForPendingUnsubscribe (url, 'order');
         const orders: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**

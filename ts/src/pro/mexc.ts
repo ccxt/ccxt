@@ -627,11 +627,9 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         ohlcv = this.requireValue (ohlcv, 'watchOHLCV() ohlcv is required');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1045,11 +1043,9 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         trades = this.requireValue (trades, 'watchTrades() trades is required');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -1164,11 +1160,9 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         trades = this.requireValue (trades, 'watchMyTrades() trades is required');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
@@ -1353,11 +1347,9 @@ export default class mexc extends mexcRest {
             orders = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         orders = this.requireValue (orders, 'watchOrders() orders is required');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
