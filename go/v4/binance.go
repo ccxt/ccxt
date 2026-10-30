@@ -9563,8 +9563,8 @@ func (this *Binance) GenerateClientOrderId(optionalArgs ...any) string {
  * @param {string} method HTTP method
  * @returns {object} params with the injected client order id
  */
-func (this *Binance) HandleClientOrderId(params any, api string, path string, method any) any {
-	if !IsEqual(method, "POST") {
+func (this *Binance) HandleClientOrderId(params any, api string, path string, method string) any {
+	if method != "POST" {
 		return params
 	}
 	if (path == "order") || (path == "sor/order") || (path == "order/cancelReplace") || (path == "um/order") || (path == "cm/order") || (path == "margin/order") {
