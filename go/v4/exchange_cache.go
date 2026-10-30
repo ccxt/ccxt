@@ -574,6 +574,20 @@ func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 	return cache
 }
 
+// AsArrayCacheBySymbolById exposes the concrete order-cache methods without
+// replacing the cache. InitParent still preallocates a plain ArrayCache; wrap
+// that same storage and preserve its update-counting mode.
+func AsArrayCacheBySymbolById(value any) *ArrayCacheBySymbolById {
+	switch cache := value.(type) {
+	case *ArrayCacheBySymbolById:
+		return cache
+	case *ArrayCache:
+		return &ArrayCacheBySymbolById{cache}
+	default:
+		panic(fmt.Sprintf("expected order cache, got %T", value))
+	}
+}
+
 // GetLimit for nested caches delegates to the inner ArrayCache.
 func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) *int64 {
 	return c.ArrayCache.GetLimit(symbol, limit)

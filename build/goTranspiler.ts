@@ -7630,7 +7630,7 @@ ${caseStatements.join('\n')}
                 content = content.replace(/\bthis\.Exchange\./g, 'this.BaseExchange.');
                 // prediction exchanges merge REST + WS in one class, so apply the WS transforms
                 // (orderbook/side casts, client/future resolve, append, limit, ...) here too
-                content = this.regexAll (content, this.getWsRegexes());
+                content = nativeGoCacheAppends (this.regexAll (content, this.getWsRegexes()));
                 // the prediction exchanges live outside of package ccxt, so all the
                 // package-level types/functions of go/v4 need the ccxt. qualifier
                 // (this also rewrites the embedded struct member into ccxt.PredictionExchange)
@@ -7655,6 +7655,7 @@ ${caseStatements.join('\n')}
                 [ /(p \:\= &.*$)/gm, `$1\n\tbase := ${inheritedInstatiation}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
                 ...wsRegexes,
             ]);
+            content = nativeGoCacheAppends (content);
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
 
@@ -8851,6 +8852,78 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+// The WS fallback boxes Append receivers. Concrete cache locals instead call
+// the method directly; a Go type assertion is invalid on a concrete pointer.
+function nativeGoCacheAppends (content: string): string {
+    for (const range of goFuncBlockRanges (content).reverse ()) {
+        const body = content.slice (range.start, range.end);
+        const masked = goTextMaskLiteralsAndComments (body);
+        const signature = masked.trimStart ().split ('\n')[0];
+        const replacements: { start: number; end: number; name: string }[] = [];
+        for (const match of masked.matchAll (/(?<![\w.])(\w+)\.\(Appender\)\.Append\(/g)) {
+            const declaration = goAccessSingleDeclaration (masked, signature, match[1]);
+            if (/^\*ArrayCache(?:ByTimestamp|BySymbolById|ByOutcomeById|BySymbolBySide)?$/.test (declaration?.type ?? '')) {
+                replacements.push ({ start: match.index, end: match.index + match[0].length, name: match[1] });
+            }
+        }
+        let fixed = body;
+        for (const replacement of replacements.reverse ()) {
+            fixed = fixed.slice (0, replacement.start) + replacement.name + '.Append(' + fixed.slice (replacement.end);
+        }
+        content = content.slice (0, range.start) + fixed + content.slice (range.end);
+    }
+    return content;
+}
+
+function goCacheLocalTypesSelfTest (): string[] {
+    const problems: string[] = [];
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-cache-locals-'));
+    try {
+        const src = path.join (tmp, 'ts', 'src');
+        fs.mkdirSync (path.join (src, 'base', 'ws'), { recursive: true });
+        fs.mkdirSync (path.join (src, 'pro'), { recursive: true });
+        fs.writeFileSync (path.join (src, 'base', 'ws', 'Cache.ts'),
+            'export class ArrayCacheBySymbolById { clear () {} append (v: any) {} }\n'
+            + 'export class ArrayCacheByTimestamp { clear () {} append (v: any) {} }\n');
+        const file = path.join (src, 'pro', 'test.ts');
+        fs.writeFileSync (file,
+            "import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolById as OrderCache } from '../base/ws/Cache.js';\n"
+            + 'class Test { orders: any;\n'
+            + 'f1 () { const cachedOrders = this.orders as ArrayCacheBySymbolById; cachedOrders.clear (); cachedOrders.append ({}); }\n'
+            + 'f2 () { const pending = this.orders as ArrayCacheBySymbolById; pending.clear (); pending.append ({}); }\n'
+            + 'f3 () { const candles = this.orders as ArrayCacheByTimestamp; candles.clear (); candles.append ([]); }\n'
+            + 'f4 (other: any) { let rebound = this.orders as ArrayCacheBySymbolById; rebound = other; rebound.clear (); }\n'
+            + 'f5 () { const outer = this.orders as ArrayCacheBySymbolById; if (true) { const outer = this.orders; outer.clear (); } outer.clear (); }\n'
+            + 'f6 () { const buffer = this.orders; buffer.clear (); buffer.append ({}); }\n'
+            + 'f7 () { const renamed = this.orders as OrderCache; renamed.clear (); renamed.append ({}); }\n'
+            + 'f8 (ArrayCacheBySymbolById: any) { const shadowedType = this.orders as OrderCache; shadowedType.clear (); }\n'
+            + '}');
+        const t = new Transpiler ({ verbose: false, go: {} });
+        installCcxtGoLocalTypes (t.goTranspiler);
+        const raw = t.transpileGoByPath (file).content;
+        const driver = new NewTranspiler ();
+        const go = nativeGoCacheAppends (driver.regexAll (raw, driver.getWsRegexes ()));
+        const ok = (value: boolean, message: string) => { if (!value) { problems.push ('cache locals: ' + message); } };
+        for (const [ name, type ] of [ [ 'cachedOrders', 'ArrayCacheBySymbolById' ], [ 'pending', 'ArrayCacheBySymbolById' ], [ 'candles', 'ArrayCacheByTimestamp' ], [ 'renamed', 'ArrayCacheBySymbolById' ] ]) {
+            const value = (type === 'ArrayCacheBySymbolById') ? 'AsArrayCacheBySymbolById(this.Orders)' : 'this.Orders.(*' + type + ')';
+            ok (go.includes ('var ' + name + ' *' + type + ' = ' + value), name + ' keeps its concrete type');
+            ok (go.includes (name + '.Clear()') && go.includes (name + '.Append('), name + ' calls cache methods directly');
+        }
+        ok (go.includes ('var rebound any = this.Orders'), 'rebound local keeps its box');
+        ok (go.includes ('var outer any = this.Orders'), 'shadowed local keeps its box');
+        ok (go.includes ('var shadowedType any = this.Orders'), 'shadowed Go type name keeps the box');
+        ok (go.includes ('buffer.Clear()') && go.includes ('buffer.(Appender).Append('), 'untyped receiver stays unchanged');
+        ok (!go.includes ('interface{ Clear() }'), 'no name-based Clear assertion');
+        const quoted = '\nfunc f() {\nvar c *ArrayCacheBySymbolById = nil\nprintln("c.(Appender).Append(1)")\n// c.(Appender).Append(1)\n}';
+        ok (nativeGoCacheAppends (quoted) === quoted, 'strings and comments stay unchanged');
+    } catch (e: any) {
+        problems.push ('cache locals threw: ' + e.message);
+    } finally {
+        fs.rmSync (tmp, { recursive: true, force: true });
+    }
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -8862,6 +8935,7 @@ async function runMain () {
     }
     if (process.argv.includes ('--self-test')) {
         const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ());
+        problems.push (...goCacheLocalTypesSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
