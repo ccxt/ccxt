@@ -15417,6 +15417,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36
     content = g09Pass (content);  // hx10w2 G09
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: the guard literals in the base files too
+    content = hx11w8TypedFieldNilFold (content);  // hx11 w8: RateLimit/Id are never nil
     return gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
