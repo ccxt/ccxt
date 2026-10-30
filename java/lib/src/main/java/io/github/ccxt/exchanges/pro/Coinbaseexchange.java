@@ -674,7 +674,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             String currentSide = this.safeString(parsed, "side");
-            Helpers.addElementToObject(parsed, "side", this.safeString(new HashMap<String, Object>() {{
+            parsed.put("side", this.safeString(new HashMap<String, Object>() {{
     put( "buy", "sell" );
     put( "sell", "buy" );
 }}, currentSide, currentSide));

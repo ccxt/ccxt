@@ -4231,7 +4231,7 @@ public class Backpack extends BackpackApi
             Map<String,Object> sortedOrder = this.keysort(order);
             String orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
-            if (Helpers.isEqual(i, ((paramsLength - 1L))))
+            if ((((long) i) == (paramsLength - 1L)))
             {
                 payload = (payload + ((("timestamp=" + ts) + "&window=") + recvWindow));
             }

@@ -2725,7 +2725,7 @@ public class Grvt extends GrvtApi
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
             Object precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
-            Object sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
+            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
             {
