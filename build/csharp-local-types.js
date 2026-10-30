@@ -16501,7 +16501,9 @@ function csharpArgumentAssignable (target, source, argument) {
 // every call site of the parameter's method must prove: the name occurs in no other corpus
 // file, and each checker-resolved site passes a provable argument at this position
 function csharpParameterCallSitesProve (csharp, parameter, target) {
-    const literalOnly = hx11w8AsyncStringAlias (parameter.type?.getText?.(), parameter) !== undefined;
+    const stringAlias = hx11w8AsyncStringAlias (parameter.type?.getText?.(), parameter);
+    const literalOnly = stringAlias?.literalOnly === true;
+    const printedOnly = stringAlias?.literalOnly === false;
     const owner = parameter.parent;
     const name = owner.name.text;
     const position = owner.parameters.indexOf (parameter);
@@ -16552,7 +16554,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
         || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
         || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
-    if ((literalOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || hx4C09CalledParameterTarget (target))
+    if ((literalOnly || printedOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || hx4C09CalledParameterTarget (target))
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
     }
@@ -16561,7 +16563,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (site.declarations.indexOf (owner) < 0) {
             continue; // a site binding another class's method
         }
-        if (!literalOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !hx4C09CalledParameterTarget (target)) {
+        if (!literalOnly && !printedOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !hx4C09CalledParameterTarget (target)) {
             return false; // a called method's value-type parameters are not this rule's
         }
         resolved++;
@@ -16569,6 +16571,14 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (literalOnly) {
             if (!ts.isStringLiteralLike (argument)) {
                 return false; // hx11 w8: only a string literal is a provably non-null string
+            }
+            continue;
+        }
+        if (printedOnly) {
+            // hx11 w8: a TS `string` argument (never undefined) that also prints as a C# string
+            const printed = hx11w8TsStringArgument (csharp, argument) ? csharpArgumentType (csharp, argument, target) : undefined;
+            if (printed !== 'string' && printed !== 'string?') {
+                return false;
             }
             continue;
         }
@@ -16587,18 +16597,27 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     return resolved >= (occurrences?.get (declaringRel) ?? 0);
 }
 
-// hx11 w8: a required `string` parameter of an exchange-local async helper whose every call site
-// passes a string literal prints `string` (non-null), so `add (add (p, "@"), x)` on it prints native
-// concatenation. Same corpus proof as the Dict rule; the alias only exists for such parameters.
+// hx11 w8: a required `string` parameter of an exchange-local helper prints `string` (non-null), so
+// `add (add (p, "@"), x)` on it prints native concatenation. Async: every call site passes a string
+// literal; sync: every caller passes a TS `string` that prints as C# string/string?.
 function hx11w8AsyncStringAlias (alias, parameter) {
     if ((alias !== 'string') || (parameter?.initializer !== undefined) || (parameter?.questionToken !== undefined)
         || (parameter?.dotDotDotToken !== undefined)) {
         return undefined;
     }
-    return { 'type': 'string', 'value': false, 'literalOnly': true };
+    const isAsync = (parameter.parent?.kind === ts.SyntaxKind.MethodDeclaration) && csharpMethodHasModifier (parameter.parent, ts.SyntaxKind.AsyncKeyword);
+    return { 'type': 'string', 'value': false, 'literalOnly': isAsync };
 }
 
-// the parameter is a proven non-null `string` (the async literal-callers rule above)
+function hx11w8TsStringArgument (csharp, argument) {
+    try {
+        return (argument !== undefined) && (csharp.getChecker ().typeToString (csharp.getChecker ().getTypeAtLocation (argument)) === 'string');
+    } catch (e) {
+        return false;
+    }
+}
+
+// the parameter is a proven non-null `string` (the caller rules above)
 function hx11w8NonNullStringParam (csharp, identifier) {
     const declaration = csharpIdentifierDeclaration (csharp, identifier);
     return (declaration?.kind === ts.SyntaxKind.Parameter) && (hx11w8AsyncStringAlias (declaration.type?.getText?.(), declaration) !== undefined)
@@ -16634,7 +16653,6 @@ function csharpParameterDecision (csharp, parameter, expected) {
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
         || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true))
-        || ((mapped.literalOnly === true) && !csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
