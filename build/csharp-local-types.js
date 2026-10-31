@@ -2452,6 +2452,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // `walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey)` into the local.
     'ethGetAddressFromPrivateKey': 'string',
     'getWsUrl': 'string?', // pro/{binance,paradex,coinbaseinternational} all print `string? getWsUrl`
+    // zaif#customNonce: sole declaration tree-wide, ts `: string`, prints `string? customNonce()`
+    'customNonce': 'string?',
 };
 
 // bare `name(...)` calls (a plain Identifier callee, no `this.`): C# resolves them to the
