@@ -2711,6 +2711,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'fetchCurrenciesFromCache': 'Dictionary<string, object>',
     // dydx fetchLatestBlockHeight (only declaration; prints Task<Int64>, typed-core Int64 awaits unwrapped)
     'fetchLatestBlockHeight': 'Int64',
+    // htx fetchAccountIdByType: sole declaration is Task<string> (every path safeString)
+    'fetchAccountIdByType': 'string?',
 };
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
