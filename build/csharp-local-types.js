@@ -15295,6 +15295,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
 ||||||| parent of cf74941fb66 (cs: awaited-core findAccountId -> string?)
     // coinbase: safeString (account, 'id') or null — one string? box
     'findAccountId': 'string?',
+||||||| parent of aa66e66fd16 (cs: awaited-core getMarketsPaginated -> List<object>)
+    // derive: the single path returns the List<object> allInstruments local
+    'getMarketsPaginated': 'List<object>',
 };
 
 const awaitedCoreProofs = new WeakMap ();
