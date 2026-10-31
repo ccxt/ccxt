@@ -9734,6 +9734,10 @@ function j39Member (member: string, fresh: () => string): string {
             const l = fresh (), s = fresh (), o = fresh ();
             return `(switch ((Object)(${args[0]})) { case null -> 0; case java.util.List<?> ${l} -> ${l}.size(); case String ${s} -> ${s}.length(); case Object ${o} -> ${o}.getClass().isArray() ? java.lang.reflect.Array.getLength(${o}) : 0; })`;
         }
+        if (helper === 'objectKeys' && args.length === 1 && /^this\.(?:currencies|timeframes)$/.test (args[0])) {
+            // BaseExchange declares both fields Map<String, Object> and replaces (never mutates) the map
+            return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`;
+        }
         if (helper === 'objectKeys' && args.length === 1) {
             const m = fresh ();
             return `((java.util.List<Object>) switch ((Object)(${args[0]})) { case java.util.Map<?, ?> ${m} -> { synchronized (${m}) { yield new java.util.ArrayList<Object>(${m}.keySet()); } } case null, default -> new java.util.ArrayList<Object>(); })`;
