@@ -637,25 +637,13 @@ export function hx10G10SelfTest (): string[] {
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
     ok (f ('', '\tthis.Trades = this.CreateSafeDictionary(true)\n').indexOf ('\tthis.Trades = map[string]any{}') >= 0, 'cache init prints a map literal');
-    // a nil-guarded *string key into a base map: one nil check, then the native comma-ok
-    const g = (sig: string, body: string) => hx11w9NilGuardInOpPass ('func (this *X) H(' + sig + ') {\n' + body + '}\n');
-    const nilGuard = (sig: string, guard: string, tail = '') => g (sig, '\tif ' + guard + ' {\n\t\tx = GetValue(this.Markets(), symbol)\n\t}' + tail + '\n');
-    ok (nilGuard ('symbol *string', '(symbol != nil) && (this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('\tif symbol != nil {\n\t\tif _, ok := this.Markets()[*symbol]; ok {\n\t\t\tx = this.Markets()[*symbol]') >= 0, 'guard present goes native');
-    ok (nilGuard ('symbol *string', '(!ccxt.IsEqual(symbol, nil)) && (ccxt.InOp(this.Markets_by_id(), symbol))').indexOf ('this.Markets_by_id()[*symbol]; ok') >= 0, 'IsEqual guard goes native');
-    ok (nilGuard ('symbol *string', '(this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'guard absent keeps InOp');
-    ok (nilGuard ('symbol any', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'an any key keeps InOp');
-    ok (nilGuard ('symbol *string', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))', '').indexOf ('x = this.Markets()[*symbol]') >= 0, 'plain tail');
-    ok (g ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\tsymbol = this.SafeString(m, \"s\")\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'a key rebound inside the block keeps InOp');
-    ok (nilGuard ('symbol *string', '(symbol != nil) && (ccxt.InOp(this.Markets(), symbol))', '\n\tif y {\n\t}').indexOf ('InOp(') < 0, 'a sibling block is left alone');
-    ok (g ('symbol *string', '\tif (symbol != nil) && (ccxt.InOp(this.Markets(), symbol)) {\n\t\ta()\n\t} else {\n\t\tb()\n\t}\n').indexOf ('InOp(this.Markets(), symbol)') >= 0, 'an else arm keeps InOp');
-    ok (g ('symbol *string', '\tvar known bool = (symbol != nil) && (this.Markets() != nil) && (ccxt.InOp(this.Markets(), symbol))\n').indexOf ('\tvar known bool\n\tif symbol != nil {\n\t\t_, known = this.Markets()[*symbol]\n\t}') >= 0, 'a bool initialiser goes native');
     // a field outside the family is untouched
     ok (f ('', '\tthis.Balance = this.CreateSafeDictionary(true)\n').indexOf ('this.CreateSafeDictionary(true)') >= 0, 'Balance keeps the sync.Map init');
     return problems;
 }
 
-// `if (k != nil) && (m != nil) && (InOp(m, k)) {` with k a `*string` and m a plain map[string]any: the same
-// `&&` guard proves k non-nil, so the lookup is a native comma-ok behind one `k != nil` check
+// the base market/currency accessors (nil-safe maps) and the `&&` operands of a printed condition, shared with the
+// a9f or-hoist and field-index passes
 export const NIL_SAFE_MAP = /^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)\(\)$/;
 
 export function hx11w9Terms (line: string, masked: string): string[] | undefined {
@@ -681,99 +669,6 @@ export function hx11w9Terms (line: string, masked: string): string[] | undefined
         }
     }
     return (depth === 0) ? terms : undefined;
-}
-
-// the lookup shape of a condition: the key, the receiver, or undefined when anything else is in it
-function hx11w9Lookup (cond: string, maskedCond: string, decls: Map<string, Decl>): { key: string, receiver: string } | undefined {
-    const terms = hx11w9Terms (cond, maskedCond);
-    const inops = (terms ?? []).map (t => /^(?:ccxt\.)?InOp\((.+), (\w+)\)$/.exec (t)).filter (m => m !== null);
-    if ((terms === undefined) || (inops.length !== 1) || (inops[0] === null)) {
-        return undefined;
-    }
-    const [ , receiver, key ] = inops[0];
-    const decl = decls.get (receiver);
-    if (!NIL_SAFE_MAP.test (receiver) && (decl?.type !== 'map[string]any')) {
-        return undefined;
-    }
-    const isGuard = (t: string) => (t === key + ' != nil') || new RegExp ('^!(?:ccxt\\.)?IsEqual\\(' + key + ', nil\\)$').test (t);
-    const guardAt = terms.findIndex (isGuard);
-    const inopAt = terms.findIndex (t => /^(?:ccxt\.)?InOp\(/.test (t));
-    const rest = terms.filter ((t, i) => (i !== guardAt) && (i !== inopAt) && (t !== receiver + ' != nil'));
-    return ((guardAt >= 0) && (guardAt < inopAt) && (terms.filter (isGuard).length === 1) && (rest.length === 0)) ? { key, receiver } : undefined;
-}
-
-export function hx11w9NilGuardInOpPass (content: string): string {
-    if (!/\bInOp\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goChanMask (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    const out: string[] = [];
-    let k = 0;
-    while (k < lines.length) {
-        if (!lines[k].startsWith ('func (this *')) {
-            out.push (lines[k]);
-            k++;
-            continue;
-        }
-        let end = k;
-        while ((end < lines.length) && (lines[end] !== '}')) {
-            end++;
-        }
-        const body = lines.slice (k, end + 1);
-        const maskedBody = masked.slice (k, end + 1);
-        const decls = hx10G10Decls (body, body[0]);
-        const plain = hx10G10OkIsIfLocal (maskedBody);
-        for (let i = 1; i < body.length; i++) {
-            const head = /^(\t*)if (.+) \{$/.exec (maskedBody[i]);
-            const flag = /^(\t*)var (\w+) bool = (.+)$/.exec (maskedBody[i]);
-            const m = head ?? flag;
-            if ((m === null) || !plain || /;/.test (maskedBody[i]) || !/\bInOp\(/.test (maskedBody[i])) {
-                continue;
-            }
-            const maskedCond = m[m.length - 1];
-            const at = body[i].length - maskedCond.length - ((head !== null) ? 2 : 0);
-            const view = hx10G10DeclsAt (body, maskedBody, decls, i);
-            const look = hx11w9Lookup (body[i].substring (at, at + maskedCond.length), maskedCond, view);
-            if ((look === undefined) || (view.get (look.key)?.type !== '*string')) {
-                continue;
-            }
-            const indent = m[1];
-            const read = look.receiver + '[*' + look.key + ']';
-            if (flag !== null) {
-                body.splice (i, 1, indent + 'var ' + m[2] + ' bool', indent + 'if ' + look.key + ' != nil {', indent + '\t_, ' + m[2] + ' = ' + read, indent + '}');
-                maskedBody.splice (i, 1, ...body.slice (i, i + 4).map (l => goChanMask (l)));
-                i += 3;
-                continue;
-            }
-            // only a then-block with no else arm: the nil case then falls straight past it
-            let close = i + 1;
-            while ((close < body.length) && !maskedBody[close].startsWith (indent + '}')) {
-                close++;
-            }
-            if ((close >= body.length) || (maskedBody[close] !== indent + '}')) {
-                continue;
-            }
-            const writes = new RegExp ('(?<![\\w.*&])' + look.key + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|&' + look.key + '\\b');
-            if (maskedBody.slice (i + 1, close).some (l => writes.test (l))) {
-                continue; // the block rebinds the key: the lookup would read a different one
-            }
-            const reads = [ 'GetValue(' + look.receiver + ', ' + look.key + ')', 'ccxt.GetValue(' + look.receiver + ', ' + look.key + ')' ];
-            const inner = body.slice (i + 1, close).map (l => reads.reduce ((acc, r) => acc.split (r).join (read), (l === '' ? l : '\t' + l)));
-            const opened = [ indent + 'if ' + look.key + ' != nil {', indent + '\tif _, ok := ' + read + '; ok {' ];
-            const closed = [ indent + '\t}', indent + '}' ];
-            const replacement = opened.concat (inner, closed);
-            body.splice (i, close - i + 1, ...replacement);
-            maskedBody.splice (i, close - i + 1, ...goChanMask (replacement.join ('\n')).split ('\n'));
-            i += 1;
-        }
-        out.push (...body);
-        k = end + 1;
-    }
-    return out.join ('\n');
 }
 
 // the swap runs on the settled output: the inner `if k != nil {` is what the guarded write above printed

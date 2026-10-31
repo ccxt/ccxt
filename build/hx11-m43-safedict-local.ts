@@ -83,7 +83,9 @@ export function m43UseKeepsMap (s: string, col: number, name: string): boolean {
     if (/\bIsArray\($/.test (before)) {
         return false; // the box folds `!Array.isArray(x)` to `if true`; a map would print IsArray
     }
-    if (/^\s*(?:\.|\[|:(?!=))/.test (after)) {
+    // the printer's own native comma-ok read `if _, ok := x[k]; ok {` indexes the map the local is about to be typed as
+    const commaOk = /\bif _, \w+ := $/.test (before) && /^\[\*?\w+\]; \w+ \{$/.test (after);
+    if (!commaOk && /^\s*(?:\.|\[|:(?!=))/.test (after)) {
         return false; // assertion, selector, index, keyed field
     }
     if (/^\s*[!=]=(?!\s*nil\b)/.test (after)) {
