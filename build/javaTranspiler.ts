@@ -8094,6 +8094,9 @@ function j26Member (member: string, className: string): string {
         if (/^[A-Za-z_]\w*$/.test (e)) return assumed.has (e) || declaredMap (e);
         const t = j26Ternary (e);
         if (t !== undefined) return depth < 4 && proves (t[1], assumed, depth + 1) && proves (t[2], assumed, depth + 1);
+        // toMapArg of a proven Map is the identity (the tuple's params argument echoes the local)
+        const wrapped = /^Helpers\.toMapArg\(([A-Za-z_]\w*)\)$/.exec (e);
+        if (wrapped !== null) return proves (wrapped[1], assumed, depth + 1);
         const call = /^(this\.\w+\(|Helpers\.newMap\()/.exec (e);
         if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1) {
             if (call[1] === 'Helpers.newMap(' || /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/.test (call[1])) return true;
@@ -8178,6 +8181,8 @@ function j26MapLocalsSelfTest (): string[] {
         // positives: Pair slot, omit of a Map, audited tuple slot 1, base handle* over a Map params argument
         [ 'pair + tuple slot', '        Object q = null;\n        Pair<String, Map<String, Object>> aqVariable = this.handleMarginModeAndParams("x", parameters, (String) null);\n        q = aqVariable.second();\n        List<Object> bqVariable = (List<Object>) this.handleProductTypeAndParams(null, Helpers.toMapArg(q));\n        q = ((List<Object>) bqVariable).get(1);\n        return this.f(Helpers.toMapArg(q));',
             'java.util.Map<String, Object> q = null;' ],
+        [ 'postOnly echo', '        Object q = this.omit(parameters, "a");\n        List<Object> pqVariable = (List<Object>) this.handlePostOnly(false, false, Helpers.toMapArg(q));\n        q = ((List<Object>) pqVariable).get(1);\n        return this.f(Helpers.toMapArg(q));',
+            'java.util.Map<String, Object> q = this.omit(parameters, "a");' ],
         [ 'omit of Map', '        Object o = this.omit(parameters, "a");\n        return this.f(Helpers.toMapArg(o));', 'java.util.Map<String, Object> o = this.omit(parameters, "a");\n        return this.f(o);' ],
         [ 'handleParamString over Map', '        List<Object> vxVariable = (List<Object>) this.handleParamString(parameters, "k", (String) null);\n        var x = ((List<Object>) vxVariable).get(1);\n        return this.f(Helpers.toMapArg(x));', 'java.util.Map<String, Object> x = (java.util.Map<String, Object>) ((List<Object>) vxVariable).get(1);' ],
         // negatives: Object params argument, Object omit source, unaudited producer, foreign venue, String cast use
