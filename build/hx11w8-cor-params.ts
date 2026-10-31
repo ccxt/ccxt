@@ -131,6 +131,24 @@ export function installHx11w8CorParams (goTranspiler: any) {
                 && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
         };
     }
+    // hx11 w8 printer-go-gate-pro-getmarkettypebyurl: pro/gate only, keyed by class + method. Its one caller passes
+    // `client.url` of a `client: Client` parameter, which Go prints as the string `GetUrl()`.
+    const upstreamUrl = goTranspiler.goParameterCallSitesPassType;
+    goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
+        if (upstreamUrl.call (this, fn, index, goType)) { return true; }
+        if ((goType !== 'string') || (index !== 0) || (fn?.name?.text !== 'getMarketTypeByUrl') || (this.goEnclosingClassName (fn) !== 'gate')
+            || !/[\\/]pro[\\/]gate\.ts$/.test (fn.getSourceFile ().fileName)) { return false; }
+        const calls = this.goSameFileCallsOf (fn, 'getMarketTypeByUrl');
+        const tree = this.goTsSrcTree (fn.getSourceFile ());
+        if ((calls.length === 0) || ((tree?.callIndex.get ('getMarketTypeByUrl') ?? []).length !== calls.length)) { return false; }
+        return calls.every ((call: any) => {
+            const arg = call.arguments?.[0];
+            const holder = arg?.expression;
+            if ((arg?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (arg.name.text !== 'url') || (holder?.kind !== ts.SyntaxKind.Identifier)) { return false; }
+            const decl = this.checkerOrUndefined ()?.getSymbolAtLocation (holder)?.valueDeclaration?.resolve?.();
+            return (decl?.kind === ts.SyntaxKind.Parameter) && (decl.type?.getText () === 'Client');
+        });
+    };
     const upstream = goTranspiler.goParameterCallSitesPassType;
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
