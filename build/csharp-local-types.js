@@ -6666,6 +6666,17 @@ function isStringReturningCall (csharp, node) {
     return own === 'string' || own === 'string?';
 }
 
+// `node` (through parentheses) is the right side of a plain `x = <node>` statement write
+function isPlainAssignmentValue (node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    return parent?.kind === ts.SyntaxKind.BinaryExpression && parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+        && parent.right === current && parent.parent?.kind === ts.SyntaxKind.ExpressionStatement;
+}
+
 // the C# type of an initializer / assigned value, or undefined when it cannot be proven.
 // 'null' is returned for a literal null/undefined so assignable() can accept it for
 // nullable targets. Falls back to the printer's own classifier for its families.
@@ -6754,11 +6765,6 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (arithmetic !== undefined) {
             return arithmetic;
         }
-        // `(a - b)` printed natively under a dominating null test (nativeGuardedSubtractExpression):
-        // a lifted Int64? minus an int-like operand, the same Int64 box subtract() hands back
-        if (node.operatorToken.kind === ts.SyntaxKind.MinusToken && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
-            return 'Int64?';
-        }
         // a pair installCsharpNativeArithmetic prints as the C# operator (`(x + 10000)` over an
         // `Int64?` left): the operator's own static type is the declaration (the lifted `+` of a
         // nullable left stays nullable) — exactly the kind the emitted expression carries
@@ -6772,6 +6778,13 @@ export function csharpTypeOfValue (csharp, node, context) {
                     return kind;
                 }
             }
+        }
+        // `x = (a - b)` WRITE printed natively under a dominating null test
+        // (nativeGuardedSubtractExpression): lifted Int64? minus an int-like, the same Int64 box
+        // subtract() returns. Writes only: initialisers and arm types keep their old answer.
+        if (nativeOp === ts.SyntaxKind.MinusToken && isPlainAssignmentValue (node)
+            && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
+            return 'Int64?';
         }
         break;
     }
