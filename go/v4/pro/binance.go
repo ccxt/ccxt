@@ -4881,11 +4881,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		// route to WebSocket API connection where the user data stream is subscribed
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6030,11 +6026,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		// route orders to ws-api user data stream
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -7301,11 +7293,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	if (typeVar == "spot") || (typeVar == "margin") {
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"

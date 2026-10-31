@@ -2299,7 +2299,6 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var cost *string = nil
 	cost, paramsCost := this.HandleParamString(params, "cost")
 	if (typeVar == "market") && (side == "buy") {
 		if cost == nil {
@@ -2335,7 +2334,6 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		"symbol":   market["id"],
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	var reduceOnly *bool = nil
 	reduceOnly, paramsReduceOnly := this.HandleParamBool(params, "reduceOnly")
 	if side == "buy" {
 		request["side"] = func() string {
@@ -3341,7 +3339,6 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchTradingFees(): does not support " + *marketType + " markets"))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
-		var symbol *string = nil
 		symbol, paramsSymbol := this.HandleParamString(paramsMarketType, "symbol")
 		if symbol == nil {
 			panic(BadRequest(this.Id + " fetchTradingFees requires a params[\"symbol\"]"))

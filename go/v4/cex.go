@@ -1237,7 +1237,6 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountName *string = nil
 	accountName, paramsAccount := this.HandleParamString(params, "account", "") // default is empty string
 	method, paramsMethod := this.HandleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance")
 	var accountBalance any = nil
@@ -1540,8 +1539,8 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1459, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1459
+	listRecv1462, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv1462
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -1585,8 +1584,8 @@ func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1496, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1496
+	listRecv1499, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv1499
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}

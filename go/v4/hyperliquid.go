@@ -3246,8 +3246,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3085, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv3085
+	listRecv3087, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = listRecv3087
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -5797,8 +5797,8 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5467, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5467
+		listRecv5469, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5469
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = isUnifiedqueryVariable[1]
 		useSendAsset = (isUnified == true)

@@ -7704,7 +7704,6 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets() == nil {
@@ -7715,7 +7714,7 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var hasTag bool = (tagWithdrawTag != nil) && (GetLength(tagWithdrawTag) > 0)
+	var hasTag bool = (tagWithdrawTag != nil) && (len(*tagWithdrawTag) > 0)
 	var addressWithTag any = address
 	if hasTag {
 		addressWithTag = Add(Add(address, ":"), tagWithdrawTag)
