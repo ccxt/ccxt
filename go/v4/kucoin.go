@@ -7410,11 +7410,7 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 			var methodOptions map[string]any = SafeMapTyped(this.Options, "fetchOrdersByStatus")
 			var methodDefaultType *string = this.SafeString2(methodOptions, "defaultType", "type")
 			if methodDefaultType == nil {
-				if derefPtr := this.SafeString2(this.Options, "defaultType", "type", "spot"); derefPtr != nil {
-					marketType = *derefPtr
-				} else {
-					marketType = nil
-				}
+				marketType = (*this.SafeString2(this.Options, "defaultType", "type", "spot"))
 			} else {
 				marketType = methodDefaultType
 			}

@@ -1843,11 +1843,7 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 	}
 	var isActive any = false
 	if contract {
-		if derefPtr := this.SafeBool(market, "isOpenApi", false); derefPtr != nil {
-			isActive = *derefPtr
-		} else {
-			isActive = nil
-		}
+		isActive = (*this.SafeBool(market, "isOpenApi", false))
 	} else {
 		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true

@@ -2687,10 +2687,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		}(this)
 
 	}
-	var taker any
-	if derefPtr := this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"); derefPtr != nil {
-		taker = *derefPtr
-	}
+	var taker any = (*this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
 	var takerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "taker", taker)
 	taker = ccxt.GetValue(takerparamsValueVariable, 0)
 	paramsValue = takerparamsValueVariable[1]

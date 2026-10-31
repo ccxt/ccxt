@@ -1865,28 +1865,20 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 	var newOrderRespTypes any = this.SafeValue(options, "newOrderRespType", map[string]any{})
-	var newOrderRespType any = "FULL"
+	var newOrderRespType string = "FULL"
 	// if limit order
 	if (orderType != nil && *orderType == "LIMIT") || (orderType != nil && *orderType == "STOP_LOSS_LIMIT") || (orderType != nil && *orderType == "TAKE_PROFIT_LIMIT") || (orderType != nil && *orderType == "LIMIT_MAKER") {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		if derefPtr := this.SafeString(newOrderRespTypes, "limit", "FULL"); derefPtr != nil {
-			newOrderRespType = *derefPtr
-		} else {
-			newOrderRespType = nil
-		}
+		newOrderRespType = (*this.SafeString(newOrderRespTypes, "limit", "FULL"))
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		if orderType == nil || *orderType != "LIMIT_MAKER" {
 			request["timeInForce"] = this.SafeString(options, "timeInForce", "GTC")
 		}
 	} else if (orderType != nil && *orderType == "MARKET") || (orderType != nil && *orderType == "STOP_LOSS") || (orderType != nil && *orderType == "TAKE_PROFIT") {
-		if derefPtr := this.SafeString(newOrderRespTypes, "market", "FULL"); derefPtr != nil {
-			newOrderRespType = *derefPtr
-		} else {
-			newOrderRespType = nil
-		}
+		newOrderRespType = (*this.SafeString(newOrderRespTypes, "market", "FULL"))
 		if orderSide != nil && *orderSide == "SELL" {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
 		} else if orderSide != nil && *orderSide == "BUY" {

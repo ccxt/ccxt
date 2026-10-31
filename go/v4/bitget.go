@@ -6255,11 +6255,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
-		if derefPtr := this.SafeBool(market, "stock", false); derefPtr != nil {
-			stockDefault = *derefPtr
-		} else {
-			stockDefault = nil
-		}
+		stockDefault = (*this.SafeBool(market, "stock", false))
 	}
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}

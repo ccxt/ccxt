@@ -4166,7 +4166,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if timeInForce != nil && *timeInForce == "PO" {
 		postOnly = true
 	} else {
-		postOnly = DerefScalar(this.SafeBool2(params, "postOnly", "post_only", false))
+		postOnly = (*this.SafeBool2(params, "postOnly", "post_only", false))
 	}
 	var endTime *string = this.SafeString(params, "end_time")
 	var stopDirection *string = this.SafeString(params, "stop_direction")
