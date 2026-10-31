@@ -1669,31 +1669,31 @@ class okx extends \ccxt\async\okx {
                 if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                     $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
-                $orderbook = $this->orderbooks[$symbol];
+                $snapshotBook = $this->orderbooks[$symbol];
                 $timestamp = $this->safe_integer($update, 'ts');
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1, 4);
                 $snapshot['nonce'] = $this->safe_integer($update, 'seqId');
-                $orderbook->reset($snapshot);
+                $snapshotBook->reset($snapshot);
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     break;
                 }
-                $client->resolve($orderbook, $messageHash);
+                $client->resolve($snapshotBook, $messageHash);
             }
         } elseif ($action === 'update') {
             if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                $orderbook = $this->orderbooks[$symbol];
+                $updatedBook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
-                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
+                    $this->handle_order_book_message($client, $update, $updatedBook, $messageHash, $market);
                     if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         $client->subscriptions[$messageHash] = 'resync';
                         break;
                     }
-                    $client->resolve($orderbook, $messageHash);
+                    $client->resolve($updatedBook, $messageHash);
                 }
             }
         } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
@@ -1704,13 +1704,13 @@ class okx extends \ccxt\async\okx {
                 if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                     $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
-                $orderbook = $this->orderbooks[$symbol];
+                $bboBook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
                     $timestamp = $this->safe_integer($update, 'ts');
                     $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1);
-                    $orderbook->reset($snapshot);
-                    $client->resolve($orderbook, $messageHash);
+                    $bboBook->reset($snapshot);
+                    $client->resolve($bboBook, $messageHash);
                 }
             }
         }

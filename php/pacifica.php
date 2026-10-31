@@ -2527,10 +2527,10 @@ class pacifica extends Exchange {
             'TOB' => 'TOB',
             'ALO' => 'ALO',
         );
-        $tif = null;
-        if ($tifRaw !== null) {
-            $tif = strtoupper($tifRaw);
+        if ($tifRaw === null) {
+            return 'GTC';
         }
+        $tif = strtoupper($tifRaw);
         return $this->safe_string($tifMap, $tif, 'GTC');
     }
 

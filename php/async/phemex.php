@@ -2851,8 +2851,8 @@ class phemex extends Exchange {
                     $posSide = 'Merged';
                 }
             }
-            $posSide = $this->capitalize($posSide);
-            $request['posSide'] = $posSide;
+            $posSideCapitalized = $this->capitalize($posSide);
+            $request['posSide'] = $posSideCapitalized;
             if ($isStableSettled) {
                 $request['orderQtyRq'] = $this->amount_to_precision($symbol, $amount);
             } else {

@@ -2308,8 +2308,8 @@ class hyperliquid extends Exchange {
         if ($postOnly) {
             $defaultTimeInForce = 'alo';
         }
-        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
-        $timeInForce = $this->capitalize($timeInForce);
+        $timeInForceLower = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = $this->capitalize($timeInForceLower);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -2858,8 +2858,8 @@ class hyperliquid extends Exchange {
             if ($postOnly) {
                 $defaultTimeInForce = 'alo';
             }
-            $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
-            $timeInForce = $this->capitalize($timeInForce);
+            $timeInForceLower = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
+            $timeInForce = $this->capitalize($timeInForceLower);
             $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);

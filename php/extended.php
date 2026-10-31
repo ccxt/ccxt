@@ -2491,7 +2491,7 @@ class extended extends Exchange {
         $precise = Precise::string_mul($amount, $resolutionString);
         $result = $this->decimal_to_precision($precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if ($roundUp && Precise::string_gt($precise, $result)) {
-            $result = Precise::string_add($result, '1');
+            return Precise::string_add($result, '1');
         }
         return $result;
     }
