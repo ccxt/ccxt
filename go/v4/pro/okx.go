@@ -295,7 +295,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -368,7 +368,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -877,7 +877,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -1865,7 +1865,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")), 0))
+	depthOption, _ := this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	var depth *string = depthOption
 	if limit != nil {
 		if limit != nil && *limit == 1 {
@@ -2612,20 +2612,20 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	var messageHash any = channel + "::myTrades"
 	var market map[string]any = nil
 	var symbolResolved any = nil
-	var typeVar any = typeOption
+	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
 	}
-	if ccxt.IsEqual(typeVar, "future") {
-		typeVar = "futures"
+	if typeVar != nil && *typeVar == "future" {
+		typeVar = ccxt.SafeStringPtr("futures")
 	}
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() type is required"))
 	}
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(*typeVar)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchMyTrades", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
@@ -2897,7 +2897,7 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	}
 	var market map[string]any = nil
 	var symbolResolved any = nil
-	var typeVar any = typeOption
+	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
 		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
@@ -2907,13 +2907,13 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		}
 		typeVar = this.SafeString(market, "type")
 	}
-	if ccxt.IsEqual(typeVar, "future") {
-		typeVar = "futures"
+	if typeVar != nil && *typeVar == "future" {
+		typeVar = ccxt.SafeStringPtr("futures")
 	}
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() type is required"))
 	}
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(*typeVar)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {

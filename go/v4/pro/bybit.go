@@ -247,7 +247,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 		if isSpot == true {
 			url = accessibilityUrls["spot"]
 		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
-			var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(methodValue, market, params, "linear")), 0))
+			subType, _ := this.HandleSubTypeAndParams(methodValue, market, params, "linear")
 			url = ccxt.GetValue(accessibilityUrls, subType)
 		} else {
 			// option

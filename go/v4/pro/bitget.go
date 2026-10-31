@@ -124,9 +124,9 @@ func (this *Bitget) GetInstType(methodName string, market any, optionalArgs ...a
 	var instTypeDefault *string = ccxt.SafeStringPtr(ccxt.GetValue(productTypeAndParams, 0))
 	var paramsProductType any = ccxt.GetValue(productTypeAndParams, 1)
 	instTypeOption, paramsInstType := this.HandleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault)
-	var instType any = instTypeOption
+	var instType *string = instTypeOption
 	if (uta == true) && (instTypeOption != nil) {
-		instType = ccxt.ToLower(instTypeOption)
+		instType = ccxt.SafeStringPtr(strings.ToLower(*instTypeOption))
 	}
 	return []any{instType, paramsInstType}
 }

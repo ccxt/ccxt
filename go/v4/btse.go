@@ -4705,7 +4705,7 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 		"symbol": this.FuturesRequestId(market),
 	}
 	orderType, paramsOrderType := this.HandleOptionStringAndParams(params, "closePosition", "type", "market")
-	var typeUpper string = ToUpper(orderType)
+	var typeUpper string = strings.ToUpper(*orderType)
 	request["orderType"] = typeUpper
 	if typeUpper == "LIMIT" {
 		var price *string = this.SafeString(paramsOrderType, "price")
@@ -4858,7 +4858,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	// isolated leverage only, so the unified marginMode param is translated here
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if marginMode != nil {
-		request["marginMode"] = ToUpper(marginMode)
+		request["marginMode"] = strings.ToUpper(*marginMode)
 	}
 
 	r1 := <-this.PrivatePostFuturesApiV3TradeLeverage(this.Extend(request, paramsMarginMode))

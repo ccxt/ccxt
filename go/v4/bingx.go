@@ -8579,7 +8579,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 	var version string = section[1]
 	var access string = section[2]
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var url string = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
+	var url string = this.ImplodeHostname(this.UrlsApi[typeVar])
 	if (isSandbox != nil && *isSandbox) && IsEqual(url, nil) {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + typeVar + " endpoints"))
 	}

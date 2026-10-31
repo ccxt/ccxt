@@ -1451,7 +1451,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if ccxt.IsEqual(outcomeInput, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
-	if this.Outcomes == nil || this.Outcomes_by_id == nil {
+	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
@@ -1605,7 +1605,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	if clientOrderId != nil {
 		orderObj["c"] = clientOrderId
 	}
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
@@ -1793,7 +1793,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 	}
 	cancelAction["cancels"] = cancelReq
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{

@@ -2811,10 +2811,8 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 		var parts []string = strings.Split(messageHash, ":")
 		var timeframe *string = this.SafeString(parts, 1)
 		var symbol *string = this.SafeString(parts, 2)
-		if symbol != nil && timeframe != nil {
-			if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
-				delete(this.Ohlcvs[*symbol], *timeframe)
-			}
+		if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+			delete(this.Ohlcvs[*symbol], *timeframe)
 		}
 	} else if strings.Index(messageHash, "ticker:") == 0 {
 		var symbol string = strings.Replace(messageHash, "ticker:", "", 1)

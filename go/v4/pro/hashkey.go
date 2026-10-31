@@ -1024,7 +1024,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		}
 	}
 	var typeVar string = "spot"
-	var typeMarketType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)), 0))
+	typeMarketType, _ := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	var messageHash string = "balance:" + *typeMarketType
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)

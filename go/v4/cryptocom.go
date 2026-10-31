@@ -4037,19 +4037,15 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var paramsMarketType any = nil
-	var typeVarPtr *string = nil
-	typeVarPtr, paramsMarketType = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
-	if typeVarPtr != nil {
-		typeVar = *typeVarPtr
-	}
+	typeVar, paramsMarketType = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
-	if typeVar == "option" {
-		typeVar = "WARRANT"
+	if typeVar != nil && *typeVar == "option" {
+		typeVar = SafeStringPtr("WARRANT")
 	}
 	var request map[string]any = map[string]any{
-		"instrument_type": ToUpper(typeVar),
+		"instrument_type": strings.ToUpper(*typeVar),
 	}
 
 	r1 := <-this.V1PublicGetPublicGetExpiredSettlementPrice(this.Extend(request, paramsMarketType))

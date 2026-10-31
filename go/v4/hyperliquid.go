@@ -5067,10 +5067,8 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	// swap ids are asset indexes, so the market is looked up by symbol
-	if symbol != nil {
-		if _, ok := this.Markets()[*symbol]; ok {
-			marketResolved = this.Market(symbol)
-		}
+	if (symbol != nil) && (this.Markets() != nil) && (InOp(this.Markets(), symbol)) {
+		marketResolved = this.Market(symbol)
 	}
 	var side *string = this.SafeString(liquidation, "side")
 	if side != nil {

@@ -2058,7 +2058,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc")
 	if timeInForce != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
-		request["time_in_force"] = ToLower(timeInForce)
+		request["time_in_force"] = strings.ToLower(*timeInForce)
 	}
 	request["client_order_id"] = this.GenerateClientOrderId(paramsTimeInForce)
 

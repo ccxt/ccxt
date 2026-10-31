@@ -420,7 +420,7 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
-			if symbol != nil && timeframe != nil {
+			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}

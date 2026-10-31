@@ -2049,10 +2049,8 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 				var first any = ccxt.GetValue(stored, 0)
 				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
 				var firstId *string = this.SafeString(first, "id")
-				if firstId != nil {
-					if _, ok := symbolsByOrderId[*firstId]; ok {
-						delete(symbolsByOrderId, *firstId)
-					}
+				if (firstId != nil) && (ccxt.InOp(symbolsByOrderId, firstId)) {
+					delete(symbolsByOrderId, *firstId)
 				}
 			}
 			stored.Append(newOrder)

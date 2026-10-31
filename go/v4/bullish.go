@@ -2534,7 +2534,7 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	timeInForce, paramsTimeInForceRaw := this.HandleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC") // is mandatory
 	var paramsTimeInForce map[string]any = this.Extend(paramsTimeInForceRaw, map[string]any{
-		"timeInForce": ToUpper(timeInForce),
+		"timeInForce": strings.ToUpper(*timeInForce),
 	})
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)

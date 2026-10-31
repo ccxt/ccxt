@@ -4975,11 +4975,11 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 			"EXPIRE_TAKER": "cancel_taker",
 			"EXPIRE_BOTH":  "cancel_both",
 		}
-		var selfTradePreventionUpper string = ToUpper(selfTradePrevention)
+		var selfTradePreventionUpper string = strings.ToUpper(*selfTradePrevention)
 		if selfTradePreventionUpper == "NONE" {
 			panic(NotSupported(this.Id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order"))
 		}
-		var stpMode *string = this.SafeString(stpModes, selfTradePreventionUpper, ToLower(selfTradePrevention))
+		var stpMode *string = this.SafeString(stpModes, selfTradePreventionUpper, strings.ToLower(*selfTradePrevention))
 		var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 		var requestOrdType *string = this.SafeString(request, "ordType")
 		if requestOrdType != nil {
@@ -11030,9 +11030,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	// handle unified currency code or symbol
 	var currencyId *string = nil
 	var market map[string]any = nil
-	_, inMarkets := this.Markets()[symbol]
-	_, inMarketsById := this.Markets_by_id()[symbol]
-	if inMarkets || inMarketsById {
+	if ((this.Markets() != nil) && (InOp(this.Markets(), symbol))) || ((this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), symbol))) {
 		market = this.Market(symbol)
 		currencyId = this.SafeString(market, "baseId")
 	} else {

@@ -2109,7 +2109,7 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
 		return nil
 	}
-	var walletAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress)), 0))
+	walletAddress, _ := this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress)
 
 	r := <-this.SapiPrivateGetWalletList()
 	if r.Err != nil {
