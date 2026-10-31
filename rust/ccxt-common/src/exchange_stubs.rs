@@ -784,6 +784,23 @@ impl Exchange {
             })
     }
 
+    /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_n_opt(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Option<String> {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
+                if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
+                    return Some(s);
+                }
+            }
+        }
+        match arg_default(optional_args) {
+            Value::Str(d) => Some(d.to_string()),
+            _ => None,
+        }
+    }
+
     /// `safe_number2` without the box (no default): first key whose string form parses as f64.
     pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
         match self.safe_string2(obj, k1, k2, &[]) {
