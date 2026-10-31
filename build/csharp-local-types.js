@@ -2704,6 +2704,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'loadMultiSignAddress': 'string?',
     // lighter fetchNonce (typed core Int64, every return parseToInt): FromInt64 is skipped as identity, bare Int64 await
     'fetchNonce': 'Int64',
+    // coinbase fetchCurrenciesFromCache (`: Promise<Dict>`, prints Task<Dictionary<string, object>>); only coinbase.ts declares/awaits it
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
 };
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
