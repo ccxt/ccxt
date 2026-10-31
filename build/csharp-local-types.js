@@ -544,7 +544,6 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
-import { w3c06Types } from './hx10w3-C06.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
@@ -19426,6 +19425,3 @@ function hx5X12RegisterReturnTypes () {
     }
 }
 hx5X12RegisterReturnTypes ();
-
-// hx10w3 C06: generated method RETURN types (name-keyed, so every declaration and caller agrees)
-w3c06Types (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES);
