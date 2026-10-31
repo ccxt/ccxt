@@ -74,7 +74,7 @@ public final class Time {
                     .withResolverStyle(ResolverStyle.STRICT);
 
     // Returns Long (epoch millis) or null
-    public static Object parseDate(Object datetime2) {
+    public static Long parseDate(Object datetime2) {
         if (!(datetime2 instanceof String)) {
             return null;
         }

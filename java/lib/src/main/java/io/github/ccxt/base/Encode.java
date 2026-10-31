@@ -44,7 +44,7 @@ public final class Encode {
         return out;
     }
 
-    public static Object remove0xPrefix(Object str2) {
+    public static String remove0xPrefix(Object str2) {
         String s = (String) str2;
         if (s.startsWith("0x")) return s.substring(2);
         return s;

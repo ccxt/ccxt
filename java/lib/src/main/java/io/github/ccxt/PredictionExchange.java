@@ -2068,7 +2068,7 @@ public Map<String, Object> describe()
             return "";
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        String stripped = (String) this.remove0xPrefix(address);
+        String stripped = this.remove0xPrefix(address);
         return ("000000000000000000000000" + stripped);
     }
 
@@ -2140,7 +2140,7 @@ public Map<String, Object> describe()
         {
             return "";
         }
-        String h = (String) this.remove0xPrefix(hexValue);
+        String h = this.remove0xPrefix(hexValue);
         Integer total = ((String)h).length();
         for (var i = 0; (total != null && i < total); i++)
         {
