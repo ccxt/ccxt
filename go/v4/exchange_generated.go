@@ -6636,22 +6636,22 @@ func (this *BaseExchange) Account() map[string]any {
  * @param {object} result the code-keyed balance dict being built
  * @param {string} code unified currency code
  * @param {object} account a balance account with string free/used/total/debt
- * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+ * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
  */
-func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any) map[string]any {
-	if !(InOp(result, code)) {
-		AddElementToObject(result, code, account)
+func (this *BaseExchange) MergeBalanceAccount(result map[string]any, code string, account any) map[string]any {
+	if _, ok := result[code]; !ok {
+		result[code] = account
 		return MapTyped(result)
 	}
 	var fields []string = []string{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
 		var field string = fields[i]
-		var current *string = this.SafeString(GetValue(result, code), field)
+		var current *string = this.SafeString(result[code], field)
 		var incoming *string = this.SafeString(account, field)
 		if current == nil {
-			AddElementToObject(GetValue(result, code), field, incoming)
+			AddElementToObject(result[code], field, incoming)
 		} else if incoming != nil {
-			AddElementToObject(GetValue(result, code), field, Precise.StringAdd(current, incoming))
+			AddElementToObject(result[code], field, Precise.StringAdd(current, incoming))
 		}
 	}
 	return MapTyped(result)

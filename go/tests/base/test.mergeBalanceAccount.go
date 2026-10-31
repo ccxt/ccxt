@@ -15,29 +15,38 @@ func TestMergeBalanceAccount() {
 	// markets is summed into a single flat entry, missing fields stay undefined.
 	// the helper returns the merged dict and callers reassign it: PHP arrays are
 	// passed by value, so mutating the argument alone is invisible there.
-	// the local is seeded from the helper itself so the Go port infers the
-	// helper's own return type instead of a map literal it cannot assign back to
-	var btcAccount any = exchange.Account()
-	ccxt.AddElementToObject(btcAccount, "free", "1")
-	ccxt.AddElementToObject(btcAccount, "used", "0.5")
-	ccxt.AddElementToObject(btcAccount, "debt", "0.1")
-	var result any = exchange.MergeBalanceAccount(map[string]any{}, "BTC", btcAccount)
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "BTC"), "free"), "1"))
-	var btcAccount2 any = exchange.Account()
-	ccxt.AddElementToObject(btcAccount2, "free", "2")
-	ccxt.AddElementToObject(btcAccount2, "used", "0.25")
-	ccxt.AddElementToObject(btcAccount2, "total", "2.25")
-	result = exchange.MergeBalanceAccount(result, "BTC", btcAccount2)
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "BTC"), "free"), "3"))
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "BTC"), "used"), "0.75"))
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "BTC"), "total"), "2.25"))
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "BTC"), "debt"), "0.1"))
-	var usdtAccount any = exchange.Account()
-	ccxt.AddElementToObject(usdtAccount, "free", "5")
-	result = exchange.MergeBalanceAccount(result, "USDT", usdtAccount)
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "USDT"), "free"), "5"))
-	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "USDT"), "used"), nil))
-	var keys []string = ccxt.ObjectKeys(result)
+	// accounts and the result are map literals; extend keeps the reassigned local a dictionary
+	var btcAccount map[string]any = map[string]any{
+		"free": "1",
+		"used": "0.5",
+		"debt": "0.1",
+	}
+	var result map[string]any = map[string]any{}
+	result = exchange.Extend(exchange.MergeBalanceAccount(result, "BTC", btcAccount))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["BTC"], "free"), "1"))
+	var btcAccount2 map[string]any = map[string]any{
+		"free":  "2",
+		"used":  "0.25",
+		"total": "2.25",
+	}
+	result = exchange.Extend(exchange.MergeBalanceAccount(result, "BTC", btcAccount2))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["BTC"], "free"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["BTC"], "used"), "0.75"))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["BTC"], "total"), "2.25"))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["BTC"], "debt"), "0.1"))
+	var usdtAccount map[string]any = map[string]any{
+		"free": "5",
+	}
+	result = exchange.Extend(exchange.MergeBalanceAccount(result, "USDT", usdtAccount))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["USDT"], "free"), "5"))
+	Assert(ccxt.IsEqual(exchange.SafeString(result["USDT"], "used"), nil))
+	var keys []string = nil
+	if result != nil {
+		keys = make([]string, 0, len(result))
+		for objectKey := range result {
+			keys = append(keys, objectKey)
+		}
+	}
 	Assert((len(keys) == 2))
 	// the merged dict is a regular safeBalance input. safeBalance parses to a number,
 	// and each port spells that number differently (JS "3", PHP "3.0"), so assert on

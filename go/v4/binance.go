@@ -5639,10 +5639,10 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
 			if baseCode != nil {
-				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
+				result = this.MergeBalanceAccount(result, *baseCode, this.ParseBalanceHelper(base))
 			}
 			if quoteCode != nil {
-				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
+				result = this.MergeBalanceAccount(result, *quoteCode, this.ParseBalanceHelper(quote))
 			}
 		}
 	} else if typeVar != nil && *typeVar == "savings" {
@@ -10500,7 +10500,7 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if (limit != nil) && (stock == true) {
 		limitResolved = mathMin(limit, 100)
 	}
-	if !IsEqual(limitResolved, nil) {
+	if limit != nil {
 		if stock == true {
 			request["size"] = limitResolved
 		} else {
@@ -12248,10 +12248,10 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		limitContract = mathMin(limit, 1000)
 	}
 	var limitResolved any = limitContract
-	if !IsEqual(limitContract, nil) && (stock == true) {
-		limitResolved = mathMin(limitContract, 100)
+	if (limit != nil) && (stock == true) {
+		limitResolved = mathMin(limit, 100)
 	}
-	if !IsEqual(limitResolved, nil) {
+	if limit != nil {
 		if stock == true {
 			request["size"] = limitResolved
 		} else {
