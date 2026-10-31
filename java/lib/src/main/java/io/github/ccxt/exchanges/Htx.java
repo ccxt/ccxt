@@ -4154,13 +4154,13 @@ public class Htx extends HtxApi
                     if (java.util.Objects.equals(since, null))
                     {
                         Long now = this.seconds();
-                        request.put("from", (now - (duration * ((contractLimit - 1L)))));
+                        request.put("from", (now - (duration * (contractLimit - 1L))));
                         calcualtedEnd = now;
                     } else
                     {
                         Long start = this.parseToInt((((double) since) / ((double) 1000)));
                         request.put("from", start);
-                        calcualtedEnd = this.sum(start, (duration * ((contractLimit - 1L))));
+                        calcualtedEnd = this.sum(start, (duration * (contractLimit - 1L)));
                     }
                     request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
                 }

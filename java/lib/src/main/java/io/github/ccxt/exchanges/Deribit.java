@@ -1950,7 +1950,7 @@ public class Deribit extends DeribitApi
             Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? null : Math.max((since - 1L), 0);
             if (java.util.Objects.equals(since, null))
             {
-                request.put("start_timestamp", (now - ((((windowLimit - 1L)) * duration) * 1000L)));
+                request.put("start_timestamp", (now - (((windowLimit - 1L) * duration) * 1000L)));
                 request.put("end_timestamp", now);
             } else
             {

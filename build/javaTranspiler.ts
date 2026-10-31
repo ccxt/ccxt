@@ -27,7 +27,6 @@ import { nativeJavaJ05DictChains, j05DictChainsSelfTest } from './hx10w3-J05.js'
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
-import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
 import { nativeJavaJ04Arithmetic } from './java-local-types.js';
 import { nativeJavaJ20ParamCompare } from './java-local-types.js';
 import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmetic, nativeJavaJ27Arithmetic, nativeJavaSumLongLocals } from './java-local-types.js';
@@ -3680,7 +3679,6 @@ class NewTranspiler {
         content = nativeJavaTopLevelNewMap(content);
         content = nativeJavaReassignedNewMap(content); // hx4 J03
         content = nativeJavaEqualTruthy(content); // H2K-j08
-        content = h2kJ09NativeSubtractDivideMod(content);
         content = h2kJ10NativeComparisons(content);
         content = nativeJavaInOp(content);
         content = nativeJavaToLongOrNullH2kJ13(content);
@@ -7612,7 +7610,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaTopLevelNewMap(content);
     content = nativeJavaReassignedNewMap(content);
     content = nativeJavaEqualTruthy(content);
-    content = h2kJ09NativeSubtractDivideMod(content);
     content = h2kJ10NativeComparisons(content);
     content = nativeJavaInOp(content);
     content = nativeJavaToLongOrNullH2kJ13(content);
