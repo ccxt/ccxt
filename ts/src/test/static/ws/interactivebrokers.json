@@ -2,6 +2,7 @@
     "exchange": "interactivebrokers",
     "skipKeys": [],
     "options": {},
+    "disable": true,
     "methods": {
         "watchMyTrades": [
             {
