@@ -15292,6 +15292,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'walletEventsTopic': [ 'string', 'string?' ],
     // bullish: `return this.safeString (this.options, 'tradingAccountId')` — one string? box
     'loadAccount': 'string?',
+||||||| parent of cf74941fb66 (cs: awaited-core findAccountId -> string?)
+    // coinbase: safeString (account, 'id') or null — one string? box
+    'findAccountId': 'string?',
 };
 
 const awaitedCoreProofs = new WeakMap ();
