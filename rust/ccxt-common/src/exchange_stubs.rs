@@ -751,6 +751,47 @@ impl Exchange {
         }
     }
 
+    /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
+    #[inline]
+    pub fn safe_bool2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
+        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+            return Some(b);
+        }
+        match self.safe_value(obj, k2, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool_n` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_n(obj, keys, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string2_opt(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        self.safe_string_opt(obj.clone(), k1, &[])
+            .or_else(|| self.safe_string_opt(obj, k2, &[]))
+            .or_else(|| match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            })
+    }
+
+    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
+    pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
+        match self.safe_string2(obj, k1, k2, &[]) {
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        }
+    }
+
     #[inline]
     pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
