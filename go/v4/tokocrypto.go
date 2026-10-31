@@ -888,7 +888,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var list []any = SafeListTyped(data, "list")
 	var result []any = []any{}
 	for i := 0; i < len(list); i++ {
-		var market any = DerefScalar(list[i])
+		var market any = list[i]
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var id *string = this.SafeString(market, "symbol")
@@ -1352,18 +1352,18 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		listEp1330 := <-this.BinanceGetAggTrades(this.Extend(request, params))
-		if listEp1330.Err != nil {
-			panic(listEp1330.Err)
+		listEp1325 := <-this.BinanceGetAggTrades(this.Extend(request, params))
+		if listEp1325.Err != nil {
+			panic(listEp1325.Err)
 		}
-		response = listEp1330.Value
+		response = listEp1325.Value
 	} else {
 
-		listEp1333 := <-this.BinanceGetTrades(this.Extend(request, params))
-		if listEp1333.Err != nil {
-			panic(listEp1333.Err)
+		listEp1328 := <-this.BinanceGetTrades(this.Extend(request, params))
+		if listEp1328.Err != nil {
+			panic(listEp1328.Err)
 		}
-		response = listEp1333.Value
+		response = listEp1328.Value
 	}
 	//
 	// Caveats:
@@ -1657,11 +1657,11 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker]
 		}
 	}
 
-	listEp1612 := <-this.BinanceGetTickerBookTicker(params)
-	if listEp1612.Err != nil {
-		panic(listEp1612.Err)
+	listEp1607 := <-this.BinanceGetTickerBookTicker(params)
+	if listEp1607.Err != nil {
+		panic(listEp1607.Err)
 	}
-	var response []any = listEp1612.Value
+	var response []any = listEp1607.Value
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil

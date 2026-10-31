@@ -4823,7 +4823,7 @@ func (this *Binance) HandlePositionsWs(client any, message map[string]any) {
 	var result []any = ccxt.SafeListTyped(message, "result")
 	var positions []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var parsed any = this.ParsePositionRisk(ccxt.DerefScalar(result[i]))
+		var parsed any = this.ParsePositionRisk(result[i])
 		var entryPrice *string = this.SafeString(parsed, "entryPrice")
 		if (entryPrice == nil || *entryPrice != "0") && (entryPrice == nil || *entryPrice != "0.0") && (entryPrice == nil || *entryPrice != "0.00000000") {
 			positions = append(positions, parsed)

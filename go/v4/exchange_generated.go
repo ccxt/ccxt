@@ -2481,7 +2481,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var baseCurrencies []any = []any{}
 		var quoteCurrencies []any = []any{}
 		for i := 0; i < len(values); i++ {
-			var market any = DerefScalar(values[i])
+			var market any = values[i]
 			var defaultCurrencyPrecision any = func() any {
 				if IsEqual(this.PrecisionMode, DECIMAL_PLACES) {
 					return 8
@@ -5031,12 +5031,10 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	paramsMaxRetriesOnFailure := retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[1]
 	var retryDelay int = 0
 	var retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay)
-	retryDelayMaxRetriesOnFailureDelay := func() any {
-		if p, _ := retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var retryDelayMaxRetriesOnFailureDelay *int64 = nil
+	if p, ok := retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[0].(*int64); ok {
+		retryDelayMaxRetriesOnFailureDelay = p
+	}
 	paramsMaxRetriesOnFailureDelay := retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[1]
 	var fetchDataCacheEnabled bool = (this.FetchHistoryCacheSize > 0)
 	for i := 0; IsLessThan(i, Add(retriesMaxRetriesOnFailure, 1)); i++ {
@@ -5070,7 +5068,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 										var index int = i + 1
 										this.Log("Request failed with the error: " + ToString(e) + ", retrying " + strconv.Itoa(index) + " of " + ToString(retriesMaxRetriesOnFailure) + "...")
 									}
-									if (retryDelayMaxRetriesOnFailureDelay != nil) && (!IsEqual(retryDelayMaxRetriesOnFailureDelay, 0)) {
+									if (retryDelayMaxRetriesOnFailureDelay != nil) && (retryDelayMaxRetriesOnFailureDelay == nil || *retryDelayMaxRetriesOnFailureDelay != 0) {
 
 										<-this.Sleep(retryDelayMaxRetriesOnFailureDelay)
 									}
@@ -7967,12 +7965,10 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest")
-	newMaxEntriesPerRequest := func() any {
-		if p, _ := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var newMaxEntriesPerRequest *int64 = nil
+	if p, ok := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0].(*int64); ok {
+		newMaxEntriesPerRequest = p
+	}
 	paramsMaxEntriesPerRequest := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]
 	var maxEntriesPerRequestOption any = func() any {
 		if newMaxEntriesPerRequest != nil {
@@ -8164,10 +8160,13 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 	_ = params
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxRetries", maxRetries)
-	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
+	var maxRetriesOption *int64 = nil
+	if p, ok := maxRetriesOptionparamsMaxRetriesVariable[0].(*int64); ok {
+		maxRetriesOption = p
+	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	var errors any = 0
-	for maxRetriesOption.(*int64) != nil && int64(errors.(int)) <= *maxRetriesOption.(*int64) {
+	for maxRetriesOption != nil && int64(errors.(int)) <= *maxRetriesOption {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8182,7 +8181,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 								panic(e)
 							}
 							errors = Add(errors, 1)
-							if maxRetriesOption.(*int64) == nil || int64(errors.(int)) > *maxRetriesOption.(*int64) {
+							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8353,7 +8352,10 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
+	var maxRetriesOption *int64 = nil
+	if p, ok := maxRetriesOptionparamsMaxRetriesVariable[0].(*int64); ok {
+		maxRetriesOption = p
+	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -8376,7 +8378,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
 							errors = Add(errors, 1)
-							if maxRetriesOption.(*int64) == nil || int64(errors.(int)) > *maxRetriesOption.(*int64) {
+							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8519,7 +8521,10 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	var maxCallsLimit int64 = this.ParseToInt(maxCallsPaginationCalls)
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
-	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
+	var maxRetriesOption *int64 = nil
+	if p, ok := maxRetriesOptionparamsMaxRetriesVariable[0].(*int64); ok {
+		maxRetriesOption = p
+	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -8539,7 +8544,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
 							errors = Add(errors, 1)
-							if maxRetriesOption.(*int64) == nil || int64(errors.(int)) > *maxRetriesOption.(*int64) {
+							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -9244,7 +9249,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.Positions = nil
 			var clients []any = ObjectValues(this.WsClientsSnapshot())
 			for i := 0; i < len(clients); i++ {
-				var client any = DerefScalar(clients[i])
+				var client any = clients[i]
 				var futures any = (client.(Client)).Futures
 				if InOp(futures, "fetchPositionsSnapshot") {
 					Remove(futures, "fetchPositionsSnapshot")
@@ -11533,8 +11538,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11142, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11142
+	listRecv11155, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11155
 	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

@@ -1276,11 +1276,11 @@ func (this *Dydx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["limit"] = limit
 	}
 
-	listEp1244 := <-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))
-	if listEp1244.Err != nil {
-		panic(listEp1244.Err)
+	listEp1239 := <-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))
+	if listEp1239.Err != nil {
+		panic(listEp1239.Err)
 	}
-	var response []any = listEp1244.Value
+	var response []any = listEp1239.Value
 
 	//
 	// [
@@ -1806,7 +1806,10 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	var goodTillBlockTimeInSeconds int = 2592000
 	// default is 30 days
 	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
-	goodTillBlockTimeInSecondsOption := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0]
+	var goodTillBlockTimeInSecondsOption *int64 = nil
+	if p, ok := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0].(*int64); ok {
+		goodTillBlockTimeInSecondsOption = p
+	}
 	paramsGoodTillBlockTimeInSeconds := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]
 	if IsEqual(orderFlag, 0) {
 		if IsEqual(goodTillBlock, nil) {
@@ -1817,10 +1820,10 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 			goodTillBlock = *latestBlockHeight + 20
 		}
 	} else {
-		if IsEqual(goodTillBlockTimeInSecondsOption, nil) {
+		if goodTillBlockTimeInSecondsOption == nil {
 			panic(ArgumentsRequired("goodTillBlockTimeInSeconds is required."))
 		}
-		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSecondsOption)
+		goodTillBlockTime = this.Seconds() + *goodTillBlockTimeInSecondsOption
 	}
 	var sideNumber int = func() int {
 		if orderSide == "BUY" {
@@ -2102,7 +2105,10 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	var goodTillBlockTimeInSeconds int = 2592000
 	// default is 30 days
 	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
-	goodTillBlockTimeInSecondsOption := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0]
+	var goodTillBlockTimeInSecondsOption *int64 = nil
+	if p, ok := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0].(*int64); ok {
+		goodTillBlockTimeInSecondsOption = p
+	}
 	paramsGoodTillBlockTimeInSeconds := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]
 	var goodTillBlockTime any = nil
 	var defaultOrderFlags int = func() int {
@@ -2124,13 +2130,13 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		panic(InvalidOrder(this.Id + " invalid orderFlags, allowed values are (0, 64, 32)."))
 	}
 	if orderFlags != nil && *orderFlags > 0 {
-		if IsEqual(goodTillBlockTimeInSecondsOption, nil) {
+		if goodTillBlockTimeInSecondsOption == nil {
 			panic(ArgumentsRequired(this.Id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order."))
 		}
 		if (goodTillBlockOption != nil) && (*goodTillBlockOption > 0) {
 			panic(InvalidOrder(this.Id + " goodTillBlock should be 0 for long term or conditional order."))
 		}
-		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSecondsOption)
+		goodTillBlockTime = this.Seconds() + *goodTillBlockTimeInSecondsOption
 	} else {
 		if IsEqual(goodTillBlock, nil) {
 

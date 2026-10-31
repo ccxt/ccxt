@@ -581,7 +581,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var resultTickers map[string]any = map[string]any{}
 	for i := 0; i < len(rows); i++ {
-		var t any = DerefScalar(rows[i])
+		var t any = rows[i]
 		var sym *string = this.SafeString(t, "symbol")
 		if sym == nil {
 			continue
@@ -685,12 +685,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			break
 		}
 		for i := 0; i < numItems; i++ {
-			aggregated = append(aggregated, func() any {
-				if i >= 0 && i < len(items) {
-					return DerefScalar(items[i])
-				}
-				return nil
-			}())
+			aggregated = append(aggregated, items[i])
 		}
 		if numItems < pageLimit {
 			paging = false
@@ -1997,7 +1992,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var transactions []any = []any{}
 	var transactionKeys []string = []string{}
 	for i := 0; i < len(allRows); i++ {
-		var entry any = DerefScalar(allRows[i])
+		var entry any = allRows[i]
 		var feeType *string = this.SafeString(entry, "fee_type")
 		var pairKey string = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
 		if feeType != nil && *feeType == "TRANSACTION" {
@@ -2020,9 +2015,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			}
 		}
 		if rebate == nil {
-			rows = append(rows, DerefScalar(transactions[i]))
+			rows = append(rows, transactions[i])
 		} else {
-			rows = append(rows, this.Extend(DerefScalar(transactions[i]), map[string]any{
+			rows = append(rows, this.Extend(transactions[i], map[string]any{
 				"rebate_amount": rebate,
 			}))
 		}

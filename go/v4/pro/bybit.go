@@ -3219,7 +3219,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		account = "spot"
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {
-			var B []any = ccxt.SafeListTypedDefault(ccxt.DerefScalar(data[i]), "B", []any{})
+			var B []any = ccxt.SafeListTypedDefault(data[i], "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
 		}
 		info = rawBalances

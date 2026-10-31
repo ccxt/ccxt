@@ -9608,7 +9608,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var instId *string = this.SafeString(entry, "instId")
 		var marketInner map[string]any = this.SafeMarket(instId)
@@ -11813,7 +11813,7 @@ func (this *Okx) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, opt
 	//
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var entryMarketId *string = this.SafeString(entry, "instId")
 		if entryMarketId == marketId || (entryMarketId != nil && marketId != nil && *entryMarketId == *marketId) {
 

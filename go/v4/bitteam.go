@@ -2225,11 +2225,11 @@ func (this *Bitteam) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"pair": market["id"],
 	}
 
-	listEp2135 := <-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))
-	if listEp2135.Err != nil {
-		panic(listEp2135.Err)
+	listEp2130 := <-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))
+	if listEp2130.Err != nil {
+		panic(listEp2130.Err)
 	}
-	var response []any = listEp2135.Value
+	var response []any = listEp2130.Value
 
 	//
 	//     [

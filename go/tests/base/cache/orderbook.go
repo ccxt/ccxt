@@ -389,7 +389,7 @@ func TestWsOrderBook() {
 	// corruption produced rows holding only an amount
 	var desyncSides []any = []any{GetValue(desyncBook, "bids"), GetValue(desyncBook, "asks")}
 	for i := 0; i < len(desyncSides); i++ {
-		var side any = DerefScalar(desyncSides[i])
+		var side any = desyncSides[i]
 		for k := 0; k < GetArrayLength(side); k++ {
 			var row any = GetValue(side, k)
 			Assert((GetArrayLength(row) >= 2))

@@ -430,7 +430,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 		}
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		tradesCache.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)

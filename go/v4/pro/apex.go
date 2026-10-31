@@ -1169,7 +1169,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
-			cache.(ccxt.Appender).Append(ccxt.DerefScalar(positions[ii]))
+			cache.(ccxt.Appender).Append(positions[ii])
 		}
 	}
 	// don't remove the future from the .futures cache

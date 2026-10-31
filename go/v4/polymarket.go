@@ -1889,7 +1889,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	var ordersMarkets []any = []any{}
 	var ordersEntries []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = MapTyped(orders[i])
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringLower(rawOrder, "type")

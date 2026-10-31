@@ -2706,11 +2706,11 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["limit"] = limit // default 100, max 1000
 	}
 
-	listEp2582 := <-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))
-	if listEp2582.Err != nil {
-		panic(listEp2582.Err)
+	listEp2577 := <-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))
+	if listEp2577.Err != nil {
+		panic(listEp2577.Err)
 	}
-	var response []any = listEp2582.Value
+	var response []any = listEp2577.Value
 
 	//
 	//     [

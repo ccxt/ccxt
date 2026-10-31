@@ -6489,7 +6489,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 	var items []any = SafeListTyped(result, "items")
 	var rates []any = []any{}
 	for i := 0; i < len(items); i++ {
-		var entry any = DerefScalar(items[i])
+		var entry any = items[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
 		var timestamp *int64 = this.SafeInteger(entry, "createdTime")
@@ -7147,7 +7147,7 @@ func (this *Xt) fetchPositionBody(ch chan AsyncResult[Position], symbol any, opt
 	var positions []any = SafeListTyped(response, "result")
 	var breakBySymbolSide map[string]any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
 	for i := 0; i < len(positions); i++ {
-		var entry any = DerefScalar(positions[i])
+		var entry any = positions[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var positionSize *string = this.SafeString(entry, "positionSize")
@@ -7252,7 +7252,7 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs
 	var breakBySymbolSide map[string]any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var entry any = DerefScalar(positions[i])
+		var entry any = positions[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)

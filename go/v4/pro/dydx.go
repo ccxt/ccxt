@@ -190,7 +190,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	}
 	var parsedTrades []any = this.ParseTrades(rawTrades, market)
 	for i := 0; i < len(parsedTrades); i++ {
-		stored.Append(ccxt.DerefScalar(parsedTrades[i]))
+		stored.Append(parsedTrades[i])
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

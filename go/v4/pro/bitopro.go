@@ -250,7 +250,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 		tradesCache = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < len(trades); i++ {
-		var trade any = ccxt.DerefScalar(trades[i])
+		var trade any = trades[i]
 		tradesCache.Append(trade)
 	}
 	if symbol != nil {

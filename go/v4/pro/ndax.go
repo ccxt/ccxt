@@ -225,7 +225,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	var name string = "SubscribeTrades"
 	var updates map[string]any = map[string]any{}
 	for i := 0; i < len(payload); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(payload[i])))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(payload[i]))
 		var symbol *string = this.SafeString(trade, "symbol")
 		var tradesArray any = func() any {
 			if symbol == nil {

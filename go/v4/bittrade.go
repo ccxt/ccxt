@@ -1991,8 +1991,8 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1901, _ := OrdersToList(r1.Value), r1.Value != nil
-	var retRes137215 []any = listRecv1901
+	listRecv1871, _ := OrdersToList(r1.Value), r1.Value != nil
+	var retRes137215 []any = listRecv1871
 	if retRes137215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

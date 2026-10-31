@@ -754,7 +754,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.Market(symbol)
 	var parsed []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.Append(ccxt.DerefScalar(parsed[i]))
+		stored.Append(parsed[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

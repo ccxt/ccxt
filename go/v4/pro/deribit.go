@@ -607,7 +607,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 		stored = this.Trades[*symbol]
 	}
 	for i := 0; i < len(trades); i++ {
-		var trade any = ccxt.DerefScalar(trades[i])
+		var trade any = trades[i]
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade, market))
 		stored.Append(parsed)
 	}
@@ -732,7 +732,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	var parsed []any = this.ParseTrades(trades)
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
-		var trade any = ccxt.DerefScalar(parsed[i])
+		var trade any = parsed[i]
 		cachedTrades.Append(trade)
 		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {

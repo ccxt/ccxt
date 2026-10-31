@@ -1007,7 +1007,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	var positions any = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(ccxt.DerefScalar(rawPositions[i])))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositions[i]))
 		positions.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
 	}

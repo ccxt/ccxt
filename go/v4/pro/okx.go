@@ -484,7 +484,7 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i])))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i]))
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -954,7 +954,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(ccxt.DerefScalar(data[i])))
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i]))
 		this.Tickers.Store(symbol, ticker)
 		if symbol != nil {
 			newTickers[*symbol] = ticker
@@ -2823,7 +2823,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var cache any = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var rawPosition any = ccxt.DerefScalar(data[i])
+		var rawPosition any = data[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var contracts *float64 = this.SafeNumber(position, "contracts")
 		if (contracts != nil && *contracts == 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {

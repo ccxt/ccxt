@@ -1189,7 +1189,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 		return
 	}
 	for i := 0; i < len(data); i++ {
-		var rawTrade any = ccxt.DerefScalar(data[i])
+		var rawTrade any = data[i]
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {

@@ -572,7 +572,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var orders []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order any = ccxt.DerefScalar(data[i])
+		var order any = data[i]
 		var parsedOrder map[string]any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
@@ -1709,7 +1709,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var item any = ccxt.DerefScalar(data[i])
+		var item any = data[i]
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(item))

@@ -34,7 +34,7 @@ func testLoadMarketsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	Assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets")
 	var marketValues []any = ObjectValues(markets)
 	for i := 0; i < len(marketValues); i++ {
-		TestMarket(exchange, skippedProperties, method, DerefScalar(marketValues[i]))
+		TestMarket(exchange, skippedProperties, method, marketValues[i])
 	}
 	// market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
 	var marketTypes []string = []string{"spot", "swap", "future", "option", "index"}

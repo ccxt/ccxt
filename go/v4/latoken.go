@@ -1186,11 +1186,11 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 	}
 
-	listEp1161 := <-this.PublicGetTicker(params)
-	if listEp1161.Err != nil {
-		panic(listEp1161.Err)
+	listEp1151 := <-this.PublicGetTicker(params)
+	if listEp1151.Err != nil {
+		panic(listEp1151.Err)
 	}
-	var response []any = listEp1161.Value
+	var response []any = listEp1151.Value
 
 	//
 	//    [
@@ -1361,11 +1361,11 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	listEp1329 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
-	if listEp1329.Err != nil {
-		panic(listEp1329.Err)
+	listEp1319 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
+	if listEp1319.Err != nil {
+		panic(listEp1319.Err)
 	}
-	var response []any = listEp1329.Value
+	var response []any = listEp1319.Value
 
 	//
 	//     [
@@ -1780,18 +1780,18 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		listEp1722 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1722.Err != nil {
-			panic(listEp1722.Err)
+		listEp1712 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1712.Err != nil {
+			panic(listEp1712.Err)
 		}
-		response = listEp1722.Value
+		response = listEp1712.Value
 	} else {
 
-		listEp1725 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1725.Err != nil {
-			panic(listEp1725.Err)
+		listEp1715 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1715.Err != nil {
+			panic(listEp1715.Err)
 		}
-		response = listEp1725.Value
+		response = listEp1715.Value
 	}
 
 	//
@@ -1872,34 +1872,34 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1803 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1803.Err != nil {
-				panic(listEp1803.Err)
+			listEp1793 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1793.Err != nil {
+				panic(listEp1793.Err)
 			}
-			response = listEp1803.Value
+			response = listEp1793.Value
 		} else {
 
-			listEp1806 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1806.Err != nil {
-				panic(listEp1806.Err)
+			listEp1796 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1796.Err != nil {
+				panic(listEp1796.Err)
 			}
-			response = listEp1806.Value
+			response = listEp1796.Value
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1811 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
-			if listEp1811.Err != nil {
-				panic(listEp1811.Err)
+			listEp1801 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
+			if listEp1801.Err != nil {
+				panic(listEp1801.Err)
 			}
-			response = listEp1811.Value
+			response = listEp1801.Value
 		} else {
 
-			listEp1814 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
-			if listEp1814.Err != nil {
-				panic(listEp1814.Err)
+			listEp1804 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
+			if listEp1804.Err != nil {
+				panic(listEp1804.Err)
 			}
-			response = listEp1814.Value
+			response = listEp1804.Value
 		}
 	}
 

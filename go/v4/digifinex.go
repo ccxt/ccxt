@@ -2787,8 +2787,8 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv2656, _ := OrdersToList(r1.Value), r1.Value != nil
-		var retRes212019 []any = listRecv2656
+		listRecv2651, _ := OrdersToList(r1.Value), r1.Value != nil
+		var retRes212019 []any = listRecv2651
 		if retRes212019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -4897,7 +4897,7 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	var result []any = SafeListTyped(data, "funding_rates")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = DerefScalar(result[i])
+		var entry any = result[i]
 		var marketId *string = this.SafeString(data, "instrument_id")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")

@@ -1432,7 +1432,7 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	var ordersLength int = len(orders)
 	var orderOutcomes []any = []any{}
 	for i := 0; i < ordersLength; i++ {
-		var __oc *string = this.SafeString(ccxt.GetValue(orders, i), "outcome")
+		var __oc *string = this.SafeString(orders[i], "outcome")
 		if __oc != nil {
 			orderOutcomes = append(orderOutcomes, __oc)
 		}
@@ -4299,7 +4299,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.DerefScalar(rawMarkets[i])
+		var raw any = rawMarkets[i]
 		var m any = this.ParseMyriadMarket(raw)
 		var marketHandle *string = this.SafeString(m, "market")
 		if marketHandle != nil {

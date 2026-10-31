@@ -4994,7 +4994,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var positions []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = DerefScalar(positions[i])
+		var position any = positions[i]
 		result = append(result, PositionToMap(this.ParsePosition(position)))
 	}
 
@@ -5361,7 +5361,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	var rows []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))

@@ -1017,11 +1017,11 @@ func (this *Foxbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 	}
 
-	listEp978 := <-this.V3PublicGetMarketsMarketCandlesticks(this.Extend(request, params))
-	if listEp978.Err != nil {
-		panic(listEp978.Err)
+	listEp973 := <-this.V3PublicGetMarketsMarketCandlesticks(this.Extend(request, params))
+	if listEp973.Err != nil {
+		panic(listEp973.Err)
 	}
-	var response []any = listEp978.Value
+	var response []any = listEp973.Value
 
 	// [
 	//     [

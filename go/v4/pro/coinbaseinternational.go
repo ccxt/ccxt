@@ -442,7 +442,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string
 	var trades []any = this.ParseTrades(data)
 	var tradesLength int = len(trades)
 	for i := 0; i < tradesLength; i++ {
-		this.MyTrades.Append(ccxt.DerefScalar(trades[i]))
+		this.MyTrades.Append(trades[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 }
@@ -773,7 +773,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		this.Positions.(ccxt.Appender).Append(ccxt.DerefScalar(positions[i]))
+		this.Positions.(ccxt.Appender).Append(positions[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }

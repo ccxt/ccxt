@@ -535,7 +535,7 @@ func (this *Luno) HandleMessage(client any, message map[string]any) {
 	}
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; j < len(handlers); j++ {
-		var handler any = ccxt.DerefScalar(handlers[j])
+		var handler any = handlers[j]
 		ccxt.CallDynamically(handler, client, message, func() any {
 			if 0 >= 0 && 0 < len(subscriptions) {
 				return ccxt.DerefScalar(subscriptions[0])

@@ -4207,7 +4207,7 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trades []any = SafeListTyped(DerefScalar(data[i]), "data")
+		var trades []any = SafeListTyped(data[i], "data")
 		for j := 0; j < len(trades); j++ {
 			var trade map[string]any = TradeToMap(this.ParseTrade(trades[j], market))
 			result = append(result, trade)
@@ -4728,7 +4728,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chainEntry any = DerefScalar(chains[j])
+		var chainEntry any = chains[j]
 		var uniqueChainId *string = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
 		var title *string = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
 		if (code != nil) && (title != nil) {
@@ -5107,7 +5107,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				var balances []any = SafeListTyped(entry, "list")
 				var subResult map[string]any = map[string]any{}
 				for j := 0; j < len(balances); j++ {
-					var balance any = DerefScalar(balances[j])
+					var balance any = balances[j]
 					var currencyId *string = this.SafeString(balance, "currency")
 					var code *string = this.SafeCurrencyCode(currencyId)
 					if code != nil {
@@ -5130,7 +5130,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		} else {
 			var balances []any = SafeListTyped(data, "list")
 			for i := 0; i < len(balances); i++ {
-				var balance any = DerefScalar(balances[i])
+				var balance any = balances[i]
 				var currencyId *string = this.SafeString(balance, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
@@ -5868,8 +5868,8 @@ func (this *Htx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5495, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes423319 []any = listRecv5495
+		listRecv5465, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes423319 []any = listRecv5465
 		if retRes423319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6055,8 +6055,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5655, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes432619 []any = listRecv5655
+		listRecv5625, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes432619 []any = listRecv5625
 		if retRes432619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6069,8 +6069,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		listRecv5664, _ := OrdersToList(r3.Value), r3.Value != nil
-		var retRes432819 []any = listRecv5664
+		listRecv5634, _ := OrdersToList(r3.Value), r3.Value != nil
+		var retRes432819 []any = listRecv5634
 		if retRes432819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -8370,7 +8370,7 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 	var data []any = SafeListTyped(orders, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order any = DerefScalar(data[i])
+		var order any = data[i]
 		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString(order, "order_id"),
@@ -9768,7 +9768,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		var cursor any = this.SafeValue(data, "current_page")
 		var result []any = SafeListTyped(data, "data")
 		for i := 0; i < len(result); i++ {
-			var entry any = DerefScalar(result[i])
+			var entry any = result[i]
 			AddElementToObject(entry, "current_page", cursor)
 			var marketId *string = this.SafeString(entry, "contract_code")
 			var symbolInner *string = this.SafeSymbol(marketId)
@@ -10837,7 +10837,7 @@ func (this *Htx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position any = DerefScalar(data[i])
+		var position any = data[i]
 		var parsed map[string]any = PositionToMap(this.ParsePosition(position))
 		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,

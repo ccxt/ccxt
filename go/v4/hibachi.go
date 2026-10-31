@@ -1940,11 +1940,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1854 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1854.Err != nil {
-		panic(listEp1854.Err)
+	listEp1839 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1839.Err != nil {
+		panic(listEp1839.Err)
 	}
-	var response []any = listEp1854.Value
+	var response []any = listEp1839.Value
 
 	// [
 	//     {

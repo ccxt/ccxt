@@ -1700,7 +1700,7 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
@@ -1858,7 +1858,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
@@ -3958,8 +3958,8 @@ func (this *Woofipro) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3715, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3715
+	listRecv3690, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3690
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4134,8 +4134,8 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3878, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3878
+	listRecv3853, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3853
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 	//

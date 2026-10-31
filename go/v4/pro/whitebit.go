@@ -152,7 +152,7 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 	//
 	var params []any = ccxt.SafeListTyped(message, "params")
 	for i := 0; i < len(params); i++ {
-		var data any = ccxt.DerefScalar(params[i])
+		var data any = params[i]
 		var marketId *string = this.SafeString(data, 7)
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -541,7 +541,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.Append(ccxt.DerefScalar(parsedTrades[j]))
+		stored.Append(parsedTrades[j])
 	}
 	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

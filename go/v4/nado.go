@@ -2284,7 +2284,7 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	}
 	var assetsById map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var rawAsset any = DerefScalar(assets[i])
+		var rawAsset any = assets[i]
 		var assetProductId *string = this.SafeString(rawAsset, "product_id")
 		if assetProductId != nil {
 			AddElementToObject(assetsById, assetProductId, rawAsset)
@@ -2292,7 +2292,7 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	}
 	var assetsByCode map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var rawAsset any = DerefScalar(assets[i])
+		var rawAsset any = assets[i]
 		var assetSymbol *string = this.SafeString(rawAsset, "symbol")
 		var assetCode *string = this.SafeCurrencyCode(this.RemoveMarketSuffix(assetSymbol))
 		if assetCode == nil {
@@ -2456,11 +2456,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2339 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2339.Err != nil {
-		panic(listEp2339.Err)
+	listEp2289 := <-this.GatewayV2PublicGetAssets(params)
+	if listEp2289.Err != nil {
+		panic(listEp2289.Err)
 	}
-	var response []any = listEp2339.Value
+	var response []any = listEp2289.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -3054,11 +3054,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2879 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2879.Err != nil {
-		panic(listEp2879.Err)
+	listEp2829 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2829.Err != nil {
+		panic(listEp2829.Err)
 	}
-	var response []any = listEp2879.Value
+	var response []any = listEp2829.Value
 
 	//
 	//     [

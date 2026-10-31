@@ -2229,12 +2229,14 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	}
 	this.Options["wsBalanceAssets"] = assets
 	var response map[string]any = this.ParseBalance(assets)
-	var parsed any = this.SafeDict(map[string]any{
+	var parsed map[string]any = this.SafeDictMap(map[string]any{
 		"balances": response,
 	}, "balances", map[string]any{})
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
+	if parsed != nil {
+		parsed["timestamp"] = timestamp
+	}
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(parsed, "info", assets)
 	this.WsBalanceReplace(parsed)

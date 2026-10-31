@@ -1432,11 +1432,11 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	request["limit"] = limitResolved
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
-	listEp1405 := <-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, paramsOmitted))
-	if listEp1405.Err != nil {
-		panic(listEp1405.Err)
+	listEp1395 := <-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, paramsOmitted))
+	if listEp1395.Err != nil {
+		panic(listEp1395.Err)
 	}
-	var response []any = listEp1405.Value
+	var response []any = listEp1395.Value
 	//
 	//     [
 	//         [
@@ -1510,11 +1510,11 @@ func (this *Coinsph) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		}
 	}
 
-	listEp1476 := <-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params))
-	if listEp1476.Err != nil {
-		panic(listEp1476.Err)
+	listEp1466 := <-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params))
+	if listEp1466.Err != nil {
+		panic(listEp1466.Err)
 	}
-	var response []any = listEp1476.Value
+	var response []any = listEp1466.Value
 
 	//
 	//     [
@@ -1582,11 +1582,11 @@ func (this *Coinsph) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["limit"] = limit
 	}
 
-	listEp1541 := <-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params))
-	if listEp1541.Err != nil {
-		panic(listEp1541.Err)
+	listEp1531 := <-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params))
+	if listEp1531.Err != nil {
+		panic(listEp1531.Err)
 	}
-	var response []any = listEp1541.Value
+	var response []any = listEp1531.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -2063,11 +2063,11 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["symbol"] = market["id"]
 	}
 
-	listEp1980 := <-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))
-	if listEp1980.Err != nil {
-		panic(listEp1980.Err)
+	listEp1970 := <-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))
+	if listEp1970.Err != nil {
+		panic(listEp1970.Err)
 	}
-	var response []any = listEp1980.Value
+	var response []any = listEp1970.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2122,11 +2122,11 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		request["limit"] = limit
 	}
 
-	listEp2032 := <-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))
-	if listEp2032.Err != nil {
-		panic(listEp2032.Err)
+	listEp2022 := <-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))
+	if listEp2022.Err != nil {
+		panic(listEp2022.Err)
 	}
-	var response []any = listEp2032.Value
+	var response []any = listEp2022.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2218,11 +2218,11 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["symbol"] = market["id"]
 	}
 
-	listEp2114 := <-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))
-	if listEp2114.Err != nil {
-		panic(listEp2114.Err)
+	listEp2104 := <-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))
+	if listEp2104.Err != nil {
+		panic(listEp2104.Err)
 	}
-	var response []any = listEp2114.Value
+	var response []any = listEp2104.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
@@ -2434,11 +2434,11 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		"symbol": market["id"],
 	}
 
-	listEp2323 := <-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))
-	if listEp2323.Err != nil {
-		panic(listEp2323.Err)
+	listEp2313 := <-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))
+	if listEp2313.Err != nil {
+		panic(listEp2313.Err)
 	}
-	var response []any = listEp2323.Value
+	var response []any = listEp2313.Value
 	//
 	//     [
 	//       {
@@ -2480,11 +2480,11 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		}
 	}
 
-	listEp2362 := <-this.PrivateGetOpenapiV1AssetTradeFee(params)
-	if listEp2362.Err != nil {
-		panic(listEp2362.Err)
+	listEp2352 := <-this.PrivateGetOpenapiV1AssetTradeFee(params)
+	if listEp2352.Err != nil {
+		panic(listEp2352.Err)
 	}
-	var response []any = listEp2362.Value
+	var response []any = listEp2352.Value
 	//
 	//     [
 	//         {
@@ -2650,11 +2650,11 @@ func (this *Coinsph) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp2525 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
-	if listEp2525.Err != nil {
-		panic(listEp2525.Err)
+	listEp2515 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
+	if listEp2515.Err != nil {
+		panic(listEp2515.Err)
 	}
-	var response []any = listEp2525.Value
+	var response []any = listEp2515.Value
 
 	//
 	// [
@@ -2736,11 +2736,11 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["limit"] = limit
 	}
 
-	listEp2604 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
-	if listEp2604.Err != nil {
-		panic(listEp2604.Err)
+	listEp2594 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
+	if listEp2594.Err != nil {
+		panic(listEp2594.Err)
 	}
-	var response []any = listEp2604.Value
+	var response []any = listEp2594.Value
 
 	//
 	// [

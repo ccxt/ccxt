@@ -1814,7 +1814,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 			cost = SafeStringPtr("0")
 		}
 		for i := 0; i < tradesLength; i++ {
-			var trade map[string]any = MapTyped(DerefScalar(trades[i]))
+			var trade map[string]any = MapTyped(trades[i])
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			if tradeAmount != nil {
 				filled = Precise.StringAdd(filled, tradeAmount)

@@ -4319,7 +4319,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	var marketId *string = this.SafeString(result, "instrument_name")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		rates = append(rates, map[string]any{
 			"info":        entry,

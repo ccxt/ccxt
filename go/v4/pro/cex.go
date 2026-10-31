@@ -1522,7 +1522,7 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	// const stored = this.safeValue (this.ohlcvs, symbol)
 	var stored any = this.Ohlcvs[symbol]["unknown"]
 	for i := 0; i < len(data); i++ {
-		var ohlcv []any = []any{this.SafeTimestamp(ccxt.DerefScalar(data[i]), 0), this.SafeNumber(ccxt.DerefScalar(data[i]), 1), this.SafeNumber(ccxt.DerefScalar(data[i]), 2), this.SafeNumber(ccxt.DerefScalar(data[i]), 3), this.SafeNumber(ccxt.DerefScalar(data[i]), 4), this.SafeNumber(ccxt.DerefScalar(data[i]), 5)}
+		var ohlcv []any = []any{this.SafeTimestamp(data[i], 0), this.SafeNumber(data[i], 1), this.SafeNumber(data[i], 2), this.SafeNumber(data[i], 3), this.SafeNumber(data[i], 4), this.SafeNumber(data[i], 5)}
 		stored.(ccxt.Appender).Append(ohlcv)
 	}
 	var dataLength int = len(data)
