@@ -3,7 +3,6 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { hx10C07PromiseAll, hx10C07SelfTest } from './hx10w2-C07.js' // hx10 wave2 C07: promiseAll -> Task.WhenAll
 import { hx10W3C07SnippetChecks } from './hx10w3-C07.js' // hx10 wave3 C07: handleErrors code / ws boolean flags
 import { hx10C08PromiseAll, hx10C08SnippetChecks, hx11w8PromiseAllSlots } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
@@ -9276,7 +9275,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C07SelfTest (), ...w3checks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...w3checks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9871,7 +9870,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01w3Out)))); // hx4 C34..C36
     const w3c02Out = hx10w3C02CandidateReads (hx4Out); // hx10w3 C02
     const c06w3Out = c06w3ParseJson (w3c02Out); // hx10w3 C06
-    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, hx10w10Bs04Apply (bf01Apply (hx11w8PromiseAllSlots (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse, tuple-slot
+    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, hx10w10Bs04Apply (bf01Apply (hx11w8PromiseAllSlots (hx10C08PromiseAll (c06w3Out)))))); // hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse, tuple-slot
 }
 
 function nativeC07HelperCalls (content: string): string {
