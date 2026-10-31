@@ -724,8 +724,8 @@ public partial class hibachi : Exchange
         };
         List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
         var pricesResponsestatsResponseVariable = new List<object>(await Task.WhenAll(rawPromises));
-        var pricesResponse = ((IList<object>) pricesResponsestatsResponseVariable)[0];
-        var statsResponse = ((IList<object>) pricesResponsestatsResponseVariable)[1];
+        var pricesResponse = pricesResponsestatsResponseVariable[0];
+        var statsResponse = pricesResponsestatsResponseVariable[1];
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",

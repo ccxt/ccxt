@@ -738,8 +738,8 @@ public partial class opinion : PredictionExchange
     { "token_id", tokenId },
 }, parameters))};
         var priceResponsebookResponseVariable = new List<object>(await Task.WhenAll(promises));
-        var priceResponse = ((IList<object>) priceResponsebookResponseVariable)[0];
-        var bookResponse = ((IList<object>) priceResponsebookResponseVariable)[1];
+        var priceResponse = priceResponsebookResponseVariable[0];
+        var bookResponse = priceResponsebookResponseVariable[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {
             { "price", priceResponse },
             { "book", bookResponse },

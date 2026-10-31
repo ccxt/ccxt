@@ -829,10 +829,10 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {(requestedTags != null && ti < requestedTags.Count ? requestedTags[ti] : null)};
-                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
-                for (int ei = 0; ei < getArrayLength(tagEvents); ei++)
+                List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
+                for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
                 {
-                    object rawEvent = getValue(tagEvents, ei);
+                    object rawEvent = tagEvents[ei];
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
@@ -1338,9 +1338,9 @@ public partial class polymarket : PredictionExchange
     { "token_id", tokenId },
 })};
         var midpointResponsebookResponselastTradeResponseVariable = new List<object>(await Task.WhenAll(promises));
-        var midpointResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[0];
-        var bookResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[1];
-        var lastTradeResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[2];
+        var midpointResponse = midpointResponsebookResponselastTradeResponseVariable[0];
+        var bookResponse = midpointResponsebookResponselastTradeResponseVariable[1];
+        var lastTradeResponse = midpointResponsebookResponselastTradeResponseVariable[2];
         Dictionary<string, object> response = new Dictionary<string, object>() {
             { "midpoint", midpointResponse },
             { "book", bookResponse },

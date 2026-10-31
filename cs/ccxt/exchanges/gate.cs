@@ -2130,8 +2130,8 @@ public partial class gate : Exchange
         Task<List<object>> marginPromise = this.publicMarginGetCurrencyPairs(parameters);
         Task<List<object>> spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
         var marginResponsespotMarketsResponseVariable = new List<object>(await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise}));
-        var marginResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[0];
-        var spotMarketsResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[1];
+        var marginResponse = marginResponsespotMarketsResponseVariable[0];
+        var spotMarketsResponse = marginResponsespotMarketsResponseVariable[1];
         Dictionary<string, object> marginMarkets = this.indexBy(marginResponse, "id");
         //
         //  Spot

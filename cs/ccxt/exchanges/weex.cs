@@ -1104,8 +1104,8 @@ public partial class weex : Exchange
         }
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)};
         var spotResponsecontractResponseVariable = new List<object>(await Task.WhenAll(promises));
-        var spotResponse = ((IList<object>) spotResponsecontractResponseVariable)[0];
-        var contractResponse = ((IList<object>) spotResponsecontractResponseVariable)[1];
+        var spotResponse = spotResponsecontractResponseVariable[0];
+        var contractResponse = spotResponsecontractResponseVariable[1];
         List<object> spotArray = this.safeList(spotResponse, "symbols", new List<object>() {});
         List<object> contractArray = this.safeList(contractResponse, "symbols", new List<object>() {});
         List<object> result = this.arrayConcat(spotArray, contractArray);
