@@ -935,7 +935,7 @@ impl BithumbCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_389: bool = true;
                 while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
-                let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
                 let mut baseId: Value = Value::Null;
                 let mut quoteId: Value = Value::Null;
@@ -1656,7 +1656,7 @@ impl BithumbCore {
                                         let mut j: i64 = 0;
                     let mut __for_first_399: bool = true;
                     while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (tickers.len() as i64) } {
-                    let mut entry: Value = tickers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut entry: Value = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[expectedMarketId.clone()]);
                     if (marketId == Value::Null) {
                         continue;
@@ -1686,7 +1686,7 @@ impl BithumbCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_401: bool = true;
                     while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
-                    let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol.clone());
                     let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteId", &[]);
                     if (quoteId.is_some()) && (matches!((&quoteCurrencies, &quoteId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1705,7 +1705,7 @@ impl BithumbCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_402: bool = true;
                 while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (quotes.len() as i64) } {
-                request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await); }
             }
@@ -1715,7 +1715,7 @@ impl BithumbCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_404: bool = true;
                 while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
-                let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(i), &[]);
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4096,7 +4096,7 @@ impl BithumbCore {
                                         let mut j: i64 = 0;
                     let mut __for_first_406: bool = true;
                     while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.len() as i64) } {
-                    let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut valueString: Value = self.safe_string(value.clone(), Value::Int(j), &[]);
                     if (valueString == Value::Null) {
                         valueString = json_stringify(&item);

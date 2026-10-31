@@ -450,7 +450,7 @@ impl HitbtcCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_372: bool = true;
                 while { if !__for_first_372 { i += 1; } __for_first_372 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbolId: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbolId: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into())); }
             }
             }
@@ -777,7 +777,7 @@ impl HitbtcCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_374: bool = true;
                 while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 if (marketId != Value::Null) {
                     marketIds.push(marketId);
                 }
@@ -1170,7 +1170,7 @@ impl HitbtcCore {
                                 let mut j: i64 = 0;
                 let mut __for_first_377: bool = true;
                 while { if !__for_first_377 { j += 1; } __for_first_377 = false; j < (trades.len() as i64) } {
-                stored.append(trades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null));
+                stored.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), symbol).into());
@@ -1196,7 +1196,7 @@ impl HitbtcCore {
                         let mut i: i64 = 0;
             let mut __for_first_379: bool = true;
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (tradesArray.len() as i64) } {
-            let __ws_arg_1 = self.parse_ws_trade(tradesArray.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let __ws_arg_1 = self.parse_ws_trade(tradesArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             let mut trade: Value = self.extend(__ws_arg_1, &[params.clone()]);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
         }
@@ -1499,7 +1499,7 @@ impl HitbtcCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_382: bool = true;
                 while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (data.len() as i64) } {
-                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 self.handle_order_helper(client.clone(), message.clone(), order);
             }
             }
@@ -2001,7 +2001,7 @@ impl HitbtcCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_384: bool = true;
                 while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (result.len() as i64) } {
-                let mut parsedOrder: Value = self.parse_ws_order(result.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+                let mut parsedOrder: Value = self.parse_ws_order(result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
                 parsedOrders.push(parsedOrder.clone());
             }
             }

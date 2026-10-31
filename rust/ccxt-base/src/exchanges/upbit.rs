@@ -1386,7 +1386,7 @@ impl UpbitCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1132: bool = true;
                 while { if !__for_first_1132 { i += 1; } __for_first_1132 = false; i < (marketSymbols.len() as i64) } {
-                let mut market: indexmap::IndexMap<String, Value> = self.market(marketSymbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+                let mut market: indexmap::IndexMap<String, Value> = self.market(marketSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
                 let mut quoteId: Value = market.get("quoteId").cloned().unwrap_or(Value::Null);
                 if !(self.in_array(quoteId.clone(), quoteIds.clone()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut quoteIds { std::sync::Arc::make_mut(__a).push(quoteId); }

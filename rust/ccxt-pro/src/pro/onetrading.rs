@@ -1134,7 +1134,7 @@ impl OnetradingCore {
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[Value::Str("".into())]);
             orders.append(order);
             client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
-            let mut rawTrades: Vec<Value> = self.safe_list(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("trades".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawTrades: Vec<Value> = self.safe_list_k(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut ii: i64 = 0;
                 let mut __for_first_569: bool = true;
@@ -1427,7 +1427,7 @@ impl OnetradingCore {
                         let mut i: i64 = 0;
             let mut __for_first_571: bool = true;
             while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (balanceKeys.len() as i64) } {
-            let mut newBalance: Value = self.safe_dict(update.clone(), balanceKeys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut newBalance: Value = self.safe_dict(update.clone(), balanceKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance);
             }
@@ -1811,7 +1811,7 @@ impl OnetradingCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_575: bool = true;
                     while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (marketIds.len() as i64) } {
-                    let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut marketSubscribed: bool = self.safe_bool_opt(subscription.clone(), marketId.clone(), &[Value::Bool(false)]).unwrap_or(false);
                     if !(marketSubscribed) {
                         type_var = "UPDATE_SUBSCRIPTION".to_string();
@@ -1830,7 +1830,7 @@ impl OnetradingCore {
                         let mut i: i64 = 0;
             let mut __for_first_576: bool = true;
             while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
         }
         }

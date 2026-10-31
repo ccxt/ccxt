@@ -923,7 +923,7 @@ impl BingxCore {
                         let mut j: i64 = 0;
             let mut __for_first_91: bool = true;
             while { if !__for_first_91 { j += 1; } __for_first_91 = false; j < (trades.len() as i64) } {
-            stored.append(trades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null));
+            stored.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[stored, messageHash]);
@@ -1328,7 +1328,7 @@ impl BingxCore {
                         let mut i: i64 = 0;
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (candles.len() as i64) } {
-            let mut candle: Value = candles.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut candle: Value = candles.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1891,7 +1891,7 @@ impl BingxCore {
                         let mut i: i64 = 0;
             let mut __for_first_93: bool = true;
             while { if !__for_first_93 { i += 1; } __for_first_93 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
@@ -2090,7 +2090,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut i: i64 = 0;
                 let mut __for_first_97: bool = true;
                 while { if !__for_first_97 { i += 1; } __for_first_97 = false; i < (types.len() as i64) } {
-                let mut type_var: Value = types.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut type_var: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut baseUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]);
                 if (baseUrl.is_none()) {
                     continue;
@@ -2488,7 +2488,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_99: bool = true;
             while { if !__for_first_99 { i += 1; } __for_first_99 = false; i < (data.len() as i64) } {
-            let mut balance: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

@@ -732,7 +732,7 @@ impl CoincheckCore {
                         let mut i: i64 = 0;
             let mut __for_first_566: bool = true;
             while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (parsedOrders.len() as i64) } {
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.extend(parsedOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.extend(parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                 m
@@ -1159,7 +1159,7 @@ impl CoincheckCore {
                         let mut i: i64 = 0;
             let mut __for_first_567: bool = true;
             while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut fee: Value = self.safe_dict(fees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

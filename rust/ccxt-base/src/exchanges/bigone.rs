@@ -1182,7 +1182,7 @@ impl BigoneCore {
                         let mut i: i64 = 0;
             let mut __for_first_264: bool = true;
             while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (contractMarkets.len() as i64) } {
-            let mut market: Value = contractMarkets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = contractMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCurrency", &[]);
             let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settleCurrency", &[]);

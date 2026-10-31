@@ -837,7 +837,7 @@ impl ExtendedCore {
                         let mut i: i64 = 0;
             let mut __for_first_323: bool = true;
             while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawPosition.clone(), "market", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
                 continue;
@@ -1220,7 +1220,7 @@ impl ExtendedCore {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.parse_trade(data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut trade: Value = self.parse_trade(data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade);
         }
         }

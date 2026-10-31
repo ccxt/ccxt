@@ -440,7 +440,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_144: bool = true;
             while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+            let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             args.push(market.get("id").cloned().unwrap_or(Value::Null));
         }
         }
@@ -715,7 +715,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_147: bool = true;
             while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())); }
         }
@@ -789,7 +789,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_148: bool = true;
             while { if !__for_first_148 { i += 1; } __for_first_148 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }
@@ -1067,7 +1067,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_152: bool = true;
             while { if !__for_first_152 { i += 1; } __for_first_152 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[Value::Str("".into())]));
             let mut timeframeString: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
@@ -1187,7 +1187,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_154: bool = true;
             while { if !__for_first_154 { i += 1; } __for_first_154 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())); }
         }
@@ -1265,7 +1265,7 @@ impl BitvavoCore {
                         let mut i: i64 = 0;
             let mut __for_first_155: bool = true;
             while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }

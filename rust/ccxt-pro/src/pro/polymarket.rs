@@ -379,7 +379,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_633: bool = true;
             while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (hashesToCheck.len() as i64) } {
-            if !(in_op(&__ch.subscriptions.clone(), &hashesToCheck.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null))) {
+            if !(in_op(&__ch.subscriptions.clone(), &hashesToCheck.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
                 willSend = true;
             }
         }
@@ -605,7 +605,7 @@ impl PolymarketCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_634: bool = true;
                 while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into())); }
                 channels.push(Value::Str(format!("{}{}", Value::Str("tickers::".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
             }
@@ -699,7 +699,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_635: bool = true;
             while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into())); }
             channels.push(Value::Str(format!("{}{}", Value::Str("bbo::".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }
@@ -1455,7 +1455,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_642: bool = true;
             while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (positions.len() as i64) } {
-            cache.append(positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            cache.append(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         // don't remove the future from the .futures cache

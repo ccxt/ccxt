@@ -454,7 +454,7 @@ impl CoinbaseCore {
                         let mut i: i64 = 0;
             let mut __for_first_236: bool = true;
             while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
             productIds.push(marketId);
@@ -512,7 +512,7 @@ impl CoinbaseCore {
                         let mut i: i64 = 0;
             let mut __for_first_237: bool = true;
             while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
             productIds.push(marketId);
@@ -1246,7 +1246,7 @@ impl CoinbaseCore {
                                 let mut j: i64 = 0;
                 let mut __for_first_242: bool = true;
                 while { if !__for_first_242 { j += 1; } __for_first_242 = false; j < (responseOrders.len() as i64) } {
-                let mut responseOrder: Value = responseOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                let mut responseOrder: Value = responseOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut parsed: Value = self.parse_ws_order(responseOrder.clone(), &[]);
                 let mut cachedOrders: Value = self.orders.clone();
                 let mut marketId: Option<String> = self.safe_string_k_opt(responseOrder, "product_id", &[]);
@@ -1264,7 +1264,7 @@ impl CoinbaseCore {
                         let mut i: i64 = 0;
             let mut __for_first_244: bool = true;
             while { if !__for_first_244 { i += 1; } __for_first_244 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_symbol(marketId, &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("user::".into()), symbol).into());
             client.resolve(&[self.orders.clone(), messageHash.clone()]);

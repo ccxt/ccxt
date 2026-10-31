@@ -1762,7 +1762,7 @@ impl BitfinexCore {
                         let mut i: i64 = 0;
             let mut __for_first_342: bool = true;
             while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (arr.len() as i64) } {
-            let mut parsed: Value = self.parse_currency_custom(arr.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), indexed.clone(), indexedNetworks.clone());
+            let mut parsed: Value = self.parse_currency_custom(arr.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), indexed.clone(), indexedNetworks.clone());
             let mut code: Value = self.safe_string_k(parsed.clone(), "code", &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&code), parsed);
         }
@@ -2165,7 +2165,7 @@ impl BitfinexCore {
                         let mut i: i64 = 0;
             let mut __for_first_345: bool = true;
             while { if !__for_first_345 { i += 1; } __for_first_345 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
             let mut signedAmount: Option<String> = self.safe_string_opt(order, Value::Int(2), &[]);
             let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4712,7 +4712,7 @@ impl BitfinexCore {
                         let mut i: i64 = 0;
             let mut __for_first_360: bool = true;
             while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (rawRatesData.len() as i64) } {
-            let mut fr: Value = rawRatesData.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut fr: Value = rawRatesData.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rate: Value = self.parse_funding_rate_history(fr, &[market.clone()]);
             rates.push(rate);
         }

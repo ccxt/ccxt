@@ -2278,7 +2278,7 @@ impl OpinionCore {
                         let mut i: i64 = 0;
             let mut __for_first_1394: bool = true;
             while { if !__for_first_1394 { i += 1; } __for_first_1394 = false; i < (outcomesList.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
                 if let Value::Dict(__d) = &mut wantedTokenIds { std::sync::Arc::make_mut(__d).insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }

@@ -805,7 +805,7 @@ impl LighterCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_478: bool = true;
                 while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null));
             }
             }

@@ -1374,7 +1374,7 @@ impl CexCore {
                         let mut i: i64 = 0;
             let mut __for_first_530: bool = true;
             while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!((&result, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut market: Value = self.market(symbol.clone());
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market])); }

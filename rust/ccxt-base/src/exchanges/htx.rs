@@ -3731,7 +3731,7 @@ impl HtxCore {
                         let mut i: i64 = 0;
             let mut __for_first_767: bool = true;
             while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (symbolsValue.len() as i64) } {
-            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await); }
         }
         }
@@ -5355,7 +5355,7 @@ impl HtxCore {
                         let mut i: i64 = 0;
             let mut __for_first_773: bool = true;
             while { if !__for_first_773 { i += 1; } __for_first_773 = false; i < (data.len() as i64) } {
-            let mut trades: Vec<Value> = self.safe_list(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut trades: Vec<Value> = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_772: bool = true;
@@ -6177,7 +6177,7 @@ impl HtxCore {
                                                 let mut j: i64 = 0;
                         let mut __for_first_777: bool = true;
                         while { if !__for_first_777 { j += 1; } __for_first_777 = false; j < (balances.len() as i64) } {
-                        let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                        let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                         let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                         if (code != Value::Null) {
@@ -6203,7 +6203,7 @@ impl HtxCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_780: bool = true;
                     while { if !__for_first_780 { i += 1; } __for_first_780 = false; i < (balances.len() as i64) } {
-                    let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     if (code != Value::Null) {
@@ -6965,7 +6965,7 @@ impl HtxCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_782: bool = true;
                     while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (self.accounts.len() as i64) } {
-                    let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
                         accountId = self.safe_string_k_opt(account, "id", &[]);
                         if (accountId.is_some()) {
@@ -8983,7 +8983,7 @@ impl HtxCore {
                         let mut i: i64 = 0;
             let mut __for_first_785: bool = true;
             while { if !__for_first_785 { i += 1; } __for_first_785 = false; i < (success.len() as i64) } {
-            let mut order: Value = success.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = success.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -8997,7 +8997,7 @@ impl HtxCore {
                         let mut i: i64 = 0;
             let mut __for_first_786: bool = true;
             while { if !__for_first_786 { i += 1; } __for_first_786 = false; i < (failed.len() as i64) } {
-            let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -9312,7 +9312,7 @@ impl HtxCore {
                         let mut i: i64 = 0;
             let mut __for_first_787: bool = true;
             while { if !__for_first_787 { i += 1; } __for_first_787 = false; i < (allAddresses.len() as i64) } {
-            let mut address: Value = allAddresses.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut address: Value = allAddresses.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut noteMatch: bool = (note == Value::Null) || (self.safe_string_k(address.clone(), "note", &[]).as_str() == note.as_str());
             let mut networkMatch: bool = (networkCode == Value::Null) || (self.safe_string_k(address.clone(), "network", &[]).as_str() == networkCode.as_str());
             if noteMatch && networkMatch {
@@ -11270,7 +11270,7 @@ impl HtxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_791: bool = true;
                 while { if !__for_first_791 { i += 1; } __for_first_791 = false; i < (positions.len() as i64) } {
-                let mut entry: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(entry.clone(), "contract_code", &[]).as_str() == marketId.as_deref()) {
                     position = entry;
                     break;

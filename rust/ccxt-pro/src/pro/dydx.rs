@@ -390,7 +390,7 @@ impl DydxCore {
                         let mut i: i64 = 0;
             let mut __for_first_317: bool = true;
             while { if !__for_first_317 { i += 1; } __for_first_317 = false; i < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol).into());

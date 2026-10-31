@@ -622,7 +622,7 @@ impl BitflyerCore {
                         let mut i: i64 = 0;
             let mut __for_first_362: bool = true;
             while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "product_code", &[]);
             let mut currencies: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);

@@ -1081,7 +1081,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_804: bool = true;
             while { if !__for_first_804 { i += 1; } __for_first_804 = false; i < (promises.len() as i64) } {
-            let mut dexName: Value = fetchDexesList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut dexName: Value = fetchDexesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
             let mut response: Value = self.safe_list(promises.clone(), Value::Int(i), &[]);
             let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
@@ -1898,7 +1898,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_808: bool = true;
             while { if !__for_first_808 { i += 1; } __for_first_808 = false; i < (response.len() as i64) } {
-            let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4584,7 +4584,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_823: bool = true;
             while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < (historicalOrders.len() as i64) } {
-            let mut rawOrder: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_dict_k(rawOrder.clone(), "order", &[rawOrder.clone()]);
             let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
             if (oid != Value::Null) {
@@ -6381,7 +6381,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_827: bool = true;
             while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (records.len() as i64) } {
-            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultDeposit")) {
                 let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6475,7 +6475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_828: bool = true;
             while { if !__for_first_828 { i += 1; } __for_first_828 = false; i < (records.len() as i64) } {
-            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultWithdraw")) {
                 let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6882,7 +6882,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_830: bool = true;
                 while { if !__for_first_830 { i += 1; } __for_first_830 = false; i < (statuses.len() as i64) } {
-                message = self.safe_string(statuses.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+                message = self.safe_string_k(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (message != Value::Null) {
                     break;
                 }

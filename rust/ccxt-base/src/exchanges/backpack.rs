@@ -1411,7 +1411,7 @@ impl BackpackCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_247: bool = true;
                 while { if !__for_first_247 { i += 1; } __for_first_247 = false; i < (securities.len() as i64) } {
-                let mut security: Value = securities.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut security: Value = securities.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut assetId: Option<String> = self.safe_string_k_opt(security.clone(), "asset", &[]);
                 if (assetId.is_none()) {
                     continue;
@@ -1614,12 +1614,12 @@ impl BackpackCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_248: bool = true;
                     while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (sessions.len() as i64) } {
-                    let mut sessionStep: Option<String> = self.safe_string_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("stepSize".into()), &[]);
+                    let mut sessionStep: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "stepSize", &[]);
                     if (sessionStep.is_some()) && ((stepSize == Value::Null) || crate::precise::Precise::stringLt(&sessionStep.clone().map(Value::from).unwrap_or(Value::Null), &stepSize).as_bool() == Some(true)) {
                         stepSize = sessionStep.map(Value::from).unwrap_or(Value::Null);
                     }
-                    let mut sessionMin: Option<String> = self.safe_string_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("minQuantity".into()), &[]);
-                    let mut sessionMax: Option<String> = self.safe_string_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("maxQuantity".into()), &[]);
+                    let mut sessionMin: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "minQuantity", &[]);
+                    let mut sessionMax: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "maxQuantity", &[]);
                     if (sessionMin.is_some()) && ((minimum == Value::Null) || crate::precise::Precise::stringLt(&sessionMin.clone().map(Value::from).unwrap_or(Value::Null), &minimum).as_bool() == Some(true)) {
                         minimum = sessionMin.map(Value::from).unwrap_or(Value::Null);
                     }
@@ -2331,7 +2331,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_251: bool = true;
             while { if !__for_first_251 { i += 1; } __for_first_251 = false; i < (symbolsResolved.len() as i64) } {
-            let mut marketSymbol: Value = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketSymbol: Value = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(marketSymbol.clone());
             if stockOnly && (market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 continue;
@@ -2800,7 +2800,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_253: bool = true;
             while { if !__for_first_253 { i += 1; } __for_first_253 = false; i < (rawRates.len() as i64) } {
-            let mut rate: Value = rawRates.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rate: Value = rawRates.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut datetime: Option<String> = self.safe_string_k_opt(rate.clone(), "intervalEndTimestamp", &[]);
             let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             rates.push(Value::Map({
@@ -2962,7 +2962,7 @@ impl BackpackCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_254: bool = true;
                 while { if !__for_first_254 { i += 1; } __for_first_254 = false; i < (rfqTrades.len() as i64) } {
-                let mut trade: Value = rfqTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut trade: Value = rfqTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                 if (until == Value::Null) || ((timestamp != Value::Null) && (timestamp.as_f64().unwrap_or(f64::NAN) <= until.as_f64().unwrap_or(f64::NAN))) {
                     filtered.push(trade);
@@ -3701,7 +3701,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_257: bool = true;
             while { if !__for_first_257 { i += 1; } __for_first_257 = false; i < (unsupported.len() as i64) } {
-            let mut key: Value = unsupported.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = unsupported.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (matches!((&paramsResolved, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() RFQs do not support ".into())).into()), key)));
             }

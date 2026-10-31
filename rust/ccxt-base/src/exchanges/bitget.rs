@@ -5866,7 +5866,7 @@ if _try_result.is_err() {
                     while { if !__for_first_364 { j += 1; } __for_first_364 = false; j < (subTypes.len() as i64) } {
                     let __ws_arg_0 = self.extend(params.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("productType".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null));
+                            m.insert("productType".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
                         m
                     })]);
                     promises.push(self.public_mix_get_v2_mix_market_contracts(&[__ws_arg_0]).await);
@@ -6013,7 +6013,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_368: bool = true;
             while { if !__for_first_368 { i += 1; } __for_first_368 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCoin", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCoin", &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6246,7 +6246,7 @@ if _try_result.is_err() {
             while { if !__for_first_369 { i += 1; } __for_first_369 = false; i < (subTypes.len() as i64) } {
             let mut req: Value = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("category".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("category".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 m
             })]);
             promises.push(self.public_uta_get_v3_market_instruments(&[req]).await);
@@ -6362,7 +6362,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_371: bool = true;
             while { if !__for_first_371 { i += 1; } __for_first_371 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCoin", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCoin", &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -8144,7 +8144,7 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_374: bool = true;
                 while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (allSymbols.len() as i64) } {
-                let mut symbol: Value = allSymbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = allSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entry: Value = self.market(symbol);
                 let mut isStockMarket: bool = self.safe_bool_k_opt(entry.clone(), "stock", &[Value::Bool(false)]).unwrap_or(false);
                 if isStockMarket {
@@ -13632,7 +13632,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_384: bool = true;
             while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (position.len() as i64) } {
-            let mut parsedPosition: Value = self.parse_position(position.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut parsedPosition: Value = self.parse_position(position.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             result.push(parsedPosition);
         }
         }
@@ -13986,7 +13986,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_385: bool = true;
             while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
             let mut timestamp: Option<i64> = self.safe_integer2(entry.clone(), Value::Str("fundingTime".into()), Value::Str("fundingRateTimestamp".into()), &[]).as_i64();

@@ -989,7 +989,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_698: bool = true;
             while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (data.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_3 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1818,7 +1818,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_700: bool = true;
                 while { if !__for_first_700 { i += 1; } __for_first_700 = false; i < (data.len() as i64) } {
-                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
                 if (tradeId != Value::Null) {
                     self.handle_my_trade(client.clone(), order.clone());
@@ -1951,7 +1951,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 if (symbolsNormalized == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
                 }
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), symbol).into()));
             }
             }
@@ -2009,7 +2009,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_702: bool = true;
             while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);

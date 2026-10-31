@@ -1175,7 +1175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut oi: i64 = 0;
             let mut __for_first_1259: bool = true;
             while { if !__for_first_1259 { oi += 1; } __for_first_1259 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null);
+            let mut label: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone());
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
@@ -1192,8 +1192,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settleFraction: Value = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null));
-                    m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), outcomeHandle);
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label.clone());
@@ -1651,7 +1651,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1260: bool = true;
             while { if !__for_first_1260 { i += 1; } __for_first_1260 = false; i < (outcomes.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut ticker: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]);
             if (ticker.is_none()) {
                 continue;
@@ -2390,7 +2390,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1272: bool = true;
             while { if !__for_first_1272 { i += 1; } __for_first_1272 = false; i < (outcomes.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut outcomeInfo: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2734,7 +2734,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1276: bool = true;
             while { if !__for_first_1276 { i += 1; } __for_first_1276 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(order);
@@ -3657,7 +3657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1291: bool = true;
             while { if !__for_first_1291 { i += 1; } __for_first_1291 = false; i < (rawMarkets.len() as i64) } {
-            let mut rawMarket: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawMarket: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_market(rawMarket.clone());
             marketsList.push(parsed);
             totalVolume = self.sum(&[totalVolume.clone(), self.safe_number2(rawMarket.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);

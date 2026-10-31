@@ -910,7 +910,7 @@ impl BybitCore {
             let mut __for_first_185: bool = true;
             while { if !__for_first_185 { i += 1; } __for_first_185 = false; i < (marketIds.len() as i64) } {
             let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
-            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), symbol).into()));
@@ -1230,7 +1230,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_187: bool = true;
             while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut symbolString: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = data.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1283,7 +1283,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_188: bool = true;
             while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut symbolString: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = data.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1494,7 +1494,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_190: bool = true;
             while { if !__for_first_190 { i += 1; } __for_first_190 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.market_id(symbol.clone());
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), self.number_to_string(limitResolved.clone())).into()), Value::Str(".".into())).into()), marketId).into());
             topics.push(topic);
@@ -1544,7 +1544,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), marketId).into());
@@ -1738,7 +1738,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_193: bool = true;
             while { if !__for_first_193 { i += 1; } __for_first_193 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("publicTrade.".into()), marketId).into());
@@ -1785,7 +1785,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_194: bool = true;
             while { if !__for_first_194 { i += 1; } __for_first_194 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("publicTrade.".into()), marketId).into());
@@ -2330,7 +2330,7 @@ impl BybitCore {
                                 let mut ii: i64 = 0;
                 let mut __for_first_198: bool = true;
                 while { if !__for_first_198 { ii += 1; } __for_first_198 = false; ii < (positions.len() as i64) } {
-                let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(ii as usize).cloned().unwrap_or(Value::Null);
+                let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(ii as usize).cloned().unwrap_or(Value::Null);
                 cache.append(position);
             }
             }
@@ -2850,7 +2850,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_203: bool = true;
             while { if !__for_first_203 { i += 1; } __for_first_203 = false; i < (rawOrders.len() as i64) } {
-            let mut parsed: Value = self.parse_order(rawOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut parsed: Value = self.parse_order(rawOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {
@@ -3109,7 +3109,7 @@ impl BybitCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_205: bool = true;
                 while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (data.len() as i64) } {
-                let mut B: Value = self.safe_list(data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("B".into()), &[Value::from(vec![])]);
+                let mut B: Value = self.safe_list_k(data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]);
                 rawBalances = self.array_concat(rawBalances.clone(), B);
             }
             }
@@ -3135,7 +3135,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_207: bool = true;
             while { if !__for_first_207 { i += 1; } __for_first_207 = false; i < (rawBalances.len() as i64) } {
-            self.parse_ws_balance(rawBalances.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
+            self.parse_ws_balance(rawBalances.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
         }
         }
         if (account != Value::Null) {

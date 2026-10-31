@@ -9194,7 +9194,7 @@ impl OkxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1018: bool = true;
                 while { if !__for_first_1018 { i += 1; } __for_first_1018 = false; i < (symbols.len() as i64) } {
-                let mut entry: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: indexmap::IndexMap<String, Value> = self.market(entry).as_map().cloned().unwrap_or_default();
                 marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
             }
@@ -10065,7 +10065,7 @@ impl OkxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1021: bool = true;
                 while { if !__for_first_1021 { i += 1; } __for_first_1021 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

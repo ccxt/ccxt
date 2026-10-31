@@ -603,7 +603,7 @@ impl WhitebitCore {
                         let mut i: i64 = 0;
             let mut __for_first_690: bool = true;
             while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
             args.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
@@ -763,7 +763,7 @@ impl WhitebitCore {
                         let mut j: i64 = 0;
             let mut __for_first_692: bool = true;
             while { if !__for_first_692 { j += 1; } __for_first_692 = false; j < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null));
+            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());

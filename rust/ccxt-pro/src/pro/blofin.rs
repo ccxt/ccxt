@@ -761,7 +761,7 @@ impl BlofinCore {
                         let mut i: i64 = 0;
             let mut __for_first_167: bool = true;
             while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (symbolsList.len() as i64) } {
-            let mut market: Value = self.market(symbolsList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1370,7 +1370,7 @@ impl BlofinCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_173: bool = true;
                 while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.len() as i64) } {
-                let mut current: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut current: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = Value::Null;
                 let mut channel: Value = channelName.clone();
                 if isOHLCV {

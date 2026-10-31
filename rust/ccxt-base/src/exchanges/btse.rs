@@ -1523,7 +1523,7 @@ impl BtseCore {
                         let mut i: i64 = 0;
             let mut __for_first_477: bool = true;
             while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (rates.len() as i64) } {
-            let mut rate: Value = rates.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rate: Value = rates.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (timestamp.as_f64().unwrap_or(f64::NAN) <= until.as_f64().unwrap_or(f64::NAN)) {
                 result.push(rate);
@@ -2267,7 +2267,7 @@ impl BtseCore {
                         let mut i: i64 = 0;
             let mut __for_first_486: bool = true;
             while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (timestamp.as_f64().unwrap_or(f64::NAN) <= until.as_f64().unwrap_or(f64::NAN)) {
                 result.push(trade);

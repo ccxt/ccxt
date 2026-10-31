@@ -553,7 +553,7 @@ impl BitgetCore {
                         let mut i: i64 = 0;
             let mut __for_first_111: bool = true;
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (symbolsList.len() as i64) } {
-            let mut symbol: Value = symbolsList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketInner: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut args: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
@@ -840,7 +840,7 @@ impl BitgetCore {
                         let mut i: i64 = 0;
             let mut __for_first_112: bool = true;
             while { if !__for_first_112 { i += 1; } __for_first_112 = false; i < (symbolsList.len() as i64) } {
-            let mut symbol: Value = symbolsList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketInner: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut args: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
@@ -1695,7 +1695,7 @@ impl BitgetCore {
                         let mut i: i64 = 0;
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchTradesForSymbols".into()), market.clone(), &[uta.clone(), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
             let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2581,7 +2581,7 @@ impl BitgetCore {
                         let mut i: i64 = 0;
             let mut __for_first_121: bool = true;
             while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (data.len() as i64) } {
-            let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[argInstId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
             let mut parsed: Value = self.parse_ws_order(order, &[market]);

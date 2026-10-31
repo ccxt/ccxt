@@ -4851,7 +4851,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut j: i64 = 0;
                     let mut __for_first_600: bool = true;
                     while { if !__for_first_600 { j += 1; } __for_first_600 = false; j < (value.len() as i64) } {
-                    returnString = Value::Str(format!("{}{}", returnString, self.params_to_string(value.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null), (match (&(depth), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
+                    returnString = Value::Str(format!("{}{}", returnString, self.params_to_string(value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), (match (&(depth), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
                         (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into());
                 }
                 }

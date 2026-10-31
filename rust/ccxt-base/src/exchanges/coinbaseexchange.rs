@@ -1246,7 +1246,7 @@ impl CoinbaseexchangeCore {
                         let mut i: i64 = 0;
             let mut __for_first_552: bool = true;
             while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut baseId: Value = parts.get(0).cloned().unwrap_or(Value::Null);
@@ -1909,7 +1909,7 @@ impl CoinbaseexchangeCore {
                         let mut i: i64 = 0;
             let mut __for_first_555: bool = true;
             while { if !__for_first_555 { i += 1; } __for_first_555 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());

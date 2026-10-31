@@ -1419,7 +1419,7 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_869: bool = true;
             while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut uid: Option<String> = self.safe_string_opt(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("feeScheduleUid".into()), &[]);
             let mut schedule: Value = self.safe_dict(Value::Map(schedulesByUid.clone()), uid.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -4311,7 +4311,7 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_884: bool = true;
             while { if !__for_first_884 { i += 1; } __for_first_884 = false; i < (elements.len() as i64) } {
-            let mut event: Value = self.safe_dict(elements.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("event".into()), &[Value::Map({
+            let mut event: Value = self.safe_dict_k(elements.get(i as usize).cloned().unwrap_or(Value::Null), "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4573,7 +4573,7 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_885: bool = true;
             while { if !__for_first_885 { i += 1; } __for_first_885 = false; i < (marginLevels.len() as i64) } {
-            let mut tier: Value = marginLevels.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut tier: Value = marginLevels.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMargin: Option<String> = self.safe_string_k_opt(tier.clone(), "initialMargin", &[]);
             let mut minNotional: Option<f64> = self.safe_number2_opt(tier.clone(), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({

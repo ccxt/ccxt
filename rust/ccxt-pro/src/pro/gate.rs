@@ -1435,7 +1435,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_333: bool = true;
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(":".into())).into()), symbol).into()));
         }
         }
@@ -1483,7 +1483,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_334: bool = true;
             while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (results.len() as i64) } {
-            let mut rawTicker: Value = results.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawTicker: Value = results.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawTicker.clone(), "s", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]);
             let mut parsedItem: Value = self.parse_ticker(rawTicker, &[market]);
@@ -1563,7 +1563,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
         }
         }
@@ -1607,7 +1607,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_336: bool = true;
             while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), symbol).into()));
         }
@@ -1667,7 +1667,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (parsedTrades.len() as i64) } {
-            let mut trade: Value = parsedTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut cachedTrades: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (cachedTrades == Value::Null) {
@@ -1836,7 +1836,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (result.len() as i64) } {
-            let mut ohlcv: Value = result.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut ohlcv: Value = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_string_k(ohlcv.clone(), "n", &[Value::Str("".into())]);
             let mut parts: Value = Value::Array(if let Some(__s) = subscription.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut timeframeId: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
@@ -1985,7 +1985,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_340: bool = true;
             while { if !__for_first_340 { i += 1; } __for_first_340 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             cachedTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -2263,7 +2263,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_343: bool = true;
             while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
@@ -2527,7 +2527,7 @@ impl GateCore {
                         let mut i: i64 = 0;
             let mut __for_first_346: bool = true;
             while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (parsedOrders.len() as i64) } {
-            let mut parsed: Value = parsedOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut parsed: Value = parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             // inject order status
             let mut info: Value = self.safe_dict_k(parsed.clone(), "info", &[]);
             let mut event: Option<String> = self.safe_string_k(info.clone(), "event", &[]).as_str().map(str::to_owned);

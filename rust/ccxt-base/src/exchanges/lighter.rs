@@ -1180,7 +1180,7 @@ impl LighterCore {
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_929 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -2003,7 +2003,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_931: bool = true;
             while { if !__for_first_931 { i += 1; } __for_first_931 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "market_id", &[]);
             let mut type_var: Value = self.safe_string_k(market.clone(), "market_type", &[]);
             if (type_var.as_str() == Some("perp")) {
@@ -2658,7 +2658,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_932: bool = true;
             while { if !__for_first_932 { i += 1; } __for_first_932 = false; i < (data.len() as i64) } {
-            let mut exchange: Option<String> = self.safe_string(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("exchange".into()), &[]).as_str().map(str::to_owned);
+            let mut exchange: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "exchange", &[]).as_str().map(str::to_owned);
             if (exchange.as_deref() == Some("lighter")) {
                 result.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
             }

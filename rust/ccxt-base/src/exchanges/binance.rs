@@ -7608,7 +7608,7 @@ impl BinanceCore {
                         let mut i: i64 = 0;
             let mut __for_first_275: bool = true;
             while { if !__for_first_275 { i += 1; } __for_first_275 = false; i < (markets.len() as i64) } {
-            let mut parsed: Value = self.parse_market(markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut parsed: Value = self.parse_market(markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if (parsed != Value::Null) {
                 result.push(parsed);
             }
@@ -11204,7 +11204,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_288: bool = true;
                 while { if !__for_first_288 { i += 1; } __for_first_288 = false; i < (clientOrderIdKeys.len() as i64) } {
-                let mut currentClientOrderIdKey: Value = clientOrderIdKeys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut currentClientOrderIdKey: Value = clientOrderIdKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currentClientOrderId: Option<String> = self.safe_string(params.clone(), currentClientOrderIdKey.clone(), &[]).as_str().map(str::to_owned);
                 if (currentClientOrderId.is_none()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currentClientOrderIdKey), self.generate_client_order_id(&[Value::Null, api.clone(), path.clone()]).map(Value::from).unwrap_or(Value::Null)); }
@@ -15096,7 +15096,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_297: bool = true;
                 while { if !__for_first_297 { i += 1; } __for_first_297 = false; i < (fees.len() as i64) } {
-                let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
+                let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
                 let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut spotFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
@@ -15143,7 +15143,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     if let Value::Dict(__d) = &mut linearFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -15189,7 +15189,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_299: bool = true;
                 while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                     if let Value::Dict(__d) = &mut inverseFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -16366,7 +16366,7 @@ impl BinanceCore {
                         let mut i: i64 = 0;
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { i += 1; } __for_first_307 = false; i < (positions.len() as i64) } {
-            result.push(self.parse_option_position(positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            result.push(self.parse_option_position(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
@@ -16721,7 +16721,7 @@ impl BinanceCore {
                         let mut i: i64 = 0;
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (positions.len() as i64) } {
-            let mut rawPosition: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entryPriceString: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "entryPrice", &[]);
             if crate::precise::Precise::stringGt(&entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(rawPosition, &[]));
@@ -19846,7 +19846,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_315: bool = true;
             while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (assets.len() as i64) } {
-            let mut entry: Value = assets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = assets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {

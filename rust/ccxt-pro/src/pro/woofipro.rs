@@ -651,7 +651,7 @@ impl WoofiproCore {
                         let mut i: i64 = 0;
             let mut __for_first_706: bool = true;
             while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (data.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_0 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1428,7 +1428,7 @@ impl WoofiproCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_708: bool = true;
                 while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (data.len() as i64) } {
-                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
                 if (tradeId != Value::Null) {
                     self.handle_my_trade(client.clone(), order.clone());
@@ -1561,7 +1561,7 @@ impl WoofiproCore {
                 if (symbolsNormalized == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
                 }
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), symbol).into()));
             }
             }
@@ -1624,7 +1624,7 @@ impl WoofiproCore {
                         let mut i: i64 = 0;
             let mut __for_first_710: bool = true;
             while { if !__for_first_710 { i += 1; } __for_first_710 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]);
             if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                 cache.append(position);

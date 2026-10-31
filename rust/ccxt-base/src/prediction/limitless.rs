@@ -1760,7 +1760,7 @@ impl LimitlessCore {
                         let mut i: i64 = 0;
             let mut __for_first_1303: bool = true;
             while { if !__for_first_1303 { i += 1; } __for_first_1303 = false; i < (outcomes.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut slug: Option<String> = self.safe_string_opt(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
             if (slug.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".into()))));
@@ -1818,7 +1818,7 @@ impl LimitlessCore {
                                 let mut j: i64 = 0;
                 let mut __for_first_1305: bool = true;
                 while { if !__for_first_1305 { j += 1; } __for_first_1305 = false; j < (grouped.len() as i64) } {
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), &[grouped.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null)]);
+                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), &[grouped.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null)]);
                 let mut symbolKey: Option<String> = self.safe_string_k_opt(ticker.clone(), "outcome", &[]);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
@@ -3116,7 +3116,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1316: bool = true;
             while { if !__for_first_1316 { i += 1; } __for_first_1316 = false; i < (fields.len() as i64) } {
-            signedFields.push(fields.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            signedFields.push(fields.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         signedFields.push(self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)));
@@ -3924,7 +3924,7 @@ if _try_result.is_err() {
                 if (queries == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
                 }
-                let mut q: Value = queries.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut q: Value = queries.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let __ws_arg_30 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q);

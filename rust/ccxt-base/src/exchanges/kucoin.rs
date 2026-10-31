@@ -3552,7 +3552,7 @@ impl KucoinCore {
                         let mut i: i64 = 0;
             let mut __for_first_886: bool = true;
             while { if !__for_first_886 { i += 1; } __for_first_886 = false; i < (symbolsData.len() as i64) } {
-            let mut market: Value = symbolsData.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = symbolsData.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             if (id.is_none()) {
                 continue;
@@ -3950,7 +3950,7 @@ impl KucoinCore {
                         let mut i: i64 = 0;
             let mut __for_first_888: bool = true;
             while { if !__for_first_888 { i += 1; } __for_first_888 = false; i < (symbolsData.len() as i64) } {
-            let mut market: Value = symbolsData.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = symbolsData.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCurrency", &[]);
@@ -4336,7 +4336,7 @@ impl KucoinCore {
                         let mut i: i64 = 0;
             let mut __for_first_890: bool = true;
             while { if !__for_first_890 { i += 1; } __for_first_890 = false; i < (data.len() as i64) } {
-            let mut account: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut account: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "id", &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(account.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -13795,7 +13795,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_905: bool = true;
             while { if !__for_first_905 { i += 1; } __for_first_905 = false; i < (dataList.len() as i64) } {
-            let mut listItem: Value = dataList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut listItem: Value = dataList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer2(listItem.clone(), Value::Str("timePoint".into()), Value::Str("settlementTime".into()), &[]).as_i64();
             let mut marketId: Option<String> = self.safe_string_k_opt(listItem.clone(), "symbol", &[]);
             if let Value::Arr(__a) = &mut fees { std::sync::Arc::make_mut(__a).push(Value::Map({

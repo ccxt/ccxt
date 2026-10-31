@@ -489,7 +489,7 @@ impl OkxCore {
             if (symbolsNormalized == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" subscribeMultiple() symbols is required".into()))));
             }
-            let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut arg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channel.clone());
@@ -500,7 +500,7 @@ impl OkxCore {
             if (symbolsNormalized == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" subscribeMultiple() symbols is required".into()))));
             }
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -604,7 +604,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_535: bool = true;
             while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into())); }
             let mut marketId: Value = self.market_id(symbol);
             let mut topic: Value = Value::Map({
@@ -669,7 +669,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_536: bool = true;
             while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), symbol).into())); }
             let mut marketId: Value = self.market_id(symbol);
             let mut topic: Value = Value::Map({
@@ -836,7 +836,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_538: bool = true;
             while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into())); }
             let mut marketId: Value = self.market_id(symbol.clone());
             let mut topic: Value = Value::Map({
@@ -1081,7 +1081,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_540: bool = true;
             while { if !__for_first_540 { i += 1; } __for_first_540 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), symbol).into())); }
             let mut marketId: Value = self.market_id(symbol);
             let mut topic: Value = Value::Map({
@@ -1197,7 +1197,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_542: bool = true;
             while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut marketId: Value = self.market_id(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut arg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channel.clone());
@@ -1205,7 +1205,7 @@ impl OkxCore {
                 m
             });
             args.push(self.extend(Value::Map(arg), &[paramsChannel.clone()]));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1361,7 +1361,7 @@ impl OkxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_543: bool = true;
                 while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into())); }
             }
             }
@@ -1492,7 +1492,7 @@ impl OkxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_545: bool = true;
                 while { if !__for_first_545 { i += 1; } __for_first_545 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into())); }
             }
             }
@@ -2003,7 +2003,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_550: bool = true;
             while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth, Value::Str(":".into())).into()), symbol).into())); }
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2095,7 +2095,7 @@ impl OkxCore {
                         let mut i: i64 = 0;
             let mut __for_first_552: bool = true;
             while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth, Value::Str(":".into())).into()), symbol).into()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); }
             let mut marketId: Value = self.market_id(symbol);
@@ -3056,7 +3056,7 @@ impl OkxCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_559: bool = true;
                 while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (parsed.len() as i64) } {
-                let mut order: Value = parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut order: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 stored.append(order.clone());
                 let mut symbol: Value = self.safe_string_k(order, "symbol", &[Value::Str("".into())]);
                 let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();

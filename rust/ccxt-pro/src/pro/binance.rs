@@ -887,9 +887,9 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_55: bool = true;
                 while { if !__for_first_55 { i += 1; } __for_first_55 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 subscriptionHashes.push(Value::Str(format!("{}{}", self.safe_string_k(market, "lowercaseId", &[Value::Str("".into())]), Value::Str("@forceOrder".into())).into()));
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
             streamHash = Value::Str(format!("{}{}", streamHash, Value::Str(format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into())).into());
@@ -1151,7 +1151,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_56: bool = true;
                 while { if !__for_first_56 { i += 1; } __for_first_56 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol).into()));
             }
             }
@@ -1351,7 +1351,7 @@ impl BinanceCore {
                         let mut i: i64 = 0;
             let mut __for_first_57: bool = true;
             while { if !__for_first_57 { i += 1; } __for_first_57 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
             subscribeHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
@@ -1438,7 +1438,7 @@ impl BinanceCore {
                         let mut i: i64 = 0;
             let mut __for_first_58: bool = true;
             while { if !__for_first_58 { i += 1; } __for_first_58 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); };
@@ -1983,7 +1983,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_63: bool = true;
                 while { if !__for_first_63 { i += 1; } __for_first_63 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
                 subscribeHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
@@ -2001,7 +2001,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_64: bool = true;
                 while { if !__for_first_64 { i += 1; } __for_first_64 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
                 subscribeHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
@@ -2097,7 +2097,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_65: bool = true;
                 while { if !__for_first_65 { i += 1; } __for_first_65 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), symbol).into())); };
@@ -2115,7 +2115,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_66: bool = true;
                 while { if !__for_first_66 { i += 1; } __for_first_66 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), symbol).into())); };
@@ -2496,7 +2496,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_67: bool = true;
                 while { if !__for_first_67 { i += 1; } __for_first_67 = false; i < (symbolsAndTimeframes.len() as i64) } {
-                let mut stockSymAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut stockSymAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut stockSymbolString: Value = self.symbol(self.safe_string(stockSymAndTf.clone(), Value::Int(0), &[Value::Str("".into())]));
                 let mut stockMarket: Value = self.market(stockSymbolString);
                 let mut stockTicker: Option<String> = self.safe_string2_opt(stockMarket.clone(), Value::Str("base".into()), Value::Str("id".into()), &[]);
@@ -2549,7 +2549,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_68: bool = true;
             while { if !__for_first_68 { i += 1; } __for_first_68 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbolString: Value = self.safe_string(symAndTf.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut timeframeString: Value = self.safe_string(symAndTf, Value::Int(1), &[Value::Str("".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
@@ -2653,7 +2653,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_69: bool = true;
             while { if !__for_first_69 { i += 1; } __for_first_69 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbolString: Value = self.safe_string(symAndTf.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut timeframeString: Value = self.safe_string(symAndTf, Value::Int(1), &[Value::Str("".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
@@ -3329,9 +3329,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_70: bool = true;
                 while { if !__for_first_70 { i += 1; } __for_first_70 = false; i < (stockSymbols.len() as i64) } {
-                let mut stockTicker: Value = self.get_stock_ticker_from_symbol(stockSymbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+                let mut stockTicker: Value = self.get_stock_ticker_from_symbol(stockSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
                 stockStreams.push(Value::Str(format!("{}{}", stockTicker, Value::Str("@quote".into())).into()));
-                stockMessageHashes.push(Value::Str(format!("{}{}", Value::Str("stock:quote:".into()), stockSymbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                stockMessageHashes.push(Value::Str(format!("{}{}", Value::Str("stock:quote:".into()), stockSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
             let mut stockResult: Value = self.watch_stock_market_stream(Value::from(stockStreams), Value::from(stockMessageHashes), &[paramsStock.clone()]).await;
@@ -3428,7 +3428,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_71: bool = true;
                 while { if !__for_first_71 { i += 1; } __for_first_71 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".into())).into()), channel).into()), Value::Str("@".into())).into()), symbol).into())); };
                 if isUnsubscribe {
@@ -5030,7 +5030,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut i: i64 = 0;
                 let mut __for_first_77: bool = true;
                 while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (B.len() as i64) } {
-                let mut entry: Value = B.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = B.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "a", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
@@ -5867,7 +5867,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_79: bool = true;
             while { if !__for_first_79 { i += 1; } __for_first_79 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(order.clone(), "status", &[]).as_str() == Some("closed")) {
                 closedOrders.push(order);
             }
@@ -6852,7 +6852,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_83: bool = true;
             while { if !__for_first_83 { i += 1; } __for_first_83 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);

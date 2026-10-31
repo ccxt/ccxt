@@ -1298,7 +1298,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut j: i64 = 0;
             let mut __for_first_297: bool = true;
             while { if !__for_first_297 { j += 1; } __for_first_297 = false; j < (cachedMessages.len() as i64) } {
-            let mut cachedMessage: Value = cachedMessages.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut cachedMessage: Value = cachedMessages.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             self.handle_order_book_message(client.clone(), cachedMessage, orderbook.clone());
         }
         }
@@ -1655,7 +1655,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
                 messageHashes.push(symbolMessageHash);
             }

@@ -1792,7 +1792,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_1097: bool = true;
             while { if !__for_first_1097 { i += 1; } __for_first_1097 = false; i < (schedule.len() as i64) } {
-            let mut entry: Value = schedule.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = schedule.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }

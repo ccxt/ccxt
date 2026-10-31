@@ -1056,7 +1056,7 @@ impl HyperliquidCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_407: bool = true;
                 while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (symbolsNormalized.len() as i64) } {
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
@@ -1960,7 +1960,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_415: bool = true;
             while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (rawBalances.len() as i64) } {
-            self.parse_ws_balance(rawBalances.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
+            self.parse_ws_balance(rawBalances.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
         }
         }
         if !(matches!((&self.balance, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

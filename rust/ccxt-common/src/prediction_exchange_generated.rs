@@ -780,7 +780,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_204: bool = true;
             while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (marketsList.len() as i64) } {
-            let mut row: Value = marketsList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut row: Value = marketsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut copy: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -949,8 +949,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: i64 = 0;
                 let mut __for_first_209: bool = true;
                 while { if !__for_first_209 { i += 1; } __for_first_209 = false; i < (outcomes.len() as i64) } {
-                if reload.as_bool() == Some(true) || !(self.has_outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                    if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)); }
+                if reload.as_bool() == Some(true) || !(self.has_outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
                 }
             }
             }
@@ -2212,7 +2212,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
             let mut trade: Value = self.extend(parsed, &[params.clone()]);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(trade); }
         }
@@ -2251,7 +2251,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
             let mut order: Value = self.extend(parsed, &[params.clone()]);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(order); }
         }
@@ -2287,7 +2287,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             let mut position: Value = self.extend(parsed, &[params.clone()]);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(position); }
         }

@@ -1496,7 +1496,7 @@ impl CoinbaseCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_534: bool = true;
                 while { if !__for_first_534 { i += 1; } __for_first_534 = false; i < (self.accounts.len() as i64) } {
-                let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) && (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("wallet")) {
                     accountId = self.safe_string_k_opt(account, "id", &[]);
                     break;
@@ -2235,7 +2235,7 @@ impl CoinbaseCore {
                                         let mut j: i64 = 0;
                     let mut __for_first_535: bool = true;
                     while { if !__for_first_535 { j += 1; } __for_first_535 = false; j < (data.len() as i64) } {
-                    let mut quoteCurrency: Value = data.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut quoteCurrency: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut quoteId: Option<String> = self.safe_string_k_opt(quoteCurrency.clone(), "id", &[]);
                     let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     if (quote == Value::Null) || (quoteId.is_none()) {
@@ -3035,7 +3035,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_541: bool = true;
             while { if !__for_first_541 { i += 1; } __for_first_541 = false; i < (currencies.len() as i64) } {
-            let mut currency: Value = currencies.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut currency: Value = currencies.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut assetId: Option<String> = self.safe_string_k(currency.clone(), "asset_id", &[]).as_str().map(str::to_owned);
             let mut id: Option<String> = self.safe_string2_opt(currency.clone(), Value::Str("id".into()), Value::Str("code".into()), &[]);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -4216,7 +4216,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_546: bool = true;
             while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (self.accounts.len() as i64) } {
-            let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) {
                 return self.safe_string_k(account, "id", &[]);
             }
@@ -4881,7 +4881,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_547: bool = true;
             while { if !__for_first_547 { i += 1; } __for_first_547 = false; i < (orders.len() as i64) } {
-            let mut success: Option<bool> = self.safe_bool_opt(orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("success".into()), &[]);
+            let mut success: Option<bool> = self.safe_bool_k_opt(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "success", &[]);
             if (success != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".into()))));
             }

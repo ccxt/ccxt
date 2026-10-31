@@ -461,7 +461,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_37: bool = true;
             while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (normalized.len() as i64) } {
-            let mut market: Value = self.market(normalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(normalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if (symbols == Value::Null) && (stock || (explicitSource.as_str() == Some("External")) || (channel != Value::Null)) && (market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 continue;
             }
@@ -706,7 +706,7 @@ impl BackpackCore {
                                                         let mut j: i64 = 0;
                             let mut __for_first_38: bool = true;
                             while { if !__for_first_38 { j += 1; } __for_first_38 = false; j < (keys.len() as i64) } {
-                            let mut symbol: Value = keys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                            let mut symbol: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                             remove(&mut cache, &symbol);
                         }
                         }
@@ -725,7 +725,7 @@ impl BackpackCore {
                                                 let mut j: i64 = 0;
                         let mut __for_first_39: bool = true;
                         while { if !__for_first_39 { j += 1; } __for_first_39 = false; j < (keys.len() as i64) } {
-                        let mut symbol: Value = keys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                        let mut symbol: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                         remove(&mut self.positions, &symbol);
                     }
                     }
@@ -1462,7 +1462,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_46: bool = true;
             while { if !__for_first_46 { i += 1; } __for_first_46 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -1513,7 +1513,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_47: bool = true;
             while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -1685,7 +1685,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_48: bool = true;
             while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
             let mut market: Value = self.market(symbol.clone());
             self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -1752,7 +1752,7 @@ impl BackpackCore {
                         let mut i: i64 = 0;
             let mut __for_first_49: bool = true;
             while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into()));
             let mut market: Value = self.market(symbol);
             self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -2359,7 +2359,7 @@ impl BackpackCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_53: bool = true;
                 while { if !__for_first_53 { i += 1; } __for_first_53 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("positions".into()), Value::Str(":".into())).into()), symbol).into()));
                 topics.push(Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol)).into()));
             }
@@ -2403,7 +2403,7 @@ impl BackpackCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_54: bool = true;
                 while { if !__for_first_54 { i += 1; } __for_first_54 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:positions".into()), Value::Str(":".into())).into()), symbol).into()));
                 topics.push(Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol)).into()));
             }

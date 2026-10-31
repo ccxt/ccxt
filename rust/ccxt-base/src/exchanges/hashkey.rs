@@ -4565,7 +4565,7 @@ impl HashkeyCore {
                         let mut i: i64 = 0;
             let mut __for_first_731: bool = true;
             while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (rows.len() as i64) } {
-            let mut entry: Value = rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "settleTime", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

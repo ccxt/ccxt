@@ -506,7 +506,7 @@ impl BullishCore {
                         let mut i: i64 = 0;
             let mut __for_first_175: bool = true;
             while { if !__for_first_175 { i += 1; } __for_first_175 = false; i < (tradesList.len() as i64) } {
-            tradesArray.append(tradesList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            tradesArray.append(tradesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
@@ -851,7 +851,7 @@ impl BullishCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_177: bool = true;
                 while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (rawOrders.len() as i64) } {
-                let mut parsedOrder: Value = self.parse_order(rawOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+                let mut parsedOrder: Value = self.parse_order(rawOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
                 orders.append(parsedOrder.clone());
                 let mut symbol: Option<String> = self.safe_string_k_opt(parsedOrder, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -990,7 +990,7 @@ impl BullishCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_179: bool = true;
                 while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (rawTrades.len() as i64) } {
-                let mut parsedTrade: Value = self.parse_trade(rawTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+                let mut parsedTrade: Value = self.parse_trade(rawTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
                 trades.append(parsedTrade.clone());
                 let mut symbol: Option<String> = self.safe_string_k_opt(parsedTrade, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -1213,7 +1213,7 @@ impl BullishCore {
                         let mut i: i64 = 0;
             let mut __for_first_182: bool = true;
             while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (rawPositions.len() as i64) } {
-            let mut position: Value = self.parse_position(rawPositions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut position: Value = self.parse_position(rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             positions.append(position.clone());
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
         }

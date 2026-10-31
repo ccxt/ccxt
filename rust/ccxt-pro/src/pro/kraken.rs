@@ -1019,7 +1019,7 @@ impl KrakenCore {
                         let mut i: i64 = 0;
             let mut __for_first_425: bool = true;
             while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (parsed.len() as i64) } {
-            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[stored, messageHash]);
@@ -1283,7 +1283,7 @@ impl KrakenCore {
                         let mut i: i64 = 0;
             let mut __for_first_427: bool = true;
             while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (symbolsNormalized.len() as i64) } {
-            if let Value::Arr(__a) = &mut unsubMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into())); }
+            if let Value::Arr(__a) = &mut unsubMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into())); }
         }
         }
         let mut request: Value = Value::Map({
@@ -1474,7 +1474,7 @@ impl KrakenCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_428: bool = true;
                     while { if !__for_first_428 { i += 1; } __for_first_428 = false; i < (symbols.len() as i64) } {
-                    let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol);
                     let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1664,7 +1664,7 @@ impl KrakenCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_429: bool = true;
                 while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (keys.len() as i64) } {
-                let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
                 let mut deltas: Value = self.safe_list(first.clone(), key, &[Value::from(vec![])]);
                 let mut deltasLength: f64 = ((deltas.len() as i64) as f64);
@@ -2266,9 +2266,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_437 { i += 1; } __for_first_437 = false; i < (symbolsNormalized.len() as i64) } {
             let mut eventTrigger: Option<String> = self.safe_string_k(params.clone(), "event_trigger", &[]).as_str().map(str::to_owned);
             if (eventTrigger.is_some()) {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
             }  else {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
             }
         }
         }
@@ -2373,10 +2373,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_438: bool = true;
             while { if !__for_first_438 { i += 1; } __for_first_438 = false; i < (data.len() as i64) } {
-            let mut currencyId: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("asset".into()), &[]);
+            let mut currencyId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut eq: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("balance".into()), &[]);
+            let mut eq: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "balance", &[]);
             account.insert("total".into(), eq.map(Value::from).unwrap_or(Value::Null));
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
         }

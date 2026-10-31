@@ -2119,7 +2119,7 @@ impl ToobitCore {
                         let mut i: i64 = 0;
             let mut __for_first_1125: bool = true;
             while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (response.len() as i64) } {
-            let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
             if (marketId.is_some()) && (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 rows.push(ticker);
@@ -3195,7 +3195,7 @@ impl ToobitCore {
             while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 m
             }));
         }
@@ -3592,7 +3592,7 @@ impl ToobitCore {
                         let mut i: i64 = 0;
             let mut __for_first_1129: bool = true;
             while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (response.len() as i64) } {
-            let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
+            let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
             results.push(self.extend(__ws_arg_30, &[paramsUntil.clone()]));
         }
         }

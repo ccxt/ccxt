@@ -748,7 +748,7 @@ impl ParadexCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_592: bool = true;
                 while { if !__for_first_592 { i += 1; } __for_first_592 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into());
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into());
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
             }
             }
@@ -1091,7 +1091,7 @@ impl ParadexCore {
                         let mut i: i64 = 0;
             let mut __for_first_594: bool = true;
             while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < (cached.len() as i64) } {
-            let mut previous: Value = cached.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut previous: Value = cached.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut previousSide: Value = self.safe_string_k(previous.clone(), "side", &[]);
             let mut previousContracts: Option<String> = self.safe_string_k_opt(previous.clone(), "contracts", &[]);
             let mut isOpposite: bool = (side != Value::Null) && (previousSide != Value::Null) && (previousSide != side);
@@ -1351,7 +1351,7 @@ impl ParadexCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_596: bool = true;
                     while { if !__for_first_596 { i += 1; } __for_first_596 = false; i < (symbolsNormalized.len() as i64) } {
-                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into());
+                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into());
                     if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
                 }
                 }
@@ -1792,7 +1792,7 @@ impl ParadexCore {
                 while { if !__for_first_600 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_600 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
                 inserts.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), sides.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("side".to_string(), sides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                         m.insert("price".to_string(), self.sbe_read_decimal(frameHex.clone(), position.clone()).map(Value::from).unwrap_or(Value::Null));
                         m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), (match (&(position), &(Value::Int(8))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
                             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).map(Value::from).unwrap_or(Value::Null));

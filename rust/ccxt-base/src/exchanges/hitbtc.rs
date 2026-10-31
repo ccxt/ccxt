@@ -2870,9 +2870,9 @@ impl HitbtcCore {
                         let mut i: i64 = 0;
             let mut __for_first_751: bool = true;
             while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (parsed.len() as i64) } {
-            let mut status: Option<String> = self.safe_string(parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
+            let mut status: Option<String> = self.safe_string_k(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
-                result.push(parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                result.push(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }

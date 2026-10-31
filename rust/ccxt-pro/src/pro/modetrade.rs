@@ -673,7 +673,7 @@ impl ModetradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { i += 1; } __for_first_502 = false; i < (data.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_1 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1601,7 +1601,7 @@ impl ModetradeCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_505: bool = true;
                 while { if !__for_first_505 { i += 1; } __for_first_505 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), symbol).into()));
             }
             }
@@ -1668,7 +1668,7 @@ impl ModetradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_506: bool = true;
             while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]);
             if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                 cache.append(position);

@@ -1131,7 +1131,7 @@ impl BittradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_443: bool = true;
             while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (symbolsResolved.len() as i64) } {
-            let mut symbol: Value = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await); }
         }
         }
@@ -1256,7 +1256,7 @@ impl BittradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_444: bool = true;
             while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base-currency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote-currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1591,7 +1591,7 @@ impl BittradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (tickers.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(tickers.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
@@ -1836,7 +1836,7 @@ impl BittradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (data.len() as i64) } {
-            let mut trades: Vec<Value> = self.safe_list(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut trades: Vec<Value> = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_446: bool = true;
@@ -2309,7 +2309,7 @@ impl BittradeCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_449: bool = true;
                 while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (self.accounts.len() as i64) } {
-                let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
                     accountId = self.safe_string_k_opt(account, "id", &[]);
                     if (accountId.is_some()) {
@@ -2724,7 +2724,7 @@ impl BittradeCore {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (failed.len() as i64) } {
-            let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

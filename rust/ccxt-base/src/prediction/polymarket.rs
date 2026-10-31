@@ -1090,7 +1090,7 @@ impl PolymarketCore {
                         let mut rei: i64 = 0;
             let mut __for_first_1398: bool = true;
             while { if !__for_first_1398 { rei += 1; } __for_first_1398 = false; rei < (rawEvents.len() as i64) } {
-            let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or(&[]).get(rei as usize).cloned().unwrap_or(Value::Null);
+            let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(rei as usize).cloned().unwrap_or(Value::Null);
             let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(rawEvent.clone()).as_array().cloned().unwrap_or_default();
             {
                                 let mut mi: i64 = 0;
@@ -1240,7 +1240,7 @@ impl PolymarketCore {
                                 let mut ri: i64 = 0;
                 let mut __for_first_1403: bool = true;
                 while { if !__for_first_1403 { ri += 1; } __for_first_1403 = false; ri < (restResponses.len() as i64) } {
-                let mut pageEvents: Vec<Value> = self.safe_list(restResponses.get(ri as usize).cloned().unwrap_or(Value::Null), Value::Str("events".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut pageEvents: Vec<Value> = self.safe_list_k(restResponses.get(ri as usize).cloned().unwrap_or(Value::Null), "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1402: bool = true;
@@ -1371,7 +1371,7 @@ impl PolymarketCore {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1407: bool = true;
                     while { if !__for_first_1407 { ei += 1; } __for_first_1407 = false; ei < (tagEvents.len() as i64) } {
-                    let mut rawEvent: Value = tagEvents.as_array().map(Vec::as_slice).unwrap_or(&[]).get(ei as usize).cloned().unwrap_or(Value::Null);
+                    let mut rawEvent: Value = tagEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null);
                     let mut eventId: Option<String> = self.safe_string_k_opt(rawEvent.clone(), "id", &[]);
                     if (eventId.is_some()) && !(matches!((&seen, &eventId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -1532,8 +1532,8 @@ impl PolymarketCore {
                                 let mut oi: i64 = 0;
                 let mut __for_first_1414: bool = true;
                 while { if !__for_first_1414 { oi += 1; } __for_first_1414 = false; oi < (outcomeLabels.len() as i64) } {
-                let mut outcomeLabel: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null);
-                let mut clobTokenId: Value = clobTokenIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null);
+                let mut outcomeLabel: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
+                let mut clobTokenId: Value = clobTokenIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
                 let mut outcomePrice: Value = self.safe_number(outcomePrices.clone(), Value::Int(oi), &[]);
                 if (clobTokenId == Value::Null) || (clobTokenId.as_str() == Some("")) {
                     continue;
@@ -1891,7 +1891,7 @@ impl PolymarketCore {
                         let mut oi: i64 = 0;
             let mut __for_first_1421: bool = true;
             while { if !__for_first_1421 { oi += 1; } __for_first_1421 = false; oi < (outcomes.len() as i64) } {
-            targets.push(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null));
+            targets.push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
         }
         }
         let mut outcomesByTokenId: Value = Value::Map({
@@ -2531,7 +2531,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_1428: bool = true;
             while { if !__for_first_1428 { i += 1; } __for_first_1428 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: Value = rawTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = rawTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut tradeAsset: Value = self.safe_string_k(trade.clone(), "asset", &[]);
             if (tradeAsset == tokenId) {
                 filteredTrades.push(trade);
@@ -2608,7 +2608,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_1430: bool = true;
             while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: Value = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2820,7 +2820,7 @@ impl PolymarketCore {
                         let mut i: i64 = 0;
             let mut __for_first_1431: bool = true;
             while { if !__for_first_1431 { i += 1; } __for_first_1431 = false; i < (outcomes.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut wantedIds, &outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null), Value::Bool(true));
         }
         }
@@ -3875,7 +3875,7 @@ impl PolymarketCore {
                         let mut rei: i64 = 0;
             let mut __for_first_1439: bool = true;
             while { if !__for_first_1439 { rei += 1; } __for_first_1439 = false; rei < (rawEvents.len() as i64) } {
-            let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or(&[]).get(rei as usize).cloned().unwrap_or(Value::Null);
+            let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(rei as usize).cloned().unwrap_or(Value::Null);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
             let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
@@ -3906,7 +3906,7 @@ impl PolymarketCore {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1438: bool = true;
                 while { if !__for_first_1438 { mi += 1; } __for_first_1438 = false; mi < (ccxtMarkets.len() as i64) } {
-                let mut m: Value = ccxtMarkets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(mi as usize).cloned().unwrap_or(Value::Null);
+                let mut m: Value = ccxtMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null);
                 if (m == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing m".into()))));
                 }
@@ -4212,7 +4212,7 @@ impl PolymarketCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1442: bool = true;
                 while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (queryKeys.len() as i64) } {
-                if (matches!(&get_value(&query, &queryKeys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
+                if (matches!(&get_value(&query, &queryKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
                     hasArrayParam = true;
                 }
             }

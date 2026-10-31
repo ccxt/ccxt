@@ -1078,7 +1078,7 @@ impl OnetradingCore {
                         let mut i: i64 = 0;
             let mut __for_first_1036: bool = true;
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -1167,7 +1167,7 @@ impl OnetradingCore {
                         let mut i: i64 = 0;
             let mut __for_first_1037: bool = true;
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
             let mut takerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
@@ -1354,7 +1354,7 @@ impl OnetradingCore {
                         let mut i: i64 = 0;
             let mut __for_first_1039: bool = true;
             while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (rawTickers.len() as i64) } {
-            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTickers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
+            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));

@@ -1378,7 +1378,7 @@ impl IndependentreserveCore {
                         let mut i: i64 = 0;
             let mut __for_first_834: bool = true;
             while { if !__for_first_834 { i += 1; } __for_first_834 = false; i < (rows.len() as i64) } {
-            let mut fee: Value = rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut fee: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(fee.clone(), "CurrencyCode", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut tradingFee: Value = self.safe_number_k(fee.clone(), "Fee", &[]);
@@ -1401,7 +1401,7 @@ impl IndependentreserveCore {
                         let mut i: i64 = 0;
             let mut __for_first_835: bool = true;
             while { if !__for_first_835 { i += 1; } __for_first_835 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut fee: Value = self.safe_dict(Value::Map(fees.clone()), market.get("base").cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

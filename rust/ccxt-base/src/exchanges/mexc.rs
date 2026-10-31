@@ -7412,7 +7412,7 @@ impl MexcCore {
                         let mut i: i64 = 0;
             let mut __for_first_957: bool = true;
             while { if !__for_first_957 { i += 1; } __for_first_957 = false; i < (response.len() as i64) } {
-            let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
             let mut currency: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut code: Option<String> = self.safe_string_k_opt(currency.clone(), "code", &[]);

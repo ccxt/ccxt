@@ -769,7 +769,7 @@ impl MudrexCore {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;
             while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rows.len() as i64) } {
-            let mut t: Value = rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut t: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut sym: Option<String> = self.safe_string_k_opt(t.clone(), "symbol", &[]);
             if (sym.is_none()) {
                 continue;
@@ -1506,7 +1506,7 @@ impl MudrexCore {
                         let mut i: i64 = 0;
             let mut __for_first_972: bool = true;
             while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
-            orders.push(self.parse_order(rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            orders.push(self.parse_order(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return self.filter_by_symbol_since_limit(Value::from(orders), &[symbol, since, limit]);
@@ -1621,7 +1621,7 @@ impl MudrexCore {
                         let mut i: i64 = 0;
             let mut __for_first_973: bool = true;
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
-            let mut p: Value = rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut p: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k_opt(p.clone(), "symbol", &[]);
             let mut m: Value = self.safe_market(&[symRaw.map(Value::from).unwrap_or(Value::Null)]);
             let mut pos: Value = self.parse_position(p, &[m]);

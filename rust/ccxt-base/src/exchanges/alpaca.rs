@@ -2609,7 +2609,7 @@ impl AlpacaCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_222: bool = true;
                 while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (ledger.len() as i64) } {
-                let mut entry: Value = ledger.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = ledger.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k_opt(entry.clone(), "net_amount", &[]);
                 let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
@@ -2651,7 +2651,7 @@ impl AlpacaCore {
                         let mut i: i64 = 0;
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (transfers.len() as i64) } {
-            let mut entry: Value = transfers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = transfers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut direction: Option<String> = self.safe_string_k_opt(entry.clone(), "direction", &[]);
             if (direction.as_deref() == type_var.as_str()) {
                 results.push(entry.clone());

@@ -567,7 +567,7 @@ impl LunoCore {
                         let mut i: i64 = 0;
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (bidasksValue.len() as i64) } {
-            result.push(self.custom_parse_bid_ask(bidasksValue.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
+            result.push(self.custom_parse_bid_ask(bidasksValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
         return Value::from(result);
@@ -784,7 +784,7 @@ impl LunoCore {
                         let mut j: i64 = 0;
             let mut __for_first_492: bool = true;
             while { if !__for_first_492 { j += 1; } __for_first_492 = false; j < (handlers.len() as i64) } {
-            let mut handler: Value = handlers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut handler: Value = handlers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
         }
         }

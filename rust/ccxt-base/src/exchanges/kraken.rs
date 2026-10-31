@@ -1743,7 +1743,7 @@ impl KrakenCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_847: bool = true;
                 while { if !__for_first_847 { i += 1; } __for_first_847 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if (market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                     marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3352,7 +3352,7 @@ impl KrakenCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_854: bool = true;
                 while { if !__for_first_854 { i += 1; } __for_first_854 = false; i < (orderTrades.len() as i64) } {
-                let mut orderTrade: Value = orderTrades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut orderTrade: Value = orderTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if matches!(&orderTrade, Value::Str(_)) {
                     tradeIds.push(orderTrade.clone());
                 }  else {
@@ -4464,7 +4464,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_863: bool = true;
                     while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (depositMethods.len() as i64) } {
-                    let mut entry: Option<String> = self.safe_string_opt(depositMethods.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[]);
+                    let mut entry: Option<String> = self.safe_string_k_opt(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]);
                     if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".into()))));
                     }

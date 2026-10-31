@@ -4166,7 +4166,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_499: bool = true;
             while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (types.len() as i64) } {
-            let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("spot")) {
                 promisesUnresolved.push(self.fetch_spot_markets(params.clone()).await);
             }  else if (marketType.as_str() == Some("linear")) {
@@ -4478,7 +4478,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { i += 1; } __for_first_502 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (category.is_none()) {
                 category = self.safe_string_k_opt(market.clone(), "category", &[]);
             }
@@ -4706,7 +4706,7 @@ impl BybitCore {
                         let mut i: i64 = 0;
             let mut __for_first_503: bool = true;
             while { if !__for_first_503 { i += 1; } __for_first_503 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCoin", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCoin", &[]);
@@ -5058,7 +5058,7 @@ impl BybitCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_504: bool = true;
                 while { if !__for_first_504 { i += 1; } __for_first_504 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                 let mut isExchangeSpecificSymbol: bool = !symbol.as_str().unwrap_or("").contains("/");

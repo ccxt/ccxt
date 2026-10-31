@@ -2094,7 +2094,7 @@ impl CoinbaseinternationalCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_561: bool = true;
                     while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (depths.len() as i64) } {
-                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
+                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
                         break;
                     }
@@ -2981,7 +2981,7 @@ impl CoinbaseinternationalCore {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (logs.len() as i64) } {
-            let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
                 transactions.push(transaction);

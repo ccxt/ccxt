@@ -2550,7 +2550,7 @@ impl DeriveCore {
                         let mut i: i64 = 0;
             let mut __for_first_633: bool = true;
             while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (tradesArray.len() as i64) } {
-            let mut rawTrade: Value = tradesArray.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawTrade: Value = tradesArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut isFetchTrades: bool = !(in_op(&rawTrade, &Value::Str("order_id".into())));
             let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
             if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {

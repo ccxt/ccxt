@@ -432,7 +432,7 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_439: bool = true;
             while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (symbolsValue.len() as i64) } {
-            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(self.market_id(symbol)); }
         }
         }
@@ -730,7 +730,7 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_440: bool = true;
             while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[Value::Null, timestamp]);
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
@@ -2291,9 +2291,9 @@ impl KrakenfuturesCore {
                         let mut i: i64 = 0;
             let mut __for_first_455: bool = true;
             while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
+            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+            let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
                 rawSubs.push(market.get("id").cloned().unwrap_or(Value::Null));
             }

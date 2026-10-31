@@ -1984,7 +1984,7 @@ impl BitteamCore {
                         let mut i: i64 = 0;
             let mut __for_first_441: bool = true;
             while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
-            let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
             tickers.push(ticker);
         }

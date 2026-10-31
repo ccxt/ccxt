@@ -630,12 +630,12 @@ impl SxbetCore {
                         let mut oi: i64 = 0;
             let mut __for_first_1486: bool = true;
             while { if !__for_first_1486 { oi += 1; } __for_first_1486 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null);
+            let mut label: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), label.clone());
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null));
-                    m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(oi as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), outcomeHandle);
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label);
@@ -926,7 +926,7 @@ impl SxbetCore {
                                 let mut fi: i64 = 0;
                 let mut __for_first_1492: bool = true;
                 while { if !__for_first_1492 { fi += 1; } __for_first_1492 = false; fi < (fields.len() as i64) } {
-                let mut field: Value = fields.as_array().map(Vec::as_slice).unwrap_or(&[]).get(fi as usize).cloned().unwrap_or(Value::Null);
+                let mut field: Value = fields.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).cloned().unwrap_or(Value::Null);
                 if (field == Value::Null) {
                     continue;
                 }

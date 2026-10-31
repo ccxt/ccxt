@@ -2362,12 +2362,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (prefixes.len() as i64) } {
-                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_395: bool = true;
                     while { if !__for_first_395 { j += 1; } __for_first_395 = false; j < (messageHashes.len() as i64) } {
-                    client.resolve(&[Value::from(vec![]), messageHashes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null)]);
+                    client.resolve(&[Value::from(vec![]), messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null)]);
                 }
                 }
             }
@@ -2384,7 +2384,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_397: bool = true;
             while { if !__for_first_397 { i += 1; } __for_first_397 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
@@ -2415,7 +2415,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut j: i64 = 0;
                 let mut __for_first_398: bool = true;
                 while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (messageHashes.len() as i64) } {
-                let mut messageHash: Value = messageHashes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
                 let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });

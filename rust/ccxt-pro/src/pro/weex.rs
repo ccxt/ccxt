@@ -604,7 +604,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_666: bool = true;
             while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), topic).into());
@@ -680,7 +680,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), topic).into());
@@ -863,7 +863,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_668: bool = true;
             while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), topic).into());
@@ -933,7 +933,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
             while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), topic).into());
@@ -1008,7 +1008,7 @@ impl WeexCore {
                         let mut j: i64 = 0;
             let mut __for_first_671: bool = true;
             while { if !__for_first_671 { j += 1; } __for_first_671 = false; j < (sorted.len() as i64) } {
-            let mut sortedTrade: Value = sorted.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut sortedTrade: Value = sorted.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             tradesArray.append(sortedTrade);
         }
         }
@@ -1395,7 +1395,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_675: bool = true;
             while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
@@ -1474,7 +1474,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_676: bool = true;
             while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
@@ -1599,7 +1599,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_677: bool = true;
             while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), Value::Str("bookTicker".into())).into());
@@ -1655,7 +1655,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_678: bool = true;
             while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut channelName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), Value::Str("bookTicker".into())).into());
@@ -1912,7 +1912,7 @@ impl WeexCore {
                         let mut j: i64 = 0;
             let mut __for_first_680: bool = true;
             while { if !__for_first_680 { j += 1; } __for_first_680 = false; j < (symbolKeys.len() as i64) } {
-            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[trades.clone(), symbolMessageHash]);
         }
@@ -2169,7 +2169,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_682: bool = true;
             while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (symbolKeys.len() as i64) } {
-            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[orders.clone(), symbolMessageHash]);
         }
@@ -2601,7 +2601,7 @@ impl WeexCore {
                         let mut i: i64 = 0;
             let mut __for_first_684: bool = true;
             while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
         }

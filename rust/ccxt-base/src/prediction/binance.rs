@@ -1747,7 +1747,7 @@ impl BinanceCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1216: bool = true;
                 while { if !__for_first_1216 { i += 1; } __for_first_1216 = false; i < (outcomes.len() as i64) } {
-                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
                 if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }

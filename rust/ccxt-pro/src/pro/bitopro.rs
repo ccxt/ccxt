@@ -452,7 +452,7 @@ impl BitoproCore {
                         let mut i: i64 = 0;
             let mut __for_first_132: bool = true;
             while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             tradesCache.append(trade);
         }
         }

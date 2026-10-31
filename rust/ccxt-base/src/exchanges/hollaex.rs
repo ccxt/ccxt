@@ -1373,7 +1373,7 @@ impl HollaexCore {
                         let mut i: i64 = 0;
             let mut __for_first_764: bool = true;
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut makerString: Option<String> = self.safe_string_opt(makerFees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[]);
             let mut takerString: Option<String> = self.safe_string_opt(takerFees.clone(), market.get("id").cloned().unwrap_or(Value::Null), &[]);

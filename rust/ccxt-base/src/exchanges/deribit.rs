@@ -1751,7 +1751,7 @@ impl DeribitCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_620: bool = true;
                 while { if !__for_first_620 { i += 1; } __for_first_620 = false; i < (currenciesResult.len() as i64) } {
-                let mut currencyId: Option<String> = self.safe_string_opt(currenciesResult.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]);
+                let mut currencyId: Option<String> = self.safe_string_k_opt(currenciesResult.get(i as usize).cloned().unwrap_or(Value::Null), "currency", &[]);
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("currency".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
@@ -2393,7 +2393,7 @@ impl DeribitCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_624: bool = true;
                 while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut marketBase: Value = self.safe_string_k(market.clone(), "base", &[]);
                 if (code != Value::Null) && (code != marketBase) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency".into()))));
@@ -2888,7 +2888,7 @@ impl DeribitCore {
                         let mut i: i64 = 0;
             let mut __for_first_627: bool = true;
             while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

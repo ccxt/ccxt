@@ -1930,7 +1930,7 @@ impl WhitebitCore {
                         let mut i: i64 = 0;
             let mut __for_first_1145: bool = true;
             while { if !__for_first_1145 { i += 1; } __for_first_1145 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_dict(response.clone(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2517,7 +2517,7 @@ impl WhitebitCore {
                                         let mut i: i64 = 0;
                     let mut __for_first_1149: bool = true;
                     while { if !__for_first_1149 { i += 1; } __for_first_1149 = false; i < (orders.len() as i64) } {
-                    let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut orderId: Value = self.safe_string_k(order.clone(), "orderId", &[Value::Str("".into())]);
                     if (orderId.as_str() == id.as_str()) {
                         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
@@ -2599,7 +2599,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_1152: bool = true;
                 while { if !__for_first_1152 { i += 1; } __for_first_1152 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                     onlyContractSymbols = false;

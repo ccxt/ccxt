@@ -493,7 +493,7 @@ impl NadoCore {
                         let mut i: i64 = 0;
             let mut __for_first_511: bool = true;
             while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             markets.push(market.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
@@ -536,7 +536,7 @@ impl NadoCore {
                         let mut i: i64 = 0;
             let mut __for_first_512: bool = true;
             while { if !__for_first_512 { i += 1; } __for_first_512 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             markets.push(market.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
@@ -623,7 +623,7 @@ impl NadoCore {
                         let mut i: i64 = 0;
             let mut __for_first_513: bool = true;
             while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
             markets.push(market.clone());
@@ -666,7 +666,7 @@ impl NadoCore {
                         let mut i: i64 = 0;
             let mut __for_first_514: bool = true;
             while { if !__for_first_514 { i += 1; } __for_first_514 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             markets.push(market.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
@@ -2743,7 +2743,7 @@ impl NadoCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_525: bool = true;
                 while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (symbols.len() as i64) } {
-                let mut tickerSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut tickerSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &tickerSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
             }
@@ -2758,7 +2758,7 @@ impl NadoCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_526: bool = true;
                 while { if !__for_first_526 { i += 1; } __for_first_526 = false; i < (symbols.len() as i64) } {
-                let mut bidaskSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut bidaskSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &bidaskSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
             }

@@ -636,7 +636,7 @@ impl BitbnsCore {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote", &[]);

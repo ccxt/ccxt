@@ -1045,7 +1045,7 @@ impl HyperliquidCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1229: bool = true;
                 while { if !__for_first_1229 { i += 1; } __for_first_1229 = false; i < (outcomes.len() as i64) } {
-                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
                 if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
@@ -1468,7 +1468,7 @@ impl HyperliquidCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1234: bool = true;
                 while { if !__for_first_1234 { i += 1; } __for_first_1234 = false; i < (outcomes.len() as i64) } {
-                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
                 if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
@@ -2026,7 +2026,7 @@ impl HyperliquidCore {
                 cancelReq.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), Value::from(assetId));
-                        m.insert("cloid".to_string(), cloids.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("cloid".to_string(), cloids.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     m
                 }));
             }
@@ -2040,7 +2040,7 @@ impl HyperliquidCore {
                 cancelReq.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), Value::from(assetId));
-                        m.insert("o".to_string(), self.parse_to_numeric(ids.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)));
+                        m.insert("o".to_string(), self.parse_to_numeric(ids.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
                     m
                 }));
             }
@@ -2155,7 +2155,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_1243: bool = true;
             while { if !__for_first_1243 { i += 1; } __for_first_1243 = false; i < (rawOrders.len() as i64) } {
-            let mut order: Value = rawOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = rawOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             ordersWithStatus.push(self.extend(order, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ccxtStatus".to_string(), Value::Str("open".into()));
@@ -2219,7 +2219,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_1244: bool = true;
             while { if !__for_first_1244 { i += 1; } __for_first_1244 = false; i < (historicalOrders.len() as i64) } {
-            let mut raw: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut raw: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_dict_k(raw.clone(), "order", &[]);
             if (entry == Value::Null) {
                 entry = raw.clone();
@@ -2681,7 +2681,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_1245: bool = true;
             while { if !__for_first_1245 { i += 1; } __for_first_1245 = false; i < (queries.len() as i64) } {
-            let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut lowerQueries { std::sync::Arc::make_mut(__a).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })); }
         }
         }
@@ -2690,7 +2690,7 @@ impl HyperliquidCore {
                         let mut i: i64 = 0;
             let mut __for_first_1248: bool = true;
             while { if !__for_first_1248 { i += 1; } __for_first_1248 = false; i < (marketValues.len() as i64) } {
-            let mut mkt: Value = marketValues.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut mkt: Value = marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !matches!(self.safe_bool_k(mkt.clone(), "prediction", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;
             }
@@ -2712,7 +2712,7 @@ impl HyperliquidCore {
                                         let mut qi: i64 = 0;
                     let mut __for_first_1247: bool = true;
                     while { if !__for_first_1247 { qi += 1; } __for_first_1247 = false; qi < (lowerQueries.len() as i64) } {
-                    let mut words: Vec<Value> = Value::Array((lowerQueries.as_array().map(Vec::as_slice).unwrap_or(&[]).get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                    let mut words: Vec<Value> = Value::Array((lowerQueries.as_array().map(Vec::as_slice).unwrap_or_default().get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut wordsLength: f64 = ((words.len() as i64) as f64);
                     let mut allWords: bool = true;
                     {
@@ -3223,7 +3223,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1250: bool = true;
             while { if !__for_first_1250 { i += 1; } __for_first_1250 = false; i < (statuses.len() as i64) } {
-            let mut message: Option<String> = self.safe_string_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+            let mut message: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
             if (message.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());

@@ -1349,7 +1349,7 @@ impl DigifinexCore {
                         let mut i: i64 = 0;
             let mut __for_first_640: bool = true;
             while { if !__for_first_640 { i += 1; } __for_first_640 = false; i < (response.len() as i64) } {
-            let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string2_opt(market.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
             let mut baseId: Option<String> = self.safe_string2_opt(market.clone(), Value::Str("base_asset".into()), Value::Str("base_currency".into()), &[]);
             let mut quoteId: Option<String> = self.safe_string2_opt(market.clone(), Value::Str("quote_asset".into()), Value::Str("quote_currency".into()), &[]);

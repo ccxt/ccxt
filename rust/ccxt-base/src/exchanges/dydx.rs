@@ -1961,7 +1961,7 @@ impl DydxCore {
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_660 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }

@@ -2063,7 +2063,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_492: bool = true;
             while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut datetime: Option<String> = self.safe_string_k_opt(entry.clone(), "updatedAtDatetime", &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

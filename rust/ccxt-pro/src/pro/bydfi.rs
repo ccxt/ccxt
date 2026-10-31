@@ -537,7 +537,7 @@ impl BydfiCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_216: bool = true;
                 while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
                 messageHashes.push(Value::Str(format!("{}{}", messageHash, symbol).into()));
@@ -606,7 +606,7 @@ impl BydfiCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_218: bool = true;
                 while { if !__for_first_218 { i += 1; } __for_first_218 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
                 messageHashes.push(Value::Str(format!("{}{}", messageHash, symbol).into()));
@@ -956,7 +956,7 @@ impl BydfiCore {
                         let mut i: i64 = 0;
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let channelMarketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelMarketId, Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
@@ -1006,7 +1006,7 @@ impl BydfiCore {
                         let mut i: i64 = 0;
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let channelMarketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelMarketId, Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
@@ -1118,7 +1118,7 @@ impl BydfiCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_224: bool = true;
                 while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("orders::".into()), symbol).into()));
             }
             }
@@ -1292,7 +1292,7 @@ impl BydfiCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_225: bool = true;
                 while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
             }
             }

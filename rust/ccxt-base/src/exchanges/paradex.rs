@@ -5025,7 +5025,7 @@ impl ParadexCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_1066: bool = true;
                 while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (batchErrors.len() as i64) } {
-                let mut batchErrorCode: Option<String> = self.safe_string_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+                let mut batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode.map(Value::from).unwrap_or(Value::Null);
                     break;

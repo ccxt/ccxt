@@ -385,7 +385,7 @@ impl CoinbaseexchangeCore {
                         let mut i: i64 = 0;
             let mut __for_first_248: bool = true;
             while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             market = self.market(symbol);
             let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
             productIds.push(marketId);

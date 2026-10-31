@@ -1414,7 +1414,7 @@ impl BitrueCore {
                         let mut i: i64 = 0;
             let mut __for_first_413: bool = true;
             while { if !__for_first_413 { i += 1; } __for_first_413 = false; i < (types.len() as i64) } {
-            let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
             }  else if (marketType.as_str() == Some("linear")) {

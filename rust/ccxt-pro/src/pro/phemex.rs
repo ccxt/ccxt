@@ -765,7 +765,7 @@ impl PhemexCore {
                         let mut i: i64 = 0;
             let mut __for_first_608: bool = true;
             while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (parsed.len() as i64) } {
-            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[stored, messageHash]);
@@ -827,7 +827,7 @@ impl PhemexCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_609: bool = true;
                 while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (ohlcvs.len() as i64) } {
-                let mut candle: Value = ohlcvs.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut candle: Value = ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 stored.append(candle);
             }
             }
@@ -917,7 +917,7 @@ impl PhemexCore {
                         let mut i: i64 = 0;
             let mut __for_first_610: bool = true;
             while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (symbolsNormalized.len() as i64) } {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -1670,7 +1670,7 @@ impl PhemexCore {
                                 let mut i: i64 = 0;
                 let mut __for_first_614: bool = true;
                 while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < (orders.len() as i64) } {
-                let mut rawOrder: Value = orders.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut rawOrder: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
                 parsedOrders.push(parsedOrder.clone());
             }

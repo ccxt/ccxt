@@ -1935,7 +1935,7 @@ impl PhemexCore {
                         let mut i: i64 = 0;
             let mut __for_first_1068: bool = true;
             while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (products.len() as i64) } {
-            let mut market: Value = products.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = products.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
                 let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);

@@ -2760,9 +2760,9 @@ impl AsterCore {
                         let mut i: i64 = 0;
             let mut __for_first_230: bool = true;
             while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (rows.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut safeMarket: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType.clone()]);
-            let __ws_arg_14 = self.parse_last_price(rows.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null), &[safeMarket]);
+            let __ws_arg_14 = self.parse_last_price(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[safeMarket]);
             let mut priceData: Value = self.extend(__ws_arg_14, &[paramsMarketType.clone()]);
             results.push(priceData);
         }
@@ -4796,7 +4796,7 @@ impl AsterCore {
                         let mut i: i64 = 0;
             let mut __for_first_234: bool = true;
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entryPriceString: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "entryPrice", &[]);
             if crate::precise::Precise::stringGt(&entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(rawPosition, &[]));
