@@ -441,8 +441,8 @@ public partial class grvt : ccxt.grvt
         }
         string? symbolValue = this.symbol(symbol);
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
     }
 
     /**
