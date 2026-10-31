@@ -2446,9 +2446,9 @@ class extended extends extended$1["default"] {
     getExtendedStarkAmount(amount, resolution, roundUp = false) {
         const resolutionString = this.numberToString(resolution);
         const precise = Precise["default"].stringMul(amount, resolutionString);
-        let result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
+        const result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
         if (roundUp && Precise["default"].stringGt(precise, result)) {
-            result = Precise["default"].stringAdd(result, '1');
+            return Precise["default"].stringAdd(result, '1');
         }
         return result;
     }

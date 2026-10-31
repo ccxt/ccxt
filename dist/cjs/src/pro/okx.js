@@ -1556,32 +1556,32 @@ class okx extends okx$1["default"] {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const snapshotBook = this.orderbooks[symbol];
                 const timestamp = this.safeInteger(update, 'ts');
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
                 snapshot['nonce'] = this.safeInteger(update, 'seqId');
-                orderbook.reset(snapshot);
+                snapshotBook.reset(snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
-                client.resolve(orderbook, messageHash);
+                client.resolve(snapshotBook, messageHash);
             }
         }
         else if (action === 'update') {
             if (symbol in this.orderbooks) {
-                const orderbook = this.orderbooks[symbol];
+                const updatedBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         client.subscriptions[messageHash] = 'resync';
                         break;
                     }
-                    client.resolve(orderbook, messageHash);
+                    client.resolve(updatedBook, messageHash);
                 }
             }
         }
@@ -1593,13 +1593,13 @@ class okx extends okx$1["default"] {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const bboBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     const timestamp = this.safeInteger(update, 'ts');
                     const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
-                    orderbook.reset(snapshot);
-                    client.resolve(orderbook, messageHash);
+                    bboBook.reset(snapshot);
+                    client.resolve(bboBook, messageHash);
                 }
             }
         }

@@ -356751,9 +356751,9 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
     getExtendedStarkAmount(amount, resolution, roundUp = false) {
         const resolutionString = this.numberToString(resolution);
         const precise = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amount, resolutionString);
-        let result = this.decimalToPrecision(precise, (/* inlined export .TRUNCATE */0), 0, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .NO_PADDING */5));
+        const result = this.decimalToPrecision(precise, (/* inlined export .TRUNCATE */0), 0, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .NO_PADDING */5));
         if (roundUp && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(precise, result)) {
-            result = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(result, '1');
+            return _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(result, '1');
         }
         return result;
     }
@@ -403011,8 +403011,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (postOnly) {
             defaultTimeInForce = 'alo';
         }
-        let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
+        const timeInForceLower = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        const timeInForce = this.capitalize(timeInForceLower);
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
@@ -403593,8 +403593,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
-            let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
+            const timeInForceLower = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            const timeInForce = this.capitalize(timeInForceLower);
             const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
             let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);
@@ -477665,10 +477665,10 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
             'TOB': 'TOB',
             'ALO': 'ALO'
         };
-        let tif = undefined;
-        if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase();
+        if (tifRaw === undefined) {
+            return 'GTC';
         }
+        const tif = tifRaw.toUpperCase();
         return this.safeString(tifMap, tif, 'GTC');
     }
     mapSide(sideRaw) {
@@ -486579,8 +486579,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
                     posSide = 'Merged';
                 }
             }
-            posSide = this.capitalize(posSide);
-            request['posSide'] = posSide;
+            const posSideCapitalized = this.capitalize(posSide);
+            request['posSide'] = posSideCapitalized;
             if (isStableSettled) {
                 request['orderQtyRq'] = this.amountToPrecision(symbol, amount);
             } else {
@@ -601158,31 +601158,31 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const snapshotBook = this.orderbooks[symbol];
                 const timestamp = this.safeInteger(update, 'ts');
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
                 snapshot['nonce'] = this.safeInteger(update, 'seqId');
-                orderbook.reset(snapshot);
+                snapshotBook.reset(snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
-                client.resolve(orderbook, messageHash);
+                client.resolve(snapshotBook, messageHash);
             }
         } else if (action === 'update') {
             if (symbol in this.orderbooks) {
-                const orderbook = this.orderbooks[symbol];
+                const updatedBook = this.orderbooks[symbol];
                 for(let i = 0; i < data.length; i++){
                     const update = data[i];
-                    this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         client.subscriptions[messageHash] = 'resync';
                         break;
                     }
-                    client.resolve(orderbook, messageHash);
+                    client.resolve(updatedBook, messageHash);
                 }
             }
         } else if (channel === 'books5' || channel === 'bbo-tbt') {
@@ -601193,13 +601193,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const bboBook = this.orderbooks[symbol];
                 for(let i = 0; i < data.length; i++){
                     const update = data[i];
                     const timestamp = this.safeInteger(update, 'ts');
                     const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
-                    orderbook.reset(snapshot);
-                    client.resolve(orderbook, messageHash);
+                    bboBook.reset(snapshot);
+                    client.resolve(bboBook, messageHash);
                 }
             }
         }

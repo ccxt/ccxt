@@ -2821,8 +2821,8 @@ class phemex extends phemex$1["default"] {
                     posSide = 'Merged';
                 }
             }
-            posSide = this.capitalize(posSide);
-            request['posSide'] = posSide;
+            const posSideCapitalized = this.capitalize(posSide);
+            request['posSide'] = posSideCapitalized;
             if (isStableSettled) {
                 request['orderQtyRq'] = this.amountToPrecision(symbol, amount);
             }

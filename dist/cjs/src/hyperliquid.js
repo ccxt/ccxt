@@ -2282,8 +2282,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (postOnly) {
             defaultTimeInForce = 'alo';
         }
-        let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
+        const timeInForceLower = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        const timeInForce = this.capitalize(timeInForceLower);
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
@@ -2838,8 +2838,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
-            let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
+            const timeInForceLower = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            const timeInForce = this.capitalize(timeInForceLower);
             const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
             let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);

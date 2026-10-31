@@ -2511,10 +2511,10 @@ class pacifica extends pacifica$1["default"] {
             'TOB': 'TOB',
             'ALO': 'ALO',
         };
-        let tif = undefined;
-        if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase();
+        if (tifRaw === undefined) {
+            return 'GTC';
         }
+        const tif = tifRaw.toUpperCase();
         return this.safeString(tifMap, tif, 'GTC');
     }
     mapSide(sideRaw) {
