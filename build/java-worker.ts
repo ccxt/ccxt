@@ -13,7 +13,6 @@ import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
-import { installJ06TupleAsyncLocals } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -153,7 +152,6 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ13ListLocals (cachedTranspiler); // hx4 J13
         installJ14ScalarLocals (cachedTranspiler); // hx4 J14
         installJ17StringReturns (cachedTranspiler); // hx4 J17
-        installJ06TupleAsyncLocals (cachedTranspiler); // hx10 wave-3 J06
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

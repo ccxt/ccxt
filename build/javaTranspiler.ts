@@ -39,11 +39,9 @@ import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
-import { installJ06TupleAsyncLocals, j06TupleAsyncSelfTest } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
-import { nativeJavaJ05, j05FamilySelfTest } from './hx10w2-J05.js';
 import { hx10w10JO01, jo01SelfTest } from './hx10w10-JO01.js'; // hx10 wave-10 JO01
 
 ansi.nice
@@ -2599,8 +2597,6 @@ class NewTranspiler {
         installJ14ScalarLocals(this.transpiler); // hx4 J14
         installJ15J12PreScan(this.transpiler); // hx4 J15
         installJ17StringReturns(this.transpiler); // hx4 J17
-        // hx10 wave-3 J06: awaited / destructured locals take the box their TS type proves (also in java-worker.ts)
-        installJ06TupleAsyncLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3832,7 +3828,6 @@ class NewTranspiler {
         content = nativeJavaJ31Arithmetic(content); // hx4 J31
         content = nativeJavaJ25Compare(content); // hx4 J25
         content = nativeJavaJ32DivModNeg(content); // hx4 J32
-        content = nativeJavaJ05(content); // hx10w2 J05
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -5990,7 +5985,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7707,7 +7702,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaJ41(content); // hx4 J41
     content = nativeJavaJ43(content); // hx4 J43
     content = nativeJavaJ44(content); // hx4 J44
-    content = nativeJavaJ05(content); // hx10w2 J05
     content = hx11w8CacheFieldCasts(j01wsNativeOps(content)); // hx10 wave-3 J01
     return content;
 }
