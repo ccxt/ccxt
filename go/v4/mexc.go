@@ -7503,7 +7503,6 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var tagResolved *string = nil
 	tagResolved, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal {

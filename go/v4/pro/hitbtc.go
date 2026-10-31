@@ -523,7 +523,6 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var methodName *string = nil
 	methodName, paramsMethod := this.HandleParamString(params, "callerMethodName", "watchTickers") // watchTicker passes its own name, so options.watchTicker still applies to it
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
 	var defaultMethod string = *this.SafeString(options, "method", "ticker/{speed}/batch")

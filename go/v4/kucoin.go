@@ -7298,7 +7298,6 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan AsyncResult[[]Order], optiona
 		tradeType = "FUTURES"
 	}
 	var trigger bool = false
-	var triggerOption *bool = nil
 	triggerOption, paramsTrigger := this.HandleParamBool(params, "trigger", trigger)
 	var orderFilter string = "NORMAL"
 	if triggerOption != nil && *triggerOption == true {
@@ -10356,7 +10355,6 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	if this.Markets() == nil {
 
@@ -11689,7 +11687,6 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 		"amount":   requestedAmount,
 	}
 	var transferType string = "INTERNAL"
-	var transferTypeOption *string = nil
 	transferTypeOption, paramsTransferType := this.HandleParamString2(params, "transferType", "type", transferType)
 	var fromUserId any = nil
 	fromUserIdOption, paramsFromUserId := this.HandleParamString2(paramsTransferType, "fromUserId", "fromUid", fromUserId)

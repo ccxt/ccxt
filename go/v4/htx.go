@@ -9145,7 +9145,6 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValue *string = nil
 	tagValue, paramsTag := this.HandleParamString(params, "tag")
 	if this.Markets() == nil {
 
