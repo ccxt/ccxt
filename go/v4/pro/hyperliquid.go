@@ -164,8 +164,8 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order],
 		}
 	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = ccxt.MapTyped(orderglobalParamsVariable[0])
-	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
+	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
+	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
 
 	r1 := <-this.CreateOrdersWsAsync([]any{order}, globalParams)
 	if r1.Err != nil {
@@ -229,8 +229,8 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = ccxt.MapTyped(orderglobalParamsVariable[0])
-	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
+	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
+	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
 	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
 	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})

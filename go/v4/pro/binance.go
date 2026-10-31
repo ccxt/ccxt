@@ -6682,7 +6682,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var paramsAuth any = nil
 	typeVarsubTypeparamsAuthVariable := this.ResolveAuthType("watchPositions", market, params)
 	typeVar = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 0)
-	subType = typeVarsubTypeparamsAuthVariable[1]
+	subType = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 1)
 	paramsAuth = typeVarsubTypeparamsAuthVariable[2]
 	// spot and margin have no positions - whatever still RESOLVES to spot
 	// or margin after the helper falls through to the derivatives stream

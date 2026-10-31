@@ -1506,8 +1506,8 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	orderRequestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var orderRequest map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[1])
+	var orderRequest map[string]any = orderRequestparamsValueVariable[0].(map[string]any)
+	var paramsValue map[string]any = orderRequestparamsValueVariable[1].(map[string]any)
 	var request map[string]any = this.Extend(orderRequest, paramsValue)
 	if marketType != nil && *marketType == "swap" {
 

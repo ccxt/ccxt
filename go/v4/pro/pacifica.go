@@ -134,7 +134,7 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		}
 	}
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params)
-	var request map[string]any = ccxt.MapTyped(requestoperationTypeVariable[0])
+	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	operationType := requestoperationTypeVariable[1]
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"

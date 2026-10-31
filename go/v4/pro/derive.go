@@ -863,7 +863,7 @@ func (this *Derive) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchOrders", params)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".orders"
 	var messageHash any = topic
@@ -1014,7 +1014,7 @@ func (this *Derive) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("unWatchOrders", params)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".orders"
 	var messageHash string = "unwatch" + topic
@@ -1074,7 +1074,7 @@ func (this *Derive) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".trades"
 	var messageHash any = topic
@@ -1162,7 +1162,7 @@ func (this *Derive) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optional
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("unWatchMyTrades", params)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".trades"
 	var messageHash string = "unwatch" + topic
@@ -1215,7 +1215,7 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	fetchSnapshot, paramsSnapshot := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchBalance", paramsSnapshot)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	if this.WsCacheSnapshot("Balance") == nil {
 		var emptyBalances map[string]any = map[string]any{}
 		this.WsCacheReplace("Balance", emptyBalances)
@@ -1302,7 +1302,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	fetchSnapshot, paramsSnapshot := this.HandleOptionBoolAndParams(params, "watchPositions", "fetchPositionsSnapshot", true)
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchPositions", paramsSnapshot)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
+	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	if this.WsCacheObjGet("Positions") == nil {
 		var emptyCaches map[string]any = map[string]any{}
 		this.WsCacheObjSet("Positions", emptyCaches)
