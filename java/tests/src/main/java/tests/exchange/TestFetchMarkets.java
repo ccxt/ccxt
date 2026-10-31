@@ -23,11 +23,11 @@ public class TestFetchMarkets extends BaseTest {
         String method = "fetchMarkets";
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
-        Object marketValues = Helpers.objectValues(markets);
+        List<Object> marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i))));
+            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i))));
         }
         detectMarketConflicts(exchange, markets);
         return true;

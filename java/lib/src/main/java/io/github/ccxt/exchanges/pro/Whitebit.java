@@ -1352,7 +1352,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> values = new ArrayList<Object>(subs.values());
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
-            Object subscription = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+            Object subscription = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
             if (!java.util.Objects.equals(subscription, true))
             {
                 Long subId = this.safeInteger(subscription, "id");

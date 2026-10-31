@@ -7720,7 +7720,7 @@ public class Bitget extends BitgetApi
                 Object feeObject = null;
                 for (var i = 0; i < ((List<?>)feeValues).size(); i++)
                 {
-                    Object feeValue = (feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i));
+                    Object feeValue = (feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i));
                     String feeValueCoinCode = this.safeString(feeValue, "feeCoinCode");
                     if (!java.util.Objects.equals(feeValueCoinCode, null))
                     {

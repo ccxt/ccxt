@@ -33,18 +33,18 @@ public class TestLoadMarkets extends BaseTest {
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        Object marketValues = Helpers.objectValues(markets);
+        List<Object> marketValues = Helpers.objectValues(markets);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i))));
+            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i))));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option", "index"));
         List<Object> collectedTypes = new ArrayList<Object>(Arrays.asList());
-        Object allMarkets = Helpers.objectValues(exchange.markets);
+        List<Object> allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; i < ((List<?>)allMarkets).size(); i++)
         {
-            Object market = (allMarkets == null || i < 0 || i >= ((List<?>)allMarkets).size() ? null : ((List<?>)allMarkets).get(i));
+            Object market = (allMarkets == null || i < 0 || i >= allMarkets.size() ? null : allMarkets.get(i));
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
             {
                 ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));

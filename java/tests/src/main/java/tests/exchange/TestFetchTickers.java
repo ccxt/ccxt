@@ -47,7 +47,7 @@ public class TestFetchTickers extends BaseTest {
         String method = "fetchTickers";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
-        Object values = Helpers.objectValues(response);
+        List<Object> values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
         {
@@ -57,7 +57,7 @@ public class TestFetchTickers extends BaseTest {
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             // todo: symbol check here
-            Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+            Object ticker = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
             try
             {
                 TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (checkedSymbol));
@@ -78,7 +78,7 @@ public class TestFetchTickers extends BaseTest {
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)
     {
-        Object tickersValues = Helpers.objectValues(tickers);
+        List<Object> tickersValues = Helpers.objectValues(tickers);
         if (!(Helpers.inOp(skippedProperties, "checkActiveSymbols")))
         {
             //

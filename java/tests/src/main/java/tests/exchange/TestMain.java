@@ -796,7 +796,7 @@ public class TestMain extends BaseTest
         }
         if (java.util.Objects.equals(symbol, null))
         {
-            Object values = Helpers.objectValues(currentTypeMarkets);
+            List<Object> values = Helpers.objectValues(currentTypeMarkets);
             Integer valuesLength = ((List<?>)values).size();
             if ((valuesLength != null && valuesLength > 0))
             {
@@ -1610,7 +1610,7 @@ public class TestMain extends BaseTest
             Object headers = Helpers.GetValue(info, "responseHeaders");
             List<Object> headersKeys = Helpers.objectKeys(headers);
             Assert(((List<?>)headersKeys).size() > 0, "Response headers should not be empty");
-            Object headerValues = Helpers.objectValues(headers);
+            List<Object> headerValues = Helpers.objectValues(headers);
             Assert(((List<?>)headerValues).size() > 0, "Response headers values should not be empty");
             exchange.returnResponseHeaders = false;
             return true;

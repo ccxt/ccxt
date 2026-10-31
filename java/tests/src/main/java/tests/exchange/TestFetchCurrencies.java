@@ -34,7 +34,7 @@ public class TestFetchCurrencies extends BaseTest {
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (!java.util.Objects.equals(isFetchCurrenciesPrivate, true))
         {
-            Object values = Helpers.objectValues(currencies);
+            List<Object> values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
             Integer currenciesLength = ((List<?>)values).size();
             // ensure exchange returns enough length of currencies
@@ -46,7 +46,7 @@ public class TestFetchCurrencies extends BaseTest {
             // loop
             for (var i = 0; (currenciesLength != null && i < currenciesLength); i++)
             {
-                Object currency = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+                Object currency = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
                 TestCurrency.testCurrency(exchange, skippedProperties, method, (Map<String, Object>) (currency));
                 // detailed check for deposit/withdraw
                 Object active = exchange.safeBool(currency, "active", (Object) null);

@@ -7580,7 +7580,7 @@ public Map<String, Object> describe()
         List<Object> feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
-            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
+            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i)));
             result = (List<Object>) this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -12158,7 +12158,7 @@ public Map<String, Object> describe()
                 uniqueResult.put(id, entry);
             }
         }
-        Object values = new ArrayList<Object>(uniqueResult.values());
+        List<Object> values = new ArrayList<Object>(uniqueResult.values());
         return values;
     }
 
