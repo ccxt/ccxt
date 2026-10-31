@@ -2719,6 +2719,12 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
 // funnel is the identity, so the await stays bare and the Dictionary local is the box already held.
 const CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE = {
     'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    'nado': {
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+    },
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
