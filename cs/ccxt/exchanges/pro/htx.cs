@@ -641,7 +641,7 @@ public partial class htx : ccxt.htx
                 if ((maxAttempts != null && (numAttempts == null || numAttempts < maxAttempts)))
                 {
                     // safety guard
-                    if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
+                    if (((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
                     {
                         Int64 nextAttempts = this.sum(numAttempts, 1);
                         object delayTime = 1000;
@@ -910,7 +910,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             string? size = this.safeString(parts, 3);
             if ((size == null))
@@ -939,7 +939,7 @@ public partial class htx : ccxt.htx
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((symbol != null))
         {
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -2468,7 +2468,7 @@ public partial class htx : ccxt.htx
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+            if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
             {
                 if ((id != null))
                 {
@@ -2782,7 +2782,7 @@ public partial class htx : ccxt.htx
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+                    if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
                     {
                         if ((id != null))
                         {
@@ -2793,7 +2793,7 @@ public partial class htx : ccxt.htx
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (((messageHash != null)) && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                    if (((messageHash != null)) && (((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                     }

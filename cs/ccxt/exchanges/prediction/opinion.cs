@@ -532,7 +532,7 @@ public partial class opinion : PredictionExchange
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 object m = (eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null);
-                ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
+                this.markets[(string)getValue(m, "market")] = m;
             }
         }
         this.populateOutcomes();
@@ -1545,7 +1545,7 @@ public partial class opinion : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         string? marketHandle = this.safeString(market, "market", "");
-        ((IDictionary<string,object>)this.markets)[(string)marketHandle] = market;
+        this.markets[(string)marketHandle] = market;
         this.indexMarketOutcomes(market);
         cached[(string)idStr] = market;
         this.options[cacheKey] = cached;
@@ -1987,7 +1987,7 @@ public partial class opinion : PredictionExchange
         {
             return ((IDictionary<string, object>)((object)(null)));
         }
-        List<object> marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        List<object> marketKeys = new List<object>(this.markets.Keys);
         int marketKeysLength = marketKeys.Count;
         for (int i = 0; i < marketKeysLength; i++)
         {
@@ -2075,7 +2075,7 @@ public partial class opinion : PredictionExchange
         {
             return;
         }
-        if (!(((sym != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(sym))))
+        if (!(((sym != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(sym)))))
         {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
@@ -2452,8 +2452,8 @@ public partial class opinion : PredictionExchange
         {
             string? errmsg = this.safeString(response, "errmsg", "");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errmsg, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), this.numberToString(errno), feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errmsg, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

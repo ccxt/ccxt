@@ -107,7 +107,7 @@ public partial class hollaex : ccxt.hollaex
             Int64? timestampMs = this.parse8601(timestamp);
             ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestampMs);
             object orderbook = null;
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -493,7 +493,7 @@ public partial class hollaex : ccxt.hollaex
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
+            if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
             {
                 account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
             }
@@ -564,7 +564,7 @@ public partial class hollaex : ccxt.hollaex
             if ((error != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), this.safeString(message, "error"), feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), this.safeString(message, "error"), feedback);
             }
         } catch(Exception e)
         {

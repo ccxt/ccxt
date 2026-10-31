@@ -305,9 +305,9 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errCode, ((this.id + " ") + text));
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
             if ((code == 401) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)

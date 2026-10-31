@@ -273,7 +273,7 @@ public partial class testMainClass
         return add(message, res);
     }
 
-    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, object isPublic)
+    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, bool? isPublic)
     {
         // todo: temporary skip for c#
         if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "cs"))
@@ -292,7 +292,7 @@ public partial class testMainClass
         bool isConstructorTest = (isEqual(methodName, "afterConstruct"));
         bool isFeatureTest = (isEqual(methodName, "features"));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isTrue(isPublic) && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
+        if (isPublic != true && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
         {
             return true;
         }
@@ -341,7 +341,7 @@ public partial class testMainClass
         }
         dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
-        if (isTrue(isPublic))
+        if (isPublic == true)
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
         }
@@ -412,7 +412,7 @@ public partial class testMainClass
         return finalSkips;
     }
 
-    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, object isPublic = null)
+    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, bool? isPublic = null)
     {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
@@ -505,7 +505,7 @@ public partial class testMainClass
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                    if (isTrue(isPublic) && isTrue(isAuthError))
+                    if (isPublic == true && isTrue(isAuthError))
                     {
                         if (isTrue(this.info))
                         {
@@ -689,7 +689,7 @@ public partial class testMainClass
         return code;
     }
 
-    public virtual object getMarketsFromExchange(BaseExchange exchange, object spot = null)
+    public virtual object getMarketsFromExchange(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         Dictionary<string, object> res = new Dictionary<string, object>() {};
@@ -699,10 +699,10 @@ public partial class testMainClass
         {
             string? key = ((string)keys[i]);
             object market = getValue(markets, key);
-            if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
+            if (spot == true && (isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
-            } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
+            } else if (spot != true && (!isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
             }
@@ -710,14 +710,14 @@ public partial class testMainClass
         return res;
     }
 
-    public virtual object getValidSymbol(BaseExchange exchange, object spot = null)
+    public virtual object getValidSymbol(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         List<object> codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         List<object> spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
         List<object> swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
-        List<object> targetSymbols = isTrue(spot) ? spotSymbols : swapSymbols;
+        List<object> targetSymbols = spot == true ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
@@ -2030,7 +2030,7 @@ public partial class testMainClass
         return true;  // c# requ
     }
 
-    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, bool? strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         object res = true;
@@ -2355,7 +2355,7 @@ public partial class testMainClass
         return false;
     }
 
-    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, bool? sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2398,7 +2398,7 @@ public partial class testMainClass
             }
         }
         await exchange.sleep(50);
-        if (isTrue(sequential))
+        if (sequential == true)
         {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side

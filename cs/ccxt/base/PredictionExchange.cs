@@ -792,7 +792,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return;
         }
-        List<object> marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        List<object> marketKeys = new List<object>(this.markets.Keys);
         for (int i = 0; i < marketKeys.Count; i++)
         {
             this.indexMarketOutcomes(getValue(this.markets, marketKeys[i]));
@@ -818,7 +818,7 @@ public partial class PredictionExchange : BaseExchange
             string? marketHandle = this.safeString2(m, "market", "symbol");
             if ((marketHandle != null))
             {
-                ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
+                this.markets[(string)marketHandle] = m;
             }
         }
         this.populateOutcomes();

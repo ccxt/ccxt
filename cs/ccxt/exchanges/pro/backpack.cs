@@ -340,14 +340,14 @@ public partial class backpack : ccxt.backpack
             if ((messageHash?.IndexOf("ticker", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:ticker:", (string)"");
-                if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
+                if ((this.tickers != null && this.tickers.ContainsKey(symbol)))
                 {
                     this.tickers.Remove(symbol);
                 }
             } else if ((messageHash?.IndexOf("bidask", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:bidask:", (string)"");
-                if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
+                if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
@@ -356,7 +356,7 @@ public partial class backpack : ccxt.backpack
                 List<object> splitHashes = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
                 string? symbol = this.safeString(splitHashes, 2);
                 string? timeframe = this.safeString(splitHashes, 3);
-                if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+                if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                 {
                     if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                     {
@@ -366,14 +366,14 @@ public partial class backpack : ccxt.backpack
             } else if ((messageHash?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:orderbook:", (string)"");
-                if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+                if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if ((messageHash?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:trades:", (string)"");
-                if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
+                if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }
@@ -936,7 +936,7 @@ public partial class backpack : ccxt.backpack
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = stream.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? timeframe = this.safeString(parts, 1, "");
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1122,7 +1122,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1251,7 +1251,7 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(symbol);
             this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
             topics.Add(("depth." + this.safeString(market, "id", "")));
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -1333,7 +1333,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }

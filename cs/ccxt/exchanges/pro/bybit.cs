@@ -1138,7 +1138,7 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "ts");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -2650,7 +2650,7 @@ public partial class bybit : ccxt.bybit
             for (int i = 0; i < topicsLength; i++)
             {
                 string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
-                if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                 {
                     newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
                 }
@@ -2798,9 +2798,9 @@ public partial class bybit : ccxt.bybit
             if ((code != null) && code != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             }
             bool? success = this.safeBool(message, "success");
@@ -2828,7 +2828,7 @@ public partial class bybit : ccxt.bybit
                 for (int i = 0; i < keys.Count; i++)
                 {
                     string? messageHash = ((string)keys[i]);
-                    if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                    if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                     {
                         continue;
                     }
@@ -3076,7 +3076,7 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+            if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
             {
                 continue;
             }

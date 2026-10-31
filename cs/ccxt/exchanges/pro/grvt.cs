@@ -401,7 +401,7 @@ public partial class grvt : ccxt.grvt
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -441,8 +441,8 @@ public partial class grvt : ccxt.grvt
         }
         string? symbolValue = this.symbol(symbol);
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**
@@ -671,7 +671,7 @@ public partial class grvt : ccxt.grvt
         string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         string messageHash = ("orderbook::" + symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1083,9 +1083,9 @@ public partial class grvt : ccxt.grvt
             string body = this.json(response);
             string feedback = ((this.id + " ") + body);
             string? message = this.safeString(error, "message");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return ((bool?)((object)(false)));

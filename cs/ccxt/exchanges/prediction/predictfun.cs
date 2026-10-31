@@ -598,7 +598,7 @@ public partial class predictfun : PredictionExchange
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
                 {
-                    ((IDictionary<string,object>)this.markets)[(string)handle] = m;
+                    this.markets[(string)handle] = m;
                 }
             }
         }
@@ -2874,7 +2874,7 @@ public partial class predictfun : PredictionExchange
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         string? message = this.safeString(response, "message");
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         // the venue also answers 401 when the request was authorised but acted on someone else's
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
@@ -2885,7 +2885,7 @@ public partial class predictfun : PredictionExchange
             this.options["jwtTokenExpiresAt"] = 0;
         }
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if ((code == 400))
@@ -3274,7 +3274,7 @@ public partial class predictfun : PredictionExchange
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (((subscribeHash != null)) && ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash))))
+        if (((subscribeHash != null)) && (((subscribeHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
@@ -3324,7 +3324,7 @@ public partial class predictfun : PredictionExchange
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (((subscribeHash != null)) && ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash))))
+        if (((subscribeHash != null)) && (((subscribeHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
@@ -3748,7 +3748,7 @@ public partial class predictfun : PredictionExchange
             string? outcomeHandle = this.safeString(outcomeObj, "outcome");
             if ((outcomeHandle != null))
             {
-                if (!(((outcomeHandle != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(outcomeHandle))))
+                if (!(((outcomeHandle != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(outcomeHandle)))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)outcomeHandle] = this.orderBook(new Dictionary<string, object>() {});
                 }

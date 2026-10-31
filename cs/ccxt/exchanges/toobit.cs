@@ -1589,7 +1589,7 @@ public partial class toobit : Exchange
         {
             object ticker = response[i];
             string? marketId = this.safeString(ticker, "s");
-            if (((marketId != null)) && ((this.markets_by_id != null)) && (((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            if (((marketId != null)) && ((this.markets_by_id != null)) && (((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
             {
                 rows.Add(ticker);
             }
@@ -3575,8 +3575,8 @@ public partial class toobit : Exchange
         if (((errorCode != null) && errorCode != "") && errorCode != "200" && errorCode != "0")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

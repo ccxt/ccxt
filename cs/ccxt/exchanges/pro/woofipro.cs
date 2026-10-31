@@ -150,7 +150,7 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
         string? topic = this.safeString(message, "topic");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -552,7 +552,7 @@ public partial class woofipro : ccxt.woofipro
         ccxt.Trade trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1402,7 +1402,7 @@ public partial class woofipro : ccxt.woofipro
             IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             IDictionary<string, object> account = this.account();
-            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
+            if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
             {
                 IDictionary<string, object> cachedAccount = this.safeDict(this.balance, code);
                 if ((cachedAccount != null))
@@ -1445,7 +1445,7 @@ public partial class woofipro : ccxt.woofipro
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
             }
             return false;
         } catch(Exception error)

@@ -1374,7 +1374,7 @@ public partial class xt : ccxt.xt
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
             string? messageHash = ((string)((eventVar + "::") + tradeType));
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");

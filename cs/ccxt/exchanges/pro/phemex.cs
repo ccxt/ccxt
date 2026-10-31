@@ -864,7 +864,7 @@ public partial class phemex : ccxt.phemex
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
             // after a re-subscription snapshot
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
             }
@@ -873,7 +873,7 @@ public partial class phemex : ccxt.phemex
             client.resolve(orderbook, messageHash);
         } else
         {
-            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+            if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 IDictionary<string, object> changes = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
@@ -1648,7 +1648,7 @@ public partial class phemex : ccxt.phemex
         //     ]
         // }
         string? id = this.safeString(message, "id", "");
-        if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+        if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
         {
             object method = client.getSubscription(id);
             ((IDictionary<string,object>)client.subscriptions).Remove(id);

@@ -280,7 +280,7 @@ public partial class upbit : ccxt.upbit
         string? type = this.safeString(message, "stream_type");
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(options, "limit", 15);
-        if ((type == "SNAPSHOT") && !((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if ((type == "SNAPSHOT") && !(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }

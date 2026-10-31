@@ -561,7 +561,7 @@ public partial class sxbet : PredictionExchange
             for (int j = 0; j < evMarketsLength; j++)
             {
                 object m = (evMarkets != null && j < evMarkets.Count ? evMarkets[j] : null);
-                ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
+                this.markets[(string)getValue(m, "market")] = m;
             }
             result.Add(eventVar);
         }
@@ -1153,7 +1153,7 @@ public partial class sxbet : PredictionExchange
         {
             string? reason = this.safeString(first, "reason", "FAILED");
             string feedback = ((this.id + " createOrder() rejected: ") + reason);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reason, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reason, feedback);
             throw new InvalidOrder (feedback) ;
         }
         // with waitForOutcome the venue reports the matching result inline:
@@ -2574,7 +2574,7 @@ public partial class sxbet : PredictionExchange
                 {
                     this.options["wsConnected"] = false;
                 }
-                if (((subscription != null)) && ((client.subscriptions != null && subscription != null && client.subscriptions.ContainsKey(subscription))))
+                if (((subscription != null)) && (((subscription != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(subscription)))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscription);
                 }
@@ -3128,8 +3128,8 @@ public partial class sxbet : PredictionExchange
             messageString = message;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageString, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageString, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if ((code == 400))

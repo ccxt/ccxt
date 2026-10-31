@@ -578,7 +578,7 @@ public partial class ndax : ccxt.ndax
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }

@@ -2198,7 +2198,7 @@ public partial class krakenfutures : Exchange
             { "filled", typeof(OrderNotFound) },
             { "notFound", typeof(OrderNotFound) },
         };
-        if (((status is string inOpKey0 && errors.ContainsKey(inOpKey0))) && !this.inArray(status, omit))
+        if (((status is string inOpKey1 && errors.ContainsKey(inOpKey1))) && !this.inArray(status, omit))
         {
             throwDynamicException((errors != null && status != null && errors.ContainsKey((string)status) ? errors[(string)status] : null), ((((this.id + ": ") + method) + " failed due to ") + (status)));
         }
@@ -3995,10 +3995,10 @@ public partial class krakenfutures : Exchange
             { "multiCollateral", "flex" },
             { "multiCollateralMargin", "flex" },
         };
-        if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
+        if ((account is string inOpKey2 && accountByType.ContainsKey(inOpKey2)))
         {
             return ((string?)((object)((accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null))));
-        } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey2 && this.markets.ContainsKey(inOpKey2))))
+        } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
         {
             Dictionary<string, object> market = this.market(account);
             string? marketId = this.safeString(market, "id", "");
@@ -4229,8 +4229,8 @@ public partial class krakenfutures : Exchange
             return null;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         if ((code == 400))
         {
             throw new BadRequest (feedback) ;

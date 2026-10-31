@@ -5453,7 +5453,7 @@ public partial class digifinex : Exchange
             throw new BadResponse (feedback) ;
         }
         List<object> unknownError = new List<object>() {typeof(ExchangeError), feedback};
-        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, unknownError);
         var ExceptionClass = ((IList<object>) ExceptionClassmessageVariable)[0];
         var message = ((IList<object>) ExceptionClassmessageVariable)[1];
         throwDynamicException(ExceptionClass, message);return null;

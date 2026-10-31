@@ -1519,7 +1519,7 @@ public partial class ndax : Exchange
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
-            if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((currencyId != null) && this.currencies_by_id.ContainsKey(currencyId))))
+            if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((currencyId != null) && (this.currencies_by_id != null && this.currencies_by_id.ContainsKey(currencyId)))))
             {
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -3132,8 +3132,8 @@ public partial class ndax : Exchange
         if (((message != null)) && (message != ""))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

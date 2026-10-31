@@ -327,7 +327,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? symbol = this.safeSymbol(marketId, market);
             object item = (data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null);
             string messageHash = ("orderbooks::" + symbol);
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");
@@ -1652,8 +1652,8 @@ public partial class hitbtc : ccxt.hitbtc
                 string? errorMessage = this.safeString(error, "message");
                 string? description = this.safeString(error, "description");
                 string feedback = ((this.id + " ") + description);
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)
             {

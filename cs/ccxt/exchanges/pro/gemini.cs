@@ -453,7 +453,7 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -568,7 +568,7 @@ public partial class gemini : ccxt.gemini
         string marketId = this.safeString(firstBidAsk, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))))
         {
             this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(new Dictionary<string, object>() {}));
             ((IDictionary<string,object>)(this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null))["symbol"] = symbol;
@@ -675,7 +675,7 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;

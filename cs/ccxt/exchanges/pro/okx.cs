@@ -1766,7 +1766,7 @@ public partial class okx : ccxt.okx
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
-                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
@@ -1778,7 +1778,7 @@ public partial class okx : ccxt.okx
                 ccxt.OrderBook snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
                 snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(update, "seqId"));
                 snapshotBook.reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-                if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                 {
                     break;
                 }
@@ -1786,14 +1786,14 @@ public partial class okx : ccxt.okx
             }
         } else if (action == "update")
         {
-            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+            if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ccxt.pro.IOrderBook updatedBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
                 {
                     object update = data[i];
                     this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
-                    if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                    if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                     {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = "resync";
@@ -1807,9 +1807,9 @@ public partial class okx : ccxt.okx
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in ((WebSocketClient)client).subscriptions)
-            if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
+            if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
             {
-                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
@@ -2927,12 +2927,12 @@ public partial class okx : ccxt.okx
                 string feedback = ((this.id + " ") + this.json(message));
                 if (errorCode != "1")
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                 }
                 string? messageString = this.safeString(message, "msg");
                 if ((messageString != null))
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
                 } else
                 {
                     List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -2942,12 +2942,12 @@ public partial class okx : ccxt.okx
                         errorCode = this.safeString(d, "sCode");
                         if ((errorCode != null))
                         {
-                            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if ((messageString != null))
                         {
-                            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
                         }
                     }
                 }
@@ -3104,7 +3104,7 @@ public partial class okx : ccxt.okx
         string subMessageHash = ((channel + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
+        if ((this.trades != null && symbol is string inOpKey0 && this.trades.ContainsKey(inOpKey0)))
         {
             this.trades.Remove(symbol);
         }
@@ -3115,7 +3115,7 @@ public partial class okx : ccxt.okx
         string subMessageHash = ((channel + ":") + symbol);
         string messageHash = ("unsubscribe:orderbook:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if ((this.orderbooks != null && symbol is string inOpKey1 && this.orderbooks.ContainsKey(inOpKey1)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -3145,7 +3145,7 @@ public partial class okx : ccxt.okx
         string subMessageHash = ((channel + "::") + symbol);
         string messageHash = ("unsubscribe:ticker:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
+        if ((this.tickers != null && symbol is string inOpKey2 && this.tickers.ContainsKey(inOpKey2)))
         {
             this.tickers.Remove(symbol);
         }

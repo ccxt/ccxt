@@ -1892,7 +1892,7 @@ public partial class luno : Exchange
         {
             string feedback = ((this.id + " ") + this.json(response));
             string? errorCode = this.safeString(response, "error_code");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

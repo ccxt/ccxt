@@ -203,13 +203,13 @@ public partial class binance : PredictionExchange
         }
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
         IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit"}));
-        List<Dictionary<string, object>> rawTopics = await this.FetchRawTopics(maxMarkets, rest);
+        object rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(maxMarkets, rest));
         List<object> parsedEvents = new List<object>() {};
         List<object> flatMarkets = new List<object>() {};
-        int rawTopicsLength = (rawTopics?.Count ?? 0);
+        int rawTopicsLength = getArrayLength(rawTopics);
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
             parsedEvents.Add(parsedEvent);
             List<object> eventMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int eventMarketsLength = eventMarkets.Count;
@@ -486,7 +486,7 @@ public partial class binance : PredictionExchange
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
                 {
-                    ((IDictionary<string,object>)this.markets)[(string)handle] = m;
+                    this.markets[(string)handle] = m;
                 }
             }
         }
@@ -2105,8 +2105,8 @@ public partial class binance : PredictionExchange
         {
             string? message = this.safeString(response, "msg", "");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

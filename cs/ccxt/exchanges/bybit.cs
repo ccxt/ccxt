@@ -2256,7 +2256,7 @@ public partial class bybit : Exchange
             this.RefreshUrlsViews();
             this.urls["api"] = (this.urls != null && this.urls.ContainsKey("demotrading") ? this.urls["demotrading"] : null);
             this.RefreshUrlsViews();
-        } else if (this.urls.ContainsKey("apiBackupDemoTrading"))
+        } else if ((this.urls != null && this.urls.ContainsKey("apiBackupDemoTrading")))
         {
             this.urls["api"] = this.urls["apiBackupDemoTrading"];
             this.RefreshUrlsViews();
@@ -11946,8 +11946,8 @@ public partial class bybit : Exchange
             {
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

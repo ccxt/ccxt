@@ -953,7 +953,7 @@ public partial class lbank : ccxt.lbank
         string? datetime = this.safeString(message, "TS");
         Int64? timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }

@@ -350,7 +350,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         Int64? timestamp = this.safeInteger(entry, "time");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -979,7 +979,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.market(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1169,7 +1169,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? marketId = this.coinToMarketId(bs);
         string? symbol = this.safeSymbol(marketId);
         string? timeframe = this.safeString(data, "i", "");
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1886,7 +1886,7 @@ public partial class hyperliquid : ccxt.hyperliquid
 
     public async virtual Task expirePendingUnsubscribe(WebSocketClient client, string subHash, string unsubHash)
     {
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(unsubHash)))
+        if ((client.subscriptions != null && unsubHash != null && client.subscriptions.ContainsKey(unsubHash)))
         {
             var error = new RequestTimeout((((this.id + " unsubscribe ") + subHash) + " was not acknowledged"));
             client.reject(error, unsubHash);
@@ -1910,7 +1910,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("orderbook:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -1925,7 +1925,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("trade:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
+        if (((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             this.trades.Remove(symbol);
         }
@@ -1953,7 +1953,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("ticker:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
+        if (((symbol != null) && (this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol))))
         {
             this.tickers.Remove(symbol);
         }
@@ -1969,7 +1969,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))
+        if (((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
             if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
             {

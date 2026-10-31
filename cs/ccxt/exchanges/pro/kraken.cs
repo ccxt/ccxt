@@ -714,7 +714,7 @@ public partial class kraken : ccxt.kraken
         IDictionary<string, object> first = this.safeDict(data, 0);
         string? marketId = this.safeString(first, "symbol");
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1200,7 +1200,7 @@ public partial class kraken : ccxt.kraken
             Int64? depth = this.parseToInt((((limit == null || asksLength > limit))) ? asksLength : limit);
             IDictionary<string, object> depths = this.safeDict(this.options, "wsOrderBookDepths", new Dictionary<string, object>() {});
             Int64? storedDepth = this.safeInteger(depths, symbol);
-            if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))) || ((storedDepth != depth)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) || ((storedDepth != depth)))
             {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
@@ -1854,7 +1854,7 @@ public partial class kraken : ccxt.kraken
             this.balance = new Dictionary<string, object>() {};
         }
         this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
@@ -1863,11 +1863,11 @@ public partial class kraken : ccxt.kraken
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
-            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
+            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
         string? channel = this.safeString(message, "channel");
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
 
     public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
@@ -1987,7 +1987,7 @@ public partial class kraken : ccxt.kraken
         if ((errorMessage != null))
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad");
+            object broad = getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad");
             string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
             if ((broadKey == null))

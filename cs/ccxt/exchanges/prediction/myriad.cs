@@ -3477,7 +3477,7 @@ public partial class myriad : PredictionExchange
                         continue;
                     }
                     seenMarketHandles[(string)marketHandle] = true;
-                    ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
+                    this.markets[(string)marketHandle] = m;
                 }
                 filteredMarkets.Add(m);
             }
@@ -3498,13 +3498,13 @@ public partial class myriad : PredictionExchange
             string? marketHandle = this.safeString(m, "market");
             if (((marketHandle != null)) && (((marketHandle != null) && seenMarketHandles.ContainsKey(marketHandle))))
             {
-                ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
+                this.markets[(string)marketHandle] = m;
                 continue;
             }
             if ((marketHandle != null))
             {
                 seenMarketHandles[(string)marketHandle] = true;
-                ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
+                this.markets[(string)marketHandle] = m;
             }
             Dictionary<string, object> ev = this.parseMarketToEvent(raw, m);
             result.Add(ev);
@@ -4390,8 +4390,8 @@ public partial class myriad : PredictionExchange
             return null;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
     }
 

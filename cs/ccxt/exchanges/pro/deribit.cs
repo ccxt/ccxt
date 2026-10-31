@@ -718,7 +718,7 @@ public partial class deribit : ccxt.deribit
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
@@ -906,8 +906,8 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) ? ohlcvs[symbolValue] : null), timeframeVar));
     }
 
     /**

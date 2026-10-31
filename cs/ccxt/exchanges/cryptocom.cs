@@ -4168,7 +4168,7 @@ public partial class cryptocom : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         result["info"] = response;
-        for (int i = 0; i < this.symbols.Count; i++)
+        for (int i = 0; i < (this.symbols?.Count ?? 0); i++)
         {
             string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
@@ -4286,7 +4286,7 @@ public partial class cryptocom : Exchange
         if (errorCode != "0")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

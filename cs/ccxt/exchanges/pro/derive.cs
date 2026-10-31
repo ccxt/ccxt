@@ -131,7 +131,7 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
         string? topic = this.safeString(parameters, "channel");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             object subscription = ((topic == null)) ? null : (client.subscriptions != null && topic != null && client.subscriptions.ContainsKey(topic) ? client.subscriptions[topic] : null);
@@ -412,7 +412,7 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -425,7 +425,7 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol))))
         {
             this.trades.Remove(symbol);
         }
@@ -438,11 +438,11 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (((symbol != null) && ((IDictionary<string, object>)this.tickers).ContainsKey(symbol)))
+        if (((symbol != null) && (this.tickers != null && this.tickers.ContainsKey(symbol))))
         {
             this.tickers.Remove(symbol);
         }
-        if (((symbol != null) && ((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol)))
+        if (((symbol != null) && (this.bidsasks != null && this.bidsasks.ContainsKey(symbol))))
         {
             this.bidsasks.Remove(symbol);
         }
@@ -1193,7 +1193,7 @@ public partial class derive : ccxt.derive
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             }
             return false;

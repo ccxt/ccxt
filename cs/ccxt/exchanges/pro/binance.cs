@@ -1235,7 +1235,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -1330,7 +1330,7 @@ public partial class binance : ccxt.binance
                 }
             } catch(Exception e)
             {
-                if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+                if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**
@@ -2807,7 +2807,7 @@ public partial class binance : ccxt.binance
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
-                    if (!((underlying is string inOpKey1 && seenUnderlyings.ContainsKey(inOpKey1))))
+                    if (!((underlying is string inOpKey3 && seenUnderlyings.ContainsKey(inOpKey3))))
                     {
                         seenUnderlyings[(string)underlying] = true;
                         subscriptionArgs.Add((underlying + "@optionMarkPrice"));
@@ -2823,7 +2823,7 @@ public partial class binance : ccxt.binance
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
                     object subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
-                    if (!((subscriptionArg is string inOpKey2 && seenUnderlyings.ContainsKey(inOpKey2))))
+                    if (!((subscriptionArg is string inOpKey4 && seenUnderlyings.ContainsKey(inOpKey4))))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;
                         subscriptionArgs.Add(subscriptionArg);
@@ -3809,10 +3809,10 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object isPortfolioMargin = null)
+    public virtual void setBalanceCache(WebSocketClient client, object type, bool? isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if (((client.subscriptions != null && type is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))) && ((this.balance != null && type is string inOpKey4 && this.balance.ContainsKey(inOpKey4))))
+        if (((client.subscriptions != null && type is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))) && ((this.balance != null && type is string inOpKey2 && this.balance.ContainsKey(inOpKey2))))
         {
             return;
         }
@@ -3848,7 +3848,7 @@ public partial class binance : ccxt.binance
         {
             Future future = client.getFuture(messageHash);
             (future as Future).resolve();
-            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -4254,11 +4254,11 @@ public partial class binance : ccxt.binance
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         string messageHash = (accountType + ":balance");
-        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
+        if (((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         string? eventVar = this.safeString(message, "e");
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         IDictionary<string, object> balanceMessage = this.safeDict(message, "a", message);
@@ -4268,9 +4268,9 @@ public partial class binance : ccxt.binance
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? delta = this.safeString(message, "d");
-            if (((code != null)) && (inOp((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code)))
+            if (((code != null)) && (inOp((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code)))
             {
-                object previousValue = this.safeValue(getValue((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code), "free");
+                object previousValue = this.safeValue(getValue((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code), "free");
                 if (!(previousValue is string))
                 {
                     previousValue = this.numberToString(previousValue);
@@ -4282,7 +4282,7 @@ public partial class binance : ccxt.binance
             }
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         } else
         {
@@ -4302,15 +4302,15 @@ public partial class binance : ccxt.binance
                 account["total"] = this.safeString(entry, wallet);
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                    ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
                 }
             }
         }
         Int64? timestamp = this.safeInteger(balanceMessage, "E");
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
     public virtual string? getAccountTypeFromSubscriptions(IList<object> subscriptions)
@@ -5899,7 +5899,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null, object isPortfolioMargin = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null, bool? isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         if ((type is "spot"))
@@ -6580,11 +6580,11 @@ public partial class binance : ccxt.binance
         //
         // --- balance ---
         string accountType = "option";
-        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
+        if (((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         List<object> B = this.safeList(message, "B", new List<object>() {});
         for (int i = 0; i < B.Count; i++)
         {
@@ -6595,14 +6595,14 @@ public partial class binance : ccxt.binance
             {
                 Dictionary<string, object> account = this.account();
                 account["total"] = this.safeString(entry, "b");
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "E");
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), (accountType + ":balance"));
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), (accountType + ":balance"));
         // --- positions ---
         if ((this.positions == null))
         {

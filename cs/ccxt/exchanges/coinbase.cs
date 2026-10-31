@@ -3739,8 +3739,8 @@ public partial class coinbase : Exchange
             string? errorMessage = this.safeString(errorResponse, "message");
             if ((errorResponse != null))
             {
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorTitle, errorMessage);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorTitle, errorMessage);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorTitle, errorMessage);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorTitle, errorMessage);
                 throw new ExchangeError (errorMessage) ;
             }
         }
@@ -5726,7 +5726,7 @@ public partial class coinbase : Exchange
         double? taker_fee = this.safeNumber(data, "taker_fee_rate");
         double? maker_fee = this.safeNumber(data, "maker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < this.symbols.Count; i++)
+        for (int i = 0; i < (this.symbols?.Count ?? 0); i++)
         {
             string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
@@ -6093,16 +6093,16 @@ public partial class coinbase : Exchange
         if ((errorCode != null))
         {
             string? errorMessage = this.safeString2(response, "error_description", "error");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
         IDictionary<string, object> errorResponse = this.safeDict(response, "error_response");
         if ((errorResponse != null))
         {
             string? errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessageInner, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessageInner, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessageInner, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessageInner, feedback);
             throw new ExchangeError (feedback) ;
         }
         List<object> errors = this.safeList(response, "errors", new List<object>() {});
@@ -6115,8 +6115,8 @@ public partial class coinbase : Exchange
                 string? errorMessage = this.safeString((errors != null && 0 < errors.Count ? errors[0] : null), "message");
                 if ((errorCode != null))
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                     throw new ExchangeError (feedback) ;
                 }
             }

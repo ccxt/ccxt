@@ -1035,7 +1035,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Int64? limit = this.safeInteger(subscription, "limit");
         if (type == "snapshot")
         {
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }

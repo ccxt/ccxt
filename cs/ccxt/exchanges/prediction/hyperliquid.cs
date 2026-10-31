@@ -1359,7 +1359,7 @@ public partial class hyperliquid : PredictionExchange
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
-        if ((((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(outcomeInput)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(outcomeInput)))))
+        if ((((this.markets != null)) && ((this.markets != null && outcomeInput != null && this.markets.ContainsKey(outcomeInput)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && outcomeInput != null && this.markets_by_id.ContainsKey(outcomeInput)))))
         {
             Dictionary<string, object> market = this.safeMarket(outcomeInput);
             string? sideHintOrDefault = "YES";
@@ -2637,8 +2637,8 @@ public partial class hyperliquid : PredictionExchange
         {
             string? message = this.safeString(response, "response", body);
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         // Check for error statuses in order responses
@@ -2651,8 +2651,8 @@ public partial class hyperliquid : PredictionExchange
             if ((message != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }

@@ -985,7 +985,7 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
             {
                 marketResolved = this.market(symbol);
             }
@@ -1169,7 +1169,7 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
             {
                 marketResolved = this.market(symbol);
             }
@@ -1473,7 +1473,7 @@ public partial class latoken : Exchange
         {
             symbol = ((bs + "/") + quote);
         }
-        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol)));
+        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol))));
         object marketResolved = market;
         if (symbolKnown)
         {
@@ -2275,14 +2275,14 @@ public partial class latoken : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

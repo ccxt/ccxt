@@ -197,7 +197,7 @@ public partial class polymarket : ccxt.polymarket
         Int64? timestamp = this.safeInteger(message, "ts");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
         snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(message, "sq"));
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -503,7 +503,7 @@ public partial class polymarket : ccxt.polymarket
         string? marketId = this.safeString(first, "iid");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -665,7 +665,7 @@ public partial class polymarket : ccxt.polymarket
         {
             return;
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1247,7 +1247,7 @@ public partial class polymarket : ccxt.polymarket
                 if (action == "sub")
                 {
                     string? subMessageHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
-                    if ((client.subscriptions != null && subMessageHash != null && client.subscriptions.ContainsKey(subMessageHash)))
+                    if (((subMessageHash != null) && (client.subscriptions != null && subMessageHash != null && client.subscriptions.ContainsKey(subMessageHash))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(subMessageHash);
                     }
@@ -1263,26 +1263,26 @@ public partial class polymarket : ccxt.polymarket
             {
                 if (topic == "orderbook")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                     }
                 } else if (topic == "trades")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol))))
                     {
                         this.trades.Remove(symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.tickers).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.tickers != null && this.tickers.ContainsKey(symbol))))
                     {
                         this.tickers.Remove(symbol);
                     }
                 } else if (topic == "ohlcv")
                 {
                     string? timeframe = this.safeString(pending, "timeframe");
-                    if (((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+                    if (((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                     {
                         if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                         {

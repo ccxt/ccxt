@@ -625,7 +625,7 @@ public partial class gate : ccxt.gate
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((symbol != null))
         {
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -2325,15 +2325,15 @@ public partial class gate : ccxt.gate
             string? messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, this.json(errs));
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, this.json(errs));
                 string? errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad"), errorMessage, this.json(message));
                 throw new ExchangeError (this.json(message)) ;
             } catch(Exception e)
             {
                 client.reject(e, messageHash);
-                if (((messageHash != null)) && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+                if (((messageHash != null)) && (((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -2355,14 +2355,14 @@ public partial class gate : ccxt.gate
                         }
                         string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
                         string? messageHashSymbol = ((string)add(add((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null), ":"), symbol));
-                        if (((messageHashSymbol != null)) && ((client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol))))
+                        if (((messageHashSymbol != null)) && (((messageHashSymbol != null) && (client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol)))))
                         {
                             ((IDictionary<string,object>)client.subscriptions).Remove(messageHashSymbol);
                         }
                     }
                 }
             }
-            if (((id != null)) && ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id))))
+            if (((id != null)) && (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id)))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -2397,7 +2397,7 @@ public partial class gate : ccxt.gate
             object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
-        if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+        if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
         {
             if ((id != null))
             {
@@ -2431,7 +2431,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+            if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
             {
                 continue;
             }
@@ -2700,7 +2700,7 @@ public partial class gate : ccxt.gate
         if ((subscription != null))
         {
             var client = this.client(url);
-            if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+            if (!((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 string tempSubscriptionHash = requestId.ToString();
                 ((IDictionary<string,object>)client.subscriptions)[tempSubscriptionHash] = messageHash;
@@ -2846,7 +2846,7 @@ public partial class gate : ccxt.gate
             request["payload"] = payloadValue;
         }
         var client = this.client(url);
-        if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+        if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
         {
             string tempSubscriptionHash = requestId.ToString();
             // in case of authenticationError we will throw

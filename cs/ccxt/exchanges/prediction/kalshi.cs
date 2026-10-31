@@ -522,7 +522,7 @@ public partial class kalshi : PredictionExchange
                 {
                     throw new ExchangeError ((this.id + " fetchOutcome() could not resolve parsed")) ;
                 }
-                ((IDictionary<string,object>)this.markets)[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
+                this.markets[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes(parsed);
@@ -627,7 +627,7 @@ public partial class kalshi : PredictionExchange
                 {
                     throw new ExchangeError ((this.id + " fetchOutcomes() could not resolve parsed")) ;
                 }
-                ((IDictionary<string,object>)this.markets)[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
+                this.markets[(string)(parsed != null && parsed.ContainsKey("market") ? parsed["market"] : null)] = parsed;
                 this.indexMarketOutcomes(parsed);
             }
         }
@@ -656,8 +656,8 @@ public partial class kalshi : PredictionExchange
         {
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
@@ -2644,7 +2644,7 @@ public partial class kalshi : PredictionExchange
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = getValue(parsedMarkets, mi);
-                ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
+                this.markets[(string)getValue(m, "market")] = m;
             }
         }
         this.populateOutcomes();

@@ -636,7 +636,7 @@ public partial class pacifica : ccxt.pacifica
             snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
         }
         string messageHash = ("orderbook:" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -1082,7 +1082,7 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade:" + symbol);
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1321,7 +1321,7 @@ public partial class pacifica : ccxt.pacifica
             return;
         }
         string messageHash = ((("candles:" + timeframe) + ":") + symbol);
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1548,7 +1548,7 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = ("orderbook:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -1562,7 +1562,7 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = ("trade:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
+        if (((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             this.trades.Remove(symbol);
         }
@@ -1594,7 +1594,7 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (((symbol != null)) && ((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+        if (((symbol != null)) && (((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
             {

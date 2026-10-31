@@ -360,7 +360,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
         string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1081,9 +1081,9 @@ public partial class apex : ccxt.apex
             if ((code != null) && code != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             }
             bool? success = this.safeBool(message, "success");

@@ -4371,7 +4371,7 @@ public partial class binance : Exchange
                         settle = this.safeString(market, "quote", "");
                     }
                     string legacySymbol = ((this.safeString(market, "symbol", "") + ":") + settle);
-                    if (((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(legacySymbol))))
+                    if (((this.markets != null)) && ((this.markets != null && legacySymbol != null && this.markets.ContainsKey(legacySymbol))))
                     {
                         return ccxt.BaseExchange.ToDict((this.markets != null && legacySymbol != null && this.markets.ContainsKey(legacySymbol) ? this.markets[legacySymbol] : null));
                     }
@@ -4430,7 +4430,7 @@ public partial class binance : Exchange
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3)))))
+        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey4 && this.markets_by_id.ContainsKey(inOpKey4)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -4621,7 +4621,7 @@ public partial class binance : Exchange
             this.RefreshUrlsViews();
             this.urls["api"] = (this.urls != null && this.urls.ContainsKey("demo") ? this.urls["demo"] : null);
             this.RefreshUrlsViews();
-        } else if (this.urls.ContainsKey("apiBackupDemoTrading"))
+        } else if ((this.urls != null && this.urls.ContainsKey("apiBackupDemoTrading")))
         {
             this.urls["api"] = this.urls["apiBackupDemoTrading"];
             this.RefreshUrlsViews();
@@ -11828,7 +11828,7 @@ public partial class binance : Exchange
         object earnedCurrency = (bnb != null && bnb.ContainsKey("code") ? bnb["code"] : null);
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         bool tradedCurrencyIsQuote = false;
-        if (((this.markets != null)) && ((this.markets != null && applicantSymbol is string inOpKey4 && this.markets.ContainsKey(inOpKey4))))
+        if (((this.markets != null)) && ((this.markets != null && applicantSymbol is string inOpKey3 && this.markets.ContainsKey(inOpKey3))))
         {
             tradedCurrencyIsQuote = true;
         }
@@ -16115,9 +16115,9 @@ public partial class binance : Exchange
         if ((message != null))
         {
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), message, ((this.id + " ") + message));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException(this.getExceptionsByUrl(url, "broad"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
         string? error = this.safeString(responseParsed, "code");
@@ -16142,7 +16142,7 @@ public partial class binance : Exchange
                 throw new MarginModeAlreadySet (feedback) ;
             }
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), error, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)
@@ -16160,7 +16160,7 @@ public partial class binance : Exchange
                 if ((errorCode != null))
                 {
                     this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, ((this.id + " ") + (body)));
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, ((this.id + " ") + (body)));
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, ((this.id + " ") + (body)));
                 }
             }
         }

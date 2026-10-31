@@ -493,7 +493,7 @@ public partial class bydfi : ccxt.bydfi
             return;
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -651,7 +651,7 @@ public partial class bydfi : ccxt.bydfi
         string? symbol = this.safeSymbol(marketId);
         Int64? timestamp = this.safeInteger(message, "E");
         string messageHash = ("orderbook::" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1080,7 +1080,7 @@ public partial class bydfi : ccxt.bydfi
             {
                 continue;
             }
-            if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
+            if (!(((key != null) && (this.balance != null && key != null && this.balance.ContainsKey(key)))))
             {
                 this.balance[(string)key] = (response != null && key != null && response.ContainsKey(key) ? response[key] : null);
             }
@@ -1228,9 +1228,9 @@ public partial class bydfi : ccxt.bydfi
         string? code = this.safeString(message, "code");
         string? msg = this.safeString(message, "msg");
         string feedback = ((this.id + " ") + this.json(message));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), msg, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
         throw new ExchangeError (feedback) ;
     }
 

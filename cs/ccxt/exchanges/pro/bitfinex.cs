@@ -783,7 +783,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = (prec == "R0");
         // if it is an initial snapshot
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(subscription, "len");
             if (isRaw)

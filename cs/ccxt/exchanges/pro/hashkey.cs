@@ -153,7 +153,7 @@ public partial class hashkey : ccxt.hashkey
         {
             return;
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -314,7 +314,7 @@ public partial class hashkey : ccxt.hashkey
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -394,7 +394,7 @@ public partial class hashkey : ccxt.hashkey
         string? marketId = this.safeString(message, "symbol");
         string? symbol = this.safeSymbol(marketId);
         string messageHash = ("orderbook:" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
@@ -831,7 +831,7 @@ public partial class hashkey : ccxt.hashkey
 
     public virtual void setBalanceCache(WebSocketClient client, object type, string subscribeHash)
     {
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
+        if ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash)))
         {
             return;
         }
@@ -858,7 +858,7 @@ public partial class hashkey : ccxt.hashkey
         {
             Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), ("balance:" + type));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), ("balance:" + type));
         }
     }
 
@@ -895,7 +895,7 @@ public partial class hashkey : ccxt.hashkey
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         string? currencyId = this.safeString(balanceUpdate, "a");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -903,11 +903,11 @@ public partial class hashkey : ccxt.hashkey
         account["used"] = this.safeString(balanceUpdate, "l");
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
         string messageHash = ("balance:" + type);
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
 
     public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)

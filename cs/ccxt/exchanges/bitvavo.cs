@@ -1083,7 +1083,7 @@ public partial class bitvavo : Exchange
         double? maker = this.safeNumber(feesValue, "maker");
         double? taker = this.safeNumber(feesValue, "taker");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < this.symbols.Count; i++)
+        for (int i = 0; i < (this.symbols?.Count ?? 0); i++)
         {
             string? symbol = this.safeString(this.symbols, i, "");
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -3024,8 +3024,8 @@ public partial class bitvavo : Exchange
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

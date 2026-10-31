@@ -768,7 +768,7 @@ public partial class poloniex : ccxt.poloniex
 
     public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(type)))
+        if ((client.subscriptions != null && type != null && client.subscriptions.ContainsKey(type)))
         {
             return;
         }
@@ -801,7 +801,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 continue;
             }
-            if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
+            if (!(((key != null) && (this.balance != null && key != null && this.balance.ContainsKey(key)))))
             {
                 this.balance[(string)key] = (response != null && key != null && response.ContainsKey(key) ? response[key] : null);
             }
@@ -1687,8 +1687,8 @@ public partial class poloniex : ccxt.poloniex
                 string? error = this.safeString(first, "message");
                 string? code = this.safeString(first, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)
             {

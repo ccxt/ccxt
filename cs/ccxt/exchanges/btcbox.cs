@@ -462,7 +462,7 @@ public partial class btcbox : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = this.symbols.Count;
+        int numSymbols = (this.symbols?.Count ?? 0);
         if (numSymbols > 1)
         {
             request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
@@ -517,7 +517,7 @@ public partial class btcbox : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = this.symbols.Count;
+        int numSymbols = (this.symbols?.Count ?? 0);
         if (numSymbols > 1)
         {
             request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
@@ -602,7 +602,7 @@ public partial class btcbox : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = this.symbols.Count;
+        int numSymbols = (this.symbols?.Count ?? 0);
         if (numSymbols > 1)
         {
             request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);

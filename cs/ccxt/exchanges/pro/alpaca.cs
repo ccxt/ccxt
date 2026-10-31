@@ -280,7 +280,7 @@ public partial class alpaca : ccxt.alpaca
         string? datetime = this.safeString(message, "t");
         Int64? timestamp = this.parse8601(datetime);
         bool? isSnapshot = this.safeBool(message, "r", false);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }

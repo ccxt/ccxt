@@ -568,7 +568,7 @@ public partial class weex : ccxt.weex
         }
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade::" + symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -846,7 +846,7 @@ public partial class weex : ccxt.weex
             return;
         }
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1055,7 +1055,7 @@ public partial class weex : ccxt.weex
         }
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook::" + symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
@@ -1855,7 +1855,7 @@ public partial class weex : ccxt.weex
 
     public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if (((client.subscriptions != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
+        if (((client.subscriptions != null && type != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
         {
             return;
         }
@@ -1887,7 +1887,7 @@ public partial class weex : ccxt.weex
         {
             Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -1961,7 +1961,7 @@ public partial class weex : ccxt.weex
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         List<object> balanceUpdates = this.safeList(message, "d", new List<object>() {});
         for (int i = 0; i < balanceUpdates.Count; i++)
         {
@@ -1974,14 +1974,14 @@ public partial class weex : ccxt.weex
             account["total"] = this.safeString2(entry, "equity", "legacyAmount");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "E");
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
     /**
@@ -2242,8 +2242,8 @@ public partial class weex : ccxt.weex
             string feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), msg, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), msg, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception error)
             {

@@ -858,7 +858,7 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1036,7 +1036,7 @@ public partial class bitstamp : ccxt.bitstamp
             string feedback = ((this.id + " ") + this.json(message));
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? code = this.safeString(data, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
         }
         return ((bool?)((object)(true)));
     }

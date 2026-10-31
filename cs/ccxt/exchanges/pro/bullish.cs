@@ -198,7 +198,7 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> market = this.market(symbol);
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
         IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);
@@ -361,7 +361,7 @@ public partial class bullish : ccxt.bullish
         string? symbol = this.safeSymbol(marketId);
         string messageHash = ("orderbook::" + symbol);
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -740,7 +740,7 @@ public partial class bullish : ccxt.bullish
         {
             return;
         }
-        if (!((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId))))
+        if (!(((tradingAccountId != null) && (this.balance != null && this.balance.ContainsKey(tradingAccountId)))))
         {
             this.balance[(string)tradingAccountId] = new Dictionary<string, object>() {};
         }
@@ -880,8 +880,8 @@ public partial class bullish : ccxt.bullish
         {
             string? errorCode = this.safeString(data, "errorCode");
             string? errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorCodeName, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeName, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)
         {

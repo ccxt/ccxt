@@ -896,7 +896,7 @@ public partial class bitvavo : ccxt.bitvavo
         // in that case the buffered delta message identifies the market
         string? marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
         string? snapshotSymbol = this.safeSymbol(marketId, null, "-");
-        if (!((this.orderbooks != null && snapshotSymbol != null && this.orderbooks.ContainsKey(snapshotSymbol))))
+        if (!(((snapshotSymbol != null) && (this.orderbooks != null && snapshotSymbol != null && this.orderbooks.ContainsKey(snapshotSymbol)))))
         {
             // this snapshot fetch was scheduled before an unsubscribe removed the
             // order book - skip it so the getBook request is not sent for a dead market
@@ -977,7 +977,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limit = this.safeInteger(subscription, "limit");
         IDictionary<string, object> limits = this.safeDict(this.options, "orderBookLimits", new Dictionary<string, object>() {});
         Int64? storedLimit = this.safeInteger(limits, symbol);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))) || ((storedLimit != limit)))
+        if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))) || ((storedLimit != limit)))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             limits[(string)symbol] = limit;
@@ -996,7 +996,7 @@ public partial class bitvavo : ccxt.bitvavo
             string? marketId = this.safeString(marketIds, i);
             string? symbol = this.safeSymbol(marketId, null, "-");
             string messageHash = ((name + "@") + this.safeString(marketIds, i, ""));
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 object subscription = client.getSubscription(messageHash);
                 object method = this.safeValue(subscription, "method");
@@ -1050,7 +1050,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (!((client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key))))
+            if (!(((key != null) && (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key)))))
             {
                 continue;
             }
@@ -1066,7 +1066,7 @@ public partial class bitvavo : ccxt.bitvavo
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in ((WebSocketClient)client).rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
-            if ((client.rejections != null && subHash != null && client.rejections.ContainsKey(subHash)))
+            if ((client.rejections != null && client.rejections.ContainsKey(subHash)))
             {
                 ((IDictionary<string,object>)client.rejections).Remove(subHash);
             }

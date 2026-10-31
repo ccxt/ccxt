@@ -448,7 +448,7 @@ public partial class bitrue : ccxt.bitrue
                 { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
             };
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -747,7 +747,7 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         List<object> parsed = this.parseWsOHLCV(tick, market);
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }

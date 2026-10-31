@@ -873,7 +873,7 @@ public partial class mexc : ccxt.mexc
         int partsLength = parts.Count; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         string? marketId = this.safeString(parts, (partsLength - 1));
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
@@ -987,7 +987,7 @@ public partial class mexc : ccxt.mexc
         string messageHash = ("orderbook:" + symbol);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash);
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1796,9 +1796,9 @@ public partial class mexc : ccxt.mexc
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
         string? currencyId = this.safeString2(data, "currency", "vcoinName");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -1806,10 +1806,10 @@ public partial class mexc : ccxt.mexc
         account["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
+        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
 
     /**
@@ -2170,14 +2170,14 @@ public partial class mexc : ccxt.mexc
                     {
                         this.tickers.Remove((string)symbols[j]);
                     }
-                } else if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
+                } else if ((this.tickers != null && this.tickers.ContainsKey(symbol)))
                 {
                     this.tickers.Remove(symbol);
                 }
             } else if ((messageHash?.IndexOf("bidask", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:bidask:", (string)"");
-                if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
+                if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
@@ -2190,21 +2190,21 @@ public partial class mexc : ccxt.mexc
                 {
                     candlesSymbol = candlesSymbol + (":" + this.safeString(splitHashes, 3, ""));
                 }
-                if ((this.ohlcvs != null && this.ohlcvs.ContainsKey(candlesSymbol)))
+                if ((this.ohlcvs != null && candlesSymbol != null && this.ohlcvs.ContainsKey(candlesSymbol)))
                 {
                     this.ohlcvs.Remove(candlesSymbol);
                 }
             } else if ((messageHash?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:orderbook:", (string)"");
-                if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+                if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if ((messageHash?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 string symbol = messageHash.Replace("unsubscribe:trades:", (string)"");
-                if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
+                if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }

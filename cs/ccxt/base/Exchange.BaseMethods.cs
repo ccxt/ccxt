@@ -978,7 +978,7 @@ public partial class BaseExchange
     {
         if (enabled == true)
         {
-            if (this.urls.ContainsKey("test"))
+            if ((this.urls != null && this.urls.ContainsKey("test")))
             {
                 if (((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null) is string))
                 {
@@ -999,7 +999,7 @@ public partial class BaseExchange
             }
             // set flag
             this.isSandboxModeEnabled = true;
-        } else if (this.urls.ContainsKey("apiBackup"))
+        } else if ((this.urls != null && this.urls.ContainsKey("apiBackup")))
         {
             if (((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null) is string))
             {
@@ -1036,7 +1036,7 @@ public partial class BaseExchange
             this.RefreshUrlsViews();
             this.urls["api"] = (this.urls != null && this.urls.ContainsKey("demo") ? this.urls["demo"] : null);
             this.RefreshUrlsViews();
-        } else if (this.urls.ContainsKey("apiBackupDemoTrading"))
+        } else if ((this.urls != null && this.urls.ContainsKey("apiBackupDemoTrading")))
         {
             this.urls["api"] = ((object)this.urls["apiBackupDemoTrading"]);
             this.RefreshUrlsViews();
@@ -1609,7 +1609,7 @@ public partial class BaseExchange
         {
             string? target = ((string)targets[i]);
             object source = (target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null);
-            bool sourceDefined = ((this.has != null && source is string inOpKey0 && this.has.ContainsKey(inOpKey0))) && (!((this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null) == null));
+            bool sourceDefined = ((this.has != null && source is string inOpKey2 && this.has.ContainsKey(inOpKey2))) && (!((this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null) == null));
             bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!((this.has != null && target != null && this.has.ContainsKey(target) ? this.has[target] : null) == null));
             if (sourceDefined && !targetDefined)
             {
@@ -1793,7 +1793,7 @@ public partial class BaseExchange
             return defaultValue;  // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
-        if (!(inOp(this.features, marketType)))
+        if (!((this.features != null && marketType is string inOpKey0 && this.features.ContainsKey(inOpKey0))))
         {
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
@@ -2158,7 +2158,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
             {
                 object marketsByIdArray = getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null));
                 ((IList<object>)marketsByIdArray).Add(value);
@@ -5066,7 +5066,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3))))
             {
                 List<object> markets = this.safeList(this.markets_by_id, marketId, new List<object>() {});
                 int numMarkets = (markets?.Count ?? 0);
@@ -6042,10 +6042,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
+        if ((markets != null && symbol is string inOpKey4 && markets.ContainsKey(inOpKey4)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey5 && marketsById.ContainsKey(inOpKey5))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6953,7 +6953,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey5 && markets.ContainsKey(inOpKey5)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey6 && marketsById.ContainsKey(inOpKey6)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey6 && markets.ContainsKey(inOpKey6)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey7 && marketsById.ContainsKey(inOpKey7)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7722,7 +7722,7 @@ public partial class BaseExchange
                 id = (((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_");
                 id = (id + (((price + "_") + amount)));
             }
-            if ((id != null) && !((id is string inOpKey7 && uniqueResult.ContainsKey(inOpKey7))))
+            if ((id != null) && !((id is string inOpKey8 && uniqueResult.ContainsKey(inOpKey8))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -8142,7 +8142,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8150,7 +8150,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9)))
+                if ((client.subscriptions != null && subHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }
@@ -8206,7 +8206,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((this.id + " cleanCache() requires a timeframe argument")) ;
                 }
-                if (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
+                if (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
                 {
                     if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                     {
@@ -8221,25 +8221,25 @@ public partial class BaseExchange
                 string? symbol = this.safeString(symbols, i, "");
                 if (topic == "trades")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol))))
                     {
                         this.trades.Remove(symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.tickers).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.tickers != null && this.tickers.ContainsKey(symbol))))
                     {
                         this.tickers.Remove(symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if (((symbol != null) && ((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol)))
+                    if (((symbol != null) && (this.bidsasks != null && this.bidsasks.ContainsKey(symbol))))
                     {
                         this.bidsasks.Remove(symbol);
                     }
@@ -8272,7 +8272,7 @@ public partial class BaseExchange
                 for (int i = 0; i < tickerSymbols.Count; i++)
                 {
                     string? tickerSymbol = ((string)tickerSymbols[i]);
-                    if ((this.tickers != null && tickerSymbol != null && this.tickers.ContainsKey(tickerSymbol)))
+                    if (((tickerSymbol != null) && (this.tickers != null && tickerSymbol != null && this.tickers.ContainsKey(tickerSymbol))))
                     {
                         this.tickers.Remove(tickerSymbol);
                     }
@@ -8283,7 +8283,7 @@ public partial class BaseExchange
                 for (int i = 0; i < bidsaskSymbols.Count; i++)
                 {
                     string? bidsaskSymbol = ((string)bidsaskSymbols[i]);
-                    if ((this.bidsasks != null && bidsaskSymbol != null && this.bidsasks.ContainsKey(bidsaskSymbol)))
+                    if (((bidsaskSymbol != null) && (this.bidsasks != null && bidsaskSymbol != null && this.bidsasks.ContainsKey(bidsaskSymbol))))
                     {
                         this.bidsasks.Remove(bidsaskSymbol);
                     }

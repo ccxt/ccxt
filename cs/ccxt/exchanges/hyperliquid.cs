@@ -385,7 +385,7 @@ public partial class hyperliquid : Exchange
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 string? quote = this.safeString(symbolParts, 1);
                 string newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
-                if ((this.markets != null && this.markets.ContainsKey(newSymbol)))
+                if ((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol)))
                 {
                     return ccxt.BaseExchange.ToDict((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol) ? this.markets[newSymbol] : null));
                 }
@@ -4275,7 +4275,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         // swap ids are asset indexes, so the market is looked up by symbol
-        if (((symbol != null)) && ((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+        if (((symbol != null)) && ((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
         {
             marketResolved = this.market(symbol);
         }
@@ -5872,8 +5872,8 @@ public partial class hyperliquid : Exchange
         bool nonEmptyMessage = (((message != null)) && (message != ""));
         if (nonEmptyMessage)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         if (nonEmptyMessage)
         {

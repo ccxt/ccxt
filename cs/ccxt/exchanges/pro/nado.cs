@@ -1586,7 +1586,7 @@ public partial class nado : ccxt.nado
         {
             return;
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1909,7 +1909,7 @@ public partial class nado : ccxt.nado
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             return;
         }
@@ -2055,14 +2055,14 @@ public partial class nado : ccxt.nado
         if ((messageHash.IndexOf("trade:", StringComparison.Ordinal) == 0))
         {
             string symbol = messageHash.Replace("trade:", (string)"");
-            if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
+            if ((this.trades != null && this.trades.ContainsKey(symbol)))
             {
                 this.trades.Remove(symbol);
             }
         } else if ((messageHash.IndexOf("orderbook:", StringComparison.Ordinal) == 0))
         {
             string symbol = messageHash.Replace("orderbook:", (string)"");
-            if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+            if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
@@ -2071,14 +2071,14 @@ public partial class nado : ccxt.nado
             List<object> parts = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? timeframe = this.safeString(parts, 1);
             string? symbol = this.safeString(parts, 2);
-            if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+            if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
             {
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
             }
         } else if ((messageHash.IndexOf("ticker:", StringComparison.Ordinal) == 0))
         {
             string symbol = messageHash.Replace("ticker:", (string)"");
-            if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
+            if ((this.tickers != null && this.tickers.ContainsKey(symbol)))
             {
                 this.tickers.Remove(symbol);
             }
@@ -2093,7 +2093,7 @@ public partial class nado : ccxt.nado
         } else if ((messageHash.IndexOf("bidask:", StringComparison.Ordinal) == 0))
         {
             string symbol = messageHash.Replace("bidask:", (string)"");
-            if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
+            if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
             {
                 this.bidsasks.Remove(symbol);
             }

@@ -271,7 +271,7 @@ public partial class blofin : ccxt.blofin
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -669,11 +669,11 @@ public partial class blofin : ccxt.blofin
             {
                 continue;
             }
-            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null))[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
+            ((IDictionary<string,object>)(this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null))[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
         }
-        this.balance[marketType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
+        this.balance[marketType] = this.safeBalance((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
         string messageHash = (marketType + ":balance");
-        client.resolve((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
+        client.resolve((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
     }
 
     public virtual Dictionary<string, object> parseWsBalance(object message)

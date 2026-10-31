@@ -1363,7 +1363,7 @@ public partial class bingx : ccxt.bingx
 
     public virtual void setBalanceCache(WebSocketClient client, string type, object subType, string subscriptionHash, object parameters)
     {
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
+        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -1392,7 +1392,7 @@ public partial class bingx : ccxt.bingx
         {
             Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -1659,7 +1659,7 @@ public partial class bingx : ccxt.bingx
             if ((code != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
             }
         } catch(Exception e)
         {
@@ -2062,9 +2062,9 @@ public partial class bingx : ccxt.bingx
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             object balance = data[i];
@@ -2076,11 +2076,11 @@ public partial class bingx : ccxt.bingx
             account["free"] = this.safeString(balance, "wb");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
             }
         }
-        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
+        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
     }
 
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them

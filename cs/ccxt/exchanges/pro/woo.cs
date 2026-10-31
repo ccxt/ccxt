@@ -251,7 +251,7 @@ public partial class woo : ccxt.woo
         string? method = this.safeString(topic.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>(), 1);
         if (method == "orderbookupdate")
         {
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 return;
             }
@@ -286,7 +286,7 @@ public partial class woo : ccxt.woo
             }
         } else
         {
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, topic);
@@ -310,7 +310,7 @@ public partial class woo : ccxt.woo
         {
             return;
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -1771,7 +1771,7 @@ public partial class woo : ccxt.woo
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)

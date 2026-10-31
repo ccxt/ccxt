@@ -107,7 +107,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public virtual string? getWsUrl(bool? isPrivate = null)
     {
         isPrivate ??= false;
-        if ((((object)(this.isNativeDeribitCredentials())) is true))
+        if ((this.isNativeDeribitCredentials() == true))
         {
             return "wss://www.deribit.com/ws/api/v2";
         }
@@ -134,7 +134,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 { "client_id", this.apiKey },
                 { "client_secret", this.secret },
             };
-            if ((((object)(this.isNativeDeribitCredentials())) is false))
+            if ((this.isNativeDeribitCredentials() == false))
             {
                 parameters = new Dictionary<string, object>() {
                     { "grant_type", "coinbase_cdp" },
@@ -1041,8 +1041,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         string? symbolResolved = this.symbol(symbol);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolResolved), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
     }
 
     /**
@@ -1300,7 +1300,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if ((symbol != null) && !(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if ((symbol != null) && !(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);
@@ -1467,7 +1467,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         List<object> channelParts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int channelPartsLength = channelParts.Count;
         bool isGrouped = (channelPartsLength == 5);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = isGrouped ? this.orderBook(new Dictionary<string, object>() {}, limit) : this.countedOrderBook(new Dictionary<string, object>() {}, limit);
@@ -1488,7 +1488,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             {
                 // drop the stale book and reject only this channels future
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
-                if ((client.subscriptions != null && channel is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(channel)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(channel);
                 }
@@ -1530,7 +1530,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         };
         var client = this.client(url);
         await client.send(request);
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(channel)))
+        if ((client.subscriptions != null && channel != null && client.subscriptions.ContainsKey(channel)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(channel);
         }
@@ -1572,15 +1572,15 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)
         {
             string? requestId = this.safeString(message, "id");
             string? authRequestId = this.safeString(this.options, "wsAuthRequestId");
             string? messageHash = ((requestId == authRequestId)) ? "authenticated" : requestId;
-            if ((messageHash == "authenticated") && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+            if ((messageHash == "authenticated") && (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
             {
                 // allow the next authenticate () call to retry
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -1727,7 +1727,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 { "client_id", this.apiKey },
                 { "client_secret", this.secret },
             };
-            if ((((object)(this.isNativeDeribitCredentials())) is false))
+            if ((this.isNativeDeribitCredentials() == false))
             {
                 paramsAuth = new Dictionary<string, object>() {
                     { "grant_type", "coinbase_cdp" },
@@ -1825,7 +1825,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
         }
         bool? postOnly = this.safeBool2(paramsResolved, "postOnly", "post_only");
-        if ((((object)(this.isNativeDeribitCredentials())) is true))
+        if ((this.isNativeDeribitCredentials() == true))
         {
             bool? reduceOnly = this.safeBool2(paramsResolved, "reduceOnly", "reduce_only");
             if ((reduceOnly != null))
@@ -1862,7 +1862,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             }
         }
         Dictionary<string, object> paramsRequest = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"});
-        if ((((object)(this.isNativeDeribitCredentials())) is true))
+        if ((this.isNativeDeribitCredentials() == true))
         {
             paramsRequest = this.omit(paramsRequest, new List<object>() {"reduceOnly", "reduce_only"});
         }

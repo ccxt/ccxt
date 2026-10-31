@@ -771,7 +771,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }

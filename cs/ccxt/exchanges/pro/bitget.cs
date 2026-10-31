@@ -1121,7 +1121,7 @@ public partial class bitget : ccxt.bitget
         if (incrementalBook)
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 // const ob = this.orderBook ({});
                 ccxt.pro.CountedOrderBook ob = this.countedOrderBook(new Dictionary<string, object>() {});
@@ -1186,7 +1186,7 @@ public partial class bitget : ccxt.bitget
             // holds a reference to the old object and would never see updates
             // after this snapshot (every frame of the non-incremental channels
             // is a full snapshot)
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
             }
@@ -2907,7 +2907,7 @@ public partial class bitget : ccxt.bitget
                     string? currencyId = this.safeString(entry, "coin");
                     string? code = this.safeCurrencyCode(currencyId);
                     IDictionary<string, object> account = this.account();
-                    if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
+                    if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
                     {
                         account = this.safeDict(this.balance, code, account);
                     }
@@ -2930,7 +2930,7 @@ public partial class bitget : ccxt.bitget
                 string? currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 string? code = this.safeCurrencyCode(currencyId);
                 IDictionary<string, object> account = this.account();
-                if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
+                if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
                 {
                     account = this.safeDict(this.balance, code, account);
                 }
@@ -3151,9 +3151,9 @@ public partial class bitget : ccxt.bitget
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, feedback);
                 string? msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "broad"), msg, feedback);
+                this.throwBroadlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad"), msg, feedback);
                 throw new ExchangeError (feedback) ;
             }
             return ((bool?)((object)(false)));
@@ -3370,7 +3370,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("orderbook:" + symbol);
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -3407,7 +3407,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("unsubscribe:trade:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("trade:" + symbol);
-        if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol))))
         {
             this.trades.Remove(symbol);
         }
@@ -3444,7 +3444,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("unsubscribe:ticker:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("ticker:" + symbol);
-        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
+        if (((symbol != null) && (this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol))))
         {
             this.tickers.Remove(symbol);
         }
@@ -3507,7 +3507,7 @@ public partial class bitget : ccxt.bitget
             messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
             subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
-        if (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
+        if (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
         {
             if (((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
             {

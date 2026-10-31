@@ -837,7 +837,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -1203,7 +1203,7 @@ public partial class aster : ccxt.aster
         Int64? timestamp = this.safeInteger(data, "T");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1239,8 +1239,8 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         string? symbolValue = this.safeSymbol(symbol);
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
     /**
@@ -1613,7 +1613,7 @@ public partial class aster : ccxt.aster
 
     public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if (((client.subscriptions != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
+        if (((client.subscriptions != null && type != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
         {
             return;
         }
@@ -1645,7 +1645,7 @@ public partial class aster : ccxt.aster
         {
             Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
-            client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
         }
     }
 
@@ -1706,11 +1706,11 @@ public partial class aster : ccxt.aster
         //
         string accountType = this.getAccountTypeFromUrl(client.url);
         string messageHash = (accountType + ":balance");
-        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
+        if (((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         IDictionary<string, object> messageValue = this.safeDict(message, "a", message);
         List<object> B = this.safeList(messageValue, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
@@ -1725,14 +1725,14 @@ public partial class aster : ccxt.aster
             account["total"] = this.safeString(entry, wallet);
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(messageValue, "E");
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
     /**

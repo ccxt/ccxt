@@ -1403,7 +1403,7 @@ public partial class apex : Exchange
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (((this.markets_by_id != null)) && ((this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId))))
+                if (((this.markets_by_id != null)) && (((newMarketId != null) && (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId)))))
                 {
                     object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);
@@ -2254,9 +2254,9 @@ public partial class apex : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             string? message = this.safeString2(response, "key", "msg");
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), status, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

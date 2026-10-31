@@ -300,7 +300,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(this.safeList(message, "data"), 0);
         Int64? timestamp = this.safeInteger(data, "t");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(message, "depth");
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
@@ -1512,11 +1512,11 @@ public partial class cryptocom : ccxt.cryptocom
             if (((errorCode != null) && errorCode != "") && errorCode != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                 string? messageString = this.safeString(message, "message");
                 if ((messageString != null))
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
                 }
                 throw new ExchangeError (feedback) ;
             }
@@ -1680,7 +1680,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+            if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
             {
                 continue;
             }

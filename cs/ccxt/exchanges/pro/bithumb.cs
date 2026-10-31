@@ -511,7 +511,7 @@ public partial class bithumb : ccxt.bithumb
                 return;
             }
             Int64? legacyTimestamp = this.parseToInt(((timestampStr == null) ? null : timestampStr.Substring(0, Math.Min(13, timestampStr.Length))));
-            if (!((this.orderbooks != null && legacySymbol != null && this.orderbooks.ContainsKey(legacySymbol))))
+            if (!(((legacySymbol != null) && (this.orderbooks != null && legacySymbol != null && this.orderbooks.ContainsKey(legacySymbol)))))
             {
                 ccxt.pro.OrderBook ob = this.orderBook();
                 ob["symbol"] = legacySymbol;
@@ -533,7 +533,7 @@ public partial class bithumb : ccxt.bithumb
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? obLimit = this.safeInteger(options, "limit", 1000);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, obLimit);
         }
@@ -712,7 +712,7 @@ public partial class bithumb : ccxt.bithumb
             }
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
             string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", fallbackSymbol);
-            if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 var stored = new ArrayCache(limit);

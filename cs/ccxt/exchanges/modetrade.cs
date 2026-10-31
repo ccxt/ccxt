@@ -1544,7 +1544,7 @@ public partial class modetrade : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            if (((this.markets_by_id == null)) || !(((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
             {
                 continue;
             }
@@ -1640,7 +1640,7 @@ public partial class modetrade : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            if (((this.markets_by_id == null)) || !(((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
             {
                 continue;
             }
@@ -3951,8 +3951,8 @@ public partial class modetrade : Exchange
         if ((success != true))
         {
             string feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

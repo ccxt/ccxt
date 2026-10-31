@@ -829,10 +829,10 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {(requestedTags != null && ti < requestedTags.Count ? requestedTags[ti] : null)};
-                List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
-                for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
+                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
+                for (int ei = 0; ei < getArrayLength(tagEvents); ei++)
                 {
-                    object rawEvent = tagEvents[ei];
+                    object rawEvent = getValue(tagEvents, ei);
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
@@ -1223,7 +1223,7 @@ public partial class polymarket : PredictionExchange
                     {
                         throw new ExchangeError ((this.id + " fetchOutcome() could not resolve mkt")) ;
                     }
-                    ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
+                    this.markets[(string)getValue(mkt, "market")] = mkt;
                 }
                 this.populateOutcomes();
                 if ((this.safeDict(this.outcomes_by_id, outcomeSymbol) != null))
@@ -1298,7 +1298,7 @@ public partial class polymarket : PredictionExchange
                     {
                         throw new ExchangeError ((this.id + " fetchOutcomes() could not resolve mkt")) ;
                     }
-                    ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
+                    this.markets[(string)getValue(mkt, "market")] = mkt;
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -3086,7 +3086,7 @@ public partial class polymarket : PredictionExchange
                 {
                     throw new ExchangeError ((this.id + " fetchEvents() missing m")) ;
                 }
-                ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
+                this.markets[(string)getValue(m, "market")] = m;
             }
             Dictionary<string, object> parsedEvent = this.parseEvent(eventForParsing);
             result.Add(parsedEvent);
@@ -3289,8 +3289,8 @@ public partial class polymarket : PredictionExchange
         if ((errorMessage != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         }
         return null;
     }
@@ -3720,7 +3720,7 @@ public partial class polymarket : PredictionExchange
         {
             return;
         }
-        if (!((this.orderbooks != null && outcome != null && this.orderbooks.ContainsKey(outcome))))
+        if (!(((outcome != null) && (this.orderbooks != null && outcome != null && this.orderbooks.ContainsKey(outcome)))))
         {
             ccxt.pro.OrderBook seededBook = this.orderBook(new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
@@ -3913,7 +3913,7 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
-        if (!(((outcomeValue != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(outcomeValue))))
+        if (!(((outcomeValue != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(outcomeValue)))))
         {
             ccxt.pro.OrderBook seededBook = this.orderBook(new Dictionary<string, object>() {});
             if ((outcomeValue != null))

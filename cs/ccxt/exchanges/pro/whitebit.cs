@@ -129,7 +129,7 @@ public partial class whitebit : ccxt.whitebit
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = (("candles" + ":") + symbol);
             IList<object> parsed = this.parseOHLCV(data, market);
-            if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
             {
                 this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
             }
@@ -221,7 +221,7 @@ public partial class whitebit : ccxt.whitebit
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(parameters, 1);
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -855,7 +855,7 @@ public partial class whitebit : ccxt.whitebit
 
     public virtual void setBalanceCache(WebSocketClient client, object type, string subscriptionHash)
     {
-        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
+        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -1057,7 +1057,7 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if ((client.subscriptions != null && method is string hx10w2Key0 && client.subscriptions.ContainsKey(hx10w2Key0)))
+                if ((client.subscriptions != null && method is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
                 }
@@ -1201,7 +1201,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, feedback);
             }
         } catch(Exception e)
         {

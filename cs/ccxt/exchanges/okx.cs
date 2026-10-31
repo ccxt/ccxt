@@ -2470,7 +2470,7 @@ public partial class okx : Exchange
             // on the missing expiry.
             isOption = (partsLength > 3) && (((string)marketId).EndsWith("-C") || ((string)marketId).EndsWith("-P"));
         }
-        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
+        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -9698,7 +9698,7 @@ public partial class okx : Exchange
         // handle unified currency code or symbol
         string? currencyId = null;
         IDictionary<string, object> market = null;
-        if ((((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(symbol)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(symbol)))))
+        if ((((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1)))))
         {
             market = this.market(symbol);
             currencyId = this.safeString(market, "baseId");
@@ -11179,10 +11179,10 @@ public partial class okx : Exchange
                 IDictionary<string, object> error = this.safeDict(data, i);
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             }
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

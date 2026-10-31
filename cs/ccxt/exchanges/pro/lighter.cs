@@ -187,7 +187,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1244,7 +1244,7 @@ public partial class lighter : ccxt.lighter
         balance["datetime"] = this.iso8601(timestamp);
         this.balance[type] = this.safeBalance(balance);
         string? messageHash = this.getMessageHash("balances", null, type);
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
         return true;
     }
 
@@ -1579,8 +1579,8 @@ public partial class lighter : ccxt.lighter
                 string? code = this.safeString(error, "code");
                 string? errorMessage = this.safeString(error, "message");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             }
         } catch(Exception e)
@@ -1737,7 +1737,7 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("orderbook", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -1789,7 +1789,7 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("ticker", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
+        if (((symbol != null) && (this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol))))
         {
             this.tickers.Remove(symbol);
         }
@@ -1801,7 +1801,7 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("trade", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
+        if (((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             this.trades.Remove(symbol);
         }

@@ -103,7 +103,7 @@ public partial class extended : ccxt.extended
         Int64? timestamp = this.safeInteger(message, "ts");
         Int64? nonce = this.safeInteger(message, "seq");
         string? type = this.safeString(message, "type", this.safeString(data, "t"));
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -970,9 +970,9 @@ public partial class extended : ccxt.extended
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
         string? errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         throw new ExchangeError (feedback) ;
     }
 

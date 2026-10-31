@@ -573,7 +573,7 @@ public partial class bittrade : ccxt.bittrade
             return;
         }
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -609,7 +609,7 @@ public partial class bittrade : ccxt.bittrade
                 return DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+            if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -721,15 +721,15 @@ public partial class bittrade : ccxt.bittrade
                 string feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                     throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+                    if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(id);
                     }
