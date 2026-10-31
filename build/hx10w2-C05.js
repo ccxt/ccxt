@@ -1,5 +1,5 @@
 // hx10 wave-2 unit C05 — C# native compare/math emission for the residual family:
-// mathMin / mathMax / mod + the ordered comparisons (isLessThan / isGreaterThan / …OrEqual).
+// mathMin / mathMax + the ordered comparisons (isLessThan / isGreaterThan / …OrEqual); `mod` moved to the ast printer.
 //
 // Final-text pass (tail of nativeDeclaredHelperCalls): every operand kind is read from the text
 // this same run emitted (declaration types are the retyped ones), and a call is rewritten only
@@ -9,8 +9,6 @@
 //                    (enclosing `if (x != null)` block, a `&&` conjunct, or the guarded arm of a
 //                    `x == null ? a : …` ternary) -> Math.Min(x.Value, y). `double` keeps the
 //                    helper (NaN and the signed-zero tie pick the other operand).
-//   mod              both operands `Int64` / `Int64?` (an integer literal widens) -> `(a % b)`;
-//                    the lifted `%` answers null exactly where the helper's null branch does.
 //   comparisons      integral pairs (literal / countguard `(x?.Count ?? 0)` included) -> the plain
 //                    operator, with the helper's one-sided null branch: a null LEFT of `<`/`<=`
 //                    answers true in the helper, a null RIGHT of `>`/`>=` answers true as well, so
@@ -25,7 +23,7 @@ const KEYWORDS = ['return', 'throw', 'if', 'else', 'while', 'for', 'foreach', 'u
     'case', 'switch', 'do', 'try', 'catch', 'break', 'continue', 'goto', 'new', 'fixed', 'checked',
     'unchecked', 'await', 'base', 'this', 'var'];
 
-const FAMILY_RE = /(?<![\w.])(mathMin|mathMax|mod|isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\s*\(/g;
+const FAMILY_RE = /(?<![\w.])(mathMin|mathMax|isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\s*\(/g;
 const COMPARE_TOKENS = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
 
 function maskLine (line) {
@@ -324,21 +322,6 @@ function mathMinMaxText (region, original, masked, line, name, leftText, rightTe
     return `Math.${name}(${l}, ${r})`;
 }
 
-// mod: the lifted `%` answers null exactly where the helper's null branch does, and the Int64
-// remainder is the helper's double modulo for every integer the type can hold in practice; both
-// operands must therefore be Int64 / Int64? / an integer literal, and the divisor not a literal 0
-function modText (leftText, rightText, region, line) {
-    const left = operandOf (leftText, region, line);
-    const right = operandOf (rightText, region, line);
-    if ((left === undefined) || (right === undefined)) return undefined;
-    if ((left.count === true) || (right.count === true)) return undefined;
-    const allowed = (o) => (o.kind === 'Int64') || (o.kind === 'Int64?') || (o.kind === 'intlit');
-    if (!allowed (left) || !allowed (right)) return undefined;
-    if ((left.kind === 'intlit') && (right.kind === 'intlit')) return undefined;
-    if ((right.kind === 'intlit') && (right.text === '0')) return undefined;
-    return `(${left.text} % ${right.text})`;
-}
-
 // ordered comparison: the helper answers true for `(value, null)` on `>`/`>=` and for
 // `(null, value)` on `<`/`<=`, so only the operand whose null the lifted operator also answers
 // false for may stay nullable
@@ -373,13 +356,7 @@ function rewriteLine (region, original, masked, line) {
         const comma = topLevelComma (masked, open, close);
         let text;
         const name = m[1];
-        if (name === 'mod') {
-            if (comma === undefined) continue;
-            if (topLevelComma (masked, comma, close) !== undefined) continue;
-            const leftText = original.substring (open + 1, comma).trim ();
-            const rightText = original.substring (comma + 1, close).trim ();
-            text = modText (leftText, rightText, region, line);
-        } else if (COMPARE_TOKENS[name] !== undefined) {
+        if (COMPARE_TOKENS[name] !== undefined) {
             if (comma === undefined) continue;
             if (topLevelComma (masked, comma, close) !== undefined) continue;
             const leftText = original.substring (open + 1, comma).trim ();
@@ -466,15 +443,12 @@ export function hx10C05SelfTest () {
         ['mathMin in the guarded ternary arm', '        Int64? n = this.safeInteger(o, "n");\n        object v = ((n == null)) ? 100 : mathMin(n, 100);', 'object v = ((n == null)) ? 100 : Math.Min(n.Value, 100);'],
         ['mathMax on two Int64 names', '        Int64 a = this.milliseconds();\n        Int64 b = this.seconds();\n        Int64 c = mathMax(a, b);', 'Int64 c = Math.Max(a, b);'],
         ['mixed nullable / int name in a boxing position', '        Int64? n = this.safeInteger(o, "n");\n        int maxLimit = 1500;\n        if ((n != null))\n        {\n            object v = mathMin(n, maxLimit);\n        }', 'object v = Math.Min(n.Value, maxLimit);'],
-        ['mod of two Int64 names', '        Int64 a = this.milliseconds();\n        Int64 b = this.seconds();\n        bool r = this.isRoundNumber(mod(a, b));', 'bool r = this.isRoundNumber((a % b));'],
-        ['mod with a guarded-free Int64? operand', '        Int64? a = this.safeInteger(o, "a");\n        Int64 b = this.seconds();\n        object r = mod(1000, a);', 'object r = (1000 % a);'],
         ['comparison against a countguard', '        List<object> xs = this.stringToCharsArray("a");\n        for (Int64 i = 0; isLessThan(i, (xs?.Count ?? 0)); i++)\n        {\n        }', 'for (Int64 i = 0; (i < (xs?.Count ?? 0)); i++)'],
     ];
     const keeps = [
         ['unguarded Int64? mathMin', '        Int64? n = this.safeInteger(o, "n");\n        object v = mathMin(n, 100);', 'mathMin('],
         ['double mathMin', '        double d = this.parseToNumeric(1);\n        object v = mathMin(d, 100);', 'mathMin('],
         ['mixed int / Int64 names into an int sink', '        int a = 3;\n        Int64 b = this.seconds();\n        int v = mathMin(a, b);', 'mathMin('],
-        ['mod with an object operand', '        object a = this.safeInteger(o, "a");\n        object v = mod(a, 1);', 'mod('],
         ['nullable left of <', '        Int64? n = this.safeInteger(o, "n");\n        bool b = isLessThan(n, 5);', 'isLessThan('],
         ['receiver position', '        Int64 a = this.seconds();\n        string s = mathMin(a, 5).ToString();', 'mathMin('],
     ];
@@ -485,7 +459,7 @@ export function hx10C05SelfTest () {
     }
     for (const [name, body, kept] of keeps) {
         const out = hx10C05NativeCompareMath (wrap (body));
-        if (out.includes ('Math.') || (out.includes ('(a % b)')) || !out.includes (kept)) problems.push (`hx10 C05 keeps ${name}: ${out.slice (-320)}`);
+        if (out.includes ('Math.') || !out.includes (kept)) problems.push (`hx10 C05 keeps ${name}: ${out.slice (-320)}`);
     }
     return problems;
 }
