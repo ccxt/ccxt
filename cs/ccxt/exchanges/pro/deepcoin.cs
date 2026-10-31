@@ -375,11 +375,11 @@ public partial class deepcoin : ccxt.deepcoin
         double? last = this.safeNumber(ticker, "N");
         double? bid = this.safeNumber(ticker, "BP1");
         double? ask = this.safeNumber(ticker, "AP1");
-        object baseVolume = this.safeNumber(ticker, "V");
-        object quoteVolume = this.safeNumber(ticker, "T");
+        double? baseVolume = this.safeNumber(ticker, "V");
+        double? quoteVolume = this.safeNumber(ticker, "T");
         if ((this.safeBool(market, "inverse", false) == true))
         {
-            object temp = baseVolume;
+            double? temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }

@@ -1455,7 +1455,7 @@ public partial class apex : Exchange
         return seeds;
     }
 
-    public async virtual Task<object> getAccountId()
+    public async virtual Task<string?> getAccountId()
     {
         string? accountId = this.safeString(this.options, "accountId", "0");
         if (accountId == "0")
@@ -1545,7 +1545,7 @@ public partial class apex : Exchange
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "timeInForce"));
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
         string? clientOrderId = this.safeStringN(paramsOmitted2, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
-        object accountId = await this.getAccountId();
+        string? accountId = await this.getAccountId();
         string? finalClientOrderId = ((clientOrderId != null)) ? clientOrderId : this.generateRandomClientIdOmni(accountId);
         Dictionary<string, object> paramsOmitted3 = this.omit(paramsOmitted2, new List<object>() {"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"});
         string? finalOrderPrice = orderPrice; // java req

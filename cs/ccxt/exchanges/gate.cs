@@ -3293,7 +3293,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
         Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
+        string? selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedById, selectedNetworkIdOrCode));
     }
 

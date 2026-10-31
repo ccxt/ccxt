@@ -93,7 +93,7 @@ public partial class paradex : ccxt.paradex
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
@@ -190,7 +190,7 @@ public partial class paradex : ccxt.paradex
             Dictionary<string, object> market = this.market(symbol);
             messageHash = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         }
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         object request = this.subscribeRequest(messageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", getValue(request, "id") },
@@ -267,7 +267,7 @@ public partial class paradex : ccxt.paradex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? messageHash = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null));
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         object request = this.subscribeRequest(messageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", getValue(request, "id") },
@@ -368,7 +368,7 @@ public partial class paradex : ccxt.paradex
         // the per-market channel: the all-markets one carries a summary for every listed
         // option too, thousands of messages a second, all decoded only to be filtered out
         string channel = ("markets_summary." + ((market.ContainsKey("id") ? market["id"] : null)));
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         string messageHash = ("markets_summary." + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         object request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -396,7 +396,7 @@ public partial class paradex : ccxt.paradex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "markets_summary";
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null) && ((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -455,7 +455,7 @@ public partial class paradex : ccxt.paradex
             channel = ("orders." + ((market.ContainsKey("id") ? market["id"] : null)));
             messageHash = ("orders:" + (symbolResolved));
         }
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         object request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", getValue(request, "id") },
@@ -546,7 +546,7 @@ public partial class paradex : ccxt.paradex
             channel = ("fills." + ((market.ContainsKey("id") ? market["id"] : null)));
             messageHash = ("myTrades:" + (symbolResolved));
         }
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         object request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", getValue(request, "id") },
@@ -628,7 +628,7 @@ public partial class paradex : ccxt.paradex
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         // one channel carries every market
         string channel = "positions";
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         List<object> messageHashes = new List<object>() {};
         int symbolsLength = 0;
         if ((symbolsNormalized != null))
@@ -737,7 +737,7 @@ public partial class paradex : ccxt.paradex
         }
         await this.authenticate();
         string channel = "account";
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         string messageHash = "balance";
         object request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -882,7 +882,7 @@ public partial class paradex : ccxt.paradex
         }
         string? symbolValue = this.symbol(symbol);
         string channel = "funding_data";
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         string messageHash = ((channel + ".") + symbolValue);
         object request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -910,7 +910,7 @@ public partial class paradex : ccxt.paradex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "funding_data";
-        object url = this.getWsUrl();
+        string? url = this.getWsUrl();
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {

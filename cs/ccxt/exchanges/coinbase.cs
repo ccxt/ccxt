@@ -1584,7 +1584,7 @@ public partial class coinbase : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsV2(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.FetchCurrenciesFromCache(parameters);
+        Dictionary<string, object> response = await this.FetchCurrenciesFromCache(parameters);
         IDictionary<string, object> currencies = this.safeDict(response, "currencies", new Dictionary<string, object>() {});
         IDictionary<string, object> exchangeRates = this.safeDict(response, "exchangeRates", new Dictionary<string, object>() {});
         List<object> data = this.safeList(currencies, "data", new List<object>() {});
@@ -3362,7 +3362,7 @@ public partial class coinbase : Exchange
         }, currencyResolved);
     }
 
-    public async virtual Task<object> findAccountId(string? code, object parameters = null)
+    public async virtual Task<string?> findAccountId(string? code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3417,7 +3417,7 @@ public partial class coinbase : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            object foundAccountId = await this.findAccountId(code, paramsOmitted);
+            string? foundAccountId = await this.findAccountId(code, paramsOmitted);
             if ((foundAccountId == null))
             {
                 throw new ExchangeError ((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
@@ -4817,7 +4817,7 @@ public partial class coinbase : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            object foundAccountId = await this.findAccountId(code, paramsOmitted);
+            string? foundAccountId = await this.findAccountId(code, paramsOmitted);
             if ((foundAccountId == null))
             {
                 throw new ExchangeError (((this.id + " withdraw() could not find account id for ") + code)) ;
@@ -5085,7 +5085,7 @@ public partial class coinbase : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            object foundAccountId = await this.findAccountId(code, paramsOmitted);
+            string? foundAccountId = await this.findAccountId(code, paramsOmitted);
             if ((foundAccountId == null))
             {
                 throw new ExchangeError (((this.id + " deposit() could not find account id for ") + code)) ;
@@ -5164,7 +5164,7 @@ public partial class coinbase : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            object foundAccountId = await this.findAccountId(code, paramsOmitted);
+            string? foundAccountId = await this.findAccountId(code, paramsOmitted);
             if ((foundAccountId == null))
             {
                 throw new ExchangeError (((this.id + " fetchDeposit() could not find account id for ") + code)) ;

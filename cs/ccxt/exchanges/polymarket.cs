@@ -2867,7 +2867,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    public async virtual Task<object> createProxyCredentials(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> createProxyCredentials(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2947,7 +2947,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    public async virtual Task<object> loadProxyCredentials(object parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadProxyCredentials(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> credentials = this.safeDict(this.options, "proxyCredentials");
@@ -2980,7 +2980,7 @@ public partial class polymarket : Exchange
     public async virtual Task<object> signPerpsOp(object signable, IDictionary<string, object> bodyOp, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object credentials = await this.loadProxyCredentials();
+        IDictionary<string, object> credentials = await this.loadProxyCredentials();
         object packed = this.packb(signable);
         string? dataHash = this.hashMessage(packed);
         Int64 ts = this.milliseconds();

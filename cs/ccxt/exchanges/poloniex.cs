@@ -3740,7 +3740,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.FetchTransactionsHelper(code, since, limit, parameters);
+        Dictionary<string, object> response = await this.FetchTransactionsHelper(code, since, limit, parameters);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3768,7 +3768,7 @@ public partial class poloniex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.FetchTransactionsHelper(code, since, limit, parameters);
+        Dictionary<string, object> response = await this.FetchTransactionsHelper(code, since, limit, parameters);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3949,7 +3949,7 @@ public partial class poloniex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.FetchTransactionsHelper(code, since, limit, parameters);
+        Dictionary<string, object> response = await this.FetchTransactionsHelper(code, since, limit, parameters);
         IDictionary<string, object> currency = null;
         if ((code != null))
         {

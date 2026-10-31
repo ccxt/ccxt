@@ -999,7 +999,7 @@ public partial class derive : Exchange
             { "expired", false },
             { "instrument_type", "erc20" },
         };
-        object instruments = await this.getMarketsPaginated(request, parameters);
+        List<object> instruments = await this.getMarketsPaginated(request, parameters);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(instruments));
     }
 
@@ -1010,7 +1010,7 @@ public partial class derive : Exchange
             { "expired", false },
             { "instrument_type", "perp" },
         };
-        object instruments = await this.getMarketsPaginated(request, parameters);
+        List<object> instruments = await this.getMarketsPaginated(request, parameters);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(instruments));
     }
 
@@ -1021,7 +1021,7 @@ public partial class derive : Exchange
             { "expired", false },
             { "instrument_type", "option" },
         };
-        object instruments = await this.getMarketsPaginated(request, parameters);
+        List<object> instruments = await this.getMarketsPaginated(request, parameters);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(instruments));
     }
 
@@ -1034,7 +1034,7 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw instrument entries
      */
-    public async virtual Task<object> getMarketsPaginated(IDictionary<string, object> request, object parameters = null)
+    public async virtual Task<List<object>> getMarketsPaginated(IDictionary<string, object> request, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> allInstruments = new List<object>() {};

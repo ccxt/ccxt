@@ -2253,7 +2253,7 @@ public partial class bigone : Exchange
             throw new ExchangeError ((this.id + " fetchDepositAddress() returned empty address response")) ;
         }
         Dictionary<string, object> chainsIndexedById = this.indexBy(data, "chain");
-        object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
+        string? selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
         IDictionary<string, object> addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         string? address = this.safeString(addressObject, "value");
         string? tag = this.safeString(addressObject, "memo");

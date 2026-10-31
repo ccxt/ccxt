@@ -1562,7 +1562,7 @@ public partial class backpack : Exchange
      * @param {object} [market] resolved market
      * @returns {object} market data parameters
      */
-    public virtual object stockDataRequest(object methodName, object parameters, object market = null)
+    public virtual Dictionary<string, object> stockDataRequest(object methodName, object parameters, object market = null)
     {
         List<object> selection = this.handleStockParams(methodName, parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
@@ -1714,7 +1714,7 @@ public partial class backpack : Exchange
                 { "stock", true },
             });
         }
-        object request = this.stockDataRequest("fetchTickers", requestParams);
+        Dictionary<string, object> request = this.stockDataRequest("fetchTickers", requestParams);
         List<object> response = await this.publicGetApiV1Tickers(request);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response));
         Dictionary<string, object> responseById = this.indexBy(response, "symbol");
@@ -1778,7 +1778,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.stockDataRequest("fetchTicker", parameters, market);
+        Dictionary<string, object> request = this.stockDataRequest("fetchTicker", parameters, market);
         Dictionary<string, object> response = await this.publicGetApiV1Ticker(request);
         return this.parseTicker(response, market);
     }
@@ -1936,7 +1936,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int duration = this.parseTimeframe(timeframeVar);
-        object dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
+        Dictionary<string, object> dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(dataRequest, "symbol") },
             { "interval", interval },

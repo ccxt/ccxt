@@ -1602,7 +1602,7 @@ public partial class bithumb : Exchange
         //
         // a workaround for their bug in date format, hours are not 0-padded
         Int64? generationTwoTimestamp = this.safeInteger(trade, "timestamp");
-        object timestamp = generationTwoTimestamp;
+        Int64? timestamp = generationTwoTimestamp;
         bool isGenerationTwo = ((generationTwoTimestamp != null));
         string? transactionDatetime = this.safeString(trade, "transaction_date");
         if ((transactionDatetime != null))
@@ -2394,7 +2394,7 @@ public partial class bithumb : Exchange
         //     }
         //
         string? datetime = this.safeString(order, "created_at");
-        object timestamp = null;
+        Int64? timestamp = null;
         if ((datetime != null))
         {
             if (datetime.IndexOf("+09:00", StringComparison.Ordinal) > -1)
@@ -3058,7 +3058,7 @@ public partial class bithumb : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? datetime = this.safeString(transaction, "created_at");
-        object timestamp = this.parse8601(datetime);
+        Int64? timestamp = this.parse8601(datetime);
         if (((datetime != null)) && (datetime.IndexOf("+09:00", StringComparison.Ordinal) > -1))
         {
             string normalized = datetime.Replace("+09:00", (string)"Z");

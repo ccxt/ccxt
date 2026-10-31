@@ -2911,11 +2911,11 @@ public partial class pacifica : Exchange
             { "TOB", "TOB" },
             { "ALO", "ALO" },
         };
-        string? tif = null;
-        if ((tifRaw != null))
+        if ((tifRaw == null))
         {
-            tif = tifRaw.ToUpper();
+            return "GTC";
         }
+        string tif = tifRaw.ToUpper();
         return this.safeString(tifMap, tif, "GTC");
     }
 

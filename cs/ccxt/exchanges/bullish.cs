@@ -1144,7 +1144,7 @@ public partial class bullish : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
+            Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPagination, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
@@ -1194,7 +1194,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
@@ -1216,7 +1216,7 @@ public partial class bullish : Exchange
             IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
             if ((paginate == true))
             {
-                object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
+                Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
                 return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPagination, 100));
             }
             object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
@@ -1665,7 +1665,7 @@ public partial class bullish : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
+            Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
@@ -1733,11 +1733,11 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         bool? paginate = this.safeBool(parameters, "paginate", false);
         if ((paginate == true))
         {
-            object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
+            Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPagination, 100));
         }
         IDictionary<string, object> market = null;
@@ -1800,7 +1800,7 @@ public partial class bullish : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
-    public virtual object handlePaginationParams(string method, Int64? since = null, object parameters = null)
+    public virtual Dictionary<string, object> handlePaginationParams(string method, Int64? since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 ninetyDays = ((((90L * 24L) * 60) * 60) * 1000);
@@ -1985,7 +1985,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2049,7 +2049,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "commandType", "V3CreateOrder" },
@@ -2122,7 +2122,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "commandType", "V1AmendOrder" },
@@ -2172,7 +2172,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2210,7 +2210,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
@@ -2585,7 +2585,7 @@ public partial class bullish : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> loadAccount(object parameters = null)
+    public async virtual Task<string?> loadAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (string?, object) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
@@ -2815,7 +2815,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
@@ -2897,7 +2897,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
@@ -3010,14 +3010,14 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         int maxLimit = 100;
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            object paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
+            Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPagination, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3180,7 +3180,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
-        object tradingAccountId = await this.loadAccount(parameters);
+        string? tradingAccountId = await this.loadAccount(parameters);
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "assetSymbol", (currency.ContainsKey("id") ? currency["id"] : null) },

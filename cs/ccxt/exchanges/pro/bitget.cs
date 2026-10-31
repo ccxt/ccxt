@@ -2906,7 +2906,7 @@ public partial class bitget : ccxt.bitget
                     IDictionary<string, object> entry = this.safeDict(coins, j);
                     string? currencyId = this.safeString(entry, "coin");
                     string? code = this.safeCurrencyCode(currencyId);
-                    object account = this.account();
+                    IDictionary<string, object> account = this.account();
                     if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                     {
                         account = this.safeDict(this.balance, code, account);
@@ -2915,11 +2915,11 @@ public partial class bitget : ccxt.bitget
                     string? debts = this.safeString(entry, "debts");
                     if (((borrow != null)) || ((debts != null)))
                     {
-                        ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, debts);
+                        account["debt"] = Precise.stringAdd(borrow, debts);
                     }
-                    ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
-                    ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
-                    ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
+                    account["free"] = this.safeString(entry, "available");
+                    account["used"] = this.safeString(entry, "locked");
+                    account["total"] = this.safeString(entry, "balance");
                     if ((code != null))
                     {
                         this.balance[(string)code] = account;
@@ -2929,7 +2929,7 @@ public partial class bitget : ccxt.bitget
             {
                 string? currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                IDictionary<string, object> account = this.account();
                 if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                 {
                     account = this.safeDict(this.balance, code, account);
@@ -2938,16 +2938,16 @@ public partial class bitget : ccxt.bitget
                 if ((borrow != null))
                 {
                     string? interest = this.safeString(rawBalance, "interest");
-                    ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, interest);
+                    account["debt"] = Precise.stringAdd(borrow, interest);
                 }
                 string freeQuery = "available";
                 if (inOp(rawBalance, "maxTransferOut"))
                 {
                     freeQuery = "maxTransferOut";
                 }
-                ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, freeQuery);
-                ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "equity");
-                ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
+                account["free"] = this.safeString(rawBalance, freeQuery);
+                account["total"] = this.safeString(rawBalance, "equity");
+                account["used"] = this.safeString(rawBalance, "frozen");
                 if ((code != null))
                 {
                     this.balance[(string)code] = account;

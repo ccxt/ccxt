@@ -671,7 +671,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
         Dictionary<string, object> response = await this.publicGetGetTime(paramsResolved);
         //
         //     {
@@ -701,7 +701,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (this.isNativeDeribitCredentials())
         {
@@ -930,7 +930,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
         Dictionary<string, object> response = await this.publicGetGetCurrencies(paramsResolved);
         //
         //     {
@@ -1083,7 +1083,7 @@ public partial class coinbaseinternational : Exchange
         timeframeVar ??= "1m";
         limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOHLCV", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOHLCV", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1187,7 +1187,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
         object paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
@@ -1320,7 +1320,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1358,7 +1358,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1480,7 +1480,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1576,7 +1576,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1903,7 +1903,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
         if ((code == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a currency code argument")) ;
@@ -2052,7 +2052,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchPosition", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchPosition", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2193,7 +2193,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchPositions", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchPositions", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2258,7 +2258,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
         if ((code == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositsWithdrawals() requires a currency code argument")) ;
@@ -2365,7 +2365,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchWithdrawals", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchWithdrawals", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2393,7 +2393,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchDeposits", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchDeposits", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2519,7 +2519,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("createOrder", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("createOrder", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2621,7 +2621,7 @@ public partial class coinbaseinternational : Exchange
             request["reject_post_only"] = true;
             request["time_in_force"] = "good_til_cancelled";
         }
-        object paramsOrder = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"});
+        Dictionary<string, object> paramsOrder = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"});
         if (this.isNativeDeribitCredentials())
         {
             paramsOrder = this.omit(paramsOrder, new List<object>() {"reduceOnly", "reduce_only"});
@@ -2900,7 +2900,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("cancelOrder", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelOrder", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2963,7 +2963,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("cancelAllOrders", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelAllOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3014,7 +3014,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("editOrder", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("editOrder", parameters);
         if (this.isNativeDeribitCredentials() && ((amount == null)) && ((this.safeNumber(paramsResolved, "contracts") == null)))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
@@ -3040,7 +3040,7 @@ public partial class coinbaseinternational : Exchange
         {
             request["trigger_price"] = triggerPrice;
         }
-        object paramsOrder = this.omit(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        Dictionary<string, object> paramsOrder = this.omit(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         await this.authenticateV2();
         Dictionary<string, object> response = await this.privateGetEdit(this.extend(request, paramsOrder));
         //
@@ -3119,7 +3119,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOrder", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrder", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3184,7 +3184,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
         object paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
@@ -3268,7 +3268,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
         object paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
@@ -3496,7 +3496,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchLeverage", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchLeverage", parameters);
         if (this.isNativeDeribitCredentials())
         {
             throw new NotSupported ((this.id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")) ;
@@ -3559,7 +3559,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
         if (this.isNativeDeribitCredentials())
         {
             throw new NotSupported ((this.id + " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")) ;
@@ -3682,13 +3682,13 @@ public partial class coinbaseinternational : Exchange
     public async virtual Task<object> authenticateV2(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
         if (this.isNativeDeribitCredentials())
         {
             return null;
         }
         bool? forceRefresh = this.safeBool(paramsResolved, "forceRefresh", false);
-        object paramsOmitted = this.omit(paramsResolved, "forceRefresh");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
         Int64 now = this.milliseconds();
         string? token = this.getV2AccessToken();
         Int64? tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
@@ -3746,7 +3746,7 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         string access = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string rpcMethod = ((access + "/") + path);
-        object requestParams = this.handleRouteAndParams("sign", parameters);
+        Dictionary<string, object> requestParams = this.handleRouteAndParams("sign", parameters);
         bool isNativeDeribit = this.isNativeDeribitCredentials();
         string baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest", "");
         if (isNativeDeribit)
@@ -3782,7 +3782,7 @@ public partial class coinbaseinternational : Exchange
             string timestamp = this.milliseconds().ToString();
             string? nonce = this.numberToString(this.nonce());
             string signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
-            if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
+            if ((new List<object>(requestParams.Keys)).Count > 0)
             {
                 signedRequest = signedRequest + ("?" + this.urlencode(requestParams));
             }
@@ -3808,7 +3808,7 @@ public partial class coinbaseinternational : Exchange
         if ((method == "GET"))
         {
             string requestUrl = url;
-            if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
+            if ((new List<object>(requestParams.Keys)).Count > 0)
             {
                 requestUrl = requestUrl + ("?" + this.urlencode(requestParams));
             }
@@ -3864,7 +3864,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
-    public virtual object handleRouteAndParams(object methodName, object parameters = null)
+    public virtual Dictionary<string, object> handleRouteAndParams(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (string?, object) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
@@ -3895,7 +3895,7 @@ public partial class coinbaseinternational : Exchange
         this.options["routeBackend"] = deribit;
         this.has["fetchLeverage"] = !deribit;
         this.has["setLeverage"] = !deribit;
-        return this.omit(paramsResolved, new List<object>() {"route", "defaultRoute", "callerMethodName"});
+        return ((Dictionary<string, object>)((object)(this.omit(paramsResolved, new List<object>() {"route", "defaultRoute", "callerMethodName"}))));
     }
 
     /**

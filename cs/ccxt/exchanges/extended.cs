@@ -2793,7 +2793,7 @@ public partial class extended : Exchange
         string result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(roundUp) && Precise.stringGt(precise, result))
         {
-            result = Precise.stringAdd(result, "1");
+            return Precise.stringAdd(result, "1");
         }
         return result;
     }

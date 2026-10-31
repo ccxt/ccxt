@@ -367,7 +367,7 @@ public partial class bithumb : ccxt.bithumb
         string time = this.safeString(ticker, "time", "");
         string kstDatetime = ((((((((((((date == null) ? null : date.Substring(0, Math.Min(4, date.Length))) + "-") + ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)))) + "-") + ((date == null) ? null : date.Substring(Math.Min(6, date.Length), Math.Min(8, date.Length) - Math.Min(6, date.Length)))) + "T") + ((time == null) ? null : time.Substring(0, Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(2, time.Length), Math.Min(4, time.Length) - Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(4, time.Length), Math.Min(6, time.Length) - Math.Min(4, time.Length))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        object timestamp = null;
+        Int64? timestamp = null;
         Int64? kstTimestamp = this.parse8601(kstDatetime);
         if ((kstTimestamp != null))
         {
@@ -772,7 +772,7 @@ public partial class bithumb : ccxt.bithumb
         string? marketId = this.safeString(trade, "symbol");
         string? datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        object timestamp = null;
+        Int64? timestamp = null;
         Int64? kstTimestamp = this.parse8601(datetime);
         if ((kstTimestamp != null))
         {

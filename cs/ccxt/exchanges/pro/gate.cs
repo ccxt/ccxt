@@ -1451,7 +1451,7 @@ public partial class gate : ccxt.gate
             messageHash = messageHash + (":" + symbol);
         }
         bool isInverse = ((subType == "inverse"));
-        object url = this.getUrlByMarketType(type, isInverse);
+        string? url = this.getUrlByMarketType(type, isInverse);
         List<object> payload = new List<object>() {marketId};
         // uid required for non spot markets
         bool requiresUid = (!(type == "spot"));
@@ -1546,7 +1546,7 @@ public partial class gate : ccxt.gate
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         bool isInverse = ((subType == "inverse"));
-        object url = this.getUrlByMarketType(type, isInverse);
+        string? url = this.getUrlByMarketType(type, isInverse);
         bool requiresUid = (!(type == "spot"));
         string channelType = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot" },
@@ -1715,7 +1715,7 @@ public partial class gate : ccxt.gate
         subType = (string)subTypequeryVariable[0];
         query = subTypequeryVariable[1];
         bool isInverse = (subType == "inverse");
-        object url = this.getUrlByMarketType(type, isInverse);
+        string? url = this.getUrlByMarketType(type, isInverse);
         var client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
@@ -1954,7 +1954,7 @@ public partial class gate : ccxt.gate
         subType = (string)subTypequeryVariable[0];
         query = subTypequeryVariable[1];
         bool isInverse = (subType == "inverse");
-        object url = this.getUrlByMarketType(type, isInverse);
+        string? url = this.getUrlByMarketType(type, isInverse);
         // uid required for non spot markets
         bool requiresUid = (type != "spot");
         object orders = await this.subscribePrivate(url, messageHash, payload, channel, query, requiresUid);
@@ -2118,7 +2118,7 @@ public partial class gate : ccxt.gate
         subType = (string)subTypequeryVariable[0];
         query = subTypequeryVariable[1];
         bool isInverse = (subType == "inverse");
-        object url = this.getUrlByMarketType(type, isInverse);
+        string? url = this.getUrlByMarketType(type, isInverse);
         List<object> payload = new List<object>() {};
         string messageHash = "";
         if (this.isEmpty(symbolsNormalized))

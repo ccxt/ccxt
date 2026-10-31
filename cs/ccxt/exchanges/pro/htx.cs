@@ -168,7 +168,7 @@ public partial class htx : ccxt.htx
         string? messageHash = this.implodeParams(topic, new Dictionary<string, object>() {
             { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
-        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         return ccxt.BaseExchange.ToTicker(await this.subscribePublic(url, symbolValue, messageHash, null, parameters));
     }
 
@@ -283,7 +283,7 @@ public partial class htx : ccxt.htx
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = this.safeString(market, "id", "");
         string messageHash = (("market." + marketId) + ".trade.detail");
-        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         object trades = await this.subscribePublic(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -398,7 +398,7 @@ public partial class htx : ccxt.htx
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string? marketId = this.safeString(market, "id", "");
         string messageHash = ((("market." + marketId) + ".kline.") + interval);
-        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         object ohlcv = await this.subscribePublic(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -526,7 +526,7 @@ public partial class htx : ccxt.htx
         {
             messageHash = (((("market." + marketId) + ".depth.size_") + ((object)limitResolved).ToString()) + ".high_freq");
         }
-        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         object method = this.handleOrderBookSubscription;
         object paramsExtended = parameters;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
@@ -695,7 +695,7 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
-        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
@@ -1829,7 +1829,7 @@ public partial class htx : ccxt.htx
         bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
         bool isLinear = (subType == "linear");
-        object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
+        string? url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = ((marginMode + ":positions") + messageHash);
         string? channel = "positions.*";
         if ((marginMode == "cross"))
@@ -3288,7 +3288,7 @@ public partial class htx : ccxt.htx
         {
             throw new ArgumentsRequired ((this.id + " unsubscribePublic() market is required")) ;
         }
-        object url = this.getUrlByMarketType((market != null && market.ContainsKey("type") ? market["type"] : null), (market != null && market.ContainsKey("linear") ? market["linear"] : null), false, isFeed);
+        string? url = this.getUrlByMarketType((market != null && market.ContainsKey("type") ? market["type"] : null), (market != null && market.ContainsKey("linear") ? market["linear"] : null), false, isFeed);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
             { "id", requestId },
@@ -3334,7 +3334,7 @@ public partial class htx : ccxt.htx
         }
         bool isLinear = (subtype is "linear");
         bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
-        object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
+        string? url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         IDictionary<string, object> hostnames = this.safeDict(this.urls, "hostnames", new Dictionary<string, object>() {});
         object hostname = null;
         if ((type is "spot"))

@@ -696,7 +696,7 @@ public partial class polymarket : ccxt.polymarket
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object credentials = await this.loadProxyCredentials();
+        IDictionary<string, object> credentials = await this.loadProxyCredentials();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         string messageHash = "authenticated";

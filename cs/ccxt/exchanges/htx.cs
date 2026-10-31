@@ -4529,7 +4529,7 @@ public partial class htx : Exchange
             } else
             {
                 await this.loadAccounts();
-                object accountId = await this.FetchAccountIdByType(type, null, null, paramsMarginMode);
+                string? accountId = await this.FetchAccountIdByType(type, null, null, paramsMarginMode);
                 request["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode));
             }
@@ -6293,7 +6293,7 @@ public partial class htx : Exchange
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        object accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
+        string? accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -7815,7 +7815,7 @@ public partial class htx : Exchange
         string? networkCode = networkCodeparamsOmitedVariable.Item1;
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
-        object selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
+        string? selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 
@@ -9849,7 +9849,7 @@ public partial class htx : Exchange
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500));
         }
-        object accountId = await this.FetchAccountIdByType("spot", null, null, paramsPaginate);
+        string? accountId = await this.FetchAccountIdByType("spot", null, null, paramsPaginate);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
         };
@@ -10443,7 +10443,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object accountId = await this.FetchAccountIdByType("spot", "isolated", symbol, parameters);
+        string? accountId = await this.FetchAccountIdByType("spot", "isolated", symbol, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -10488,7 +10488,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object accountId = await this.FetchAccountIdByType("spot", "cross", null, parameters);
+        string? accountId = await this.FetchAccountIdByType("spot", "cross", null, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },

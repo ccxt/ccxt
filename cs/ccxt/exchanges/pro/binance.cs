@@ -308,7 +308,7 @@ public partial class binance : ccxt.binance
         }
         if ((type is "linear"))
         {
-            return ((string?)((object)(((this.getWsUrl(type, "private") + "?listenKey=") + listenKey))));
+            return ((string?)((object)(((this.getWsUrl(type, "private") + "?listenKey=") + (listenKey)))));
         }
         IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string? wsUrl = this.safeString(wsUrls, type);
@@ -458,7 +458,7 @@ public partial class binance : ccxt.binance
             throw new NotSupported ((this.id + " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
         }
         int numSubscriptions = (subscriptionHashes?.Count ?? 0);
-        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory("forceOrder")) + "/") + this.stream(type, streamHash, numSubscriptions)));
+        string url = ((this.getWsUrl(type, this.getFutureWsCategory("forceOrder")) + "/") + this.stream(type, streamHash, numSubscriptions));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -881,7 +881,7 @@ public partial class binance : ccxt.binance
             subParams.Add(symbolHash);
         }
         int messageHashesLength = (messageHashes?.Count ?? 0);
-        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, messageHashesLength)));
+        string url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, messageHashesLength));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -957,7 +957,7 @@ public partial class binance : ccxt.binance
             subParams.Add(symbolHash);
         }
         int messageHashesLength = (subMessageHashes?.Count ?? 0);
-        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory("depth")) + "/") + this.stream(type, streamHash, messageHashesLength)));
+        string url = ((this.getWsUrl(type, this.getFutureWsCategory("depth")) + "/") + this.stream(type, streamHash, messageHashesLength));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -1492,7 +1492,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
-        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength)));
+        string url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -1597,7 +1597,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
-        string? url = ((string)((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength)));
+        string url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream(type, streamHash, subParamsLength));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
     }
 
     /**
@@ -2028,7 +2028,7 @@ public partial class binance : ccxt.binance
             messageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             subscribeHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
-        string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
+        string url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV"));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -2127,7 +2127,7 @@ public partial class binance : ccxt.binance
             subMessageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             messageHashes.Add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
-        string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
+        string url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV"));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -2884,7 +2884,7 @@ public partial class binance : ccxt.binance
         {
             streamHash = ((channel + "::") + String.Join(",", symbolsNormalized.ToArray()));
         }
-        string? url = ((string)((this.getWsUrl(rawMarketType, this.getFutureWsCategory(channel)) + "/") + this.stream(rawMarketType, streamHash)));
+        string url = ((this.getWsUrl(rawMarketType, this.getFutureWsCategory(channel)) + "/") + this.stream(rawMarketType, streamHash));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", isUnsubscribe == true ? "UNSUBSCRIBE" : "SUBSCRIBE" },

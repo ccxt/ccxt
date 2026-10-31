@@ -3191,8 +3191,8 @@ public partial class phemex : Exchange
                     posSide = "Merged";
                 }
             }
-            posSide = this.capitalize(posSide);
-            request["posSide"] = posSide;
+            string posSideCapitalized = this.capitalize(posSide);
+            request["posSide"] = posSideCapitalized;
             if (isStableSettled)
             {
                 request["orderQtyRq"] = this.amountToPrecision(symbol, amount);

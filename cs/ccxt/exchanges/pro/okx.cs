@@ -1770,36 +1770,36 @@ public partial class okx : ccxt.okx
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                ccxt.pro.IOrderBook snapshotBook = this.getOrderBook(this.orderbooks, symbol);
                 Int64? timestamp = this.safeInteger(update, "ts");
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 ccxt.OrderBook snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
                 snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(update, "seqId"));
-                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+                snapshotBook.reset(ccxt.BaseExchange.FromOrderBook(snapshot));
                 if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     break;
                 }
-                client.resolve(orderbook, messageHash);
+                client.resolve(snapshotBook, messageHash);
             }
         } else if (action == "update")
         {
             if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
             {
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                ccxt.pro.IOrderBook updatedBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
                 {
                     object update = data[i];
-                    this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = "resync";
                         break;
                     }
-                    client.resolve(orderbook, messageHash);
+                    client.resolve(updatedBook, messageHash);
                 }
             }
         } else if (((channel is "books5")) || ((channel is "bbo-tbt")))
@@ -1813,14 +1813,14 @@ public partial class okx : ccxt.okx
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                ccxt.pro.IOrderBook bboBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
                 {
                     object update = data[i];
                     Int64? timestamp = this.safeInteger(update, "ts");
                     Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1));
-                    (orderbook as IOrderBook).reset(snapshot);
-                    client.resolve(orderbook, messageHash);
+                    bboBook.reset(snapshot);
+                    client.resolve(bboBook, messageHash);
                 }
             }
         }

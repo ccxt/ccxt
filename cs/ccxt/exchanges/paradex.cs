@@ -1818,7 +1818,7 @@ public partial class paradex : Exchange
         return domain;
     }
 
-    public async virtual Task<object> retrieveAccount()
+    public async virtual Task<IDictionary<string, object>> retrieveAccount()
     {
         if ((this.safeDict(this.options, "paradexAccount") == null))
         {
@@ -1845,7 +1845,7 @@ public partial class paradex : Exchange
     public async virtual Task<Dictionary<string, object>> onboarding(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object account = await this.retrieveAccount();
+        IDictionary<string, object> account = await this.retrieveAccount();
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "action", "Onboarding" },
         };
@@ -1857,7 +1857,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         parameters["signature"] = signature;
         parameters["account"] = this.safeString(account, "address");
         parameters["public_key"] = this.safeString(account, "publicKey");
@@ -1882,7 +1882,7 @@ public partial class paradex : Exchange
                 return ((string?)((object)(cachedToken)));
             }
         }
-        object account = await this.retrieveAccount();
+        IDictionary<string, object> account = await this.retrieveAccount();
         // https://docs.paradex.trade/api-reference/general-information/authentication
         Int64? expires = (now + 180);
         Dictionary<string, object> req = new Dictionary<string, object>() {
@@ -1912,7 +1912,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = this.safeString(account, "address");
         ((IDictionary<string,object>)parameters)["timestamp"] = req["timestamp"];
@@ -2177,10 +2177,10 @@ public partial class paradex : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public async virtual Task<object> signOrderRequest(object request, bool? modify = null)
+    public async virtual Task<Dictionary<string, object>> signOrderRequest(IDictionary<string, object> request, bool? modify = null)
     {
         modify ??= false;
-        object account = await this.retrieveAccount();
+        IDictionary<string, object> account = await this.retrieveAccount();
         Int64? now = this.parseToInt(this.nonce());
         string? orderType = this.safeString(request, "type");
         if ((orderType == null))
@@ -2234,7 +2234,7 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> domain = await this.prepareParadexDomain();
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
-        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
+        string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         Dictionary<string, object> signedRequest = this.extend(request, new Dictionary<string, object>() {
             { "signature", signature },
             { "signature_timestamp", orderReq["timestamp"] },
@@ -2272,7 +2272,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request = await this.signOrderRequest(request);
         Dictionary<string, object> response = await this.privatePostOrders(request);
         //
@@ -2340,10 +2340,10 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request = this.omit(request, new List<object>() {"instruction", "client_id", "flags"});
-        ((IDictionary<string,object>)request)["order_id"] = id;
-        ((IDictionary<string,object>)request)["id"] = id;
+        request["order_id"] = id;
+        request["id"] = id;
         request = await this.signOrderRequest(request, true);
         Dictionary<string, object> response = await this.privatePutOrdersOrderId(request);
         //
@@ -2411,7 +2411,7 @@ public partial class paradex : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(parameters, orderParams);
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
             ordersRequests.Add(orderRequest);
         }

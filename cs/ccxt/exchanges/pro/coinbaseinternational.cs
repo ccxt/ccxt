@@ -175,8 +175,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("subscribe", parameters);
-        object url = this.getWsUrl(false);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("subscribe", parameters);
+        string? url = this.getWsUrl(false);
         string method = "public/subscribe";
         if (isPrivate == true)
         {
@@ -222,8 +222,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
-        object url = this.getWsUrl(false);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
+        string? url = this.getWsUrl(false);
         string method = "public/unsubscribe";
         if (isPrivate == true)
         {
@@ -268,7 +268,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchBalance", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchBalance", parameters);
         (string?, object) currencyparamsCurrencyVariable = this.handleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any");
         string? currency = currencyparamsCurrencyVariable.Item1;
         IDictionary<string, object> paramsCurrency = ((IDictionary<string, object>)currencyparamsCurrencyVariable.Item2);
@@ -302,7 +302,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchMyTrades", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchMyTrades", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -336,7 +336,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchMyTrades", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchMyTrades", parameters);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -388,7 +388,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOrders", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -429,7 +429,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Order>> WatchOrdersForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -468,7 +468,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchOrders", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOrders", parameters);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -527,7 +527,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchPositions", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchPositions", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -574,7 +574,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchPositions", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchPositions", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -635,7 +635,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.WatchTicker(symbol, paramsResolved));
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol)));
     }
@@ -654,7 +654,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.FundingRates> WatchFundingRates(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchFundingRates", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchFundingRates", parameters);
         if ((symbols == null))
         {
             throw new ArgumentsRequired ((this.id + " watchFundingRates() requires an array of symbols")) ;
@@ -690,7 +690,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchFundingRate(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchFundingRate", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchFundingRate", parameters);
         return await this.unWatchTicker(symbol, paramsResolved);
     }
 
@@ -708,7 +708,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchFundingRates(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchFundingRates", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchFundingRates", parameters);
         return await this.unWatchTickers(symbols, paramsResolved);
     }
 
@@ -727,7 +727,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchTicker", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTicker", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -755,7 +755,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchTicker", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchTicker", parameters);
         return await this.unWatchTickers(new List<object>() {symbol}, paramsResolved);
     }
 
@@ -774,7 +774,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -819,7 +819,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchTickers", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchTickers", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -852,7 +852,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchMarkPrice", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchMarkPrice", parameters);
         return await this.WatchTicker(symbol, paramsResolved);
     }
 
@@ -871,7 +871,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchMarkPrices", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchMarkPrices", parameters);
         return await this.WatchTickers(symbols, paramsResolved);
     }
 
@@ -889,7 +889,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchMarkPrice", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchMarkPrice", parameters);
         return await this.unWatchTicker(symbol, paramsResolved);
     }
 
@@ -907,7 +907,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchMarkPrices(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchMarkPrices", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchMarkPrices", parameters);
         return await this.unWatchTickers(symbols, paramsResolved);
     }
 
@@ -925,7 +925,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -962,7 +962,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1035,14 +1035,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOHLCV", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCV", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string? symbolResolved = this.symbol(symbol);
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
+        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolResolved), timeframeVar));
     }
 
     /**
@@ -1061,7 +1061,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
         if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -1110,7 +1110,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchOHLCV", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOHLCV", parameters);
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, paramsResolved);
     }
 
@@ -1128,7 +1128,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1193,7 +1193,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, paramsResolved);
     }
 
@@ -1213,7 +1213,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchTradesForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1255,7 +1255,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchTrades", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchTrades", parameters);
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, paramsResolved);
     }
 
@@ -1273,7 +1273,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1334,7 +1334,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOrderBook", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOrderBook", parameters);
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, paramsResolved);
     }
 
@@ -1354,7 +1354,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1404,7 +1404,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, paramsResolved);
     }
 
@@ -1422,7 +1422,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1515,7 +1515,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         List<object> channelParts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int channelPartsLength = channelParts.Count;
         bool isPrivate = (this.safeString(channelParts, (channelPartsLength - 1)) == "raw");
-        object url = this.getWsUrl(isPrivate);
+        string? url = this.getWsUrl(isPrivate);
         if (isPrivate)
         {
             await this.authenticate();
@@ -1703,8 +1703,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("authenticate", parameters);
-        object url = this.getWsUrl(true);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("authenticate", parameters);
+        string? url = this.getWsUrl(true);
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = this.safeValue(client.subscriptions, messageHash);
@@ -1758,12 +1758,12 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> requestWs(object method, object parameters = null, bool? isPrivate = null)
+    public async virtual Task<object> requestWs(object method, IDictionary<string, object>? parameters = null, bool? isPrivate = null)
     {
         parameters ??= new Dictionary<string, object>();
         isPrivate ??= false;
-        object paramsResolved = this.handleRouteAndParams("requestWs", parameters);
-        object url = this.getWsUrl(true);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("requestWs", parameters);
+        string? url = this.getWsUrl(true);
         if (isPrivate == true)
         {
             await this.authenticate();
@@ -1799,7 +1799,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("createOrderWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("createOrderWs", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1861,7 +1861,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 request["label"] = ((brokerId + "-") + this.uuid22());
             }
         }
-        object paramsRequest = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"});
+        Dictionary<string, object> paramsRequest = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"});
         if ((((object)(this.isNativeDeribitCredentials())) is true))
         {
             paramsRequest = this.omit(paramsRequest, new List<object>() {"reduceOnly", "reduce_only"});
@@ -1891,7 +1891,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("editOrderWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("editOrderWs", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1913,7 +1913,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             request["trigger_price"] = triggerPrice;
         }
-        object paramsRequest = this.omit(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        Dictionary<string, object> paramsRequest = this.omit(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         object result = await this.requestWs("private/edit", this.extend(request, paramsRequest), true);
         IDictionary<string, object> order = this.safeDict(result, "order", new Dictionary<string, object>() {});
         order["trades"] = this.safeList(result, "trades", new List<object>() {});
@@ -1935,7 +1935,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("cancelOrderWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelOrderWs", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1967,9 +1967,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", parameters);
         string method = "private/cancel_all";
-        object paramsRequest = paramsResolved;
+        Dictionary<string, object> paramsRequest = paramsResolved;
         if ((symbol != null))
         {
             if ((this.markets == null))
@@ -2001,7 +2001,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Order> FetchOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOrderWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrderWs", parameters);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2033,7 +2033,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", parameters);
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOpenOrdersWs() requires a symbol argument")) ;
@@ -2070,7 +2070,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchOrdersWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrdersWs", parameters);
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrdersWs() requires a symbol argument")) ;
@@ -2106,7 +2106,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchBalanceWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchBalanceWs", parameters);
         object result = await this.requestWs("private/get_account_summaries", paramsResolved, true);
         List<object> summaries = this.safeList(result, "summaries", new List<object>() {});
         Dictionary<string, object> balance = new Dictionary<string, object>() {
@@ -2137,7 +2137,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", parameters);
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchMyTradesWs() requires a symbol argument")) ;
@@ -2174,7 +2174,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.Position>> FetchPositionsWs(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("fetchPositionsWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchPositionsWs", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2201,7 +2201,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         interval ??= 30;
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("setHeartbeat", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("setHeartbeat", parameters);
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, paramsResolved);
@@ -2222,7 +2222,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> disableHeartbeat(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("disableHeartbeat", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("disableHeartbeat", parameters);
         return await this.requestWs("public/disable_heartbeat", paramsResolved);
     }
 
@@ -2244,7 +2244,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> setCancelOnDisconnect(object enabled, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", parameters);
         string method = ((enabled is true)) ? "private/enable_cancel_on_disconnect" : "private/disable_cancel_on_disconnect";
         return await this.requestWs(method, paramsResolved, true);
     }
@@ -2264,7 +2264,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> getCancelOnDisconnect(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", parameters);
         return await this.requestWs("private/get_cancel_on_disconnect", paramsResolved, true);
     }
 
@@ -2286,7 +2286,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
         string method = isPrivate == true ? "private/unsubscribe_all" : "public/unsubscribe_all";
         return await this.requestWs(method, paramsResolved, isPrivate);
     }
@@ -2306,9 +2306,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> logoutWs(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsResolved = this.handleRouteAndParams("logoutWs", parameters);
+        Dictionary<string, object> paramsResolved = this.handleRouteAndParams("logoutWs", parameters);
         await this.authenticate();
-        object url = this.getWsUrl(true);
+        string? url = this.getWsUrl(true);
         var client = this.client(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

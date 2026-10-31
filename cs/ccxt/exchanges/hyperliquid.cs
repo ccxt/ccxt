@@ -2548,8 +2548,8 @@ public partial class hyperliquid : Exchange
         {
             defaultTimeInForce = "alo";
         }
-        string? timeInForce = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
+        string? timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        string timeInForce = this.capitalize(timeInForceLower);
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -3182,8 +3182,8 @@ public partial class hyperliquid : Exchange
             {
                 defaultTimeInForce = "alo";
             }
-            string? timeInForce = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
+            string? timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            string timeInForce = this.capitalize(timeInForceLower);
             string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             string? stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);

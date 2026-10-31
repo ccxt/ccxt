@@ -65,7 +65,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params exchange-specific parameters
      * @returns {object} local parameters with the validated stock selector
      */
-    public async virtual Task<object> prepareWsStockParams(object methodName, object parameters)
+    public async virtual Task<IDictionary<string, object>> prepareWsStockParams(object methodName, object parameters)
     {
         (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
         bool? stock = stockqueryVariable.Item1;
@@ -93,7 +93,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params local parameters
      * @returns {string} venue market id
      */
-    public virtual string? wsVenueMarketId(object methodName, IDictionary<string, object> market, object parameters)
+    public virtual string? wsVenueMarketId(object methodName, IDictionary<string, object> market, IDictionary<string, object> parameters)
     {
         if ((market == null))
         {
@@ -129,7 +129,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         bidAsk ??= false;
         unwatch ??= false;
-        object query = await this.prepareWsStockParams(methodName, parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams(methodName, parameters);
         bool? stock = this.safeBool(query, "stock", false);
         string? explicitSource = this.safeString(query, "source");
         string? channel = this.safeString(query, "channel");
@@ -162,7 +162,7 @@ public partial class backpack : ccxt.backpack
                 { "stock", marketStock },
                 { "source", source },
             });
-            object request = this.stockDataRequest(methodName, requestParams, market);
+            Dictionary<string, object> request = this.stockDataRequest(methodName, requestParams, market);
             string? tickerSymbol = this.safeString(request, "symbol", "");
             string topic = ("ticker." + tickerSymbol);
             if ((channel != null))
@@ -243,7 +243,7 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
         }
-        object payload = this.omit(query, new List<object>() {"stock", "source", "interval", "channel"});
+        Dictionary<string, object> payload = this.omit(query, new List<object>() {"stock", "source", "interval", "channel"});
         if (unwatch == true)
         {
             int topicsLength = (topics?.Count ?? 0);
@@ -792,7 +792,7 @@ public partial class backpack : ccxt.backpack
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOHLCV", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCV", parameters);
         Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query));
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
     }
@@ -814,7 +814,7 @@ public partial class backpack : ccxt.backpack
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOHLCV", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCV", parameters);
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, query);
     }
 
@@ -834,7 +834,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
         if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -883,7 +883,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
         if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -990,7 +990,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchTrades", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchTrades", parameters);
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, query);
     }
 
@@ -1008,7 +1008,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchTrades", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchTrades", parameters);
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, query);
     }
 
@@ -1028,7 +1028,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1075,7 +1075,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1216,7 +1216,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrderBook", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrderBook", parameters);
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, query);
     }
 
@@ -1236,7 +1236,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1273,7 +1273,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrderBook", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrderBook", parameters);
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, query);
     }
 
@@ -1291,7 +1291,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1440,7 +1440,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrders", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1495,7 +1495,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchOrders", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1634,7 +1634,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchBalance", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchBalance", parameters);
         bool? stock = this.safeBool(query, "stock", false);
         if ((stock == true) && ((this.safeList(this.options, "securities") == null)))
         {
@@ -1683,7 +1683,7 @@ public partial class backpack : ccxt.backpack
     public async virtual Task<object> unWatchBalance(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object query = await this.prepareWsStockParams("watchBalance", parameters);
+        IDictionary<string, object> query = await this.prepareWsStockParams("watchBalance", parameters);
         return await this.watchPrivate(new List<object>() {"account.balanceUpdate"}, new List<object>() {"unsubscribe:balance"}, this.omit(query, "stock"), true);
     }
 

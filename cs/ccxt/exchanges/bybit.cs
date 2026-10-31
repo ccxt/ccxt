@@ -7389,7 +7389,7 @@ public partial class bybit : Exchange
         string? networkCode = networkCodeparamsOmitedVariable.Item1;
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
-        object selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
+        string? selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 
