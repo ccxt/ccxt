@@ -7489,7 +7489,7 @@ public Map<String, Object> describe()
         return reversed;
     }
 
-    public String stringToBase16(Object str)
+    public Object stringToBase16(Object str)
     {
         return ("0x" + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
     }
