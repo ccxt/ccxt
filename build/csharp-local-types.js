@@ -7487,6 +7487,11 @@ function resolveLocalReadType (csharp, context, identifier) {
         // static type is the type that classification is computing (see selfReadWriteType)
         return selfRead.type;
     }
+    if (context.depth < MAX_RESOLVE_DEPTH && declaration.initializer && safeNumberSwapMember (declaration)) {
+        // swap ring (`t = a; a = b; b = t`): a member reads as its safeNumber box;
+        // every member re-checks its own writes against that box, so a bad write still fails
+        return 'double?';
+    }
     if (context.stack.has (declaration) || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined; // cycle (`a = b; b = a;`) or a pathological chain
     }
@@ -12680,6 +12685,44 @@ function safeHelperLocalInitializer (node) {
         return false;
     }
     return SAFE_HELPER_LOCAL_METHODS.has (callee.name?.text);
+}
+
+// A member of a safeNumber swap ring (`let a = this.safeNumber (..); let b = this.safeNumber (..);
+// const t = a; a = b; b = t`): the initialiser is a safeNumber call or a copy of one, and EVERY plain
+// write of the name stores another ring member, so the whole ring is one double? box.
+function safeNumberSwapMember (declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const decls = new Map ();
+    const writes = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier) {
+            decls.set (n.name.text, (decls.has (n.name.text)) ? null : n);
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken.kind) && n.left.kind === ts.SyntaxKind.Identifier) {
+            writes.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    visit (scope);
+    const isSafeNumber = (d) => d && safeHelperLocalInitializer (d.initializer) && d.initializer.expression.name?.text === 'safeNumber';
+    const member = (name, depth) => {
+        const d = decls.get (name);
+        if (!d || depth > 2 || (d.parent?.declarations?.length !== 1)) {
+            return false;
+        }
+        if (isSafeNumber (d)) {
+            return true;
+        }
+        return d.initializer?.kind === ts.SyntaxKind.Identifier && isSafeNumber (decls.get (d.initializer.text));
+    };
+    if (!member (declaration.name.text, 0)) {
+        return false;
+    }
+    return writes.filter ((w) => w.left.text === declaration.name.text)
+        .every ((w) => w.operatorToken.kind === ts.SyntaxKind.EqualsToken && w.right.kind === ts.SyntaxKind.Identifier && member (w.right.text, 0));
 }
 
 // the declaration whose later write is being resolved right now, with the type a read of it
