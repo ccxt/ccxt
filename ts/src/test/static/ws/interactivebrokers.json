@@ -1,0 +1,4383 @@
+{
+    "exchange": "interactivebrokers",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchMyTrades": [
+            {
+                "description": "crypto spot",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": false,
+                            "competing": false,
+                            "message": ""
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "authenticated": true
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "established": true
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "fail": ""
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "serverName": "JifZ20112"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "authenticated": true
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "supportsFractions": true
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ20112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.0000032c",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae10444.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "S",
+                                "order_description": "Sold 0.01 @ 2327.47691091 on PAXOS",
+                                "trade_time": "20261028-14:31:43",
+                                "trade_time_r": 1793197903000,
+                                "size": 0.01,
+                                "price": "2327.47691091",
+                                "order_ref": "ccxt631156cf945f469bba55f8",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.27476911,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 199150765
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044a.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:08",
+                                "trade_time_r": 1793198348000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "99030614",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158961
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "acctProps": {
+                                "U3448646": {
+                                    "noFXConv": false,
+                                    "liteUnderPro": false,
+                                    "autoFx": false
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.06086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ20112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.0000032c",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198366355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198376356
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198386355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198396355
+                    }
+                ],
+                "httpResponse": {
+                    "session": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": false,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": null,
+                                "serverVersion": null
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "str+{\"realtimeUpdatesOnly\":false,\"days\":1}",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "0001ac57.6ae1044b.01.01",
+                            "info": {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            },
+                            "timestamp": 1793198360000,
+                            "datetime": "2026-10-28T14:39:20.000Z",
+                            "symbol": "ETH/USD",
+                            "order": "757158966",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2324.4,
+                            "amount": 0.01,
+                            "cost": 23.244,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "0001ac57.6ae1044b.01.01",
+                            "info": {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.06086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            },
+                            "timestamp": 1793198360000,
+                            "datetime": "2026-10-28T14:39:20.000Z",
+                            "symbol": "ETH/USD",
+                            "order": "757158966",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2324.4,
+                            "amount": 0.01,
+                            "cost": 23.244,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.23
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.23
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "crypto spot",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "supportsFractions": true
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ06133",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.000001bf",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ06133",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188636355
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "acctProps": {
+                                "U3448646": {
+                                    "noFXConv": false,
+                                    "liteUnderPro": false,
+                                    "autoFx": false
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ06133",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.000001bf",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188646355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188656355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188666355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "sor",
+                        "args": [
+                            {
+                                "acct": "U3448646",
+                                "orderId": 224312491,
+                                "sizeAndFills": "0.01",
+                                "orderDesc": "Sold 0.01 ETH Crypto Limit 2358.70, GTC",
+                                "remainingQuantity": 0,
+                                "filledQuantity": 0.01,
+                                "status": "Filled",
+                                "order_ccp_status": "Filled",
+                                "avgPrice": "2358.731313",
+                                "bgColor": "#FFFFFF",
+                                "fgColor": "#000000"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188676355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188686355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188696355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188706355
+                    }
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1089555012,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Sold 0.01 ETH Crypto Limit 2361.25, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2361.530073",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028112545",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "47470880",
+                            "isEventTrading": "0",
+                            "price": "2361.25",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793186745000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 224312491,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Sell 0.01 ETH Crypto Limit 2358.70, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Submitted",
+                            "order_ccp_status": "Submitted",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115706",
+                            "orderType": "Limit",
+                            "bgColor": "#000000",
+                            "fgColor": "#00F000",
+                            "order_ref": "15099117",
+                            "isEventTrading": "0",
+                            "price": "2358.70",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188626000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471160,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113613",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxt4835f11a860949bea59c8e",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187373000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1524547414,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2359.50, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2359.40",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115615",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "24513781",
+                            "isEventTrading": "0",
+                            "price": "2359.50",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188575000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1916715686,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2360.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2359.50",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115538",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "48385731",
+                            "isEventTrading": "0",
+                            "price": "2360.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188538000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1654571893,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Sell 0.01 ETH Crypto Limit 2362.10, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115524",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "39653621",
+                            "isEventTrading": "0",
+                            "price": "2362.10",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188524000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471157,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113355",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxta4c2c52110f9491d8b3692",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187235000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471154,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113219",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxt83ef94d5565c4c16a9118c",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187139000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1595851410,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2358.40, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2358.40",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028105148",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "93238035",
+                            "isEventTrading": "0",
+                            "price": "2358.40",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793184708000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1654571888,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2362.20, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2361.90",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115149",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "51592231",
+                            "isEventTrading": "0",
+                            "price": "2362.20",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188309000,
+                            "side": "BUY"
+                        }
+                    ],
+                    "snapshot": true
+                },
+                "sentMessages": [
+                    "sor+{}",
+                    "tic",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "224312491",
+                            "clientOrderId": "15099117",
+                            "timestamp": 1793188626000,
+                            "datetime": "2026-10-28T11:57:06.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": null,
+                            "symbol": "ETH/USD",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "reduceOnly": null,
+                            "side": "sell",
+                            "price": 2358.7,
+                            "triggerPrice": null,
+                            "amount": 0.01,
+                            "cost": 23.58731313,
+                            "average": 2358.731313,
+                            "filled": 0.01,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "acct": "U3448646",
+                                "exchange": "PAXOS",
+                                "conidex": "495759171@PAXOS",
+                                "conid": 495759171,
+                                "account": "U3448646",
+                                "orderId": 224312491,
+                                "cashCcy": "USD",
+                                "sizeAndFills": "0.01",
+                                "orderDesc": "Sold 0.01 ETH Crypto Limit 2358.70, GTC",
+                                "description1": "ETH",
+                                "ticker": "ETH",
+                                "secType": "CRYPTO",
+                                "remainingQuantity": 0,
+                                "filledQuantity": 0.01,
+                                "totalSize": 0.01,
+                                "companyName": "Ethereum cryptocurrency",
+                                "status": "Filled",
+                                "order_ccp_status": "Filled",
+                                "origOrderType": "LIMIT",
+                                "supportsTaxOpt": "1",
+                                "lastExecutionTime": "261028115706",
+                                "orderType": "Limit",
+                                "bgColor": "#FFFFFF",
+                                "fgColor": "#000000",
+                                "order_ref": "15099117",
+                                "isEventTrading": "0",
+                                "price": "2358.70",
+                                "timeInForce": "GTC",
+                                "lastExecutionTime_r": 1793188626000,
+                                "side": "SELL",
+                                "avgPrice": "2358.731313"
+                            },
+                            "fees": [],
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "crypto spot",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.00000144",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ24131",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "2.50"
+                            },
+                            {
+                                "row": 1,
+                                "focus": 0,
+                                "price": "81364.25"
+                            },
+                            {
+                                "row": 2,
+                                "focus": 0,
+                                "price": "81364.00"
+                            },
+                            {
+                                "row": 3,
+                                "focus": 0,
+                                "price": "81363.75"
+                            },
+                            {
+                                "row": 4,
+                                "focus": 0,
+                                "price": "81363.50"
+                            },
+                            {
+                                "row": 5,
+                                "focus": 0,
+                                "price": "81363.25"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 0,
+                                "price": "81363.00"
+                            },
+                            {
+                                "row": 7,
+                                "focus": 0,
+                                "price": "81362.75"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50"
+                            },
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00002348 @ 81362.00",
+                                "ask": "0.5"
+                            },
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75",
+                                "bid": "0.02458156"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50"
+                            },
+                            {
+                                "row": 13,
+                                "focus": 0,
+                                "price": "81361.25"
+                            },
+                            {
+                                "row": 14,
+                                "focus": 0,
+                                "price": "81361.00"
+                            },
+                            {
+                                "row": 15,
+                                "focus": 0,
+                                "price": "81360.75"
+                            },
+                            {
+                                "row": 16,
+                                "focus": 0,
+                                "price": "81360.50"
+                            },
+                            {
+                                "row": 17,
+                                "focus": 0,
+                                "price": "81360.25"
+                            },
+                            {
+                                "row": 18,
+                                "focus": 0,
+                                "price": "81360.00"
+                            },
+                            {
+                                "row": 19,
+                                "focus": 0,
+                                "price": "81359.75"
+                            },
+                            {
+                                "row": 20,
+                                "focus": 0,
+                                "price": "81359.50"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "81364.50"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 0,
+                                "price": "81363.00",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.00000144",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00002348 @ 81362.00"
+                            },
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75",
+                                "bid": "0.0245815"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458161"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00000023 @ 81362.00"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.0245816"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 6,
+                                "focus": 1,
+                                "price": "0.00614837 @ 81363.00",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 0,
+                                "price": "81362.00"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50"
+                            },
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25",
+                                "ask": "0.5"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458157"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "81364.50",
+                                "ask": "0.11605478"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 1,
+                                "price": "0.00614837 @ 81363.00"
+                            },
+                            {
+                                "row": 7,
+                                "focus": 0,
+                                "price": "81362.75",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25",
+                                "ask": "0.50010773"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458164"
+                            }
+                        ]
+                    }
+                ],
+                "httpResponse": {
+                    "session": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "sbd+U3448646+479624278"
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.02458156
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362,
+                                0.5
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292057,
+                        "datetime": "2026-10-28T10:11:32.057Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.0245815
+                            ],
+                            [
+                                81361.5,
+                                0.02458161
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292332,
+                        "datetime": "2026-10-28T10:11:32.332Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.0245815
+                            ],
+                            [
+                                81361.5,
+                                0.02458161
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292992,
+                        "datetime": "2026-10-28T10:11:32.992Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.0245816
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293234,
+                        "datetime": "2026-10-28T10:11:33.234Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.0245816
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293537,
+                        "datetime": "2026-10-28T10:11:33.537Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458157
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.5
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293837,
+                        "datetime": "2026-10-28T10:11:33.837Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458157
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.5
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81362.75,
+                                0.01787114
+                            ],
+                            [
+                                81364.5,
+                                0.11605478
+                            ]
+                        ],
+                        "timestamp": 1793182294443,
+                        "datetime": "2026-10-28T10:11:34.443Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458164
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.50010773
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81362.75,
+                                0.01787114
+                            ],
+                            [
+                                81364.5,
+                                0.11605478
+                            ]
+                        ],
+                        "timestamp": 1793182294737,
+                        "datetime": "2026-10-28T10:11:34.737Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "crypto spot",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q9",
+                        "7635": "80515.75",
+                        "conidEx": "479624278",
+                        "topic": "smd+479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539179,
+                        "server_id": "q9"
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q9",
+                        "7635": "80515.75",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539179,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "serverId": "3461206",
+                        "symbol": "BTC",
+                        "text": "Bitcoin cryptocurrency",
+                        "priceFactor": 4,
+                        "startTime": "20261027-15:52:00",
+                        "high": "322908/2.27330346/95",
+                        "low": "321307/0.57966535/21",
+                        "timePeriod": "7200s",
+                        "barLength": 60,
+                        "mdAvailability": "S",
+                        "mktDataDelay": 0,
+                        "outsideRth": false,
+                        "volumeFactor": 1,
+                        "priceDisplayRule": 1,
+                        "priceDisplayValue": "2",
+                        "negativeCapable": false,
+                        "messageVersion": 2,
+                        "data": [
+                            {
+                                "o": 80519.25,
+                                "c": 80506,
+                                "h": 80527,
+                                "l": 80504,
+                                "v": 0.50736735,
+                                "t": 1793123460000
+                            },
+                            {
+                                "o": 80506,
+                                "c": 80504,
+                                "h": 80521.25,
+                                "l": 80504,
+                                "v": 0.00019705,
+                                "t": 1793123520000
+                            }
+                        ],
+                        "points": 120,
+                        "travelTime": 101,
+                        "topic": "smh+479624278",
+                        "payload": "{\"exchange\":\"SMART\",\"period\":\"2h\",\"bar\":\"1min\",\"outsideRth\":false,\"source\":\"trades\"}"
+                    },
+                    {
+                        "message": "Unsubscribed 3461206"
+                    },
+                    {
+                        "31": "80520.00",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+631.75",
+                        "83": 0.79,
+                        "84": "80507.00",
+                        "85": "0.60325287",
+                        "86": "80512.50",
+                        "88": "0.26756552",
+                        "6119": "q9",
+                        "6509": "R",
+                        "7059": "0.00001242",
+                        "7635": "80504.10",
+                        "7741": "79888.25",
+                        "7762": "705",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539679,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "6119": "q9",
+                        "7635": "80505.50",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123540180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80506.50",
+                        "88": "0.02484265",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123540680,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80499.25",
+                        "82": "+611.00",
+                        "83": 0.76,
+                        "84": "80504.50",
+                        "86": "80507.25",
+                        "88": "0.02484328",
+                        "6119": "q9",
+                        "7059": "0.01992148",
+                        "7635": "80501.00",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123541180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80505.00",
+                        "86": "80506.50",
+                        "88": "0.02484317",
+                        "6119": "q9",
+                        "7059": "0.00492324",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123542181,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.50",
+                        "86": "80507.25",
+                        "88": "0.02484332",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123543180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80497.75",
+                        "82": "+609.50",
+                        "84": "80504.25",
+                        "88": "0.02484339",
+                        "6119": "q9",
+                        "7059": "0.00000971",
+                        "7635": "80499.30",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123543680,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.00",
+                        "86": "80506.25",
+                        "88": "0.02484341",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123544180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "6119": "q9",
+                        "7635": "80497.80",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123544681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80507.75",
+                        "82": "+619.50",
+                        "83": 0.78,
+                        "84": "80500.25",
+                        "88": "2.50000000",
+                        "6119": "q9",
+                        "7059": "0.00005900",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123545181,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.00",
+                        "88": "0.02484345",
+                        "6119": "q9",
+                        "7635": "80506.25",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123545681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793123546355
+                    },
+                    {
+                        "84": "80503.50",
+                        "88": "0.02484359",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123546681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80515.25",
+                        "82": "+627.00",
+                        "84": "80501.50",
+                        "88": "1.21361900",
+                        "6119": "q9",
+                        "7059": "0.00001243",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123547182,
+                        "topic": "smd+479624278"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}",
+                    "smh+479624278+{\"exchange\":\"SMART\",\"period\":\"2h\",\"bar\":\"1min\",\"outsideRth\":false,\"source\":\"trades\"}",
+                    "umh+3461206"
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1793123460000,
+                            80519.25,
+                            80527,
+                            80504,
+                            80506,
+                            0.50736735
+                        ],
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80504,
+                            80504,
+                            0.00019705
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80504,
+                            80520,
+                            0.00020946999999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80499.25,
+                            80499.25,
+                            0.020130949999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80497.75,
+                            0.020140659999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80507.75,
+                            0.020199659999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80515.25,
+                            0.02021209
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "crypto spot multiple",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q6",
+                        "7635": "80579.80",
+                        "conidEx": "479624278",
+                        "topic": "smd+479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123316597,
+                        "server_id": "q6"
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q6",
+                        "7635": "80579.80",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123316597,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "55": "ETH",
+                        "6119": "q7",
+                        "7635": "2348.384",
+                        "conidEx": "495759171",
+                        "topic": "smd+495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123316637,
+                        "server_id": "q7"
+                    },
+                    {
+                        "55": "ETH",
+                        "6119": "q7",
+                        "7635": "2348.384",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123316637,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80546.25",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+658.00",
+                        "83": 0.82,
+                        "84": "80548.50",
+                        "85": "0.60325287",
+                        "86": "80554.75",
+                        "88": "0.09931902",
+                        "6119": "q6",
+                        "6509": "R",
+                        "7059": "0.00000233",
+                        "7635": "80546.20",
+                        "7741": "79888.25",
+                        "7762": "703",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123317098,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "2348.40",
+                        "70": "2355.00",
+                        "71": "2291.85",
+                        "82": "+34.15",
+                        "83": 1.48,
+                        "84": "2348.35",
+                        "85": "0.18261800",
+                        "86": "2348.40",
+                        "88": "43.59824215",
+                        "6119": "q7",
+                        "6509": "R",
+                        "7059": "0.00000744",
+                        "7635": "2348.40",
+                        "7741": "2314.25",
+                        "7762": "15711",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123317098,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80556.00",
+                        "82": "+667.75",
+                        "83": 0.84,
+                        "84": "80550.75",
+                        "88": "0.02482902",
+                        "6119": "q6",
+                        "7059": "0.00032434",
+                        "7635": "80555.88",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123317598,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "2348.40",
+                        "85": "1.32457520",
+                        "86": "2348.60",
+                        "88": "0.18261800",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123317598,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "88": "0.02482899",
+                        "6119": "q6",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123318098,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "2348.35",
+                        "86": "2348.50",
+                        "88": "43.59823135",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123318098,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80546.25",
+                        "82": "+658.00",
+                        "83": 0.82,
+                        "6119": "q6",
+                        "7059": "0.00052033",
+                        "7635": "80546.20",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123318599,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02482906",
+                        "6119": "q6",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123319099,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "86": "2348.60",
+                        "88": "43.59823162",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123319099,
+                        "topic": "smd+495759171"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}",
+                    "smd+495759171+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123317098,
+                            "datetime": "2026-10-27T17:48:37.098Z",
+                            "bid": 80548.5,
+                            "bidVolume": 0.09931902,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80546.25",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+658.00",
+                                "83": 0.82,
+                                "84": "80548.50",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.09931902",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00000233",
+                                "7635": "80546.20",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123317098,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123317098,
+                            "datetime": "2026-10-27T17:48:37.098Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59824215,
+                            "ask": 2348.4,
+                            "askVolume": 0.182618,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "0.18261800",
+                                "86": "2348.40",
+                                "88": "43.59824215",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123317098,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123317598,
+                            "datetime": "2026-10-27T17:48:37.598Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482902,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80556.00",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+667.75",
+                                "83": 0.84,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482902",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00032434",
+                                "7635": "80555.88",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123317598,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123317598,
+                            "datetime": "2026-10-27T17:48:37.598Z",
+                            "bid": 2348.4,
+                            "bidVolume": 0.182618,
+                            "ask": 2348.6,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.40",
+                                "85": "1.32457520",
+                                "86": "2348.60",
+                                "88": "0.18261800",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123317598,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123318098,
+                            "datetime": "2026-10-27T17:48:38.098Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482899,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80556.00",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+667.75",
+                                "83": 0.84,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482899",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00032434",
+                                "7635": "80555.88",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123318098,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123318098,
+                            "datetime": "2026-10-27T17:48:38.098Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59823135,
+                            "ask": 2348.5,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "1.32457520",
+                                "86": "2348.50",
+                                "88": "43.59823135",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123318098,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123319099,
+                            "datetime": "2026-10-27T17:48:39.099Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482906,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80546.25",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+658.00",
+                                "83": 0.82,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482906",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00052033",
+                                "7635": "80546.20",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123319099,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123319099,
+                            "datetime": "2026-10-27T17:48:39.099Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59823162,
+                            "ask": 2348.6,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "1.32457520",
+                                "86": "2348.60",
+                                "88": "43.59823162",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123319099,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "default",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "result": [
+                            {
+                                "acctCode": "U3448646",
+                                "cashbalance": 650.8199999999999,
+                                "cashBalanceFXSegment": 0,
+                                "commodityMarketValue": 0,
+                                "corporateBondsMarketValue": 0,
+                                "key": "LedgerListBASE",
+                                "dividends": 0,
+                                "exchangeRate": 1,
+                                "funds": 0,
+                                "marketValue": 0,
+                                "optionMarketValue": 0,
+                                "interest": 0,
+                                "issueOptionsMarketValue": 0,
+                                "moneyFunds": 0,
+                                "netLiquidationValue": 676.347657797373,
+                                "realizedPnl": 0,
+                                "unrealizedPnl": -0.7668422026269539,
+                                "secondKey": "BASE",
+                                "settledCash": 650.8199999999999,
+                                "severity": 0,
+                                "stockMarketValue": 0,
+                                "tBillsMarketValue": 0,
+                                "tBondsMarketValue": 0,
+                                "timestamp": 1793122873,
+                                "warrantsMarketValue": 0
+                            },
+                            {
+                                "acctCode": "U3448646",
+                                "cashbalance": 650.8199999999999,
+                                "cashBalanceFXSegment": 0,
+                                "commodityMarketValue": 0,
+                                "corporateBondsMarketValue": 0,
+                                "key": "LedgerListUSD",
+                                "dividends": 0,
+                                "exchangeRate": 1,
+                                "funds": 0,
+                                "marketValue": 0,
+                                "optionMarketValue": 0,
+                                "interest": 0,
+                                "issueOptionsMarketValue": 0,
+                                "moneyFunds": 0,
+                                "netLiquidationValue": 676.347657797373,
+                                "realizedPnl": 0,
+                                "unrealizedPnl": -0.7668422026269539,
+                                "secondKey": "USD",
+                                "settledCash": 650.8199999999999,
+                                "severity": 0,
+                                "stockMarketValue": 0,
+                                "tBillsMarketValue": 0,
+                                "tBondsMarketValue": 0,
+                                "timestamp": 1793122873,
+                                "warrantsMarketValue": 0
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122876356
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122881
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122881
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122886356
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122891
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122891
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122896355
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122901
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122901
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122906355
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122911
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122911
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    }
+                ],
+                "httpResponse": {
+                    "orders": [],
+                    "snapshot": true
+                },
+                "sentMessages": [
+                    "sld+U3448646+{}",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "result": [
+                                {
+                                    "acctCode": "U3448646",
+                                    "cashbalance": 650.8199999999999,
+                                    "cashBalanceFXSegment": 0,
+                                    "commodityMarketValue": 0,
+                                    "corporateBondsMarketValue": 0,
+                                    "key": "LedgerListBASE",
+                                    "dividends": 0,
+                                    "exchangeRate": 1,
+                                    "funds": 0,
+                                    "marketValue": 0,
+                                    "optionMarketValue": 0,
+                                    "interest": 0,
+                                    "issueOptionsMarketValue": 0,
+                                    "moneyFunds": 0,
+                                    "netLiquidationValue": 676.347657797373,
+                                    "realizedPnl": 0,
+                                    "unrealizedPnl": -0.7668422026269539,
+                                    "secondKey": "BASE",
+                                    "settledCash": 650.8199999999999,
+                                    "severity": 0,
+                                    "stockMarketValue": 0,
+                                    "tBillsMarketValue": 0,
+                                    "tBondsMarketValue": 0,
+                                    "timestamp": 1793122873,
+                                    "warrantsMarketValue": 0
+                                },
+                                {
+                                    "acctCode": "U3448646",
+                                    "cashbalance": 650.8199999999999,
+                                    "cashBalanceFXSegment": 0,
+                                    "commodityMarketValue": 0,
+                                    "corporateBondsMarketValue": 0,
+                                    "key": "LedgerListUSD",
+                                    "dividends": 0,
+                                    "exchangeRate": 1,
+                                    "funds": 0,
+                                    "marketValue": 0,
+                                    "optionMarketValue": 0,
+                                    "interest": 0,
+                                    "issueOptionsMarketValue": 0,
+                                    "moneyFunds": 0,
+                                    "netLiquidationValue": 676.347657797373,
+                                    "realizedPnl": 0,
+                                    "unrealizedPnl": -0.7668422026269539,
+                                    "secondKey": "USD",
+                                    "settledCash": 650.8199999999999,
+                                    "severity": 0,
+                                    "stockMarketValue": 0,
+                                    "tBillsMarketValue": 0,
+                                    "tBondsMarketValue": 0,
+                                    "timestamp": 1793122873,
+                                    "warrantsMarketValue": 0
+                                }
+                            ],
+                            "topic": "sld+U3448646"
+                        },
+                        "USD": {
+                            "free": 650.8199999999999,
+                            "used": 0,
+                            "total": 650.8199999999999
+                        },
+                        "ETH": {
+                            "free": 0.01086533,
+                            "used": 0,
+                            "total": 0.01086533
+                        },
+                        "timestamp": 1793122873000,
+                        "datetime": "2026-10-27T17:41:13.000Z",
+                        "free": {
+                            "USD": 650.8199999999999,
+                            "ETH": 0.01086533
+                        },
+                        "used": {
+                            "USD": 0,
+                            "ETH": 0
+                        },
+                        "total": {
+                            "USD": 650.8199999999999,
+                            "ETH": 0.01086533
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "crypto spot single",
+                "input": [
+                    [
+                        "BTC/USD"
+                    ]
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ32112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000435",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ32112",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "31": "80687.50",
+                        "55": "BTC",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+799.25",
+                        "83": 1,
+                        "84": "80685.00",
+                        "85": "0.00194251",
+                        "86": "80687.75",
+                        "88": "0.02478768",
+                        "6119": "q1",
+                        "6509": "R",
+                        "7059": "0.00000027",
+                        "7635": "80687.60",
+                        "7741": "79888.25",
+                        "7762": "693",
+                        "conidEx": "479624278",
+                        "_updated": 1793122461782,
+                        "server_id": "q1",
+                        "topic": "smd+479624278",
+                        "conid": 479624278
+                    },
+                    {
+                        "84": "80684.75",
+                        "88": "0.02478780",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122462535,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02478779",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122463331,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02478776",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122464042,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80685.00",
+                        "88": "0.02478775",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122464795,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80684.75",
+                        "88": "0.02478776",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122465798,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122466355
+                    },
+                    {
+                        "84": "80683.50",
+                        "85": "0.01787114",
+                        "86": "80685.00",
+                        "88": "0.02478819",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122466551,
+                        "topic": "smd+479624278"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ32112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122461782,
+                            "datetime": "2026-10-27T17:34:21.782Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80685,
+                            "bidVolume": 0.02478768,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80685.00",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478768",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122461782,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122462535,
+                            "datetime": "2026-10-27T17:34:22.535Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.0247878,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478780",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122462535,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122463331,
+                            "datetime": "2026-10-27T17:34:23.331Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478779,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478779",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122463331,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122464042,
+                            "datetime": "2026-10-27T17:34:24.042Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478776,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478776",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122464042,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122464795,
+                            "datetime": "2026-10-27T17:34:24.795Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80685,
+                            "bidVolume": 0.02478775,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80685.00",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478775",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122464795,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122465798,
+                            "datetime": "2026-10-27T17:34:25.798Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478776,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478776",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122465798,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122466551,
+                            "datetime": "2026-10-27T17:34:26.551Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80683.5,
+                            "bidVolume": 0.02478819,
+                            "ask": 80685,
+                            "askVolume": 0.01787114,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80683.50",
+                                "85": "0.01787114",
+                                "86": "80685.00",
+                                "88": "0.02478819",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122466551,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+  }
+}

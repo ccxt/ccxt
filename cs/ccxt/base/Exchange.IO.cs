@@ -10,12 +10,18 @@ public partial class BaseExchange
 
     public void ensureWhitelistedFile(object filePath)
     {
-        var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
+        var allowedExtensions = new string[] { ".ccxtfile", ".pem" };
+        if (Array.Exists(allowedExtensions, ext => sanitized.EndsWith(ext))) {
             return;
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}");
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(", ", allowedExtensions)}");
+    }
+
+    // file IO is synchronous in .NET, nothing to load before the first readFile call
+    public Task<object> initFileSystem()
+    {
+        return Task.FromResult<object>(null);
     }
 
     public string readFile(object filePath)

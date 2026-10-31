@@ -705,6 +705,39 @@ public class BaseExchange {
         return Crypto.Rsa(payload, publicKey, algo, padding);
     }
 
+    public byte[] decryptPrivateKey(Object encryptionPrivKey, Object encryptionSecret) {
+        return Crypto.decryptPrivateKey(encryptionPrivKey, encryptionSecret);
+    }
+
+    // ------------------------------------------------------------------------
+    // file io (whitelisted extensions only, same as the other ports)
+
+    private static final String[] ALLOWED_FILE_EXTENSIONS = new String[] { ".ccxtfile", ".pem" };
+
+    public String ensureWhitelistedFile(Object filePath) {
+        String resolved = java.nio.file.Paths.get((String) filePath).toAbsolutePath().normalize().toString();
+        for (String ext : ALLOWED_FILE_EXTENSIONS) {
+            if (resolved.endsWith(ext)) {
+                return resolved;
+            }
+        }
+        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed extensions are: " + String.join(", ", ALLOWED_FILE_EXTENSIONS));
+    }
+
+    // file io is synchronous in java, nothing to load before the first readFile call
+    public CompletableFuture<Object> initFileSystem() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    public String readFile(Object filePath) {
+        String resolved = this.ensureWhitelistedFile(filePath);
+        try {
+            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(resolved)), StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("File not found: " + filePath, e);
+        }
+    }
+
     public Object eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
     }
@@ -1402,6 +1435,83 @@ public class BaseExchange {
 
     public Map<String, Object> convertToSafeDictionary(Object obj) {
         return (Map<String, Object>) obj; // to do safety checks
+    }
+
+    // reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+    public String readDhParam(Object path) {
+        String pem;
+        try {
+            pem = java.nio.file.Files.readString(java.nio.file.Path.of(String.valueOf(path)), StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new ExchangeError(this.id + " readDhParam() could not read the DH_param file: " + path);
+        }
+        byte[] der = java.util.Base64.getDecoder().decode(pem.replaceAll("-----[^-]+-----|\\s", ""));
+        int[] pos = {0};
+        java.util.function.IntSupplier readByte = () -> {
+            if (pos[0] >= der.length) {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            return der[pos[0]++] & 0xff;
+        };
+        java.util.function.IntSupplier readLen = () -> {
+            int len = readByte.getAsInt();
+            if ((len & 0x80) != 0) {
+                int n = len & 0x7f;
+                len = 0;
+                for (int i = 0; i < n; i++) {
+                    len = (len << 8) | readByte.getAsInt();
+                }
+            }
+            return len;
+        };
+        java.util.function.Supplier<String> readInt = () -> {
+            if (readByte.getAsInt() != 0x02) {
+                throw new ExchangeError(this.id + " readDhParam() expected INTEGER while reading DH_param file");
+            }
+            int len = readLen.getAsInt();
+            if (pos[0] + len > der.length) {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            StringBuilder sb = new StringBuilder(len * 2);
+            for (int i = pos[0]; i < pos[0] + len; i++) {
+                sb.append(String.format("%02x", der[i] & 0xff));
+            }
+            pos[0] += len;
+            String hex = sb.toString();
+            return hex.startsWith("00") ? hex.substring(2) : hex; // strip sign byte
+        };
+        if (readByte.getAsInt() != 0x30) {
+            throw new ExchangeError(this.id + " readDhParam() expected SEQUENCE while reading DH_param file");
+        }
+        readLen.getAsInt();
+        String prime = readInt.get();
+        readInt.get(); // generator
+        return prime;
+    }
+
+    private static BigInteger toUnsignedBigInteger(Object value) {
+        if (value instanceof BigInteger bi) {
+            return bi;
+        }
+        if (value instanceof String str) {
+            if (str.startsWith("0x") || str.startsWith("0X")) {
+                return new BigInteger(str.substring(2), 16);
+            }
+            return new BigInteger(str);
+        }
+        if (value instanceof Number n) {
+            return BigInteger.valueOf(n.longValue());
+        }
+        throw new IllegalArgumentException("cannot convert to BigInteger: " + value);
+    }
+
+    public BigInteger modPow(Object base, Object exponent, Object modulus) {
+        return toUnsignedBigInteger(base).modPow(toUnsignedBigInteger(exponent), toUnsignedBigInteger(modulus));
+    }
+
+    // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+    public byte[] bigToBytes(Object value) {
+        return toUnsignedBigInteger(value).toByteArray();
     }
 
     // a present option value of another type is a user error: throw instead of coercing

@@ -39,6 +39,13 @@ export const JAVA_UTIL_IMPORTS: Record<string, string> = {
     'Collectors': 'java.util.stream.Collectors',
 };
 
+// JDK types the printer already spells by SIMPLE name (it never qualifies them), so the
+// qualified-name collapse above never sees them and applyJavaImports must import them on sight.
+// e.g. a local typed by a base method that returns java.math.BigInteger (modPow).
+export const JAVA_BARE_SIMPLE_IMPORTS: Record<string, string> = {
+    'BigInteger': 'java.math.BigInteger',
+};
+
 // Unified types (java/lib/src/main/java/io/github/ccxt/types) the typed cores and surfaces
 // reference by qualified name. Closed list: a new type stays qualified until it is audited.
 export const CCXT_TYPE_NAMES: readonly string[] = [
@@ -194,5 +201,28 @@ export function applyJavaImports (source: string, importSimpleNames = false): st
             imports.add (fqn);
         }
     }
+    for (const fqn of javaBareSimpleImports (shortened.source)) {
+        imports.add (fqn);
+    }
     return ensureJavaImports (shortened.source, Array.from (imports).sort ());
+}
+
+// Group 1: a skipped region. Group 2: a JAVA_BARE_SIMPLE_IMPORTS name used as a type.
+const JAVA_BARE_SIMPLE_NAME_RE = new RegExp (
+    '(' + SKIPPED_REGION_PATTERN + ')'
+    + '|(?<![\\w.])(' + Object.keys (JAVA_BARE_SIMPLE_IMPORTS).join ('|') + ')\\b',
+    'gm'
+);
+
+// Imports for the JDK types the printer emits by simple name only (see JAVA_BARE_SIMPLE_IMPORTS).
+function javaBareSimpleImports (source: string): string[] {
+    const needed = new Set<string> ();
+    let m: RegExpExecArray | null;
+    JAVA_BARE_SIMPLE_NAME_RE.lastIndex = 0;
+    while ((m = JAVA_BARE_SIMPLE_NAME_RE.exec (source)) !== null) {
+        if (m[2] !== undefined) {
+            needed.add (JAVA_BARE_SIMPLE_IMPORTS[m[2]]);
+        }
+    }
+    return Array.from (needed).sort ();
 }

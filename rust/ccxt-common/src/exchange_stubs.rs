@@ -504,6 +504,24 @@ fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
 
+/// Parses an int / decimal string / 0x-prefixed hex string into an unsigned big integer
+/// (the Value-bag keeps big ints that overflow i64 as strings, see `convert_to_big_int`).
+fn value_to_biguint(v: &Value) -> Option<num_bigint::BigUint> {
+    match v {
+        Value::Int(n) if *n >= 0 => Some(num_bigint::BigUint::from(*n as u64)),
+        Value::Float(f) if *f >= 0.0 => Some(num_bigint::BigUint::from(*f as u64)),
+        Value::Str(s) => {
+            let t = s.trim();
+            if let Some(h) = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")) {
+                num_bigint::BigUint::parse_bytes(h.as_bytes(), 16)
+            } else {
+                num_bigint::BigUint::parse_bytes(t.as_bytes(), 10)
+            }
+        }
+        _ => None,
+    }
+}
+
 // ── deferred coroutine (`spawn` / `delay`) queue ─────────────────────────────
 // JS `this.spawn(this.method, ...args)` backgrounds a coroutine. We can't truly
 // background it (it needs `&mut self`, held by the WS drive loop), so `spawn`
@@ -2108,6 +2126,140 @@ impl Exchange {
     pub fn create_safe_dictionary(&self, _optional_args: &[Value]) -> Value {
         Value::Map(HashMap::new())
     }
+    /// `convertToSafeDictionary(dict)` — the Value-bag dict is already safe to share.
+    pub fn convert_to_safe_dictionary(&self, dict: Value) -> Value {
+        dict
+    }
+
+    /// `initFileSystem()` — file io is synchronous here, nothing to load before the first `read_file`.
+    pub async fn init_file_system(&self) -> Value {
+        Value::Null
+    }
+
+    /// `decryptPrivateKey(encryptionPrivKey, encryptionSecret)` — RSA PKCS#1 v1.5 decryption of a
+    /// base64-encoded ciphertext with a PEM RSA private key (PKCS#1 or PKCS#8), same as node's
+    /// crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret)).
+    pub fn decrypt_private_key(&self, encryption_priv_key: Value, encryption_secret: Value) -> Value {
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
+        use rsa::pkcs1::DecodeRsaPrivateKey;
+        use rsa::pkcs8::DecodePrivateKey;
+        use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
+        let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&encryption_priv_key)).into_owned();
+        let pem = pem.trim();
+        let key = match RsaPrivateKey::from_pkcs1_pem(pem).or_else(|_| RsaPrivateKey::from_pkcs8_pem(pem)) {
+            Ok(k) => k,
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() could not read the RSA private key: {}", self.id, e))),
+        };
+        let secret = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&encryption_secret)).into_owned();
+        let cipher_text = match STANDARD.decode(secret.trim().as_bytes()) {
+            Ok(b) => b,
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() invalid base64 secret: {}", self.id, e))),
+        };
+        match key.decrypt(Pkcs1v15Encrypt, &cipher_text) {
+            // binary is an Array of byte Ints, same as base16_to_binary / base64_to_binary
+            Ok(plain) => Value::Array(plain.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() failed: {}", self.id, e))),
+        }
+    }
+
+    /// `readDhParam(path)` — reads a PEM-encoded DH parameters file
+    /// (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string.
+    pub fn read_dh_param(&self, path: Value) -> Value {
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
+        let pem = match self.read_file(path.clone()) {
+            Value::Str(s) => s.to_string(),
+            _ => panic!("{}", crate::exchange_errors::exchange_error(format!("{} readDhParam() could not read the DH_param file: {}", self.id, stringify_param(&path)))),
+        };
+        let cleaned: String = pem
+            .lines()
+            .filter(|line| !line.starts_with("-----"))
+            .flat_map(|line| line.chars())
+            .filter(|c| !c.is_whitespace())
+            .collect();
+        let der = match STANDARD.decode(cleaned.as_bytes()) {
+            Ok(b) => b,
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} readDhParam() invalid base64 in the DH_param file: {}", self.id, e))),
+        };
+        fn fail_with(id: &str, msg: &str) -> ! {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{} readDhParam() {}", id, msg)))
+        }
+        let id = stringify_param(&self.id);
+        let fail = |msg: &str| fail_with(&id, msg);
+        let mut pos: usize = 0;
+        let read_byte = |pos: &mut usize| -> usize {
+            if *pos >= der.len() {
+                fail("unexpected end of the DH_param file");
+            }
+            let b = der[*pos] as usize;
+            *pos += 1;
+            b
+        };
+        let read_len = |pos: &mut usize| -> usize {
+            let mut len = read_byte(pos);
+            if len & 0x80 != 0 {
+                let n = len & 0x7f;
+                len = 0;
+                for _ in 0..n {
+                    len = (len << 8) | read_byte(pos);
+                }
+            }
+            len
+        };
+        let read_int = |pos: &mut usize| -> String {
+            if read_byte(pos) != 0x02 {
+                fail("expected INTEGER while reading DH_param file");
+            }
+            let len = read_len(pos);
+            if *pos + len > der.len() {
+                fail("unexpected end of the DH_param file");
+            }
+            let hex_value = hex::encode(&der[*pos..*pos + len]);
+            *pos += len;
+            match hex_value.strip_prefix("00") { // strip sign byte
+                Some(rest) => rest.to_string(),
+                None => hex_value,
+            }
+        };
+        if read_byte(&mut pos) != 0x30 {
+            fail("expected SEQUENCE while reading DH_param file");
+        }
+        read_len(&mut pos);
+        let prime = read_int(&mut pos);
+        read_int(&mut pos); // generator
+        Value::Str(prime.into())
+    }
+
+    /// `modPow(base, exponent, modulus)` — arguments may be ints, decimal or
+    /// 0x-prefixed hex strings; the result is a decimal string (the big-int form
+    /// `convert_to_big_int` keeps for values that overflow i64).
+    pub fn mod_pow(&self, base: Value, exponent: Value, modulus: Value) -> Value {
+        let b = value_to_biguint(&base);
+        let e = value_to_biguint(&exponent);
+        let m = value_to_biguint(&modulus);
+        match (b, e, m) {
+            (Some(b), Some(e), Some(m)) if m != num_bigint::BigUint::from(0u8) => {
+                Value::Str(b.modpow(&e, &m).to_str_radix(10).into())
+            }
+            _ => panic!("{}", crate::exchange_errors::exchange_error(format!("{} modPow() invalid arguments", self.id))),
+        }
+    }
+
+    /// `bigToBytes(value)` — big-endian two's complement bytes, same as java's
+    /// BigInteger.toByteArray () expected by IBKR.
+    pub fn big_to_bytes(&self, value: Value) -> Value {
+        let v = match value_to_biguint(&value) {
+            Some(v) => v,
+            None => panic!("{}", crate::exchange_errors::exchange_error(format!("{} bigToBytes() invalid value", self.id))),
+        };
+        let mut hex_value = v.to_str_radix(16);
+        if hex_value.len() % 2 == 1 {
+            hex_value = format!("0{}", hex_value);
+        }
+        if u8::from_str_radix(&hex_value[0..1], 16).unwrap_or(0) >= 8 {
+            hex_value = format!("00{}", hex_value); // prepend the sign byte
+        }
+        self.base16_to_binary(Value::Str(hex_value.into()), &[])
+    }
 
     // only the C#, Java and Go ports type-check an option value; here it passes through unchanged
     pub fn check_option_string(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
@@ -2617,13 +2769,37 @@ impl Exchange {
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
         Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
     }
+    /// Ensures the file path is a ccxt file inside the temp dir, so users would be safeguarded
+    pub fn ensure_whitelisted_file(&self, p: &Value) {
+        let raw = match p {
+            Value::Str(s) => s.to_string(),
+            other => stringify_param(other).into(),
+        };
+        let allowed_extensions: [&str; 2] = [".ccxtfile", ".pem"];
+        let path = std::path::Path::new(&raw);
+        let sanitized = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            match std::env::current_dir() {
+                Ok(cwd) => cwd.join(path),
+                Err(_) => panic!("invalid file path: {}", raw),
+            }
+        };
+        let sanitized_str = sanitized.to_string_lossy();
+        if allowed_extensions.iter().any(|ext| sanitized_str.ends_with(ext)) {
+            return;
+        }
+        panic!("invalid file path: {}, allowed extensions are: {}", raw, allowed_extensions.join(", "));
+    }
     pub fn exists_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
                 Ok(s) => Value::Str(s.into()),
@@ -2633,6 +2809,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),

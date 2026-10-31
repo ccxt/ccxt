@@ -6321,6 +6321,84 @@ func WithCancelTwapOrderParams(params map[string]any) CancelTwapOrderOptions {
 	}
 }
 
+type CreateTestOrderOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateTestOrderOptions func(opts *CreateTestOrderOptionsStruct)
+
+func WithCreateTestOrderPrice(price float64) CreateTestOrderOptions {
+	return func(opts *CreateTestOrderOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateTestOrderParams(params map[string]any) CreateTestOrderOptions {
+	return func(opts *CreateTestOrderOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchOrdersByStatusFilterOptionsStruct struct {
+	Symbol *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchOrdersByStatusFilterOptions func(opts *FetchOrdersByStatusFilterOptionsStruct)
+
+func WithFetchOrdersByStatusFilterSymbol(symbol string) FetchOrdersByStatusFilterOptions {
+	return func(opts *FetchOrdersByStatusFilterOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOrdersByStatusFilterSince(since int64) FetchOrdersByStatusFilterOptions {
+	return func(opts *FetchOrdersByStatusFilterOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchOrdersByStatusFilterLimit(limit int64) FetchOrdersByStatusFilterOptions {
+	return func(opts *FetchOrdersByStatusFilterOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchOrdersByStatusFilterParams(params map[string]any) FetchOrdersByStatusFilterOptions {
+	return func(opts *FetchOrdersByStatusFilterOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchMyTradesFromTransactionsOptionsStruct struct {
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchMyTradesFromTransactionsOptions func(opts *FetchMyTradesFromTransactionsOptionsStruct)
+
+func WithFetchMyTradesFromTransactionsSince(since int64) FetchMyTradesFromTransactionsOptions {
+	return func(opts *FetchMyTradesFromTransactionsOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchMyTradesFromTransactionsLimit(limit int64) FetchMyTradesFromTransactionsOptions {
+	return func(opts *FetchMyTradesFromTransactionsOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchMyTradesFromTransactionsParams(params map[string]any) FetchMyTradesFromTransactionsOptions {
+	return func(opts *FetchMyTradesFromTransactionsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchLedgerEntriesByIdsOptionsStruct struct {
 	Code   *string
 	Params *map[string]any

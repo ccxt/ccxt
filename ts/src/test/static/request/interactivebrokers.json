@@ -1,0 +1,235 @@
+{
+    "exchange": "interactivebrokers",
+    "skipKeys": ["acctIds", "cOID"],
+    "options": {
+        "consumer_key": "TEST1",
+        "accountId": "U3448646",
+        "liveSessionToken": "MDEyMzQ1Njc4OWFiY2RlZg==",
+        "liveSessionTokenExpiration": 9999999999999,
+		"signaturePemPath": "./private_signature.pem",
+		"encryptionPemPath": "./private_encryption.pem",
+		"dhParamPemPath": "./dhparam.pem"
+    },
+    "methods": {
+        "fetchPositionsForSymbol": [
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "crypto spot",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled%2Ccancelled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "default",
+                "method": "fetchStatus",
+                "url": "https://api.ibkr.com/v1/api/iserver/auth/status",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "crypto spot",
+                "method": "fetchMarkPrices",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=7635",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "crypto spot",
+                "method": "fetchLastPrices",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "crypto spot",
+                "method": "fetchBidsAsks",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=84%2C85%2C86%2C88",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot crypto buy market",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
+                "input": [
+                    "ETH/USD",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "cost": 50
+                    }
+                ],
+                "output": "{\"orders\":[{\"conid\":495759171,\"side\":\"BUY\",\"cashQty\":50,\"orderType\":\"MKT\",\"tif\":\"IOC\",\"cOID\":\"ccxt260c09d70ed54208aa36f3\",\"acctId\":\"U3448646\"}]}"
+            },
+            {
+                "disabled": true,
+                "description": "spot crypto sell limit",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/reply/177043b5-c95d-4809-b515-7357ed7ea4c7",
+                "input": [
+                    "ETH/USD",
+                    "limit",
+                    "sell",
+                    0.01,
+                    2200
+                ],
+                "output": "{\"confirmed\":true}"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "crypto spot",
+                "method": "fetchTicker",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "crypto spot",
+                "method": "fetchTickers",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot crypto",
+                "method": "fetchMyTrades",
+                "url": "https://api.ibkr.com/v1/api/pa/transactions",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": "{\"acctIds\":[\"U3448646\"],\"conids\":[495759171],\"currency\":\"USD\",\"days\":90}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=pending_submit%2Cpre_submitted%2Csubmitted%2Cpending_cancel%2Cwarn_state",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot crypto",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/ledger",
+                "input": [
+                    {
+                        "positions": false,
+                        "openOrders": false
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "spot without symbol",
+                "method": "cancelOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/468370477",
+                "input": [
+                    468370477
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}
