@@ -6526,7 +6526,7 @@ func (this *Binance) CheckNoStockSymbols(symbols []string, methodName string) {
 		var symbolMarket map[string]any = this.Market(symbols[i])
 		var stock *bool = this.SafeBool(symbolMarket, "stock", false)
 		if stock != nil && *stock {
-			panic(NotSupported(Add(Add(this.Id+" "+methodName+"() does not support tokenized stock symbols (", symbols[i]), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")))
+			panic(NotSupported(this.Id + " " + methodName + "() does not support tokenized stock symbols (" + symbols[i] + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead"))
 		}
 	}
 }

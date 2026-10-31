@@ -1145,10 +1145,10 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.InsertMissingCandles(sparse, timeframeInSeconds*1000, alignedSince, limitResolved))}
 	return nil
 }
-func (this *Bitopro) InsertMissingCandles(candles any, distanceInMs int64, since any, limit int64) []any {
+func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, since any, limit int64) []any {
 	// the exchange doesn't send zero volume candles so we emulate them instead
 	// otherwise sending a limit arg leads to unexpected results
-	var length int = GetArrayLength(candles)
+	var length int = len(candles)
 	if length == 0 {
 		return this.ToArray(candles)
 	}
@@ -1162,7 +1162,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distanceInMs int64, since
 		timestamp = since
 	}
 	var i any = 0
-	var candleLength int = GetArrayLength(candles)
+	var candleLength int = len(candles)
 	var resultLength int = 0
 	for (int64(resultLength) < limit) && (IsLessThan(i, candleLength)) {
 		var candle any = this.SafeList(candles, i, []any{})

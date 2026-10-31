@@ -212,7 +212,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var streamMarketIds []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
-		var symbol *string = ccxt.SafeStringPtr(symbolsResolved[i])
+		var symbol string = symbolsResolved[i]
 		var market map[string]any = this.Market(symbol)
 		var streamMarketId any = nil
 		if isGenerationTwo {

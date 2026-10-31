@@ -1187,11 +1187,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(responseList, market, since, limit))}
 	return nil
 }
-func (this *Bit2c) RemoveCommaFromValue(str string) any {
-	var newString any = ""
+func (this *Bit2c) RemoveCommaFromValue(str string) string {
+	var newString string = ""
 	var strParts []string = strings.Split(str, ",")
 	for i := 0; i < len(strParts); i++ {
-		newString = Add(newString, strParts[i])
+		newString += strParts[i]
 	}
 	return newString
 }
@@ -1232,7 +1232,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var timestamp *int64 = nil
 	var id *string = nil
-	var price any = nil
+	var price *string = nil
 	var amount *string = nil
 	var orderId any = nil
 	var fee map[string]any = nil
@@ -1245,7 +1245,8 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		timestamp = this.SafeTimestamp(trade, "ticks")
 		var rawPrice *string = this.SafeString(trade, "price")
 		if rawPrice != nil {
-			price = this.RemoveCommaFromValue(*rawPrice)
+			removeCommaFromValueText := this.RemoveCommaFromValue(*rawPrice)
+			price = &removeCommaFromValueText
 		}
 		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = strings.Split(*reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
@@ -1291,7 +1292,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		timestamp = this.SafeTimestamp(trade, "date")
 		id = this.SafeString(trade, "tid")
-		price = DerefScalar(this.SafeString(trade, "price"))
+		price = this.SafeString(trade, "price")
 		amount = this.SafeString(trade, "amount")
 		tradeMarket = this.SafeMarket(nil, market)
 		side = this.SafeValue(trade, "isBid")

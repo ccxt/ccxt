@@ -565,9 +565,9 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 		var isWrapped bool = strings.HasPrefix(*fullName, "Unit ") && strings.HasPrefix(*name, "U")
 		if isWrapped {
 			var parts []string = strings.Split(*name, "U")
-			var nameWithoutU any = ""
+			var nameWithoutU string = ""
 			for j := 0; j < len(parts); j++ {
-				nameWithoutU = Add(nameWithoutU, parts[j])
+				nameWithoutU = nameWithoutU + parts[j]
 			}
 			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {

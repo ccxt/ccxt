@@ -3735,7 +3735,7 @@ func (this *Bybit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	}
 	var code *string = this.SafeStringN(params, []any{"code", "currency", "baseCoin"})
 	var market map[string]any = nil
-	var parsedSymbols any = nil
+	var parsedSymbols []any = nil
 	var hasOptionSymbol bool = false
 	if symbols != nil {
 		parsedSymbols = []any{}
@@ -3767,7 +3767,7 @@ func (this *Bybit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 				}
 				hasOptionSymbol = true
 			}
-			AppendToArray(&parsedSymbols, market["symbol"])
+			parsedSymbols = append(parsedSymbols, market["symbol"])
 		}
 	}
 	var request map[string]any = map[string]any{}

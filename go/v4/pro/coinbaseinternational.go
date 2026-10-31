@@ -442,7 +442,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string
 	var trades []any = this.ParseTrades(data)
 	var tradesLength int = len(trades)
 	for i := 0; i < tradesLength; i++ {
-		this.MyTrades.Append(ccxt.GetValue(trades, i))
+		this.MyTrades.Append(ccxt.DerefScalar(trades[i]))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 }
@@ -626,7 +626,7 @@ func (this *Coinbaseinternational) HandleOrders(client any, message map[string]a
 	}
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
-		this.Orders.Append(ccxt.GetValue(orders, i))
+		this.Orders.Append(orders[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }
@@ -773,7 +773,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		this.Positions.(ccxt.Appender).Append(ccxt.GetValue(positions, i))
+		this.Positions.(ccxt.Appender).Append(ccxt.DerefScalar(positions[i]))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }
@@ -858,11 +858,9 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	var tickerSymbols []string = ccxt.ObjectKeys(tickers)
 	var tickerSymbolsLength int = len(tickerSymbols)
 	for i := 0; i < tickerSymbolsLength; i++ {
-		var symbol *string = ccxt.SafeStringPtr(tickerSymbols[i])
+		var symbol string = tickerSymbols[i]
 		var ticker map[string]any = ccxt.MapTyped(ccxt.GetValue(tickers, symbol))
-		if symbol != nil {
-			result[*symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol)))
-		}
+		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol)))
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}

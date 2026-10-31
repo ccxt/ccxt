@@ -4071,8 +4071,8 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	var futures []string = client.(ccxt.ClientInterface).FutureKeys()
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
-		var future *string = ccxt.SafeStringPtr(futures[i])
-		if (strings.Index(*future, "orders::") == 0) || (strings.Index(*future, "myTrades::") == 0) {
+		var future string = futures[i]
+		if (strings.Index(future, "orders::") == 0) || (strings.Index(future, "myTrades::") == 0) {
 			hashes = append(hashes, future)
 		}
 	}

@@ -3129,7 +3129,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 			}
 		}
 		for i := 0; i < len(tradeSymbols); i++ {
-			var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+"::", tradeSymbols[i]))
+			var symbolMessageHash string = messageHash + "::" + tradeSymbols[i]
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}

@@ -1912,7 +1912,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 			"ccxtStatus": "open",
 		}))
 	}
-	var parsed any = this.ParsePredictionOrders(ordersWithStatus, nil, since)
+	var parsed []any = this.ParsePredictionOrders(ordersWithStatus, nil, since)
 	var outcomeHandle any = nil
 	if outcome != nil {
 
@@ -2010,7 +2010,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			dedupedValues = append(dedupedValues, objectValue)
 		}
 	}
-	var parsed any = this.ParsePredictionOrders(dedupedValues, nil, since)
+	var parsed []any = this.ParsePredictionOrders(dedupedValues, nil, since)
 	var outcomeHandle any = nil
 	if outcome != nil {
 
@@ -2539,9 +2539,9 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {
-					var word *string = ccxt.SafeStringPtr(words[wi])
+					var word string = words[wi]
 					// `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-					if (word == nil || *word != "") && (strings.Index(haystack, *word) < 0) {
+					if (word != "") && (strings.Index(haystack, word) < 0) {
 						allWords = false
 						break
 					}

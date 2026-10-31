@@ -1149,7 +1149,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	var messageHashes []any = []any{}
 	var paramsCursor any = paramsUta
 	for i := 0; i < symbolsLength; i++ {
-		var symbol *string = ccxt.SafeStringPtr(symbolsNormalized[i])
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchOrderBookForSymbols", market, isStockOrUta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
@@ -1169,7 +1169,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		args[topicOrChannel] = channel
 		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
-		messageHashes = append(messageHashes, "orderbook:"+*symbol)
+		messageHashes = append(messageHashes, "orderbook:"+symbol)
 	}
 	if isStockOrUta {
 		ccxt.AddElementToObject(paramsCursor, "uta", true)
@@ -1355,10 +1355,10 @@ func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], clie
 	return nil
 }
 func (this *Bitget) HandleDelta(bookside any, delta any) {
-	var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
+	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	// we store the string representations in the orderbook for checksum calculation
 	// this simplifies the code for generating checksums as we do not need to do any complex number transformations
-	ccxt.AppendToArray(&bidAsk, delta)
+	bidAsk = append(bidAsk, delta)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func (this *Bitget) HandleDeltas(bookside any, deltas any) {

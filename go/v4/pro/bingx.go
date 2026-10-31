@@ -709,7 +709,7 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 		}
 	}
 	for j := 0; j < len(trades); j++ {
-		stored.Append(ccxt.GetValue(trades, j))
+		stored.Append(ccxt.DerefScalar(trades[j]))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

@@ -726,7 +726,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				}
 				var entry map[string]any = this.DeepExtend(map[string]any{
 					"id":             currencyId,
-					"symbol":         (*base + "/") + quote,
+					"symbol":         *base + "/" + quote,
 					"base":           base,
 					"quote":          quote,
 					"settle":         nil,

@@ -541,7 +541,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.Append(ccxt.GetValue(parsedTrades, j))
+		stored.Append(ccxt.DerefScalar(parsedTrades[j]))
 	}
 	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

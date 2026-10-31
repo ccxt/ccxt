@@ -481,7 +481,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && true {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var messageHash *string = ccxt.SafeStringPtr((channel + ".") + symbolsNormalized[i])
+			var messageHash string = channel + "." + symbolsNormalized[i]
 			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
@@ -871,7 +871,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	var side *string = this.SafeString(position, "side")
 	var cached []any = this.FilterBySymbolSinceLimit(cache, symbol, nil, nil, true)
 	for i := 0; i < len(cached); i++ {
-		var previous any = ccxt.GetValue(cached, i)
+		var previous any = ccxt.DerefScalar(cached[i])
 		var previousSide *string = this.SafeString(previous, "side")
 		var previousContracts *string = this.SafeString(previous, "contracts")
 		var isOpposite bool = (side != nil) && (previousSide != nil) && (previousSide != side && (previousSide == nil || side == nil || *previousSide != *side))
@@ -1125,7 +1125,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			for i := 0; i < len(symbolsNormalized); i++ {
-				var messageHash *string = ccxt.SafeStringPtr((channel + ".") + symbolsNormalized[i])
+				var messageHash string = channel + "." + symbolsNormalized[i]
 				messageHashes = append(messageHashes, messageHash)
 			}
 		} else {

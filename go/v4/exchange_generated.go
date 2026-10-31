@@ -538,7 +538,7 @@ func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optiona
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
 	for i := 0; i < GetArrayLength(deltas); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(this.SafeValue(deltas, i), priceKey, amountKey, countOrIdKey)
+		var bidAsk []any = this.ParseOrderBookBidAsk(this.SafeValue(deltas, i), priceKey, amountKey, countOrIdKey)
 		(bookSide.(*OrderBookSide)).StoreArray(bidAsk)
 	}
 }
@@ -2242,7 +2242,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency map[string]any) map[str
 	var length int = len(keys)
 	if length != 0 {
 		for i := 0; i < length; i++ {
-			var key *string = SafeStringPtr(keys[i])
+			var key string = keys[i]
 			var network map[string]any = SafeMapTyped(networks, key)
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
@@ -7806,8 +7806,8 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	var currencyCode *string = this.SafeString(currency, "code")
 	for i := 0; i < numNetworks; i++ {
-		var network *string = SafeStringPtr(networkKeys[i])
-		if network == currencyCode || (network != nil && currencyCode != nil && *network == *currencyCode) {
+		var network string = networkKeys[i]
+		if currencyCode != nil && *currencyCode == network {
 			AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), networkKeys[i]), "withdraw"))
 			AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), networkKeys[i]), "deposit"))
 		}

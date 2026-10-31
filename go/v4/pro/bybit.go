@@ -2212,7 +2212,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
+		var currentMessageHash string = "myTrades:" + keys[i]
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -2968,7 +2968,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(symbolsArray); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", symbolsArray[i]))
+		var currentMessageHash string = "orders:" + symbolsArray[i]
 		client.(ccxt.ClientInterface).Resolve(orders, currentMessageHash)
 	}
 	var messageHash string = "orders"

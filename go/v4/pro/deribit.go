@@ -732,7 +732,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	var parsed []any = this.ParseTrades(trades)
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
-		var trade any = ccxt.GetValue(parsed, i)
+		var trade any = ccxt.DerefScalar(parsed[i])
 		cachedTrades.Append(trade)
 		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {
@@ -1090,7 +1090,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	}
 	var cachedOrders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(orders); i++ {
-		cachedOrders.Append(ccxt.GetValue(orders, i))
+		cachedOrders.Append(orders[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }

@@ -1557,7 +1557,7 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 	}
 	var parsedTrades []any = this.ParseTrades(result)
 	for i := 0; i < len(parsedTrades); i++ {
-		var trade any = ccxt.GetValue(parsedTrades, i)
+		var trade any = ccxt.DerefScalar(parsedTrades[i])
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		var cachedTrades ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if cachedTrades == nil {
@@ -1921,7 +1921,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	var parsed []any = this.ParseTrades(result)
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
-		var trade any = ccxt.GetValue(parsed, i)
+		var trade any = ccxt.DerefScalar(parsed[i])
 		cachedTrades.Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
@@ -2563,7 +2563,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(hashPrefix+":", keys[i]))
+		var messageHash string = hashPrefix + ":" + keys[i]
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, hashPrefix)

@@ -274,7 +274,7 @@ func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 }
 func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }

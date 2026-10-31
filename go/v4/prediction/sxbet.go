@@ -3203,8 +3203,8 @@ func (this *Sxbet) HandleTextMessage(client any, message any) {
 	var lines []string = ccxt.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
-		var line *string = ccxt.SafeStringPtr(lines[i])
-		if len(*line) > 0 {
+		var line string = lines[i]
+		if len(line) > 0 {
 			var parsed any = ccxt.JsonParse(line)
 			this.HandleCentrifugoFrame(client, parsed)
 		}
@@ -3412,7 +3412,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	var timestamp int64 = this.Milliseconds()
 	var watchedSymsLength int = len(watchedSyms)
 	for i := 0; i < watchedSymsLength; i++ {
-		var sym *string = ccxt.SafeStringPtr(watchedSyms[i])
+		var sym string = watchedSyms[i]
 		if this.SafeString(watchedBooks, sym) != marketHash && (this.SafeString(watchedBooks, sym) == nil || marketHash == nil || *this.SafeString(watchedBooks, sym) != *marketHash) {
 			continue
 		}
@@ -3423,9 +3423,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
 		if orderbook == nil {
 			orderbook = this.OrderBook(map[string]any{})
-			if sym != nil {
-				this.Orderbooks[*sym] = orderbook
-			}
+			this.Orderbooks[sym] = orderbook
 		}
 		var bookSnapshot map[string]any = map[string]any{
 			"bids":      this.SafeList(sides, "bids", []any{}),
@@ -3575,14 +3573,14 @@ func (this *Sxbet) HandleTicker(client any, rows []any) {
 		}
 		var watchedSymsLength int = len(watchedSyms)
 		for j := 0; j < watchedSymsLength; j++ {
-			var sym *string = ccxt.SafeStringPtr(watchedSyms[j])
+			var sym string = watchedSyms[j]
 			if this.SafeString(watchedTickers, sym) != marketHash && (this.SafeString(watchedTickers, sym) == nil || marketHash == nil || *this.SafeString(watchedTickers, sym) != *marketHash) {
 				continue
 			}
 			var outcomeObj map[string]any = this.Outcome(sym)
 			var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 			this.Tickers.Store(sym, ticker)
-			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
+			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+sym)
 		}
 	}
 }

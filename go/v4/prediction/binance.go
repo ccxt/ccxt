@@ -1473,7 +1473,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	// }
 	//
 	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
-	var parsedOrders any = this.ParsePredictionOrders(orders, outcomeObj, since)
+	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
 	return nil
@@ -1608,7 +1608,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	// }
 	//
 	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
-	var parsedOrders any = this.ParsePredictionOrders(orders, outcomeObj, since)
+	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
 	return nil

@@ -2520,11 +2520,11 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var trades any = this.ParseTrades(this.SafeList(order, "trades", []any{}), marketResolved, nil, nil, map[string]any{
+	var trades []any = this.ParseTrades(this.SafeList(order, "trades", []any{}), marketResolved, nil, nil, map[string]any{
 		"order": id,
 		"type":  typeVar,
 	})
-	var numTrades int = GetArrayLength(trades)
+	var numTrades int = len(trades)
 	if numTrades > 0 {
 		// the timestamp in fetchOrder trades is missing
 		var lastTrade map[string]any = SafeMapTyped(trades, numTrades-1)

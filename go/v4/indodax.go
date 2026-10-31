@@ -1281,7 +1281,7 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	}
 	var response map[string]any = r1.Value
 	var historyResult map[string]any = SafeMapTyped(response, "return")
-	var orders any = this.ParseOrders(historyResult["orders"], market)
+	var orders []any = this.ParseOrders(historyResult["orders"], market)
 	orders = this.FilterBy(orders, "status", "closed")
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}

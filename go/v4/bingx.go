@@ -7687,13 +7687,8 @@ func (this *Bingx) ParseParams(params map[string]any) any {
 	}
 	var rawKeysLength int = len(rawKeys)
 	for i := 0; i < rawKeysLength; i++ {
-		var key *string = SafeStringPtr(rawKeys[i])
-		var value any = func() any {
-			if key == nil {
-				return nil
-			}
-			return sortedParams[*key]
-		}()
+		var key string = rawKeys[i]
+		var value any = sortedParams[key]
 		if IsArray(value) {
 			var arrStr string = "["
 			for j := 0; j < GetArrayLength(value); j++ {
@@ -8441,13 +8436,8 @@ func (this *Bingx) CustomEncode(params map[string]any) any {
 	var adjustedValue string
 	var result any = nil
 	for i := 0; i < rawKeysLength; i++ {
-		var key *string = SafeStringPtr(rawKeys[i])
-		var value any = func() any {
-			if key == nil {
-				return nil
-			}
-			return sortedParams[*key]
-		}()
+		var key string = rawKeys[i]
+		var value any = sortedParams[key]
 		if IsArray(value) {
 			var arrStr string
 			for j := 0; j < GetArrayLength(value); j++ {
@@ -8471,9 +8461,9 @@ func (this *Bingx) CustomEncode(params map[string]any) any {
 			value = adjustedValue
 		}
 		if i == 0 {
-			result = Add(*key+"=", value)
+			result = Add(key+"=", value)
 		} else {
-			result = Add(result, Add("&"+*key+"=", value))
+			result = Add(result, Add("&"+key+"=", value))
 		}
 	}
 	return result

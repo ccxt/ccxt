@@ -1404,9 +1404,9 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySymbolSinceLimit(trades, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Mercado) OrdersToTrades(orders any) any {
+func (this *Mercado) OrdersToTrades(orders []any) any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var trades []any = SafeListTyped(this.SafeValue(orders, i), "trades")
 		for y := 0; y < len(trades); y++ {
 			result = append(result, trades[y])

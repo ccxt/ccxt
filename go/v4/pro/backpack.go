@@ -632,7 +632,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -728,7 +728,7 @@ func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -848,7 +848,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -1806,7 +1806,7 @@ func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 }
 func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
