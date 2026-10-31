@@ -103,6 +103,34 @@ export function installHx11w8CorParams (goTranspiler: any) {
                 && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
         };
     }
+
+    // hx11 w8 printer-go-aster-pro-getaccounttypefromurl: pro/aster only, keyed by class + method (never the global
+    // string table). Every caller passes `client.url` of a `client: Client` parameter, which prints GetUrl() string.
+    const upstreamNative = goTranspiler.goNativeParameterTypeOf;
+    if (typeof upstreamNative === 'function') {
+        goTranspiler.goNativeParameterTypeOf = function (this: any, param: any) {
+            const result = upstreamNative.call (this, param);
+            const fn: any = param?.parent;
+            if ((result !== undefined) || (fn?.kind !== ts.SyntaxKind.MethodDeclaration) || (fn.name?.text !== 'getAccountTypeFromUrl')
+                || (this.goEnclosingClassName (fn) !== 'aster') || (fn.parameters.indexOf (param) !== 0) || (param.initializer !== undefined)
+                || !/[\\/]pro[\\/]aster\.ts$/.test (fn.getSourceFile ().fileName) || (this.goRequiredStringParameterType (param) !== 'string')) {
+                return result;
+            }
+            const calls = this.goSameFileCallsOf (fn, 'getAccountTypeFromUrl');
+            const tree = this.goTsSrcTree (fn.getSourceFile ());
+            const otherFile = (tree?.callIndex.get ('getAccountTypeFromUrl') ?? []).some ((site: any) => this.goTsSrcFileDerivesFrom (tree, site.file, 'aster') && (site.file !== tree.relativeOf.get (path.resolve (fn.getSourceFile ().fileName))));
+            const clientUrl = (arg: any) => {
+                const decl = (arg?.kind === ts.SyntaxKind.PropertyAccessExpression && arg.name.text === 'url' && arg.expression.kind === ts.SyntaxKind.Identifier)
+                    ? this.checkerOrUndefined ()?.getSymbolAtLocation (arg.expression)?.valueDeclaration?.resolve?.() : undefined;
+                return (decl?.kind === ts.SyntaxKind.Parameter) && (decl.type?.getText () === 'Client');
+            };
+            if (otherFile || (calls.length === 0) || !calls.every ((call: any) => clientUrl (call.arguments?.[0]))) {
+                return result;
+            }
+            return (this.goLocalIsSafeToType (fn.body, param, param.name.text, 'string')
+                && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
+        };
+    }
     const upstream = goTranspiler.goParameterCallSitesPassType;
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
