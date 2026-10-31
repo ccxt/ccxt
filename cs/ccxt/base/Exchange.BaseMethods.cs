@@ -8063,7 +8063,7 @@ public partial class BaseExchange
 
     public async virtual Task loadMarketsAndSignIn()
     {
-        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
+        await Task.WhenAll(new Task[] {this.loadMarkets(), this.signIn()});
     }
 
     public virtual Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
