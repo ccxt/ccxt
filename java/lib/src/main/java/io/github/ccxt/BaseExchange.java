@@ -1577,11 +1577,11 @@ public class BaseExchange {
         return Time.ymdhms(ts, infix);
     }
 
-    public Object ymd(Object ts) {
+    public String ymd(Object ts) {
         return Time.ymd(ts);
     }
 
-    public Object ymd(Object ts, Object infix) {
+    public String ymd(Object ts, Object infix) {
         return Time.ymd(ts, infix);
     }
 
