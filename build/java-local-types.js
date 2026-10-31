@@ -543,6 +543,8 @@ export function patchJavaBytesHelperLocals (transpiler) {
 // the named box on every path).
 const LOCAL_THIS_RETURN_TYPES = {
     'parse8601': { type: 'Long' },
+    // BaseExchange.crc32 is declared Long (unsigned or signed 32-bit value on every path)
+    'crc32': { type: 'Long' },
     // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
     'parseNumber': { type: 'Double' },
     'iso8601': { type: 'String' },
