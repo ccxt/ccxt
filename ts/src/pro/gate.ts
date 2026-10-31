@@ -2353,8 +2353,9 @@ export default class gate extends gateRest {
         const keys = Object.keys (findBy);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
+            const value = findBy[key];
             if (url.indexOf (key) >= 0) {
-                return this.safeString (findBy, key);
+                return value;
             }
         }
         return 'spot';
