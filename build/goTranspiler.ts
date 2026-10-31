@@ -32,7 +32,6 @@ import { hx11w9MyTradesCachePass, hx11w9MyTradesCacheCheck } from './hx11w9-mytr
 import { hx11w9TriggerOrdersCachePass, hx11w9TriggerOrdersCacheCheck } from './hx11w9-triggerorders-cache.js';  // hx11 w9: typed ws trigger orders cache
 import { hx11w9TradesNilLocalsPass, hx11w9TradesNilLocalsCheck } from './hx11w9-trades-nil-locals.js';  // hx11 w9: nil-declared trades locals typed WsArrayCache
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
-import { hx10w2G01MapReads, hx10w2G01Check } from './hx10w2-G01.js';
 import { hx10w10Gp26TypedReads, hx10w10Gp26Check } from './hx10w10-GP26.js';  // hx10 wave-10 GP26: GetValue on a declared map local
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
@@ -43,7 +42,6 @@ import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx11IsEqualBoolMethod, hx11IsEqualBoolMethodCheck, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
 import { hx10OG02Pass, hx10OG02Check } from './hx10w4-OG02.js';  // hx10 wave-4 OG02: market tables published immutably
-import { hx10w2G05, hx10w2G05Check } from './hx10w2-G05.js';  // hx10w2 G05
 import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
 import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
@@ -1873,7 +1871,15 @@ function goTextReadIsHazard (maskedLine: string, name: string): boolean {
 // Container helpers on a local/parameter printed `[]any`/`[]string`/`map[string]any` (the only
 // declaration of that name in its top-level func) become native Go where the helper adds nothing:
 // len(x); x["k"] as the first argument of a helper that derefs it at entry; x["k"] = v on a proven non-nil map.
-const GO_ACCESS_DEREF_CONSUMERS = [ 'SafeStringPtr', 'IsEqual', 'EvalTruthy', 'IsString', 'ToString', 'ParseInt', 'Add', 'GetValue' ];
+// argument count that carries the default of each pointer-returning Safe* accessor (go/v4/exchange_safe.go)
+const G10K_DEFAULT_ARG_COUNT: { [name: string]: number } = {
+    'this.SafeString': 3, 'this.SafeInteger': 3, 'this.SafeNumber': 3, 'this.SafeBool': 3,
+    'this.SafeStringLower': 3, 'this.SafeStringUpper': 3, 'this.SafeStringN': 3, 'this.SafeIntegerN': 3,
+    'this.SafeNumberN': 3, 'this.SafeBoolN': 3, 'this.SafeString2': 4, 'this.SafeInteger2': 4,
+    'this.SafeNumber2': 4, 'this.SafeBool2': 4, 'this.SafeStringLower2': 4, 'this.SafeStringUpper2': 4,
+};
+
+const GO_ACCESS_DEREF_CONSUMERS = [ 'SafeStringPtr', 'IsEqual', 'EvalTruthy', 'IsString', 'IsArray', 'ToString', 'ParseInt', 'Add', 'GetValue' ];
 const GO_ACCESS_NON_NIL_MAP_INIT = /^(?:map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\()/;
 const GO_ACCESS_SCALAR_TYPES = [ 'string', 'int64', 'float64', 'bool', 'int' ];
 // value types derefScalar passes through unchanged (it only unwraps pointers)
@@ -2064,6 +2070,10 @@ function goAnyObjectKeysLength (lines: string[], masked: string[], start: number
 function goAnyObjectKeysLengthSelfTest (): string[] {
     const problems: string[] = [];
     const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
+    const arrayRead = run ('\tvar m map[string]any = nil\n\tif IsArray(GetValue(m, "data")) {\n\t}\n');
+    if (!arrayRead.includes ('IsArray(m["data"])')) {
+        problems.push ('goAnyObjectKeysLength: IsArray derefs its argument, so the map index reads the same: ' + arrayRead);
+    }
     const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
     if (!ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') || ifForm.includes ('ObjectKeys')) {
         problems.push ('goAnyObjectKeysLength: if form: ' + ifForm);
@@ -5350,7 +5360,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (goGofmtNestedParens (hx4G28IsEqualSafe (g10kIsEqualNative (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))))))));  // hx4 G28
-    content = hx10w2G01MapReads (content);  // hx10 G01
     content = g10kGvMapReads (content);
     content = x02CurrencyRows (content); // hx4 X02
     // overwriteFile() already opens+truncates+writes the file; the extra
@@ -5361,7 +5370,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? hx11w8AsyncInt64Value (content) : content;  // hx11 w8: typed async int64 value
     content = path.endsWith ('.go') ? hx11w8AnySliceToList (content) : content;  // hx11 w8: ToList-fed []any locals
     content = path.endsWith ('.go') ? hx11w8JsonOrigin (content) : content;  // hx11 w8: JSON-origin list element reads
-    content = path.endsWith ('.go') ? hx10w2G05 (content) : content;  // hx10w2 G05: arith + deref on block-scoped types
     content = path.endsWith ('.go') ? hx4G33IsEqual (content) : content;  // hx4 G33
     content = path.endsWith ('.go') ? hx4G38Pass (content) : content;  // hx4 G38
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
@@ -10156,7 +10164,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g05check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g05check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12402,7 +12410,47 @@ function g10kSoleArg (text: string, name: RegExp): string | undefined {
     return ((args !== undefined) && (args.length === 1)) ? args[0] : undefined;
 }
 
-function g10kRewriteLine (line: string): string | undefined {
+function g10kLiteralDefaultAccessor (call: string, callee: string, own: Set<string>): boolean {
+    const count = G10K_DEFAULT_ARG_COUNT[callee];
+    if ((count === undefined) || own.has (callee.slice (5))) {
+        return false;
+    }
+    const args = goCallArgsSpanningText (call, callee.length);
+    if ((args === undefined) || (args.length < count)) {
+        return false;
+    }
+    return /^(?:-?\d+(?:\.\d+)?|"(?:[^"\\\n]|\\.)*"|true|false)$/.test (args[args.length - 1]);
+}
+
+// the offset of a trailing `// comment` that sits outside every string/rune literal, else -1
+function g10kTrailingCommentAt (line: string): number {
+    let quote = '';
+    for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (quote !== '') {
+            i += ((c === '\\') && (quote !== '`')) ? 1 : 0;
+            quote = (c === quote) ? '' : quote;
+        } else if ((c === '"') || (c === '`') || (c === "'")) {
+            quote = c;
+        } else if ((c === '/') && (line[i + 1] === '/')) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// a line with a trailing comment only takes the in-place `(*call)` form, which keeps the comment
+function g10kRewriteLine (line: string, own: Set<string>): string | undefined {
+    const at = g10kTrailingCommentAt (line);
+    if (at < 0) {
+        return g10kRewriteCode (line, own);
+    }
+    const code = line.slice (0, at).replace (/\s+$/, '');
+    const out = g10kRewriteCode (code, own);
+    return ((out !== undefined) && !out.includes ('\n')) ? out + line.slice (code.length) : undefined;
+}
+
+function g10kRewriteCode (line: string, own: Set<string>): string | undefined {
     const m = /^(\t*)(?:(var (\w+) (any) = )|((\w+) = )|(return ))((?:ccxt\.)?DerefScalar\(.*\))$/.exec (line);
     if (!m || (m[1] === '') || (m[6] === '_')) {
         return undefined;
@@ -12420,6 +12468,12 @@ function g10kRewriteLine (line: string): string | undefined {
     }
     const head = 'if derefPtr := ' + inner + '; derefPtr != nil {';
     const value = '*derefPtr';
+    // an accessor with a literal default answers a fresh non-nil pointer on every path, so it
+    // takes no temporary and has no nil branch: the pointee is read in place
+    if (g10kLiteralDefaultAccessor (inner, accessor[1], own)) {
+        const read = '(*' + inner + ')';
+        return (ret !== undefined) ? ind + 'return ' + read : ((decl !== undefined) ? ind + 'var ' + name + ' ' + declType + ' = ' + read : ind + name + ' = ' + read);
+    }
     // the operand must not read the name it writes (a `var` would shadow it) nor the temporary
     if (((name !== undefined) && new RegExp ('\\b' + name + '\\b').test (inner)) || /\bderefPtr\b/.test (inner)) {
         return undefined;
@@ -12437,15 +12491,27 @@ export function g10kNativeDerefs (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go') || ((content.indexOf ('DerefScalar(') < 0) && (content.indexOf ('Float64PtrTyped(') < 0))) {
         return content;
     }
-    return content.split ('\n').map ((line) => g10kRewriteLine (line) ?? line).join ('\n');
+    // an accessor the file declares itself may answer nil: only the base method is trusted
+    const own = new Set<string> ((content.match (/^func \(this \*\w+\) Safe\w+\(/gm) ?? []).map ((d: string) => d.replace (/^func \(this \*\w+\) /, '').replace (/\($/, '')));
+    return content.split ('\n').map ((line) => g10kRewriteLine (line, own) ?? line).join ('\n');
 }
 
 export function g10kDerefSelfTest (): string[] {
     const problems: string[] = [];
     const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('G10K-deref: ' + msg); } };
     const f = (text: string) => g10kNativeDerefs ('x.go', text);
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "s", "d"))') === '\tvar s any = (*this.SafeString(m, "s", "d"))', 'literal default, key named like the local');
+    ok (f ('\tvar s any = DerefScalar(this.SafeInteger(m, "k", 2)) // cross (default)') === '\tvar s any = (*this.SafeInteger(m, "k", 2)) // cross (default)', 'literal default keeps its trailing comment');
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "//", "d")) // c') === '\tvar s any = (*this.SafeString(m, "//", "d")) // c', 'a // inside a literal is no comment');
+    ok (f ('\treturn DerefScalar(this.SafeInteger(m, "k", 1))') === '\treturn (*this.SafeInteger(m, "k", 1))', 'literal default return');
+    ok (f ('\t\ts = DerefScalar(this.SafeBool2(m, "a", "b", false))') === '\t\ts = (*this.SafeBool2(m, "a", "b", false))', 'two-key literal default');
+    ok (f ('\ts = DerefScalar(this.SafeString(m, "k", d))').includes ('derefPtr'), 'a non-literal default keeps the nil branch');
+    ok (f ('\ts = DerefScalar(this.SafeString(s, "k", "d"))') === '\ts = (*this.SafeString(s, "k", "d"))', 'a literal default needs no temporary');
+    ok (f ('\ts = DerefScalar(this.SafeString(s, "k"))') === '\ts = DerefScalar(this.SafeString(s, "k"))', 'a read of the written name without a default keeps the wrap');
+    ok (f ('\ts = DerefScalar(this.SafeString(m, "s"))') === '\ts = DerefScalar(this.SafeString(m, "s"))', 'a key spelled like the written name keeps the wrap');
+    ok (f ('func (this *X) SafeString(a any, b any, c ...any) *string {\n\treturn nil\n}\n\ts = DerefScalar(this.SafeString(m, "k", "d"))').includes ('derefPtr'), 'a file-local accessor keeps the nil branch');
     ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "k"))') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil {\n\t\ts = *derefPtr\n\t}', 'var form');
-    ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k", 2))') === '\t\tif derefPtr := this.SafeInteger(m, "k", 2); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
+    ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k"))') === '\t\tif derefPtr := this.SafeInteger(m, "k"); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
     ok (f ('\treturn DerefScalar(this.SafeBool(m, "k"))') === '\tif derefPtr := this.SafeBool(m, "k"); derefPtr != nil {\n\t\treturn *derefPtr\n\t}\n\treturn nil', 'return form');
     const kept = [
         '\tvar s any = DerefScalar(data[i])',
