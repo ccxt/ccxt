@@ -317,6 +317,10 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'prepareMessage', 'priceToPrecision', 'scaleNumber', 'shortenSlug', 'signCancelAll', 'signClobOrder',
     'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol', 'toOrderbookWei',
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
+    // hx11 w9: extended/gate/lighter/nado string producers
+    'getExtendedStarkAmount', 'getExtendedDecimalToBase16',
+    'getExtendedOrderMsgHash', 'getExtendedWithdrawalMsgHash', 'getExtendedTransferMsgHash',
+    'getMarketTypeByUrl', 'createAuth', 'removeMarketSuffix', 'lighterCreateAuthToken',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====

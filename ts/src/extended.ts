@@ -2494,7 +2494,7 @@ export default class extended extends Exchange {
     getExtendedStarkAmount (amount: string, resolution: Int, roundUp: boolean = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
-        let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        let result: string = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (roundUp && Precise.stringGt (precise, result)) {
             result = Precise.stringAdd (result, '1') as string;
         }
