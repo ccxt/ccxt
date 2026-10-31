@@ -3242,6 +3242,15 @@ function isProvablyOfType (printer, node, javaType, selfName) {
 // `+` is accepted only when the direct right operand is a provably non-null String and no
 // deeper add of the same left spine has a possibly-numeric right operand.
 
+// an identifier whose printed Java declaration is already `String` (a `String amount` local)
+function printedStringDeclaredIdentifier (printer, node) {
+    try {
+        return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 // true when the printed Java for `node` is statically a String (or null): literals, the
 // `undefined`/self identifiers, parenthesized/conditional combos, a `+` chain with a
 // statically-String left operand (add(String, ..) -> String), a plain helper call and the
@@ -3257,7 +3266,7 @@ function isStaticallyStringExpression (printer, node, selfName) {
         case ts.SyntaxKind.NullKeyword:
             return true;
         case ts.SyntaxKind.Identifier:
-            return node.text === 'undefined' || node.text === selfName;
+            return node.text === 'undefined' || node.text === selfName || printedStringDeclaredIdentifier (printer, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return isStaticallyStringExpression (printer, node.expression, selfName);
         case ts.SyntaxKind.ConditionalExpression:
