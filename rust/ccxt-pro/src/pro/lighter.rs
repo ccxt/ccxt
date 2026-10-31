@@ -1672,15 +1672,15 @@ impl LighterCore {
         //    }
         //
         let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if channel.as_str().unwrap_or("").contains("user_stats:") {
-            type_var = Value::Str("swap".into());
+            type_var = "swap".to_string();
         }
-        let mut balance: indexmap::IndexMap<String, Value> = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
+        let mut balance: indexmap::IndexMap<String, Value> = self.safe_dict(self.balance.clone(), Value::from(type_var.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        if (type_var.as_str() == Some("spot")) {
+        if (Some(type_var.as_str()) == Some("spot")) {
             let mut assets: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1716,9 +1716,9 @@ impl LighterCore {
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         balance.insert("timestamp".into(), Value::from(timestamp));
         balance.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
-        { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, type_var.clone()]).map(Value::from).unwrap_or(Value::Null);
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.clone(), __be_tmp); } }
+        let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, Value::from(type_var.clone())]).map(Value::from).unwrap_or(Value::Null);
+        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
         return Value::Bool(true);
 
     Value::Null

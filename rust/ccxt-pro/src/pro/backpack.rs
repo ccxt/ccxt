@@ -680,11 +680,11 @@ impl BackpackCore {
                 }
             }  else if messageHash.as_str().unwrap_or("").contains("candles") {
                 let mut splitHashes: Value = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-                let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
+                let mut symbol: Option<String> = self.safe_string_opt(splitHashes.clone(), Value::Int(2), &[]);
                 let mut timeframe: Value = self.safe_string(splitHashes, Value::Int(3), &[]);
-                if (symbol != Value::Null) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                        remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
+                if (symbol.is_some()) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+                        remove(&mut get_value(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), &timeframe);
                     }
                 }
             }  else if messageHash.as_str().unwrap_or("").contains("orderbook") {

@@ -4586,15 +4586,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < (historicalOrders.len() as i64) } {
             let mut rawOrder: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_dict_k(rawOrder.clone(), "order", &[rawOrder.clone()]);
-            let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
-            if (oid != Value::Null) {
-                if !(matches!((&deduplicatedByOid, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder.clone()); }
+            let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
+            if (oid.is_some()) {
+                if !(matches!((&deduplicatedByOid, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), rawOrder.clone()); }
                 }  else {
-                    let mut existingTimestamp: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
+                    let mut existingTimestamp: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]);
                     if (currentTimestamp != Value::Null) && ((existingTimestamp == Value::Null) || currentTimestamp.as_f64().unwrap_or(f64::NAN) > existingTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder); }
+                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), rawOrder); }
                     }
                 }
             }

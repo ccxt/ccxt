@@ -3715,7 +3715,7 @@ pub trait ExchangeBase:
                 }
                 let mut rateKey: Value = (if (rate == Value::Null) { Value::Str("".into()) } else { rate.clone() });
                 if (in_op(&(if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &rateKey)) {
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); };
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); }
                 }  else {
                     let mut newRateFee: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -9695,17 +9695,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_181: bool = true;
                 while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (symbolsAndTimeframes.len() as i64) } {
                 let mut symbolAndTimeFrame: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
+                let mut symbol: Option<String> = self.safe_string_opt(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
                 let mut timeframe: Value = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]);
-                if (symbol == Value::Null) {
+                if (symbol.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a symbol argument".into()))));
                 }
                 if (timeframe == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
-                if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                        remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
+                if (matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+                        remove(&mut get_value(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), &timeframe);
                     }
                 }
             }

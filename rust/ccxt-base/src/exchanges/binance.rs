@@ -11137,7 +11137,7 @@ impl BinanceCore {
                 idMarketType = Value::Str("inverse".into());
             }
         }
-        let mut defaultId: String = "x-xcKtGhcu".to_string();
+        let mut defaultId: String = "x-xcKtGhcu".to_string(); // inverse, option
         if (idMarketType.as_str() == Some("spot")) || (idMarketType.as_str() == Some("margin")) {
             defaultId = "x-TKT5PX2F".to_string();
         }  else if (idMarketType.as_str() == Some("future")) || (idMarketType.as_str() == Some("swap")) {

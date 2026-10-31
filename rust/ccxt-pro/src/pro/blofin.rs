@@ -1041,7 +1041,7 @@ impl BlofinCore {
         //         data: <same object as shown in REST example>,
         //     }
         //
-        let mut marketType: Value = Value::Str("swap".into()); // for now
+        let mut marketType: String = "swap".to_string(); // for now
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance[marketType], and Client.resolve is a no-op
@@ -1049,10 +1049,10 @@ impl BlofinCore {
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        { let __be_tmp = self.safe_dict(self.balance.clone(), marketType.clone(), &[Value::Map({
+        { let __be_tmp = self.safe_dict(self.balance.clone(), Value::from(marketType.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
         let mut parsed: Value = self.parse_ws_balance(message);
         let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
@@ -1065,15 +1065,15 @@ impl BlofinCore {
                 continue;
             }
             if let Value::Dict(__bf03d0) = &mut self.balance {
-                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&marketType)).or_insert(Value::Null);
+                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(marketType.clone()).or_insert(Value::Null);
                 if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (parsed.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 }
             }
         }
         }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), marketType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), __be_tmp); } }
+        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", marketType, Value::Str(":balance".into())).into());
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), marketType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
 }
 
     pub fn parse_ws_balance(&self, mut message: Value) -> Value {
@@ -1627,7 +1627,7 @@ impl BlofinCore {
 })]));
             m
         });
-        let mut marketType: String = "swap".to_string();
+        let mut marketType: String = "swap".to_string(); // for now
         let mut typeUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

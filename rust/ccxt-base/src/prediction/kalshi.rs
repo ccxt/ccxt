@@ -1698,11 +1698,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1262: bool = true;
                 while { if !__for_first_1262 { i += 1; } __for_first_1262 = false; i < (rawMarkets.len() as i64) } {
                 let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut marketTicker: Value = self.safe_string_k(raw.clone(), "ticker", &[]);
-                if (marketTicker == Value::Null) || !(matches!((&outcomesByTicker, &marketTicker), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                let mut marketTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "ticker", &[]);
+                if (marketTicker.is_none()) || !(matches!((&outcomesByTicker, &marketTicker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByTicker.as_map(), marketTicker.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByTicker.as_map(), marketTicker.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1261: bool = true;

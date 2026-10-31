@@ -735,8 +735,8 @@ impl BitrueCore {
             let mut marketId: Value = self.safe_string_upper(parts, Value::Int(1), &[]);
             market = self.safe_market(&[marketId]);
         }
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_string_k_opt(market, "symbol", &[]);
+        if (symbol.is_none()) {
             return;
         }
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
@@ -750,18 +750,18 @@ impl BitrueCore {
             let mut rawBuys: Value = self.safe_list_k(tick, "buys", &[Value::from(vec![])]);
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks, symbol.clone()));
-                    m.insert("buys".to_string(), self.parse_contract_bids_asks(rawBuys, symbol.clone()));
+                    m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("buys".to_string(), self.parse_contract_bids_asks(rawBuys, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
                 m
             });
         }
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut snapshot: Value = self.parse_order_book(parseable, symbol.clone(), &[timestamp, Value::Str("buys".into()), Value::Str("asks".into())]);
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut snapshot: Value = self.parse_order_book(parseable, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[timestamp, Value::Str("buys".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -1067,8 +1067,8 @@ impl BitrueCore {
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        if (symbol.is_none()) {
             return;
         }
         let mut wsInterval: Option<String> = self.safe_string_opt(parts, Value::Int(4), &[]);
@@ -1085,19 +1085,19 @@ impl BitrueCore {
             return;
         }
         let mut parsed: Value = self.parse_ws_ohlcv(tick, &[market]);
-        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+        if !(matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if !((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+        if !((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); } }
+            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(symbol.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); } }
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe).into());
         client.resolve(&[stored, messageHash]);
 }
 

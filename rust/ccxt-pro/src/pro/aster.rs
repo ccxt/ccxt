@@ -819,11 +819,11 @@ impl AsterCore {
         let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut ticker: Value = message;
         let mut parsed: Value = self.parse_ws_ticker(ticker, marketType);
-        let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
-        if (symbol != Value::Null) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+        if (symbol.is_some()) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed); }
+            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
         }
 }
 
@@ -1239,17 +1239,17 @@ impl AsterCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
         let mut parsed: Value = self.parse_ws_trade(trade, &[market]);
-        let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+        if (symbol.is_none()) {
             return;
         }
-        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ArrayCache::new(limit)); }
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(parsed);
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())]);
+        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {

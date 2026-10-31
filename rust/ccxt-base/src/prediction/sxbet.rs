@@ -1113,7 +1113,7 @@ impl SxbetCore {
  * @returns {string} the token's on-chain name
  */
     pub async fn fetch_erc20_name(&mut self, mut rpcUrl: Value, mut tokenAddress: Value) -> Value {
-        let mut nameCallData: String = "0x06fdde03".to_string();
+        let mut nameCallData: String = "0x06fdde03".to_string(); // name()
         let mut result: Value = self.eth_rpc(rpcUrl, Value::Str("eth_call".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("to".to_string(), tokenAddress);
@@ -3704,20 +3704,20 @@ impl SxbetCore {
             let mut rawRow: Value = rows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
-            let mut sym: Value = self.safe_string_k(trade.clone(), "outcome", &[]);
-            if (sym == Value::Null) {
+            let mut sym: Option<String> = self.safe_string_k_opt(trade.clone(), "outcome", &[]);
+            if (sym.is_none()) {
                 continue;
             }
             if (self.trades.clone() == Value::Null) {
                 { let __t = self.create_safe_dictionary(&[]); self.trades = __t; }
             }
-            if (self.safe_value(self.trades.clone(), sym.clone(), &[]) == Value::Null) {
+            if (self.safe_value(self.trades.clone(), sym.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(sym.as_deref().unwrap_or("null").to_string(), ArrayCache::new(tradesLimit)); }
             }
-            let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             stored.append(trade);
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
+            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
         }
         }
 }
