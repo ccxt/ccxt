@@ -15342,6 +15342,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'findAccountId': 'string?',
     // derive: the single path returns the List<object> allInstruments local
     'getMarketsPaginated': 'List<object>',
+    // apex: return this.safeString (this.options, 'accountId') — one string? box
+    'getAccountId': 'string?',
 };
 
 const awaitedCoreProofs = new WeakMap ();

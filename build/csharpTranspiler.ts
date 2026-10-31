@@ -3432,7 +3432,7 @@ class NewTranspiler {
         // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
         // another typed core into an `object` local (okx FetchDepositAddress reads
         // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
-        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ]+>)? (\w+)\(/;
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ?]+>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
