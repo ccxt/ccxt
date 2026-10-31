@@ -1478,7 +1478,7 @@ public class Kalshi extends KalshiApi
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-                Object tfKeys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                Object tfKeys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
                 String supported = String.join(", ", (List<String>)tfKeys);
                 throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe (supported: ") + supported) + ")")) ;
             }
@@ -2064,7 +2064,7 @@ public class Kalshi extends KalshiApi
         }
         Boolean tickerMissing = (java.util.Objects.equals(ticker, null));
         Boolean useHeldYesTicker = (Boolean.TRUE.equals(heldYes) || Boolean.TRUE.equals(tickerMissing));
-        Object heldTicker = null;
+        String heldTicker = null;
         if (Boolean.TRUE.equals(useHeldYesTicker))
         {
             heldTicker = ticker;

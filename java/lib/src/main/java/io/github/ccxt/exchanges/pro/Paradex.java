@@ -1123,7 +1123,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             return null;
         }
-        Object channel = null;
+        String channel = null;
         Object data = null;
         if ((templateId != null && templateId == 1))
         {
@@ -1694,7 +1694,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "2", "CLOSED" );
         }};
         String side = this.sbeReadEnum(frameHex, 24, sides);
-        Object account = this.sbeReadAddress(frameHex, 89);
+        String account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
         Object size = this.sbeReadDecimal(frameHex, 25);
         if ((java.util.Objects.equals(side, "SHORT")) && (!java.util.Objects.equals(size, "0")))

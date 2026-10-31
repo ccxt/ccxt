@@ -2093,7 +2093,7 @@ public class Mexc extends MexcApi
         Object symbol = null;
         Map<String, Object> fee = null;
         List<String> type = null;
-        Object side = null;
+        String side = null;
         String takerOrMaker = null;
         String priceString = null;
         String amountString = null;
@@ -2226,7 +2226,7 @@ public class Mexc extends MexcApi
         }
         if (java.util.Objects.equals(id, null) && Boolean.TRUE.equals(this.safeBool(this.options, "useCcxtTradeId", true)))
         {
-            id = this.createCcxtTradeId(timestamp, java.util.Objects.toString(side, null), amountString, priceString, takerOrMaker);
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);

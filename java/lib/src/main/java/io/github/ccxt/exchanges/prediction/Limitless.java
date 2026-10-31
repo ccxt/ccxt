@@ -1449,7 +1449,7 @@ public class Limitless extends LimitlessApi
                 List<Object> grouped = (List<Object>) this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)grouped).size(); j++)
                 {
-                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
@@ -2449,10 +2449,10 @@ public class Limitless extends LimitlessApi
             {
                 maker = this.walletAddress;
             }
-            Object paramsValue = parameters;
+            Map<String, Object> paramsValue = parameters;
             List<Object> makerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
             maker = ((List<Object>) makerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) makerparamsValueVariable).get(1);
+            paramsValue = (Map<String, Object>) ((List<Object>) makerparamsValueVariable).get(1);
             try
             {
                 this.checkAddress(java.util.Objects.toString(maker, null), (String) null, (String) null);
@@ -2472,7 +2472,7 @@ public class Limitless extends LimitlessApi
             }
             List<Object> signerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
             signer = ((List<Object>) signerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) signerparamsValueVariable).get(1);
+            paramsValue = (Map<String, Object>) ((List<Object>) signerparamsValueVariable).get(1);
             try
             {
                 this.checkAddress(java.util.Objects.toString(signer, null), (String) null, (String) null);
@@ -2483,7 +2483,7 @@ public class Limitless extends LimitlessApi
             Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
             List<Object> takerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
             taker = ((List<Object>) takerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) takerparamsValueVariable).get(1);
+            paramsValue = (Map<String, Object>) ((List<Object>) takerparamsValueVariable).get(1);
             try
             {
                 this.checkAddress(java.util.Objects.toString(taker, null), (String) null, (String) null);
@@ -2503,7 +2503,7 @@ public class Limitless extends LimitlessApi
             Object signatureType = ((Boolean.TRUE.equals(isSmartWallet))) ? 2 : 0;
             List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
             signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) signatureTypeparamsValueVariable).get(1);
+            paramsValue = (Map<String, Object>) ((List<Object>) signatureTypeparamsValueVariable).get(1);
             Map<String, Object> signRequest = new HashMap<String, Object>();
             signRequest.put("salt", nonce);
             signRequest.put("maker", maker);
@@ -2530,9 +2530,9 @@ public class Limitless extends LimitlessApi
             Object takerAmount = null;
             Boolean isMarket = java.util.Objects.equals(type, "market");
             Boolean postOnly = false;
-            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsValue);
             postOnly = (Boolean) ((List<Object>) postOnlyparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) postOnlyparamsValueVariable).get(1);
+            paramsValue = (Map<String, Object>) ((List<Object>) postOnlyparamsValueVariable).get(1);
             String timeInForce = this.safeString(paramsValue, "timeInForce");
             paramsValue = this.omit(paramsValue, "timeInForce");
             if (java.util.Objects.equals(timeInForce, null))

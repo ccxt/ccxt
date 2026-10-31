@@ -1604,11 +1604,11 @@ public Map<String, Object> describe()
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
         // outcome-addressed row). prediction is always linear with a contract size of 1.
-        Object amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
+        String amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
         String filled = this.safeString(outcomeOrder, "filled");
         String remaining = this.safeString(outcomeOrder, "remaining");
         String cost = this.safeString(outcomeOrder, "cost");
-        Object average = this.omitZero(this.safeString(outcomeOrder, "average"));
+        String average = this.omitZero(this.safeString(outcomeOrder, "average"));
         String price = this.omitZero(this.safeString(outcomeOrder, "price"));
         String side = this.safeString(outcomeOrder, "side");
         String status = this.safeString(outcomeOrder, "status");
@@ -1682,7 +1682,7 @@ public Map<String, Object> describe()
         }
         if ((java.util.Objects.equals(cost, null)) && (!java.util.Objects.equals(filled, null)))
         {
-            Object multiplyPrice = (((!java.util.Objects.equals(average, null)))) ? average : price;
+            String multiplyPrice = (((!java.util.Objects.equals(average, null)))) ? average : price;
             if (!java.util.Objects.equals(multiplyPrice, null))
             {
                 cost = Precise.stringMul(filled, multiplyPrice);
@@ -1798,8 +1798,8 @@ public Map<String, Object> describe()
         String close = this.omitZero(this.safeString2(ticker, "close", "last"));
         String last = this.omitZero(this.safeString2(ticker, "last", "close"));
         String change = this.safeString(ticker, "change");
-        Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
-        Object average = this.omitZero(this.safeString(ticker, "average"));
+        String percentage = this.omitZero(this.safeString(ticker, "percentage"));
+        String average = this.omitZero(this.safeString(ticker, "average"));
         if ((java.util.Objects.equals(change, null)) && (!java.util.Objects.equals(open, null)) && (!java.util.Objects.equals(close, null)))
         {
             change = Precise.stringSub(close, open);

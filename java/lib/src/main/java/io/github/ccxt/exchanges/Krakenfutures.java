@@ -606,7 +606,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
                 // swap == perpetual
                 String settle = null;
-                Object settleId = null;
+                String settleId = null;
                 String cvtp = this.safeString(market, "contractValueTradePrecision");
                 Double amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
                 Double pricePrecision = this.safeNumber(market, "tickSize", (Object) null);

@@ -334,7 +334,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> marketUpdates = new HashMap<String, Object>() {{}};
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            List<Object> keys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
                 Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));

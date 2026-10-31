@@ -1536,7 +1536,7 @@ public class Bydfi extends BydfiApi
         Boolean isTailingStopOrder = (!java.util.Objects.equals(trailingPercent, null));
         String stopPrice = null;
         Boolean isStopOrTakeProfit = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
-        Object query = parameters;
+        Map<String, Object> query = parameters;
         if (Boolean.TRUE.equals(isStopOrTakeProfit))
         {
             query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
@@ -1552,7 +1552,7 @@ public class Bydfi extends BydfiApi
             String trailingTriggerPrice = this.numberToString(price);
             List<Object> trailingTriggerPricequeryVariable = (List<Object>) this.handleParamString(query, "trailingTriggerPrice", trailingTriggerPrice);
             trailingTriggerPrice = (String) ((List<Object>) trailingTriggerPricequeryVariable).get(0);
-            query = ((List<Object>) trailingTriggerPricequeryVariable).get(1);
+            query = (Map<String, Object>) ((List<Object>) trailingTriggerPricequeryVariable).get(1);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
                 request.put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
@@ -1617,11 +1617,11 @@ public class Bydfi extends BydfiApi
         {
             throw new NotSupported((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }
-        String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+        String timeInForce = this.handleTimeInForce(query);
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), query);
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-        query = ((List<Object>) postOnlyqueryVariable).get(1);
+        query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
         {
             timeInForce = "POST_ONLY";

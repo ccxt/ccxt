@@ -3221,7 +3221,7 @@ public class Predictfun extends PredictfunApi
             }
             Map<String, Object> collaterals = (Map<String, Object>) this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
             String token = this.safeString(parameters, "token", this.safeString(collaterals, chainKey));
-            Object spender = this.safeString(parameters, "spender");
+            String spender = this.safeString(parameters, "spender");
             if (java.util.Objects.equals(spender, null))
             {
                 if (java.util.Objects.equals(outcome, null))

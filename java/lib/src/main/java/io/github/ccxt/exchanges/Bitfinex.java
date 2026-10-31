@@ -3822,7 +3822,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         List<Object> itemList = (List<Object>) this.safeList(item, "result", new ArrayList<Object>(Arrays.asList()));
-        Object type = null;
+        String type = null;
         String id = this.safeString(itemList, 0);
         String currencyId = this.safeString(itemList, 1);
         String code = this.safeCurrencyCode(currencyId, currency);

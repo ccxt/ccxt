@@ -8027,10 +8027,10 @@ public class Gate extends GateApi
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         String marginBalance = this.safeString(position, "margin");
-        Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        String initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        Object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        String maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(marketResolved, "info", new HashMap<String, Object>() {{}});
         String takerFeeRate = this.safeString(marketInfo, "taker_fee_rate", "0.00075");
         Boolean hasPositiveMarginBalance = (java.util.Objects.equals(marginBalance, null)) || Precise.stringGt(marginBalance, "0");

@@ -114,7 +114,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
             String marketIdValue = this.safeString(market, "id", "");
-            Object endPart = null;
+            String endPart = null;
             if (java.util.Objects.equals(limit, null))
             {
                 endPart = marketIdValue;

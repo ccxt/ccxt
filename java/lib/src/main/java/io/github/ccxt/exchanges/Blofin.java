@@ -1735,7 +1735,7 @@ public class Blofin extends BlofinApi
         request.put("size", this.amountToPrecision(symbol, amount));
         request.put("brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"));
         String marginMode = null;
-        Object query = null;
+        Map<String, Object> query = null;
         Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
@@ -1765,9 +1765,9 @@ public class Blofin extends BlofinApi
             request.put(key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), query);
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-        query = ((List<Object>) postOnlyqueryVariable).get(1);
+        query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "post_only");
@@ -3729,7 +3729,7 @@ public class Blofin extends BlofinApi
         }
         String rounder = "0.00005"; // round to closest 0.01%
         Double maintenanceMarginPercentage = (((!java.util.Objects.equals(maintenanceMarginPercentageString, null)))) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
-        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        String liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         if ((java.util.Objects.equals(liquidationPriceString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(initialMarginString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(contractsAbs, null)) && Precise.stringGt(contractsAbs, "0") && (!java.util.Objects.equals(contractSizeString, null)) && (!java.util.Objects.equals(maintenanceMarginPercentage, null)))
         {
             String takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");

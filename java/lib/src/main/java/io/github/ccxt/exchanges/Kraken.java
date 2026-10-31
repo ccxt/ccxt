@@ -1812,7 +1812,7 @@ public class Kraken extends KrakenApi
         mapLiteral5.put("amount", amount);
         mapLiteral5.put("cost", cost);
         mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+        return this.safeTrade(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
     }
 
     /**
@@ -2546,7 +2546,7 @@ public class Kraken extends KrakenApi
         mapLiteral7.put("reduceOnly", this.safeBool2(orderOmitted, "reduceOnly", "reduce_only", (Object) null));
         mapLiteral7.put("fee", fee);
         mapLiteral7.put("trades", trades);
-        return this.safeOrder(mapLiteral7, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeOrder(mapLiteral7, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     public Object orderRequest(String method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
@@ -2751,7 +2751,7 @@ public class Kraken extends KrakenApi
                 put( "txid", id );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("cl_ord_id", clientOrderId);
@@ -2759,9 +2759,9 @@ public class Kraken extends KrakenApi
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             Boolean postOnly = null;
-            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted);
             postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
-            paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
+            paramsOmitted = (Map<String, Object>) ((List<Object>) postOnlyparamsOmittedVariable).get(1);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string

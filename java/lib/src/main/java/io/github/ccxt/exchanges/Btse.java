@@ -2238,19 +2238,19 @@ public class Btse extends BtseApi
             {
                 request.put("clOrderId", clientOrderId);
             }
-            Object query = this.omit(parameters, "clientOrderId");
+            Map<String, Object> query = this.omit(parameters, "clientOrderId");
             Boolean isMarketOrder = (java.util.Objects.equals(typeValue, "MARKET"));
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
             }
-            String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+            String timeInForce = this.handleTimeInForce(query);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 request.put("timeInForce", timeInForce);
@@ -2485,7 +2485,7 @@ public class Btse extends BtseApi
             {
                 request.put("clOrderId", clientOrderId);
             }
-            Object query = this.omit(parameters, "clientOrderId");
+            Map<String, Object> query = this.omit(parameters, "clientOrderId");
             // handle positionMode
             String positionMode = this.safeString(query, "positionMode");
             // if positionMode is provided, we will get it from params and send it as is
@@ -2515,14 +2515,14 @@ public class Btse extends BtseApi
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
             }
-            String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            String timeInForce = this.handleTimeInForce(query);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 request.put("timeInForce", timeInForce);

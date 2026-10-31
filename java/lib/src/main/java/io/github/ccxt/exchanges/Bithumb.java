@@ -810,7 +810,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
         if (!java.util.Objects.equals(balances, null))
         {
-            List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
@@ -1237,12 +1237,12 @@ public class Bithumb extends BithumbApi
                         tickers = response;
                     } else if (Boolean.TRUE.equals(this.isDictionary(response)))
                     {
-                        if (((switch ((Object)(response)) { case List<?> j39v12 -> j39v12.contains("market"); case Map<?, ?> j39v11 -> j39v11.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v10 -> j39v10.contains("trade_date"); case Map<?, ?> j39v9 -> j39v9.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("trade_timestamp"); case Map<?, ?> j39v7 -> j39v7.containsKey("trade_timestamp"); case null, default -> false; })))
+                        if (((switch ((Object)(response)) { case List<?> j39v11 -> j39v11.contains("market"); case Map<?, ?> j39v10 -> j39v10.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v9 -> j39v9.contains("trade_date"); case Map<?, ?> j39v8 -> j39v8.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("trade_timestamp"); case Map<?, ?> j39v6 -> j39v6.containsKey("trade_timestamp"); case null, default -> false; })))
                         {
                             tickers = new ArrayList<Object>(Arrays.asList(response));
                         } else
                         {
-                            List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                            List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
                             for (var j = 0; j < ((List<?>)ids).size(); j++)
                             {
                                 Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
@@ -2071,13 +2071,13 @@ public class Bithumb extends BithumbApi
             {
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                j39v13.put("info", response);
-                j39v13.put("symbol", symbol);
-                j39v13.put("type", type);
-                j39v13.put("side", side);
-                j39v13.put("id", id);
-                yield j39v13; } }));
+            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+                j39v12.put("info", response);
+                j39v12.put("symbol", symbol);
+                j39v12.put("type", type);
+                j39v12.put("side", side);
+                j39v12.put("id", id);
+                yield j39v12; } }));
         }).thenApply(Order::new);
 
     }
@@ -3843,7 +3843,7 @@ public class Bithumb extends BithumbApi
                     put( "nonce", Bithumb.this.uuid() );
                     put( "timestamp", Bithumb.this.milliseconds() );
                 }};
-                Object auth = "";
+                String auth = "";
                 if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
                     requestHeaders.put("Content-Type", "application/json");

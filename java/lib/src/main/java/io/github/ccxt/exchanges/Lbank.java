@@ -3643,7 +3643,7 @@ public class Lbank extends LbankApi
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
                 Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);
-                Object pem = null;
+                String pem = null;
                 if (Boolean.TRUE.equals(cacheSecretAsPem))
                 {
                     String cachedPem = this.safeString(this.options, "pem");

@@ -9614,7 +9614,7 @@ public class Binance extends BinanceApi
                 {
                     Double precision = this.safeNumber(market.get("precision"), "price", (Object) null);
                     String quoteOrderQtyNew = this.safeString2(paramsPapi, "quoteOrderQty", "cost");
-                    Object notional = null;
+                    String notional = null;
                     if (!java.util.Objects.equals(quoteOrderQtyNew, null))
                     {
                         notional = quoteOrderQtyNew;
@@ -10188,7 +10188,7 @@ public class Binance extends BinanceApi
             {
                 limitResolved = Math.min(limit, 100);
             }
-            if (!java.util.Objects.equals(limitResolved, null))
+            if (!java.util.Objects.equals(limit, null))
             {
                 if (Boolean.TRUE.equals(stock))
                 {
@@ -11673,11 +11673,11 @@ public class Binance extends BinanceApi
                 limitContract = Math.min(limit, 1000);
             }
             Long limitResolved = limitContract;
-            if (!java.util.Objects.equals(limitContract, null) && Boolean.TRUE.equals(stock))
+            if (!java.util.Objects.equals(limit, null) && Boolean.TRUE.equals(stock))
             {
-                limitResolved = Math.min(limitContract, 100L);
+                limitResolved = Math.min(limit, 100);
             }
-            if (!java.util.Objects.equals(limitResolved, null))
+            if (!java.util.Objects.equals(limit, null))
             {
                 if (Boolean.TRUE.equals(stock))
                 {

@@ -192,7 +192,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Object streamMarketId = null;
+                String streamMarketId = null;
                 if (Boolean.TRUE.equals(isGenerationTwo))
                 {
                     streamMarketId = this.getGen2MarketId(market);

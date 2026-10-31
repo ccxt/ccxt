@@ -1033,7 +1033,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String type = null;
             Map<String, Object> market = null;
             String messageHash = null;
-            Object channel = null;
+            String channel = null;
             Object trades = null;
             String subType = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1238,7 +1238,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean future = (java.util.Objects.equals(type, "future"));
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             String messageHash = null;
-            Object channel = null;
+            String channel = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 messageHash = (("orders" + "#") + this.safeString(market, "lowercaseId", "*"));
@@ -1857,7 +1857,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
-            Object type = null;
+            String type = null;
             Object subType = null;
             Map<String, Object> paramsSubType = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))

@@ -4886,7 +4886,7 @@ public class Hashkey extends HashkeyApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + path);
-        Object query = null;
+        String query = null;
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
@@ -4904,7 +4904,7 @@ public class Hashkey extends HashkeyApi
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
             Object signature = null;
-            Object bodySigned = null;
+            String bodySigned = null;
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && ((java.util.Objects.equals(path, "api/v1/spot/batchOrders")) || (java.util.Objects.equals(path, "api/v1/futures/batchOrders"))))
             {
                 headersSigned.put("Content-Type", "application/json");
@@ -4930,7 +4930,7 @@ public class Hashkey extends HashkeyApi
             }
             headersSigned.put("INPUT-SOURCE", this.safeString(this.options, "broker", "10000700011"));
             headersSigned.put("broker_sign", signature);
-            Object bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : bodySigned;
+            String bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : bodySigned;
             {
                 HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
                 h2kMap3.put("url", url);
@@ -4942,7 +4942,7 @@ public class Hashkey extends HashkeyApi
         } else
         {
             query = this.urlencode(parameters);
-            if ((((String)query).length() != 0))
+            if ((query.length() != 0))
             {
                 url = ((((apiUrl + "/") + path) + "?") + query);
             }

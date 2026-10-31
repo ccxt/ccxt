@@ -4331,7 +4331,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             mapLiteral8.put("subType", subType);
             (this.authenticate(this.extend(mapLiteral8, paramsValue))).join();
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2((Map<String, Object>) (paramsValue), "watchBalance", "papi", "portfolioMargin", false)).get(0);
-            Object url = "";
+            String url = "";
             String urlType = type;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
@@ -5396,7 +5396,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "watchOrders", "papi", "portfolioMargin", false)).get(0);
-            Object url = "";
+            String url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 // route orders to ws-api user data stream
@@ -6616,7 +6616,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2(paramsSymbol, "watchMyTrades", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)portfolioMarginAndParams).get(0);
-            Object url = "";
+            String url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 Map<String, Object> wsApiUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});

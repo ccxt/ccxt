@@ -1517,7 +1517,7 @@ public class Sxbet extends SxbetApi
         String orderId = this.safeString2(order, "id", "orderId");
         String marketHash = this.safeString(order, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(order, "isBettingOutcomeOne", true);
-        Object outcomeId = null;
+        String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
             outcomeId = marketHash;
@@ -1821,7 +1821,7 @@ public class Sxbet extends SxbetApi
         //
         String marketHash = this.safeString(fill, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(fill, "isBettingOutcomeOne", true);
-        Object outcomeId = null;
+        String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
             outcomeId = marketHash;
@@ -1999,7 +1999,7 @@ public class Sxbet extends SxbetApi
         //
         String marketHash = this.safeString(raw, "marketHash", "");
         Boolean isOutcomeOneMaxWin = (Boolean) this.safeBool(raw, "isOutcomeOneMaxWin", true);
-        Object outcomeId = null;
+        String outcomeId = null;
         if (Boolean.TRUE.equals(isOutcomeOneMaxWin))
         {
             outcomeId = marketHash;
@@ -2122,7 +2122,7 @@ public class Sxbet extends SxbetApi
         //
         String marketHash = this.safeString(trade, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
-        Object outcomeId = null;
+        String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
             outcomeId = marketHash;
@@ -3111,7 +3111,7 @@ public class Sxbet extends SxbetApi
     {
         String marketHash = this.safeString(trade, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
-        Object outcomeId = null;
+        String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
             outcomeId = marketHash;

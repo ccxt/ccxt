@@ -4583,7 +4583,7 @@ public class Poloniex extends PoloniexApi
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");
         String notional = Precise.stringMul(leverage, initialMargin);
-        Object positionMargin = null;
+        String positionMargin = null;
         String collateral = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
         {

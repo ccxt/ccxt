@@ -3670,7 +3670,7 @@ public class Bingx extends BingxApi
         }
         String initialMarginString = this.safeString(position, "initialMargin");
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        Object collateralString = null;
+        String collateralString = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
             collateralString = this.omitZero(this.safeString(position, "margin"));
@@ -7747,7 +7747,7 @@ public class Bingx extends BingxApi
             this.checkRequiredCredentials(true);
             Boolean isJsonContentType = (((java.util.Objects.equals(type, "subAccount")) || (java.util.Objects.equals(type, "account/transfer"))) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")));
             Object parsedParams = null;
-            Object encodeRequest = null;
+            String encodeRequest = null;
             if (Boolean.TRUE.equals(isJsonContentType))
             {
                 encodeRequest = this.customEncode(paramsSorted);
@@ -7756,7 +7756,7 @@ public class Bingx extends BingxApi
                 parsedParams = this.parseParams(paramsSorted);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            Object encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;
+            String encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;
             String signature = (String) this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "X-BX-APIKEY", Bingx.this.apiKey );

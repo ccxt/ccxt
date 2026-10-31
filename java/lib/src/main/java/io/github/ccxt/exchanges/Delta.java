@@ -2878,7 +2878,7 @@ public class Delta extends DeltaApi
         Map<String, Object> metaData = (Map<String, Object>) this.safeDict(item, "meta_data", new HashMap<String, Object>() {{}});
         String referenceId = this.safeString(metaData, "transaction_id");
         List<String> referenceAccount = null;
-        Object type = this.safeString(item, "transaction_type");
+        String type = this.safeString(item, "transaction_type");
         if ((java.util.Objects.equals(type, "deposit")) || (java.util.Objects.equals(type, "commission_rebate")) || (java.util.Objects.equals(type, "referral_bonus")) || (java.util.Objects.equals(type, "pnl")) || (java.util.Objects.equals(type, "withdrawal_cancellation")) || (java.util.Objects.equals(type, "promo_credit")))
         {
             direction = "in";
@@ -2886,7 +2886,7 @@ public class Delta extends DeltaApi
         {
             direction = "out";
         }
-        type = this.parseLedgerEntryType((String) (type));
+        type = this.parseLedgerEntryType(type);
         String currencyId = this.safeString(item, "asset_id");
         Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
         Object currencyValue = this.safeValue(currenciesByNumericId, currencyId, currency);
