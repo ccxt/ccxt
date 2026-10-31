@@ -3859,7 +3859,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		var listRaw []any = ccxt.MapSliceToList(r2.Value)
 		var listRawLength int = len(listRaw)
 		for i := 0; i < listRawLength; i++ {
-			rawMarkets = append(rawMarkets, ccxt.GetValue(listRaw, i))
+			rawMarkets = append(rawMarkets, listRaw[i])
 		}
 	}
 	if this.Events == nil {

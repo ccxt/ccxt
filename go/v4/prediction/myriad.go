@@ -2821,7 +2821,7 @@ func (this *Myriad) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var trades []any = []any{}
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
-		var order any = ccxt.GetValue(orders, i)
+		var order any = orders[i]
 		trades = append(trades, this.OrderToTrade(order))
 	}
 

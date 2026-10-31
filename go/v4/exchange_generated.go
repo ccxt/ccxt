@@ -4263,7 +4263,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]a
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if (this.Has["fetchTradingLimits"] != nil) && (this.Has["fetchTradingLimits"] != false) {
-		if _, hx15ok := this.Options["limitsLoaded"]; (reload == true) || !hx15ok {
+		if _, ok := this.Options["limitsLoaded"]; (reload == true) || !ok {
 
 			r := <-this.FetchTradingLimitsAsync(symbols)
 			if r.Err != nil {
