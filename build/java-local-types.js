@@ -6791,7 +6791,9 @@ function dataflowValueType (printer, node, context) {
                 return undefined;
             }
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node);
+                // a venue method the printer retyped to `public String` (kucoin marketOrderAmountToPrecision)
+                return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node)
+                    ?? (internalReturnLocalType (printer, node)?.type === JAVA_DATAFLOW_STRING ? JAVA_DATAFLOW_STRING : undefined);
             }
             if (ts.isIdentifier (callee.expression) && callee.expression.text === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.text) ? JAVA_DATAFLOW_STRING : undefined;
