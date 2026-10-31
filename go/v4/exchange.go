@@ -161,7 +161,7 @@ type BaseExchange struct {
 	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed).
 	// Ohlcvs holds one book per symbol, and a book is the plain map of its timeframes.
 	Ohlcvs         map[string]map[string]any
-	Trades         map[string]any
+	Trades         TradesCache
 	Tickers        TickerCache
 	Orders         WsArrayCache // cache object, not a map
 	MyTrades       any          // *ArrayCache  // cache object, not a map
@@ -261,7 +261,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	limit := 10000
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
-	this.Trades = map[string]any{}
+	this.Trades = TradesCache{}
 	this.Tickers = TickerCache{}
 	this.Orderbooks = OrderBookCache{}
 	this.Ohlcvs = map[string]map[string]any{}

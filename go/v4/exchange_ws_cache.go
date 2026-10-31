@@ -171,8 +171,6 @@ func (this *BaseExchange) wsCacheStop() {
 
 func (this *BaseExchange) wsCacheField(name string) map[string]any {
 	switch name {
-	case "Trades":
-		return this.Trades
 	case "FundingRates":
 		return this.FundingRates
 	case "Balance":
@@ -227,6 +225,9 @@ func (this *BaseExchange) wsCacheApply(req *wsCacheOp) any {
 	}
 	if req.field == "Orderbooks" {
 		return this.wsOrderBookApply(req)
+	}
+	if req.field == "Trades" {
+		return this.wsTradesApply(req)
 	}
 	cache := this.wsCacheField(req.field)
 	if (cache == nil) && (req.op == wsOpReset) && (req.field == "Ohlcvs") {
@@ -349,6 +350,47 @@ func (this *BaseExchange) wsOrderBookApply(req *wsCacheOp) any {
 			this.Orderbooks = OrderBookCache{}
 		}
 		clear(this.Orderbooks)
+		return nil
+	}
+	return nil
+}
+
+// wsTradesApply is wsCacheApply for the typed trades cache: the same operations on TradesCache,
+// which holds list caches rather than boxed values.
+func (this *BaseExchange) wsTradesApply(req *wsCacheOp) any {
+	cache := this.Trades
+	key, keyIsString := derefScalar(req.key).(string)
+	switch req.op {
+	case wsOpGet, wsOpGetScalar:
+		if keyIsString {
+			return wsCacheRead{value: cache[key], exists: true}
+		}
+		return wsCacheRead{}
+	case wsOpHas:
+		return keyIsString && cache.Has(key)
+	case wsOpSet:
+		if keyIsString {
+			cache.Store(key, req.value)
+		}
+		return nil
+	case wsOpReplace:
+		clear(cache)
+		for k, v := range MapTyped(req.value) {
+			cache.Store(k, v)
+		}
+		return nil
+	case wsOpDelete:
+		cache.Delete(key)
+		return nil
+	case wsOpKeys:
+		return cache.Keys()
+	case wsOpSnapshot:
+		return cache.ToMap()
+	case wsOpReset:
+		if this.Trades == nil {
+			this.Trades = TradesCache{}
+		}
+		clear(this.Trades)
 		return nil
 	}
 	return nil
