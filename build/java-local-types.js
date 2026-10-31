@@ -2963,9 +2963,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         if (readType !== undefined) {
             // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key), or the native
             // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
-            // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
+            // javaTranspiler's JAVA_FIELD_TYPES or the guarded plain-cache get `(this.<map> == null || k == null ? null : ..)`;
+            // `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.', '(this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         const checkerType = wsCheckerLocalType (printer, initializer);
