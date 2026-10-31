@@ -186,7 +186,7 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -345,7 +345,7 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -368,7 +368,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -488,7 +488,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -609,7 +609,7 @@ public partial class grvt : ccxt.grvt
         (Int64?, object) intervalparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
         Int64? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? extraPart = null;
         if (isSnapshot)
         {
@@ -779,7 +779,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -856,7 +856,7 @@ public partial class grvt : ccxt.grvt
             await this.loadMarkets();
         }
         string subAccountId = this.getSubAccountId(parameters);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))

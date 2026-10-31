@@ -373,7 +373,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         };
         request = this.deepExtend(request, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)

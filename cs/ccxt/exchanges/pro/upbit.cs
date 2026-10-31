@@ -41,7 +41,7 @@ public partial class upbit : ccxt.upbit
             await this.loadMarkets();
         }
         object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
-        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsRequested));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -160,7 +160,7 @@ public partial class upbit : ccxt.upbit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**

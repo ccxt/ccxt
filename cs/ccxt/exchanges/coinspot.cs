@@ -1110,7 +1110,7 @@ public partial class coinspot : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        int apiLength = api?.Count ?? 0;
+        int apiLength = (api?.Count ?? 0);
         bool isVersionedApi = apiLength > 1;
         object accessType = (api != null && 0 < api.Count ? api[0] : null);
         if (isVersionedApi)

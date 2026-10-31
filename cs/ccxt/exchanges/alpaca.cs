@@ -1164,7 +1164,7 @@ public partial class alpaca : Exchange
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
         object symbolsSorted = ((symbols == null)) ? this.sort(this.symbols) : symbols;
-        IList<object> symbolsNormalized = this.marketSymbols(symbolsSorted);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsSorted));
         string? loc = this.safeString(parameters, "loc", "us");
         IList<object> ids = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {

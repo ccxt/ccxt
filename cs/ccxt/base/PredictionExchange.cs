@@ -124,7 +124,7 @@ public partial class PredictionExchange : BaseExchange
         throw new ArgumentsRequired ((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }
 
-    public virtual object applyEventFetchParams(object events, object parameters = null, IList<object> queries = null)
+    public virtual object applyEventFetchParams(IList<object> events, object parameters = null, IList<object> queries = null)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
@@ -150,8 +150,8 @@ public partial class PredictionExchange : BaseExchange
             }
             result = filtered;
         }
-        result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
-        result = this.filterEventsByTags(result, this.safeList(parameters, "tags"));
+        result = this.filterEventsByStatus(this.toArray(result), this.safeString(parameters, "status"));
+        result = this.filterEventsByTags(this.toArray(result), this.safeList(parameters, "tags"));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         int queriesLength = 0;
@@ -161,7 +161,7 @@ public partial class PredictionExchange : BaseExchange
         }
         if (queriesLength > 0)
         {
-            result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
+            result = this.filterEventsBySearchIn(this.toArray(result), queries, this.safeString(parameters, "searchIn"));
         }
         string? sort = this.safeString(parameters, "sort");
         if ((sort != null))
@@ -205,7 +205,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsByStatus(object events, string? status = null)
+    public virtual object filterEventsByStatus(IList<object> events, string? status = null)
     {
         // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
         if (((status == null)) || ((status == "all")))
@@ -214,7 +214,7 @@ public partial class PredictionExchange : BaseExchange
         }
         bool wantActive = ((status == "active"));
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(events); i++)
+        for (int i = 0; i < (events?.Count ?? 0); i++)
         {
             object eventVar = this.safeValue(events, i);
             bool? isActive = this.safeBool(eventVar, "active");
@@ -227,14 +227,14 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsBySearchIn(object events, object queries, string? searchIn = null)
+    public virtual object filterEventsBySearchIn(IList<object> events, IList<object> queries, string? searchIn = null)
     {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         int queriesLength = 0;
         if ((queries != null))
         {
-            queriesLength = getArrayLength(queries);
+            queriesLength = (queries?.Count ?? 0);
         }
         if (((searchIn == null)) || ((queriesLength == 0)))
         {
@@ -243,7 +243,7 @@ public partial class PredictionExchange : BaseExchange
         bool checkTitle = ((searchIn == "title")) || ((searchIn == "both"));
         bool checkDescription = ((searchIn == "description")) || ((searchIn == "both"));
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(events); i++)
+        for (int i = 0; i < (events?.Count ?? 0); i++)
         {
             object eventVar = this.safeValue(events, i);
             string? title = this.safeStringLower(eventVar, "title", "");
@@ -310,14 +310,14 @@ public partial class PredictionExchange : BaseExchange
         return s;
     }
 
-    public virtual object filterEventsByTags(object events, IList<object>? tags = null)
+    public virtual object filterEventsByTags(IList<object> events, IList<object> tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
         int tagsLength = 0;
         if ((tags != null))
         {
-            tagsLength = tags?.Count ?? 0;
+            tagsLength = (tags?.Count ?? 0);
         }
         if ((tagsLength == 0))
         {
@@ -334,7 +334,7 @@ public partial class PredictionExchange : BaseExchange
             }
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(events); i++)
+        for (int i = 0; i < (events?.Count ?? 0); i++)
         {
             object eventVar = this.safeValue(events, i);
             List<object> eventTags = this.safeList(eventVar, "tags", new List<object>() {});
@@ -387,7 +387,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((this.id + " fetchEvent() is not supported yet")) ;
     }
 
-    public virtual object setEvents(object events)
+    public virtual object setEvents(IList<object> events)
     {
         // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
         // index by the unified `event` handle too (that's the identifier every outcome's `event`
@@ -400,7 +400,7 @@ public partial class PredictionExchange : BaseExchange
         {
             this.events_by_slug = new Dictionary<string, object>() {};
         }
-        for (int i = 0; i < getArrayLength(events); i++)
+        for (int i = 0; i < (events?.Count ?? 0); i++)
         {
             object eventVar = this.safeValue(events, i);
             string? id = this.safeString(eventVar, "id");
@@ -764,7 +764,7 @@ public partial class PredictionExchange : BaseExchange
                         {
                             suffix = ((ocId == null) ? null : ocId.Substring(Math.Max(Math.Min(((idLen - 6) < 0 ? ocId.Length + ((idLen - 6)) : (idLen - 6)), ocId.Length), 0)));
                         }
-                        ocSymbol = ((ocSymbol + "_") + suffix.ToUpper());
+                        ocSymbol = ((object)(ocSymbol == null ? null : ocSymbol + "_" + suffix.ToUpper()));
                     }
                 }
                 ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
@@ -824,7 +824,7 @@ public partial class PredictionExchange : BaseExchange
         this.populateOutcomes();
     }
 
-    public async virtual Task<object> loadOutcomes(object outcomes = null, bool? reload = null, object parameters = null)
+    public async virtual Task<object> loadOutcomes(IList<object> outcomes = null, bool? reload = null, object parameters = null)
     {
         // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
         // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
@@ -842,11 +842,11 @@ public partial class PredictionExchange : BaseExchange
         if ((outcomes != null))
         {
             List<object> missing = new List<object>() {};
-            for (int i = 0; i < getArrayLength(outcomes); i++)
+            for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
-                if (reload == true || !this.hasOutcome(getValue(outcomes, i)))
+                if (reload == true || !this.hasOutcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null)))
                 {
-                    missing.Add(getValue(outcomes, i));
+                    missing.Add((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
                 }
             }
             int missingLength = (missing?.Count ?? 0);
@@ -1821,7 +1821,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public virtual IList<object> parsePredictionTrades(object trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public virtual IList<object> parsePredictionTrades(IList<object> trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1853,7 +1853,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public virtual IList<object> parsePredictionOrders(object orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public virtual IList<object> parsePredictionOrders(IList<object> orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         parameters ??= new Dictionary<string, object>();
@@ -1879,7 +1879,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual List<object> parsePredictionPositions(object positions, object parameters = null)
+    public virtual List<object> parsePredictionPositions(IList<object> positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -1900,7 +1900,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
-        return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(this.toArray(array), "outcome", outcome, since, limit, "timestamp", tail);
     }
 
     public virtual object filterByOutcomesSinceLimit(object array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, bool? tail = null)

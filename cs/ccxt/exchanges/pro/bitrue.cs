@@ -465,7 +465,7 @@ public partial class bitrue : ccxt.bitrue
         {
             return null;
         }
-        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
+        IDictionary<string, object> markets = this.markets;
         List<object> symbols = new List<object>(markets.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {

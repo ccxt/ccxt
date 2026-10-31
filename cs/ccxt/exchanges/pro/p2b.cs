@@ -118,7 +118,7 @@ public partial class p2b : ccxt.p2b
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -169,7 +169,7 @@ public partial class p2b : ccxt.p2b
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
         (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
@@ -228,7 +228,7 @@ public partial class p2b : ccxt.p2b
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {

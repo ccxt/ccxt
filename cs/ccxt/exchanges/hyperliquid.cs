@@ -945,7 +945,7 @@ public partial class hyperliquid : Exchange
             string? mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
             object mappedBase = this.safeCurrencyCode(mappedBaseName);
             string? mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-            string? mappedSymbol = ((string)add(add(mappedBase, "/"), mappedQuote));
+            string? mappedSymbol = ((string)((object)(mappedBase == null ? null : mappedBase + "/" + mappedQuote)));
             IDictionary<string, object> innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -1348,7 +1348,7 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         object response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
@@ -1815,18 +1815,18 @@ public partial class hyperliquid : Exchange
     {
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
-        object data = add(add(dataHex, "00000"), this.intToBase16(nonce));
+        object data = (dataHex == null ? null : dataHex + "00000" + this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
-            data = (data + "00");
+            data = ((object)(data == null ? null : data + "00"));
         } else
         {
-            data = (data + "01");
-            data = add(data, vaultAddress);
+            data = ((object)(data == null ? null : data + "01"));
+            data = ((object)(data == null ? null : data + (string)(object)(vaultAddress)));
         }
         if ((expiresAfter != null))
         {
-            data = (data + ("0000000" + this.intToBase16(expiresAfter)));
+            data = ((object)(data == null ? null : data + ("0000000" + this.intToBase16(expiresAfter))));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
@@ -4364,7 +4364,7 @@ public partial class hyperliquid : Exchange
         }
         string? userAddress = this.safeString(this.handlePublicAddress("fetchPositions", parameters), 0);
         IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchPositions", parameters), 1, new Dictionary<string, object>() {});
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "clearinghouseState" },
             { "user", userAddress },
@@ -4797,7 +4797,7 @@ public partial class hyperliquid : Exchange
             string? vaultAddressRaw = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
             if ((vaultAddressRaw != null))
             {
-                strAmount = ((strAmount + " subaccount:") + this.formatVaultAddress(vaultAddressRaw));
+                strAmount = ((object)(strAmount == null ? null : strAmount + " subaccount:" + this.formatVaultAddress(vaultAddressRaw)));
             }
             object strAmountFinal = strAmount; // java req
             bool toPerp = ((toAccount == "perp")) || ((toAccount == "swap"));
@@ -5802,7 +5802,7 @@ public partial class hyperliquid : Exchange
         {
             string? quote = this.safeString(hip3Dict, "quote", "USDC");
             object code = this.safeString(hip3Dict, "code", coin);
-            return ((string?)((object)(add(add(add(add(code, "/"), quote), ":"), quote))));
+            return ((string?)((object)(((object)(code == null ? null : code + "/" + quote + ":" + quote)))));
         }
         if (coin.IndexOf("/", StringComparison.Ordinal) > -1 || coin.IndexOf("@", StringComparison.Ordinal) > -1)
         {
@@ -5916,7 +5916,7 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))

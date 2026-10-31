@@ -590,7 +590,7 @@ public partial class bitbns : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
     }
 
     public override Dictionary<string, object> parseBalance(object response)

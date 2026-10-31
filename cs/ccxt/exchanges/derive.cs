@@ -3519,7 +3519,7 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "positions", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

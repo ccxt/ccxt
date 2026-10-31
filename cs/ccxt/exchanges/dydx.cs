@@ -1368,7 +1368,7 @@ public partial class dydx : Exchange
         // }
         //
         List<object> rows = this.safeList(response, "positions", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(rows, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(rows, this.toArray(symbols)));
     }
 
     public virtual string? hashMessage(object message)

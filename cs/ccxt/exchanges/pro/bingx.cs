@@ -380,14 +380,14 @@ public partial class bingx : ccxt.bingx
         object hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = add(hash, ("::" + (symbol)));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (symbol)))));
         } else
         {
-            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs, etc ...
+            hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs, etc ...
         }
         if ((extra != null))
         {
-            hash = add(hash, ("::" + (extra)));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (extra)))));
         }
         return ((string?)((object)(hash)));
     }
@@ -1051,7 +1051,7 @@ public partial class bingx : ccxt.bingx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -1417,7 +1417,7 @@ public partial class bingx : ccxt.bingx
         await this.authenticate();
         IDictionary<string, object> market = null;
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);

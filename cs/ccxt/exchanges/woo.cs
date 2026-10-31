@@ -2739,7 +2739,7 @@ public partial class woo : Exchange
                 }
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true);
         object paramsRequest = parameters;
         if ((symbolsNormalized == null))
         {
@@ -3406,7 +3406,7 @@ public partial class woo : Exchange
             object currencyId = this.safeString(parts, 1, firstPart);
             if (partsLength > 2)
             {
-                currencyId = add(currencyId, ("_" + this.safeString(parts, 2, "")));
+                currencyId = ((object)(currencyId == null ? null : currencyId + ("_" + this.safeString(parts, 2, ""))));
             }
             return this.safeCurrency(currencyId);
         }
@@ -4635,7 +4635,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {

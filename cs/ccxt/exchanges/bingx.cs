@@ -2739,7 +2739,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2795,7 +2795,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -2914,7 +2914,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -3363,7 +3363,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
         IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
@@ -6561,7 +6561,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7264,7 +7264,7 @@ public partial class bingx : Exchange
                     {
                         if (j > 0)
                         {
-                            arrStr = add(arrStr, ((("," + "\"") + arrayElement.ToString()) + "\""));
+                            arrStr = ((object)(arrStr == null ? null : arrStr + ((("," + "\"") + arrayElement.ToString()) + "\"")));
                         } else
                         {
                             arrStr = (("\"" + arrayElement.ToString()) + "\"");
@@ -7273,7 +7273,7 @@ public partial class bingx : Exchange
                     {
                         if (j > 0)
                         {
-                            arrStr = add(arrStr, ("," + arrayElement.ToString()));
+                            arrStr = ((object)(arrStr == null ? null : arrStr + ("," + arrayElement.ToString())));
                         } else
                         {
                             arrStr = arrayElement.ToString();
@@ -7285,10 +7285,10 @@ public partial class bingx : Exchange
             }
             if ((i == 0))
             {
-                result = add(add(key, "="), value);
+                result = ((object)(key == null ? null : key + "=" + (string)(object)(value)));
             } else
             {
-                result = add(result, ((("&" + (key)) + "=") + (value)));
+                result = ((object)(result == null ? null : result + (string)(object)(((("&" + (key)) + "=") + (value)))));
             }
         }
         return ((string?)((object)(result)));
@@ -7414,13 +7414,13 @@ public partial class bingx : Exchange
         {
             if (type == "spot" && (version is "v3"))
             {
-                url = add(url, "/api");
+                url = ((object)(url == null ? null : url + "/api"));
             } else
             {
-                url = add(url, ("/" + type));
+                url = ((object)(url == null ? null : url + ("/" + type)));
             }
         }
-        url = add(url, ((("/" + (version)) + "/") + pathValue));
+        url = ((object)(url == null ? null : url + (string)(object)(((("/" + (version)) + "/") + pathValue))));
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         Dictionary<string, object> paramsSorted = this.keysort(this.extend(this.omit(parameters, this.extractParams(pathValue)), new Dictionary<string, object>() {
@@ -7430,7 +7430,7 @@ public partial class bingx : Exchange
         {
             if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsSorted)));
+                url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(paramsSorted)))));
             }
         } else if ((access is "private"))
         {
@@ -7462,7 +7462,7 @@ public partial class bingx : Exchange
             } else
             {
                 string query = this.urlencode(parsedParams, true);
-                url = add(url, (((("?" + query) + "&") + "signature=") + signature));
+                url = ((object)(url == null ? null : url + (((("?" + query) + "&") + "signature=") + signature)));
             }
         }
         string? bodyResult = requestBody;

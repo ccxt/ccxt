@@ -1199,7 +1199,7 @@ public partial class backpack : Exchange
         {
             throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a stock market")) ;
         }
-        return ((List<object>)((object)(new List<object>() {stock, query})));
+        return new List<object>() {stock, query};
     }
 
     /**
@@ -1284,7 +1284,7 @@ public partial class backpack : Exchange
             stockCode = toCode;
             quoteCode = fromCode;
         }
-        object symbol = add(add(stockCode, ".RFQ/"), quoteCode);
+        object symbol = (stockCode == null ? null : stockCode + ".RFQ/" + (string)(object)(quoteCode));
         IDictionary<string, object> market = this.safeDict(this.markets, symbol);
         if (((market == null)) || ((this.safeString(market, "executionModel") != "rfq")) || !(this.safeBool(market, "stock", false) == true))
         {
@@ -1630,7 +1630,7 @@ public partial class backpack : Exchange
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    public virtual object filterStockStructures(object entries)
+    public virtual List<object> filterStockStructures(object entries)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(entries); i++)
@@ -1686,7 +1686,7 @@ public partial class backpack : Exchange
         IList<object> symbolsResolved = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         if ((symbolsLength != 0))
         {
-            symbolsResolved = this.marketSymbols(symbols, null, false);
+            symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         }
         bool hasRfqSymbol = false;
         bool hasStockSymbol = false;
@@ -2290,7 +2290,7 @@ public partial class backpack : Exchange
             }
             Dictionary<string, object> rfqParams = this.omit(accountParams, new List<object>() {"assetClass", "marketType", "from", "to"});
             List<object> rfqResponse = await this.privateGetWapiV1HistoryRfqFill(this.extend(rfqRequest, rfqParams));
-            object rfqTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rfqResponse, market, since));
+            IList<object> rfqTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rfqResponse, market, since));
             if (aggregate)
             {
                 Dictionary<string, object> venueParams = this.extend(this.omit(accountParams, new List<object>() {"rfqId", "quoteId", "deferredSettlement"}), new Dictionary<string, object>() {
@@ -2305,9 +2305,9 @@ public partial class backpack : Exchange
                 rfqTrades = this.filterStockStructures(rfqTrades);
             }
             List<object> filtered = new List<object>() {};
-            for (int i = 0; i < getArrayLength(rfqTrades); i++)
+            for (int i = 0; i < (rfqTrades?.Count ?? 0); i++)
             {
-                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(rfqTrades, i));
+                IDictionary<string, object> trade = ((IDictionary<string, object>)rfqTrades[i]);
                 Int64? timestamp = this.safeInteger(trade, "timestamp");
                 if (((until == null)) || (((timestamp != null)) && ((timestamp == null || timestamp <= until))))
                 {
@@ -3321,12 +3321,12 @@ public partial class backpack : Exchange
             List<object> rfqResponse = await this.privateGetApiV1Rfqs(this.extend(request, this.omit(accountParams, "marketType")));
             response = this.arrayConcat(response, rfqResponse);
         }
-        object orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
         if ((stock == true))
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(this.sortBy(orders, "timestamp")), since, limit));
     }
 
     /**
@@ -3576,12 +3576,12 @@ public partial class backpack : Exchange
             List<object> rfqResponse = await this.privateGetWapiV1HistoryRfq(this.extend(request, this.omit(accountParams, "marketType")));
             response = this.arrayConcat(response, rfqResponse);
         }
-        object orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
         if ((stock == true))
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(this.sortBy(orders, "timestamp")), since, limit));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -3786,7 +3786,7 @@ public partial class backpack : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(response));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbolsNormalized));
     }
 

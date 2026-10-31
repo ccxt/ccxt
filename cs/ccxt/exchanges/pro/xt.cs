@@ -172,7 +172,7 @@ public partial class xt : ccxt.xt
                 return i;
             }
         }
-        return cache?.Count ?? 0;
+        return (cache?.Count ?? 0);
     }
 
     public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
@@ -249,7 +249,7 @@ public partial class xt : ccxt.xt
         object messageHash = add(add(name, "::"), tradeType);
         if ((symbols != null))
         {
-            messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ((object)(messageHash == null ? null : messageHash + "::" + String.Join(",", ((IList<object>)symbols).ToArray())));
         }
         Dictionary<string, object> request = this.extend(subscribe, paramsMarketType);
         object tail = access;
@@ -502,7 +502,7 @@ public partial class xt : ccxt.xt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -560,7 +560,7 @@ public partial class xt : ccxt.xt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp"));
     }
 
     /**
@@ -684,7 +684,7 @@ public partial class xt : ccxt.xt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp"));
     }
 
     /**
@@ -718,7 +718,7 @@ public partial class xt : ccxt.xt
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp"));
     }
 
     /**
@@ -769,7 +769,7 @@ public partial class xt : ccxt.xt
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && this.isEmpty(cache))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, this.toArray(symbols), since, limit, true));
         }
         string name = "position";
         object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
@@ -777,7 +777,7 @@ public partial class xt : ccxt.xt
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, this.toArray(symbols), since, limit, true));
     }
 
     /**

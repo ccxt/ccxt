@@ -419,7 +419,7 @@ public partial class hollaex : Exchange
             string? quoteCode = this.commonCurrencyCode(quoteId.ToUpper());
             result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
-                { "symbol", add(add(baseCode, "/"), quoteCode) },
+                { "symbol", ((object)(baseCode == null ? null : baseCode + "/" + quoteCode)) },
                 { "base", baseCode },
                 { "quote", quoteCode },
                 { "settle", null },
@@ -746,7 +746,7 @@ public partial class hollaex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         //
         //     {
@@ -2178,7 +2178,7 @@ public partial class hollaex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetConstants(parameters);

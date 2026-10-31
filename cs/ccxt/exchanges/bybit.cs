@@ -8154,7 +8154,7 @@ public partial class bybit : Exchange
             {
                 symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             }
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         } else if ((symbols != null))
         {
             symbol = symbols;
@@ -9832,7 +9832,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -11057,7 +11057,7 @@ public partial class bybit : Exchange
         {
             rawPositionsList = rawPositions;
         }
-        IList<object> positions = this.parsePositions(rawPositionsList, symbols, paramsOmitted);
+        IList<object> positions = this.parsePositions(rawPositionsList, this.toArray(symbols), paramsOmitted);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

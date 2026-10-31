@@ -133,7 +133,7 @@ public partial class backpack : ccxt.backpack
         bool? stock = this.safeBool(query, "stock", false);
         string? explicitSource = this.safeString(query, "source");
         string? channel = this.safeString(query, "channel");
-        IList<object> normalized = this.marketSymbols(symbols, null, false);
+        IList<object> normalized = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> symbolsResolved = new List<object>() {};
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -865,7 +865,7 @@ public partial class backpack : ccxt.backpack
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -1033,7 +1033,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1057,7 +1057,7 @@ public partial class backpack : ccxt.backpack
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
@@ -1241,7 +1241,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1395,7 +1395,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        int cacheLength = cache?.Count ?? 0;
+        int cacheLength = (cache?.Count ?? 0);
         if ((nonce == null))
         {
             return cacheLength;
@@ -1844,7 +1844,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         if ((symbolsNormalized != null))

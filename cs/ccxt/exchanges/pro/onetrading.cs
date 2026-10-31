@@ -204,7 +204,7 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = "tickers";
@@ -464,7 +464,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, IList<object> deltas)
     {
         //
         //    [
@@ -472,9 +472,9 @@ public partial class onetrading : ccxt.onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleBookDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1443,7 +1443,7 @@ public partial class onetrading : ccxt.onetrading
             marketIds = new List<object>(marketsById.Keys);
         } else
         {
-            marketIds = this.marketIds(symbols);
+            marketIds = this.marketIds(this.toArray(symbols));
         }
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));

@@ -1223,7 +1223,7 @@ public partial class predictfun : PredictionExchange
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
             string? label = this.stripPriceFormatting(rawLabel);
             string? tokenId = this.safeString(rawOutcome, "onChainId");
-            string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
+            string? outcomeHandle = ((string)((object)(marketSymbol == null ? null : marketSymbol + ":" + label)));
             bool? winner = null;
             string? outcomeStatus = this.safeString(rawOutcome, "status");
             int? settleFractionRaw = null;
@@ -2256,7 +2256,7 @@ public partial class predictfun : PredictionExchange
         if ((outcomes != null))
         {
             outcomesLength = outcomes?.Count ?? 0;
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
         }
         string? address = this.safeString(parameters, "address");
         Dictionary<string, object> response = null;
@@ -3241,7 +3241,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [marketId] the venue market id
      * @returns {string[]} the message hashes
      */
-    public virtual object orderBookMessageHashes(string? marketId)
+    public virtual List<object> orderBookMessageHashes(string? marketId)
     {
         List<object> outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = (outcomes?.Count ?? 0);
@@ -3278,7 +3278,7 @@ public partial class predictfun : PredictionExchange
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
-        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         if ((this.safeString(subscription, "topic") == "walletEvents"))
         {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
@@ -3287,7 +3287,7 @@ public partial class predictfun : PredictionExchange
             // rejected and, with the subscription gone below, never retried or torn down either
             messageHashes = this.walletEventMessageHashes(client);
         }
-        int messageHashesLength = getArrayLength(messageHashes);
+        int messageHashesLength = (messageHashes?.Count ?? 0);
         if ((messageHashesLength == 0))
         {
             throw error;
@@ -3513,7 +3513,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [messageHash] the hash this call is about to park on, not registered yet
      * @returns {string[]} the message hashes
      */
-    public virtual object walletEventMessageHashes(WebSocketClient client, string? messageHash = null)
+    public virtual List<object> walletEventMessageHashes(WebSocketClient client, string? messageHash = null)
     {
         // handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
         // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a

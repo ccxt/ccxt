@@ -224,7 +224,7 @@ public partial class deribit : ccxt.deribit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string? interval = this.safeString(parameters, "interval", "100ms");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
@@ -322,7 +322,7 @@ public partial class deribit : ccxt.deribit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -447,7 +447,7 @@ public partial class deribit : ccxt.deribit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -938,7 +938,7 @@ public partial class deribit : ccxt.deribit
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -1017,7 +1017,7 @@ public partial class deribit : ccxt.deribit
         List<object> messageHashes = new List<object>() {};
         bool isOHLCV = ((channelName == "chart.trades"));
         object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        this.marketSymbols(symbols, null, false);
+        this.marketSymbols(this.toArray(symbols), null, false);
         if ((symbolsArray == null))
         {
             throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
@@ -1203,7 +1203,7 @@ public partial class deribit : ccxt.deribit
             this.checkRequiredCredentials();
             Int64 requestId = this.requestId();
             string lineBreak = "\n"; // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(add(add(((object)(timeString == null ? null : timeString + lineBreak)), nonce), lineBreak)), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(((object)(timeString == null ? null : timeString + lineBreak + (string)(object)(nonce) + lineBreak))), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
                 { "id", requestId },

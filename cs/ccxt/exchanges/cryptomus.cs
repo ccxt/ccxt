@@ -556,7 +556,7 @@ public partial class cryptomus : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketTickers(parameters);
         //
         //     {

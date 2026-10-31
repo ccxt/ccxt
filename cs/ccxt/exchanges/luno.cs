@@ -1069,7 +1069,7 @@ public partial class luno : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");

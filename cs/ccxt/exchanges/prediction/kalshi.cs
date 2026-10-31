@@ -577,7 +577,7 @@ public partial class kalshi : PredictionExchange
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        int outcomeSymbolsLength = (outcomeSymbols?.Count ?? 0);
+        int outcomeSymbolsLength = outcomeSymbols?.Count ?? 0;
         for (int i = 0; i < outcomeSymbolsLength; i++)
         {
             object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
@@ -791,7 +791,7 @@ public partial class kalshi : PredictionExchange
         };
         // Build outcomes
         List<object> outcomeLabels = new List<object>() {"YES", "NO"};
-        List<object> outcomeIds = new List<object>() {ticker, add(ticker, "-NO")};
+        List<object> outcomeIds = new List<object>() {ticker, ((object)(ticker == null ? null : ticker + "-NO"))};
         List<object> outcomes = new List<object>() {};
         string? resolvedOutcome = null;
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
@@ -1215,7 +1215,7 @@ public partial class kalshi : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(this.toArray(outcomes));
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
         List<object> tickers = new List<object>() {};
@@ -1858,7 +1858,7 @@ public partial class kalshi : PredictionExchange
         }
         if (outcomesLength > 0)
         {
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
@@ -1974,7 +1974,7 @@ public partial class kalshi : PredictionExchange
             heldTicker = ticker;
         } else
         {
-            heldTicker = (add(ticker, "-NO"));
+            heldTicker = (((object)(ticker == null ? null : ticker + "-NO")));
         }
         IDictionary<string, object> mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
@@ -3112,12 +3112,12 @@ public partial class kalshi : PredictionExchange
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, "kalshi", ""));
         string? implodedPath = this.implodeParams(path, parameters);
-        object url = add(add(baseUrl, "/"), implodedPath);
+        object url = (baseUrl == null ? null : baseUrl + "/" + implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencode(query);
         if ((method == "GET") && (querystring != ""))
         {
-            url = add(url, ("?" + querystring));
+            url = ((object)(url == null ? null : url + ("?" + querystring)));
         }
         Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
         Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
@@ -3134,7 +3134,7 @@ public partial class kalshi : PredictionExchange
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = ((baseUrl == null) ? null : ((string)baseUrl).Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? ((string)baseUrl).Length + (tradeApiIndex) : tradeApiIndex), ((string)baseUrl).Length), 0)));
-            string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
+            string? pathForSigning = ((string)((object)(versionPrefix == null ? null : versionPrefix + "/" + implodedPath)));
             string payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();

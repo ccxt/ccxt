@@ -102,7 +102,7 @@ public partial class nado : ccxt.nado
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -141,7 +141,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -158,7 +158,7 @@ public partial class nado : ccxt.nado
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -251,7 +251,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -331,7 +331,7 @@ public partial class nado : ccxt.nado
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stored, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(stored, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true));
     }
 
     /**
@@ -378,7 +378,7 @@ public partial class nado : ccxt.nado
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, resultSymbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(resultSymbol,((string)resultTimeframe), filtered));
     }
 
@@ -484,7 +484,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "ticker";
         string streamType = "all_bbo";
@@ -561,7 +561,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "bidask";
         string streamType = "all_bbo";
@@ -830,7 +830,7 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         await this.loadMarkets();
         await this.authenticate(this.extend(new Dictionary<string, object>() {}, parameters));
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         string messageHash = "positions";
         Int64? productId = null;
         if ((symbolsNormalized != null))

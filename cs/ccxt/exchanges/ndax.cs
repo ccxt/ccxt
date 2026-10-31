@@ -1093,7 +1093,7 @@ public partial class ndax : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.publicGetSummary(parameters);
         //
         //     [

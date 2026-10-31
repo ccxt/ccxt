@@ -87,7 +87,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -113,7 +113,7 @@ public partial class apex : ccxt.apex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -235,7 +235,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -438,7 +438,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
@@ -580,7 +580,7 @@ public partial class apex : ccxt.apex
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -723,7 +723,7 @@ public partial class apex : ccxt.apex
             symbolsNormalized2 = symbols;
         } else
         {
-            symbolsNormalized2 = this.marketSymbols(symbols);
+            symbolsNormalized2 = this.marketSymbols(this.toArray(symbols));
         }
         if (!this.isEmpty(symbols))
         {

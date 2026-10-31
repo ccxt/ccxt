@@ -112,7 +112,7 @@ public partial class hashkey : ccxt.hashkey
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -282,7 +282,7 @@ public partial class hashkey : ccxt.hashkey
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -578,7 +578,7 @@ public partial class hashkey : ccxt.hashkey
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)
@@ -699,7 +699,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         string? listenKey = await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized == null))
@@ -824,7 +824,7 @@ public partial class hashkey : ccxt.hashkey
         bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(typeMarketType, ":fetchBalanceSnapshot"));
+            await client.future(((object)(typeMarketType == null ? null : typeMarketType + ":fetchBalanceSnapshot")));
         }
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }

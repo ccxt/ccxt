@@ -178,7 +178,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 throw new ArgumentsRequired ((this.id + " subscribe() symbols is required")) ;
             }
-            marketIds = this.marketIds(symbols);
+            marketIds = this.marketIds(this.toArray(symbols));
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
         object symbolsHash = null;
@@ -214,7 +214,7 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "channel", new List<object>() {name} },
-            { "symbols", this.marketIds(symbols) },
+            { "symbols", this.marketIds(this.toArray(symbols)) },
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -458,7 +458,7 @@ public partial class poloniex : ccxt.poloniex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -529,7 +529,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         string name = "ticker";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         object newTickers = await this.subscribe(name, name, false, symbolsNormalized, parameters);
         if (this.newUpdates)
         {
@@ -573,7 +573,7 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         string name = "trades";
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public", "");
         IList<object> marketIds = this.marketIds(symbolsNormalized);
@@ -697,7 +697,7 @@ public partial class poloniex : ccxt.poloniex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -729,7 +729,7 @@ public partial class poloniex : ccxt.poloniex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**

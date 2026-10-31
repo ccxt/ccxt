@@ -3129,7 +3129,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -5002,7 +5002,7 @@ public partial class htx : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual object parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
+    public virtual IDictionary<string, object> parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
     {
         IDictionary<string, object> account = null;
         if ((result != null && code != null && result.ContainsKey(code)))
@@ -6342,7 +6342,7 @@ public partial class htx : Exchange
         {
             orderType = "ioc";
         }
-        request["type"] = add(add(sideStr, "-"), orderType);
+        request["type"] = ((object)(sideStr == null ? null : sideStr + "-" + orderType));
         string? clientOrderId = this.safeString2(paramsPostOnly, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
         if ((clientOrderId == null))
         {
@@ -8331,7 +8331,7 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if (fromOrToFuturesAccount)
         {
-            string? type = ((string)add(add(fromAccountIdStr, "-to-"), toAccountIdStr));
+            string? type = ((string)((object)(fromAccountIdStr == null ? null : fromAccountIdStr + "-to-" + toAccountIdStr)));
             type = this.safeString(paramsSubType, "type", type);
             request["type"] = type;
             response = await this.spotPrivatePostV1FuturesTransfer(this.extend(request, paramsSubType));
@@ -9002,7 +9002,7 @@ public partial class htx : Exchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        int apiLength = api?.Count ?? 0;
+        int apiLength = (api?.Count ?? 0);
         if ((apiLength == 1))
         {
             // signing implementation for the old endpoints
@@ -9612,7 +9612,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
@@ -10702,7 +10702,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

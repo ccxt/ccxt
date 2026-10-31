@@ -1142,7 +1142,7 @@ public partial class coinbaseexchange : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.publicGetProductsSparkLines(this.extend(request, parameters));
         //

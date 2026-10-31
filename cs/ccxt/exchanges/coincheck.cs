@@ -359,7 +359,7 @@ public partial class coincheck : Exchange
             if ((free != null))
             {
                 Dictionary<string, object> account = this.account();
-                object reserved = add(currencyId, "_reserved");
+                object reserved = (currencyId == null ? null : currencyId + "_reserved");
                 account["free"] = free;
                 account["used"] = this.safeString(response, reserved);
                 result[(string)code] = account;

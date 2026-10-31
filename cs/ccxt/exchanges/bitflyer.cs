@@ -313,7 +313,7 @@ public partial class bitflyer : Exchange
         {
             return ((Int64?)((object)(null)));
         }
-        return this.parse8601(add(add(add(add(add(expiryYear, "-"), month), "-"), day), "T00:00:00Z"));
+        return this.parse8601(((object)(expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z")));
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
@@ -1080,7 +1080,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", this.marketIds(symbols) },
+            { "product_code", this.marketIds(this.toArray(symbols)) },
         };
         List<object> response = await this.privateGetGetpositions(this.extend(request, parameters));
         //

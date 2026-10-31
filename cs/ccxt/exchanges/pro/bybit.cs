@@ -438,7 +438,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsValue = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsValue = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = await this.getUrlByMarketType((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null), false, "watchTickers", parameters);
         object paramsValue = this.cleanParams(parameters);
@@ -690,7 +690,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsValue = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsValue = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = await this.getUrlByMarketType((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null), false, "watchBidsAsks", parameters);
         object paramsValue = this.cleanParams(parameters);
@@ -798,7 +798,7 @@ public partial class bybit : ccxt.bybit
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -992,7 +992,7 @@ public partial class bybit : ccxt.bybit
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? url = await this.getUrlByMarketType((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null), false, "watchOrderBook", parameters);
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
@@ -1219,7 +1219,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1247,7 +1247,7 @@ public partial class bybit : ccxt.bybit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -1722,7 +1722,7 @@ public partial class bybit : ccxt.bybit
         IList<object> symbolsNormalized = symbols;
         if (((symbols != null)) && !this.isEmpty(symbols))
         {
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         }
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {

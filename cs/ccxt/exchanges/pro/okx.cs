@@ -128,7 +128,7 @@ public partial class okx : ccxt.okx
         {
             symbolsRequested = this.symbols;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsRequested));
         string? url = this.getUrl(channel, access);
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
@@ -229,7 +229,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string channel = this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades").Item1;
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -557,7 +557,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -613,7 +613,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -736,7 +736,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -1211,7 +1211,7 @@ public partial class okx : ccxt.okx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -1286,7 +1286,7 @@ public partial class okx : ccxt.okx
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -1430,7 +1430,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? depthOption = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books").Item1;
         string depth = depthOption;
         if ((limit != null))
@@ -1549,7 +1549,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            subMessageHashes.Add(add(add(depth, ":"), symbol));
+            subMessageHashes.Add(((object)(depth == null ? null : depth + ":" + symbol)));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -2140,7 +2140,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         await this.authenticate(parameters);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", "ANY" },
         };

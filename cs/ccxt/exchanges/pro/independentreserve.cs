@@ -66,7 +66,7 @@ public partial class independentreserve : ccxt.independentreserve
         string url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
         string messageHash = ("trades:" + symbolValue);
         object trades = await this.watch(url, messageHash, null, messageHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)

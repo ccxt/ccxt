@@ -973,7 +973,7 @@ public partial class phemex : Exchange
         bool isLinear = !inverse;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(((object)(bs == null ? null : bs + "/" + quote)), ":"), settle) },
+            { "symbol", ((object)(bs == null ? null : bs + "/" + quote + ":" + settle)) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },
@@ -1984,7 +1984,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, this.toArray(symbols)));
     }
 
     /**
@@ -4403,7 +4403,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"currency", "code"}));
         object paramsSettle = paramsOmitted;

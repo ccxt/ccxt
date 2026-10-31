@@ -115,7 +115,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, firstSymbol, limit));
         }
-        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -402,7 +402,7 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         IList<object> symbolsList = symbolsNormalized;
         Dictionary<string, object> firstMarket = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         string channel = "tickers";
@@ -522,7 +522,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,timeframe, filtered));
     }
 
@@ -738,7 +738,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -802,7 +802,7 @@ public partial class blofin : ccxt.blofin
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, this.toArray(symbols), since, limit));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
@@ -912,7 +912,7 @@ public partial class blofin : ccxt.blofin
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         bool isOHLCV = ((channelName is "candle"));
         object symbolsRaw = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        IList<object> symbols = this.marketSymbols(symbolsRaw, null, true, true);
+        IList<object> symbols = this.marketSymbols(this.toArray(symbolsRaw), null, true, true);
         IDictionary<string, object> firstMarket = null;
         string? firstSymbol = this.safeString(symbols, 0);
         if ((firstSymbol != null))
@@ -940,7 +940,7 @@ public partial class blofin : ccxt.blofin
                     market = this.market(current);
                     string? tf = this.safeString(this.safeValue(symbolsArray, i), 1);
                     string? interval = this.safeString(this.timeframes, tf, tf);
-                    channel = add(channel, interval);
+                    channel = ((object)(channel == null ? null : channel + interval));
                 } else
                 {
                     market = this.market(current);
@@ -950,7 +950,7 @@ public partial class blofin : ccxt.blofin
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                 };
                 rawSubscriptions.Add(topic);
-                messageHashes.Add(add(add(channel, ":"), this.safeString(market, "symbol", "")));
+                messageHashes.Add(((object)(channel == null ? null : channel + ":" + this.safeString(market, "symbol", ""))));
             }
         } else
         {
@@ -992,10 +992,10 @@ public partial class blofin : ccxt.blofin
         IList<object> symbols = new List<object>() {};
         if (isOHLCV)
         {
-            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), null, false, true);
+            symbols = this.marketSymbols(this.toArray(this.getListFromObjectValues(symbolsArray, 0)), null, false, true);
         } else
         {
-            symbols = this.marketSymbols(symbolsArray, null, false, true);
+            symbols = this.marketSymbols(this.toArray(symbolsArray), null, false, true);
         }
         Dictionary<string, object> firstMarket = this.market(this.safeString(symbols, 0));
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
@@ -1016,7 +1016,7 @@ public partial class blofin : ccxt.blofin
                 object tfArray = getValue(symbolsArray, i);
                 object tf = getValue(tfArray, 1);
                 string? interval = this.safeString(this.timeframes, tf, tf);
-                channel = (channel + (interval));
+                channel = ((object)(channel == null ? null : channel + interval));
             }
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },

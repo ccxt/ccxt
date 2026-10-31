@@ -1080,7 +1080,7 @@ public partial class bittrade : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.marketGetTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
@@ -2423,7 +2423,7 @@ public partial class bittrade : Exchange
                 request["chain"] = add((currency.ContainsKey("id") ? currency["id"] : null), network);
             } else
             {
-                request["chain"] = add(network, (currency.ContainsKey("id") ? currency["id"] : null));
+                request["chain"] = ((object)(network == null ? null : network + (string)(object)((currency.ContainsKey("id") ? currency["id"] : null))));
             }
         }
         object paramsNetwork = ((network != null)) ? this.omit(paramsWithdrawTag, "network") : paramsWithdrawTag;

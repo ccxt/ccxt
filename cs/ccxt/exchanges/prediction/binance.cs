@@ -738,7 +738,7 @@ public partial class binance : PredictionExchange
             IDictionary<string, object> rawOutcome = this.safeDict(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
-            string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
+            string? outcomeHandle = ((string)((object)(marketSymbol == null ? null : marketSymbol + ":" + label)));
             string? price = this.safeString(rawOutcome, "price");
             bool? winnerRaw = null;
             int? settleFractionRaw = null;
@@ -960,7 +960,7 @@ public partial class binance : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(this.toArray(outcomes));
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         int outcomesLength = outcomes?.Count ?? 0;
@@ -1121,7 +1121,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, (":" + outcome));
+            outcomeName = ((object)(outcomeName == null ? null : outcomeName + (":" + outcome)));
             outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         string? side = this.safeStringLower(order, "side");
@@ -1522,7 +1522,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, (":" + outcome));
+            outcomeName = ((object)(outcomeName == null ? null : outcomeName + (":" + outcome)));
             outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(position, "createdTime");
@@ -1711,7 +1711,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, (":" + outcome));
+            outcomeName = ((object)(outcomeName == null ? null : outcomeName + (":" + outcome)));
             outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(trade, "createTime");

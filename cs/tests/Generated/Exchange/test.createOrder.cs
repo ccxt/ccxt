@@ -27,17 +27,17 @@ public partial class testMainClass : BaseTest
         bool hasCancelOrder = (!(getValue(exchange.has, "cancelOrder") == null)) && (!(getValue(exchange.has, "cancelOrder") is false));
         bool hasCancelOrders = (!(getValue(exchange.has, "cancelOrders") == null)) && (!(getValue(exchange.has, "cancelOrders") is false));
         bool hasCancelAllOrders = (!(getValue(exchange.has, "cancelAllOrders") == null)) && (!(getValue(exchange.has, "cancelAllOrders") is false));
-        assert(hasCancelOrder || hasCancelOrders || hasCancelAllOrders, add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        assert(hasCancelOrder || hasCancelOrders || hasCancelAllOrders, ((object)(logPrefix == null ? null : logPrefix + " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...")));
         // pre-define some coefficients, which will be used down below
         double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
         bool isSwapFuture = ((getValue(market, "swap") is true)) || ((getValue(market, "future") is true));
         bool hasFetchBalance = (!(getValue(exchange.has, "fetchBalance") == null)) && (!(getValue(exchange.has, "fetchBalance") is false));
-        assert(hasFetchBalance, add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        assert(hasFetchBalance, ((object)(logPrefix == null ? null : logPrefix + " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...")));
         object balance = await invokeExchangeDynamically(exchange, "fetchBalance");
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
-        assert((initialQuoteBalance != null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
+        assert((initialQuoteBalance != null), ((object)(logPrefix == null ? null : logPrefix + " - testing account not have balance of" + (string)(object)(getValue(market, "quote")) + " in fetchBalance() which is required to test")));
         tcoDebug(exchange, symbol, ((((((((("fetched balance for " + (symbol)) + " : ") + ((object)initialBaseBalance).ToString()) + " ") + (getValue(market, "base"))) + "/") + (initialQuoteBalance)) + " ") + (getValue(market, "quote"))));
         var bestBidbestAskVariable = await testSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol);
         var bestBid = ((IList<object>) bestBidbestAskVariable)[0];
@@ -192,7 +192,7 @@ public partial class testMainClass : BaseTest
             cancelResult = await invokeExchangeDynamically(exchange, "cancelAllOrders", symbol);
         } else if ((!(getValue(exchange.has, "cancelOrders") == null)) && (!(getValue(exchange.has, "cancelOrders") is false)))
         {
-            throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
+            throw new Exception ((string)((object)(logPrefix == null ? null : logPrefix + " cancelOrders method is not unified yet, coming soon..."))) ;
         }
         tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + (getValue(cancelResult, "id"))));
         // todo:

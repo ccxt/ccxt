@@ -242,7 +242,7 @@ public partial class bitstamp : ccxt.bitstamp
                 return (i + 1L);
             }
         }
-        return deltas?.Count ?? 0;
+        return (deltas?.Count ?? 0);
     }
 
     /**
@@ -493,7 +493,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**

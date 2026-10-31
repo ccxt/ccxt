@@ -1100,7 +1100,7 @@ public partial class latoken : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

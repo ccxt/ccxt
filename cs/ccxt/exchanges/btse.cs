@@ -1381,7 +1381,7 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(paramsOmitted);
@@ -3582,7 +3582,7 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.privateGetFuturesApiV3TradePositions(parameters);
         //
         // the response is a bare array of position rows

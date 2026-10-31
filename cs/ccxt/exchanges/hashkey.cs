@@ -1807,7 +1807,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.publicGetQuoteV1Ticker24hr(parameters);
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }

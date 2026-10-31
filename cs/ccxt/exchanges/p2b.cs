@@ -492,7 +492,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, this.toArray(symbols)));
     }
 
     /**

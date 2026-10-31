@@ -859,7 +859,7 @@ public partial class coinbaseinternational : Exchange
                 optionTypeLetter = "C";
             }
             string? strikeString = this.numberToString(strike);
-            symbol = add(add(((object)(symbol == null ? null : symbol + "-" + strikeString)), "-"), optionTypeLetter);
+            symbol = ((object)(symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter));
         }
         Dictionary<string, object> marketStructure = new Dictionary<string, object>() {
             { "id", instrumentName },
@@ -1325,7 +1325,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
         if ((symbolsResolved == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires a symbols argument")) ;
@@ -2235,7 +2235,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 

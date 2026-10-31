@@ -1401,7 +1401,7 @@ public partial class polymarket : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(this.toArray(outcomes));
         List<object> targets = new List<object>() {};
         for (int oi = 0; oi < (outcomes?.Count ?? 0); oi++)
         {
@@ -1957,7 +1957,7 @@ public partial class polymarket : PredictionExchange
         }
         Dictionary<string, object> response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
         object rawTrades = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(rawTrades, outcomeObj, since, limit));
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(this.toArray(rawTrades), outcomeObj, since, limit));
     }
 
     /**
@@ -2141,7 +2141,7 @@ public partial class polymarket : PredictionExchange
         if ((outcomes != null))
         {
             outcomesLength = outcomes?.Count ?? 0;
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
@@ -2597,7 +2597,7 @@ public partial class polymarket : PredictionExchange
                 object feeHex = this.intToBase16(feeRate);
                 feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
                 string addressHex = (builderHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
-                object packedHex = add(feeHex, addressHex);
+                object packedHex = (feeHex == null ? null : feeHex + addressHex);
                 builderBytes32 = ("0x" + (packedHex));
             } else
             {
@@ -3322,7 +3322,7 @@ public partial class polymarket : PredictionExchange
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        object url = (baseUrl == null ? null : baseUrl + "/" + this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
         bool isArrayBody = false;
@@ -3362,7 +3362,7 @@ public partial class polymarket : PredictionExchange
             }
             if (querystring != "")
             {
-                url = add(url, ("?" + querystring));
+                url = ((object)(url == null ? null : url + ("?" + querystring)));
             }
         } else if (isArrayBody)
         {
@@ -3886,7 +3886,7 @@ public partial class polymarket : PredictionExchange
         };
         object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         object trades = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     /**

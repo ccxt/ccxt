@@ -227,7 +227,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "ticker";
@@ -453,7 +453,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "trade";
@@ -477,7 +477,7 @@ public partial class weex : ccxt.weex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -725,7 +725,7 @@ public partial class weex : ccxt.weex
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -935,7 +935,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
@@ -1111,7 +1111,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if ((this.safeBool(firstMarket, "contract", false) == true))
         {
@@ -2006,7 +2006,7 @@ public partial class weex : ccxt.weex
         string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "contract", "") + "/private");
         this.authenticate(url);
         var client = this.client(url);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true);
         string messageHash = "positions";
         string subscriptionHash = messageHash;
         if ((symbolsNormalized != null))

@@ -135,7 +135,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
         if (isGenerationTwo && ((symbolsLength == 0)))
         {

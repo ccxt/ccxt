@@ -679,7 +679,7 @@ public partial class pacifica : ccxt.pacifica
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         string messageHash = "tickers";
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";

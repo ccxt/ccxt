@@ -434,7 +434,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -532,7 +532,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -779,7 +779,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -930,7 +930,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -1089,7 +1089,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
@@ -1218,7 +1218,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -1238,7 +1238,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             string? tradeSymbol = this.safeString(first, "symbol");
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -2179,7 +2179,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
         object result = await this.requestWs("private/get_positions", paramsResolved, true);
         IList<object> positions = this.parsePositions(result);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsResolved));

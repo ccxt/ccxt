@@ -825,7 +825,7 @@ public partial class zebpay : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicSpotGetV2MarketAllTickers(paramsMarketType);
         //
         //     [
@@ -1752,7 +1752,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            request["symbols"] = this.marketIds(symbols);
+            request["symbols"] = this.marketIds(this.toArray(symbols));
         }
         Dictionary<string, object> response = await this.privateSwapGetV1TradePositions(this.extend(request, parameters));
         //

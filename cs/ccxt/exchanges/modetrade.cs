@@ -1520,7 +1520,7 @@ public partial class modetrade : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
         //
         //     {
@@ -3821,7 +3821,7 @@ public partial class modetrade : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "rows", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
     }
 
     public override Int64 nonce()

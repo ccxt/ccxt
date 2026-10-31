@@ -896,7 +896,7 @@ public partial class apex : Exchange
         }
         Dictionary<string, object> response = await this.publicGetV3DataAllTickerInfo(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     /**
@@ -2126,7 +2126,7 @@ public partial class apex : Exchange
         Dictionary<string, object> response = await this.privateGetV3Account(parameters);
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(data, "positions", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

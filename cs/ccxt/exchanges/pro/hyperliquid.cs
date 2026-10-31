@@ -444,7 +444,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         string messageHash = "tickers";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1501,7 +1501,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {

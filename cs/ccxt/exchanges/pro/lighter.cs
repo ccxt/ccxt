@@ -64,14 +64,14 @@ public partial class lighter : ccxt.lighter
         object hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = add(hash, ("::" + (symbol)));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (symbol)))));
         } else
         {
-            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
+            hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs ...
         }
         if ((extra != null))
         {
-            hash = add(hash, ("::" + (extra)));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (extra)))));
         }
         return ((string?)((object)(hash)));
     }
@@ -413,7 +413,7 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
         {
@@ -692,7 +692,7 @@ public partial class lighter : ccxt.lighter
         };
         string? messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"));
         object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     /**

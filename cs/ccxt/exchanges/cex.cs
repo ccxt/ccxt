@@ -649,7 +649,7 @@ public partial class cex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            request["pairs"] = this.marketIds(symbols);
+            request["pairs"] = this.marketIds(this.toArray(symbols));
         }
         Dictionary<string, object> response = await this.publicPostGetTicker(this.extend(request, parameters));
         //
@@ -679,7 +679,7 @@ public partial class cex : Exchange
         //            ...
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, this.toArray(symbols)));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)

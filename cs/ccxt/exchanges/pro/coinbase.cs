@@ -175,7 +175,7 @@ public partial class coinbase : ccxt.coinbase
         }
         List<object> productIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
@@ -225,7 +225,7 @@ public partial class coinbase : ccxt.coinbase
         List<object> productIds = new List<object>() {};
         List<object> watchMessageHashes = new List<object>() {};
         List<object> unWatchMessageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
@@ -266,7 +266,7 @@ public partial class coinbase : ccxt.coinbase
         this.checkRequiredCredentials();
         bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
         bool isV2CloudAPiKey = this.isEddsaApiKey();
-        string? auth = ((string)add(((object)(timestamp == null ? null : timestamp + (string)(object)(name))), String.Join(",", ((IList<object>)productIds).ToArray())));
+        string? auth = ((string)((object)(timestamp == null ? null : timestamp + (string)(object)(name) + String.Join(",", ((IList<object>)productIds).ToArray()))));
         if (!isCloudAPiKey && !isV2CloudAPiKey)
         {
             subscribe["api_key"] = this.apiKey;
@@ -590,7 +590,7 @@ public partial class coinbase : ccxt.coinbase
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -640,7 +640,7 @@ public partial class coinbase : ccxt.coinbase
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -688,7 +688,7 @@ public partial class coinbase : ccxt.coinbase
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**

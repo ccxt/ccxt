@@ -414,12 +414,12 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check to make stricter
             if ((feeObject != null))
             {
-                assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                assert(inOp(feeObject, "cost"), ((object)(keyString == null ? null : keyString + " fee object should contain \"cost\" key" + (string)(object)(logText))));
                 if ((getValue(feeObject, "cost") == null))
                 {
                     return;  // todo: remove undefined check to make stricter
                 }
-                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), ((object)(keyString == null ? null : keyString + " \"cost\" must be numeric type" + (string)(object)(logText))));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), ((("\"" + (keyString)) + "\" fee object should contain \"currency\" key") + (logText)));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -531,7 +531,7 @@ public partial class testMainClass : BaseTest
                 bestAsk = exchange.safeNumber(ticker, "ask");
             }
             //
-            assert(!(bestBid == null) && !(bestAsk == null), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
+            assert(!(bestBid == null) && !(bestAsk == null), ((object)(logText == null ? null : logText + " " + (string)(object)(exchange.id) + " could not get best bid/ask for " + (string)(object)(symbol) + " using " + usedMethod + " while testing " + (string)(object)(method))));
             return new List<object>() {bestBid, bestAsk};
         }
         async public Task<object> fetchOrder(BaseExchange exchange, object symbol, object orderId, object skippedProperties)
@@ -736,7 +736,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             if ((hint != null))
             {
-                logText = add(add(logText, " "), hint);
+                logText = ((object)(logText == null ? null : logText + " " + (string)(object)(hint)));
             }
             assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("response is expected to be an array" + (logText)));
             if (!(inOp(skippedProperties, "emptyResponse")))

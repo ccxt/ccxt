@@ -596,7 +596,7 @@ public partial class polymarket : Exchange
         bool crossAllowed = !(this.safeBool(market, "isolated_only", false) == true);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", numericId },
-            { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
+            { "symbol", ((object)(bs == null ? null : bs + "/" + quote + ":" + settle)) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },
@@ -691,7 +691,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
         List<object> responses = new List<object>(await Task.WhenAll(promises));
         //
@@ -833,7 +833,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.publicGetInfoBbo(parameters);
         //
         //     [
@@ -1992,7 +1992,7 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadProxyCredentials();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.privateGetAccountPortfolio(parameters);
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> rows = this.safeList(response, "positions", new List<object>() {});
@@ -3086,7 +3086,7 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((path is "account/orders"))

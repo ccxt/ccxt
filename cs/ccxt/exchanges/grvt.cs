@@ -2761,7 +2761,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if ((symbolsNormalized != null))
         {
             List<object> baseIds = new List<object>() {};

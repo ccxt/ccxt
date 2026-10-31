@@ -611,7 +611,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> response = await this.publicGetTicker(parameters);
         List<object> tickers = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     /**

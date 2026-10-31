@@ -782,7 +782,7 @@ public partial class kraken : ccxt.kraken
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
         {
@@ -810,7 +810,7 @@ public partial class kraken : ccxt.kraken
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         ((IDictionary<string,object>)parameters)["event_trigger"] = "bbo";
         object ticker = await this.watchMultiHelper("bidask", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
@@ -865,7 +865,7 @@ public partial class kraken : ccxt.kraken
             string? tradeSymbol = this.safeString(first, "symbol");
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -1762,7 +1762,7 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // symbols are required
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
         if ((symbolsNormalized == null))
         {
             return null;
@@ -1878,14 +1878,14 @@ public partial class kraken : ccxt.kraken
         object messageHash = unifiedElementName;
         if (!withSymbol)
         {
-            messageHash = add(messageHash, "s");
+            messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
         } else
         {
-            messageHash = add(messageHash, ("@" + (symbol)));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("@" + (symbol)))));
         }
         if ((subChannelName != null))
         {
-            messageHash = add(messageHash, ("#" + (subChannelName)));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + (subChannelName)))));
         }
         return ((string?)((object)(messageHash)));
     }

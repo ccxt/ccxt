@@ -100,7 +100,7 @@ public partial class mudrex : ccxt.mudrex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> messageHashes = new List<object>() {};
         List<object> assets = new List<object>() {};
         if ((symbolsNormalized != null))

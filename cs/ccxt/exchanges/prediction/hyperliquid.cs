@@ -535,8 +535,8 @@ public partial class hyperliquid : PredictionExchange
         object parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
-        string? yesOutcomeSymbol = ((string)add(parentSymbol, ":YES"));
-        string? noOutcomeSymbol = ((string)add(parentSymbol, ":NO"));
+        string? yesOutcomeSymbol = ((string)((object)(parentSymbol == null ? null : parentSymbol + ":YES")));
+        string? noOutcomeSymbol = ((string)((object)(parentSymbol == null ? null : parentSymbol + ":NO")));
         // Parse expiry from description
         string? expiry = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
@@ -765,7 +765,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1120,7 +1120,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1995,7 +1995,7 @@ public partial class hyperliquid : PredictionExchange
         {
             trades = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(this.toArray(trades), outcomeObj, since, limit));
     }
 
     /**
@@ -2056,7 +2056,7 @@ public partial class hyperliquid : PredictionExchange
         }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        IList<object> parsedTrades = this.parsePredictionTrades(fills, null);
+        IList<object> parsedTrades = this.parsePredictionTrades(this.toArray(fills), null);
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
@@ -2418,14 +2418,14 @@ public partial class hyperliquid : PredictionExchange
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = dataHex;
-        data = (data + ("00000" + this.intToBase16(nonce)));
+        data = ((object)(data == null ? null : data + ("00000" + this.intToBase16(nonce))));
         if ((vaultAddress == null))
         {
-            data = (data + "00");
+            data = ((object)(data == null ? null : data + "00"));
         } else
         {
-            data = (data + "01");
-            data = add(data, vaultAddress);
+            data = ((object)(data == null ? null : data + "01"));
+            data = ((object)(data == null ? null : data + (string)(object)(vaultAddress)));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
@@ -2659,7 +2659,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))

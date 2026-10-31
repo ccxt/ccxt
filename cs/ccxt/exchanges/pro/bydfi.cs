@@ -207,7 +207,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "ticker::";
         List<object> channels = new List<object>() {};
@@ -419,7 +419,7 @@ public partial class bydfi : ccxt.bydfi
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,timeframe, filtered));
     }
 
@@ -557,7 +557,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         string depth = "100";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -702,7 +702,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized == null))
         {
@@ -723,7 +723,7 @@ public partial class bydfi : ccxt.bydfi
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -861,7 +861,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
         if ((symbolsNormalized == null))

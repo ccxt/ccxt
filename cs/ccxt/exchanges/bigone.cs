@@ -1022,7 +1022,7 @@ public partial class bigone : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool isSpot = (type == "spot");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         IList<object> data = null;
         if (isSpot)
         {
@@ -1200,8 +1200,8 @@ public partial class bigone : Exchange
         List<object> asks = this.parseContractBidsAsks(responseAsks);
         return new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "bids", this.filterByLimit(this.sortBy(bids, 0, true), limit) },
-            { "asks", this.filterByLimit(this.sortBy(asks, 0), limit) },
+            { "bids", this.filterByLimit(this.toArray(this.sortBy(bids, 0, true)), limit) },
+            { "asks", this.filterByLimit(this.toArray(this.sortBy(asks, 0)), limit) },
             { "timestamp", null },
             { "datetime", null },
             { "nonce", null },

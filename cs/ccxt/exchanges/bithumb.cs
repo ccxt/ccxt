@@ -1618,7 +1618,7 @@ public partial class bithumb : Exchange
                 {
                     transactionTime = ("0" + rawTransactionTime);
                 }
-                Int64? kstTimestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
+                Int64? kstTimestamp = this.parse8601(((object)(transactionDate == null ? null : transactionDate + " " + transactionTime)));
                 timestamp = kstTimestamp;
                 if (((kstTimestamp != null)) && (!isGenerationTwo))
                 {

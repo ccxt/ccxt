@@ -105,7 +105,7 @@ public partial class gemini : ccxt.gemini
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public override ccxt.Trade parseWsTrade(object trade, object market = null)
@@ -617,7 +617,7 @@ public partial class gemini : ccxt.gemini
         {
             throw new NotSupported ((this.id + " watchMultiple requires at least one symbol")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         if (((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) != true)) && ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) != true)))
         {

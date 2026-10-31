@@ -828,7 +828,7 @@ public partial class opinion : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(this.toArray(outcomes));
         int outcomesLength = outcomes?.Count ?? 0;
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < outcomesLength; i++)
@@ -1664,7 +1664,7 @@ public partial class opinion : PredictionExchange
         if ((outcomes != null))
         {
             outcomesLength = outcomes?.Count ?? 0;
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.walletAddress },
@@ -2165,7 +2165,7 @@ public partial class opinion : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string messageHash = ("trades::" + sym);
         object trades = await this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -2245,7 +2245,7 @@ public partial class opinion : PredictionExchange
         string messageHash = "orders";
         object orders = await this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId);
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", sym, since, limit, "timestamp", true));
     }
 
     /**
@@ -2379,7 +2379,7 @@ public partial class opinion : PredictionExchange
         string messageHash = "myTrades";
         object trades = await this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId);
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)

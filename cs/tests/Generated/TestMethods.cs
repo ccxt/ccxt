@@ -1614,7 +1614,7 @@ public partial class testMainClass
         {
             errorMessage = (("[" + (key)) + "]");
         }
-        errorMessage = add(errorMessage, (((" computed: " + (storedString)) + " stored: ") + (calculatedString)));
+        errorMessage = ((object)(errorMessage == null ? null : errorMessage + (string)(object)((((" computed: " + (storedString)) + " stored: ") + (calculatedString)))));
         assert(cond, errorMessage);
     }
 

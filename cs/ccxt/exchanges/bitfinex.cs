@@ -1420,7 +1420,7 @@ public partial class bitfinex : Exchange
             object derivativesId = this.safeString(underlying, 0, this.safeString(info, 0, ""));
             if (!((string)derivativesId).EndsWith("F0"))
             {
-                return ((string?)((object)(add(derivativesId, "F0"))));
+                return ((string?)((object)(((object)(derivativesId == null ? null : derivativesId + "F0")))));
             }
             return ((string?)((object)(derivativesId)));
         } else if (!(type == "margin"))
@@ -1627,7 +1627,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -3399,7 +3399,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.privatePostAuthRPositions(parameters);
         //
         //     [
@@ -4341,7 +4341,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)

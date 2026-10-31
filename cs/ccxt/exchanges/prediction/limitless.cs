@@ -1352,7 +1352,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // resolve the uncached outcomes first, then group by parent market to fetch each
         // market and book only once
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(this.toArray(outcomes));
         Dictionary<string, object> outcomesBySlug = new Dictionary<string, object>() {};
         List<object> slugs = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
@@ -1799,7 +1799,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(this.toArray(response), null, since, limit));
+        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(this.toArray(this.toArray(response)), null, since, limit));
     }
 
     /**
@@ -3141,7 +3141,7 @@ public partial class limitless : PredictionExchange
         }
         if (symbolsLength > 0)
         {
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(this.toArray(outcomes));
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
@@ -3646,7 +3646,7 @@ public partial class limitless : PredictionExchange
         string querystring = this.urlencodeWithArrayRepeat(query);
         if ((method == "GET") && (querystring != ""))
         {
-            url = add(url, ("?" + querystring));
+            url = ((object)(url == null ? null : url + ("?" + querystring)));
         }
         Dictionary<string, object> headersValue = null;
         string? bodyValue = null;
@@ -3666,7 +3666,7 @@ public partial class limitless : PredictionExchange
             this.checkRequiredCredentials();
             object timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
-            string? payload = ((string)add(add(add(add(add(add(timestamp, newline), method), newline), url), newline), bodyString));
+            string? payload = ((string)((object)(timestamp == null ? null : timestamp + newline + (string)(object)(method) + newline + (string)(object)(url) + newline + bodyString)));
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },
@@ -3677,7 +3677,7 @@ public partial class limitless : PredictionExchange
             headersKey[(string)headerKey] = this.apiKey;
             headersValue = this.extend(headersValue, headersKey);
         }
-        url = add(baseUrl, url);
+        url = ((object)(baseUrl == null ? null : baseUrl + (string)(object)(url)));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

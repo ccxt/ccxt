@@ -161,7 +161,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTickers");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
@@ -313,7 +313,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
@@ -525,7 +525,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
@@ -718,7 +718,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -1071,7 +1071,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -1329,7 +1329,7 @@ public partial class aster : ccxt.aster
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -1760,7 +1760,7 @@ public partial class aster : ccxt.aster
         this.setPositionsCache(client);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true);
         if ((symbolsNormalized == null))
         {
             messageHashes.Add(messageHash);

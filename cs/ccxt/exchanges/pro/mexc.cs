@@ -219,7 +219,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null);
         List<object> messageHashes = new List<object>() {};
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
@@ -433,7 +433,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, false, true);
         if ((symbolsNormalized == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
@@ -657,7 +657,7 @@ public partial class mexc : ccxt.mexc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -909,7 +909,7 @@ public partial class mexc : ccxt.mexc
                 return i;
             }
         }
-        return cache?.Count ?? 0;
+        return (cache?.Count ?? 0);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -1038,7 +1038,7 @@ public partial class mexc : ccxt.mexc
             object bidask = (bidasks != null && i < bidasks.Count ? bidasks[i] : null);
             if (((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                (bookside as IOrderBookSide).storeArray(bidask);
+                (bookside as IOrderBookSide).storeArray(this.toArray(bidask));
             } else
             {
                 double? price = this.safeFloat2(bidask, "p", "price");
@@ -1108,7 +1108,7 @@ public partial class mexc : ccxt.mexc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)

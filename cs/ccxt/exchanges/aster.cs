@@ -2023,7 +2023,7 @@ public partial class aster : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -2167,7 +2167,7 @@ public partial class aster : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3614,7 +3614,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -3701,7 +3701,7 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(this.toArray(response)), symbols, "symbol", "swap"));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -3790,7 +3790,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        List<object> modifications = this.parseMarginModifications(this.toArray(response));
+        List<object> modifications = this.parseMarginModifications(this.toArray(this.toArray(response)));
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
@@ -4327,7 +4327,7 @@ public partial class aster : Exchange
                 result.Add(this.parsePositionRisk(rawPosition));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -4639,7 +4639,7 @@ public partial class aster : Exchange
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
         bool? filterClosed = this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 

@@ -432,7 +432,7 @@ public partial class extended : ccxt.extended
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string messageHash = "positions";
         if ((symbolsNormalized != null))
         {

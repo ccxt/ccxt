@@ -3962,7 +3962,7 @@ public partial class bitget : Exchange
             settleId = this.safeString(supportMarginCoins, 0);
         }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = (bs == null ? null : bs + "/" + quote);
         string? type = null;
         bool swap = false;
         bool spot = false;
@@ -4002,7 +4002,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4014,11 +4014,11 @@ public partial class bitget : Exchange
                 object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                object monthDay = add(month, day);
-                string? expiryString = ((string)add(year, monthDay));
+                object monthDay = (month == null ? null : month + day);
+                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
                 type = "future";
                 future = true;
-                symbol = add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiryString);
+                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
             }
             contract = true;
             inverse = (isEqual(bs, settle));
@@ -4268,7 +4268,7 @@ public partial class bitget : Exchange
             settleId = bs;
         }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = (bs == null ? null : bs + "/" + quote);
         string? type = null;
         bool swap = false;
         bool spot = false;
@@ -4307,7 +4307,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4319,11 +4319,11 @@ public partial class bitget : Exchange
                 object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                object monthDay = add(month, day);
-                string? expiryString = ((string)add(year, monthDay));
+                object monthDay = (month == null ? null : month + day);
+                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
                 type = "future";
                 future = true;
-                symbol = add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiryString);
+                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
             }
             contract = true;
             inverse = (isEqual(bs, settle));
@@ -11650,7 +11650,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> parsedPosition = this.parsePosition(position[i], market);
             result.Add(parsedPosition);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -13184,7 +13184,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14273,7 +14273,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> responseList = this.safeList(data, "list", new List<object>() {});
-        IList<object> positions = this.parsePositions(responseList, symbols, paramsUTA);
+        IList<object> positions = this.parsePositions(responseList, this.toArray(symbols), paramsUTA);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -14772,7 +14772,7 @@ public partial class bitget : Exchange
         {
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
-            object auth = add(((object)(timestamp == null ? null : timestamp + method)), payload);
+            object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + payload);
             if ((method == "POST"))
             {
                 requestBody = this.json(parameters);

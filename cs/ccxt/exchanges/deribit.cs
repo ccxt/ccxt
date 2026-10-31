@@ -1297,13 +1297,13 @@ public partial class deribit : Exchange
                     symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
-                        symbol = add(((object)(symbol == null ? null : symbol + "-")), this.yymmdd(expiry, ""));
+                        symbol = ((object)(symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry, ""))));
                         if (option)
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
                             string letter = (optionType == "call") ? "C" : "P";
-                            symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
+                            symbol = ((object)(symbol == null ? null : symbol + "-" + this.numberToString(strike) + "-" + letter));
                         }
                     }
                     inverse = ((quote != settle));
@@ -1716,7 +1716,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? code = this.safeString2(parameters, "code", "currency");
         string? type = null;
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"code"}));
@@ -3379,7 +3379,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result");
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, this.toArray(symbols)));
     }
 
     /**
@@ -3701,7 +3701,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3989,7 +3989,7 @@ public partial class deribit : Exchange
         string? cursor = this.safeString(result, "continuation");
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(settlementsWithCursor), market, since, limit));
     }
 
     public virtual object addPaginationCursorToResult(object cursor, IList<object> data)

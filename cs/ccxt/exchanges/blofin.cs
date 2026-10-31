@@ -1073,7 +1073,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetMarketTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
@@ -2705,7 +2705,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3360,7 +3360,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.privateGetAccountPositions(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> result = this.parsePositions(data);
@@ -3439,7 +3439,7 @@ public partial class blofin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, paramsUntil);
+        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsUntil);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -4173,7 +4173,7 @@ public partial class blofin : Exchange
         {
             if (!this.isEmpty(query))
             {
-                url = (url + ("?" + this.urlencode(query)));
+                url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(query)))));
             }
         } else if (apiName == "private")
         {
@@ -4192,7 +4192,7 @@ public partial class blofin : Exchange
                 if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
-                    url = (url + urlencodedQuery);
+                    url = ((object)(url == null ? null : url + urlencodedQuery));
                     request = request + urlencodedQuery;
                 }
             } else

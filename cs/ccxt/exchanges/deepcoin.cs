@@ -939,7 +939,7 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1394,7 +1394,7 @@ public partial class deepcoin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
         }
-        int length = codes?.Count ?? 0;
+        int length = (codes?.Count ?? 0);
         if ((length != 1))
         {
             throw new NotSupported ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
@@ -3003,7 +3003,7 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         string marketType = "swap";
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
@@ -3592,7 +3592,7 @@ public partial class deepcoin : Exchange
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
             object dateTime = this.iso8601(timestamp);
-            object payload = add(add(add(dateTime, method), "/"), requestPath);
+            object payload = (dateTime == null ? null : dateTime + (string)(object)(method) + "/" + requestPath);
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "DC-ACCESS-KEY", this.apiKey },
                 { "DC-ACCESS-TIMESTAMP", dateTime },
@@ -3604,7 +3604,7 @@ public partial class deepcoin : Exchange
             {
                 requestBody = this.json(parameters);
                 privateHeaders["Content-Type"] = "application/json";
-                payload = add(payload, requestBody);
+                payload = ((object)(payload == null ? null : payload + requestBody));
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             privateHeaders["DC-ACCESS-SIGN"] = signature;

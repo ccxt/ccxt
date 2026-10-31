@@ -1658,7 +1658,7 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " fetchPositions() requires walletAddress")) ;
         }
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
         IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
@@ -2005,7 +2005,7 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.archiveV2PublicGetTickers(parameters);
         //
         //     {

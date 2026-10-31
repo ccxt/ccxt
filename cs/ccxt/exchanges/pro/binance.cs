@@ -830,7 +830,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
         if ((((firstMarket != null && firstMarket.ContainsKey("option") ? firstMarket["option"] : null) as bool?) == true))
@@ -1430,7 +1430,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         string streamHash = "multipleTrades";
         if ((symbolsNormalized != null))
         {
@@ -1972,7 +1972,7 @@ public partial class binance : ccxt.binance
             {
                 stockLimit = ccxt.pro.BaseCache.getLimitOf(stockCandles, stockSymbol, limit);
             }
-            IList<object> stockFiltered = this.filterBySinceLimit(stockCandles, since, stockLimit, 0, true);
+            IList<object> stockFiltered = this.filterBySinceLimit(this.toArray(stockCandles), since, stockLimit, 0, true);
             return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(stockSymbol,((string)stockTimeframe), stockFiltered));
         }
         IList<object> klineTypeparamsChannelVariable = (IList<object>)this.handleParamString2(paramsStock, "channel", "name", "kline");
@@ -2024,7 +2024,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(add(add(add(((object)(marketId == null ? null : marketId + "@" + klineType)), "_"), interval), utcSuffix));
+            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
             messageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             subscribeHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2049,7 +2049,7 @@ public partial class binance : ccxt.binance
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -2123,7 +2123,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(add(add(add(((object)(marketId == null ? null : marketId + "@" + klineType)), "_"), interval), utcSuffix));
+            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
             subMessageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             messageHashes.Add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2529,7 +2529,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchTickers() with stock stream requires symbols")) ;
             }
-            symbolsNormalized = this.marketSymbols(symbols, null, false, false, true);
+            symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, false, true);
             object stockResult = await this.watchStockMarketStream(new List<object>() {"price"}, new List<object>() {"stock:price"}, paramsStock);
             if (this.newUpdates)
             {
@@ -2688,13 +2688,13 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchBidsAsks() with stock stream requires symbols")) ;
             }
-            IList<object> stockSymbols = this.marketSymbols(symbols, null, false, false, true);
+            IList<object> stockSymbols = this.marketSymbols(this.toArray(symbols), null, false, false, true);
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
             for (int i = 0; i < (stockSymbols?.Count ?? 0); i++)
             {
                 object stockTicker = this.getStockTickerFromSymbol(stockSymbols[i]);
-                stockStreams.Add(add(stockTicker, "@quote"));
+                stockStreams.Add(((object)(stockTicker == null ? null : stockTicker + "@quote")));
                 stockMessageHashes.Add(("stock:quote:" + (stockSymbols[i])));
             }
             object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock);
@@ -2704,7 +2704,7 @@ public partial class binance : ccxt.binance
             }
             return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", stockSymbols));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbolsNormalized, paramsStock);
         if (this.newUpdates)
         {
@@ -2724,7 +2724,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, false, true);
         bool isBidAsk = (channel == "bookTicker");
         bool isMarkPrice = (channel == "markPrice");
         IDictionary<string, object> firstMarket = null;
@@ -4017,7 +4017,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -5830,7 +5830,7 @@ public partial class binance : ccxt.binance
         }
         IDictionary<string, object> market = null;
         object messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if (!this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);
@@ -5862,7 +5862,7 @@ public partial class binance : ccxt.binance
         marketTypeObject["type"] = type;
         marketTypeObject["subType"] = subType;
         await this.authenticate(this.extend(marketTypeObject, paramsAuth));
-        messageHash = add(add(type, ":positions"), messageHash);
+        messageHash = ((object)(type == null ? null : type + ":positions" + (string)(object)(messageHash)));
         (bool?, object) portfolioMarginAndParams = this.handleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = portfolioMarginAndParams.Item1;
         object urlType = type;
@@ -5888,7 +5888,7 @@ public partial class binance : ccxt.binance
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
-            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            object snapshot = await client.future(((object)(type == null ? null : type + ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, type);
@@ -6270,7 +6270,7 @@ public partial class binance : ccxt.binance
             { "method", this.handleTradesWs },
         };
         object trades = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit));
     }
 
     public virtual void handleTradesWs(WebSocketClient client, object message)

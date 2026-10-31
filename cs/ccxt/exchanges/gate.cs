@@ -3462,7 +3462,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3534,7 +3534,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4077,7 +4077,7 @@ public partial class gate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -4530,7 +4530,7 @@ public partial class gate : Exchange
             bool isIndex = ((price is "index"));
             if (isMark || isIndex)
             {
-                request["contract"] = add(((object)(price == null ? null : price + "_")), (market.ContainsKey("id") ? market["id"] : null));
+                request["contract"] = ((object)(price == null ? null : price + "_" + (string)(object)((market.ContainsKey("id") ? market["id"] : null))));
             }
             object paramsContract = paramsOmitted;
             if (isMark || isIndex)
@@ -7977,7 +7977,7 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -8207,7 +8207,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLeverageTierList(this.parseMarketLeverageTiers(response, market));
     }
 
-    public virtual object parseEmulatedLeverageTiers(object info, IDictionary<string, object> market = null)
+    public virtual List<object> parseEmulatedLeverageTiers(object info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "name");
         string? maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
@@ -9618,7 +9618,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
     }
 
     /**
@@ -9709,7 +9709,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -10013,7 +10013,7 @@ public partial class gate : Exchange
         {
             response = await this.publicMarginGetCurrencyPairs(paramsOmitted); // deprecated
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, marketIdRequest, "spot"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbolsNormalized, marketIdRequest, "spot"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -10158,7 +10158,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(response), null, "name"));
+        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(this.toArray(response)), null, "name"));
     }
 
     public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
@@ -10317,7 +10317,7 @@ public partial class gate : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, this.toArray(symbols), paramsValue));
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

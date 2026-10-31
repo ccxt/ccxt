@@ -2406,7 +2406,7 @@ public partial class mexc : Exchange
         {
             tickers = new List<object>() {tickers};
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     /**
@@ -2647,7 +2647,7 @@ public partial class mexc : Exchange
         {
             tickers = new List<object>() {tickers};
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     /**
@@ -5596,7 +5596,7 @@ public partial class mexc : Exchange
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if ((rawNetwork != null))
             {
-                request["coin"] = add(add(currencyId, "-"), rawNetwork);
+                request["coin"] = ((object)(currencyId == null ? null : currencyId + "-" + rawNetwork));
             }
         }
         if ((since != null))
@@ -5942,7 +5942,7 @@ public partial class mexc : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, this.toArray(symbols)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -6518,7 +6518,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6629,7 +6629,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6905,7 +6905,7 @@ public partial class mexc : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, parameters);
+        IList<object> positions = this.parsePositions(data, this.toArray(symbols), parameters);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -7020,13 +7020,13 @@ public partial class mexc : Exchange
             if ((new List<object>(urlParams.Keys)).Count > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
-                url = ((url + "?") + paramsEncoded);
+                url = ((object)(url == null ? null : url + "?" + paramsEncoded));
             }
             if (access == "private")
             {
                 this.checkRequiredCredentials();
                 string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
-                url = ((url + "&signature=") + signature);
+                url = ((object)(url == null ? null : url + "&signature=" + (string)(object)(signature)));
                 requestHeaders = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
                     { "source", this.safeString(this.options, "broker", "CCXT") },
@@ -7053,7 +7053,7 @@ public partial class mexc : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0)
                 {
-                    url = (url + ("?" + this.urlencode(paramsOmitted)));
+                    url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(paramsOmitted)))));
                 }
             } else
             {
@@ -7070,7 +7070,7 @@ public partial class mexc : Exchange
                     if ((new List<object>(paramsSorted.Keys)).Count > 0)
                     {
                         auth = auth + this.urlencode(paramsSorted);
-                        url = (url + ("?" + auth));
+                        url = ((object)(url == null ? null : url + ("?" + auth)));
                     }
                 }
                 auth = ((this.apiKey + timestamp) + auth);

@@ -394,7 +394,7 @@ public partial class paradex : ccxt.paradex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string channel = "markets_summary";
         string? url = this.getWsUrl();
         List<object> messageHashes = new List<object>() {};
@@ -625,7 +625,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         // one channel carries every market
         string channel = "positions";
         string? url = this.getWsUrl();
@@ -1474,7 +1474,7 @@ public partial class paradex : ccxt.paradex
             { "2", "EXPIRE_TAKER" },
             { "3", "EXPIRE_BOTH" },
         };
-        object flags = this.sbeReadFlags(frameHex, 133, new List<object>() {"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"});
+        List<object> flags = this.sbeReadFlags(frameHex, 133, new List<object>() {"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"});
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 84) },
             { "avg_fill_price", this.sbeReadDecimal(frameHex, 60) },
@@ -1507,7 +1507,7 @@ public partial class paradex : ccxt.paradex
         return order;
     }
 
-    public virtual object sbeReadFlags(object frameHex, object offset, IList<object> names)
+    public virtual List<object> sbeReadFlags(object frameHex, object offset, IList<object> names)
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
@@ -1633,7 +1633,7 @@ public partial class paradex : ccxt.paradex
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", add(add(account, "-"), this.safeString(strings, 0, "")) },
+            { "id", ((object)(account == null ? null : account + "-" + this.safeString(strings, 0, ""))) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },

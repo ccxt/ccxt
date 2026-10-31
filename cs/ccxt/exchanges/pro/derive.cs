@@ -226,7 +226,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
@@ -996,7 +996,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, true);
         (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
         IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);

@@ -2505,7 +2505,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
@@ -3113,7 +3113,7 @@ public partial class pacifica : Exchange
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
@@ -4245,7 +4245,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");

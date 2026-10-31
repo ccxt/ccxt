@@ -1294,7 +1294,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1383,7 +1383,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1632,7 +1632,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
         List<object> response = await this.contractGetCapiV3MarketPremiumIndex(parameters);
         //
         //     [
@@ -4254,7 +4254,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         List<object> response = null;
         if ((sandboxMode == true))
@@ -4618,7 +4618,7 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(this.toArray(response)), symbolsNormalized, "symbol", "swap"));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -4727,7 +4727,7 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbolsNormalized, "symbol", "swap"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -5039,7 +5039,7 @@ public partial class weex : Exchange
         {
             if (!this.isEmpty(query))
             {
-                endpoint = add(endpoint, ("?" + this.urlencode(query)));
+                endpoint = ((object)(endpoint == null ? null : endpoint + (string)(object)(("?" + this.urlencode(query)))));
             }
         }
         bool isPrivate = (apiName == "private") || (apiName == "contractPrivate");
@@ -5059,10 +5059,10 @@ public partial class weex : Exchange
             }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
-            object payload = add(add(((object)(timestamp == null ? null : timestamp + method)), "/"), endpoint);
+            object payload = (timestamp == null ? null : timestamp + (string)(object)(method) + "/" + (string)(object)(endpoint));
             if (hasJsonBody)
             {
-                payload = add(payload, requestBody);
+                payload = ((object)(payload == null ? null : payload + requestBody));
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             requestHeaders = new Dictionary<string, object>() {

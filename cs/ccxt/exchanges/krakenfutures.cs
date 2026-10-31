@@ -816,7 +816,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> tickers = this.safeList(response, "tickers");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -3595,7 +3595,7 @@ public partial class krakenfutures : Exchange
         {
             throw new ExchangeNotAvailable ((this.id + " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
     }
 
     /**
@@ -3693,7 +3693,7 @@ public partial class krakenfutures : Exchange
                 updates.Add(update);
             }
         }
-        IList<object> positions = this.parsePositions(updates, symbols);
+        IList<object> positions = this.parsePositions(updates, this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -4252,7 +4252,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
-        string? endpoint = ((string)add(add(version, "/"), this.implodeParams(path, paramsOmitted)));
+        string? endpoint = ((string)((object)(version == null ? null : version + "/" + this.implodeParams(path, paramsOmitted))));
         object paramsOmitted2 = this.omit(paramsOmitted, this.extractParams(path));
         object query = endpoint;
         string postData = "";
@@ -4268,14 +4268,14 @@ public partial class krakenfutures : Exchange
             {
                 postData = this.urlencode(paramsOmitted2);
             }
-            query = add(query, ("?" + postData));
+            query = ((object)(query == null ? null : query + ("?" + postData)));
         }
         object apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string? url = ((string)add(apiUrl, query));
+        string? url = ((string)((object)(apiUrl == null ? null : apiUrl + (string)(object)(query))));
         string? requestBody = ((path == "batchorder")) ? postData : null;
         Dictionary<string, object> privateHeaders = null;
         if (apiName == "private" || access == "private")

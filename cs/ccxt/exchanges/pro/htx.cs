@@ -290,7 +290,7 @@ public partial class htx : ccxt.htx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -405,7 +405,7 @@ public partial class htx : ccxt.htx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -1205,7 +1205,7 @@ public partial class htx : ccxt.htx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1792,7 +1792,7 @@ public partial class htx : ccxt.htx
         string messageHash = "";
         if ((!this.isEmpty(symbols)) && ((symbols != null)))
         {
-            market = this.getMarketFromSymbols(symbols);
+            market = this.getMarketFromSymbols(this.toArray(symbols));
             messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         string? type = null;
@@ -1818,7 +1818,7 @@ public partial class htx : ccxt.htx
             subType = subTypeparamsSubTypeVariable.Item1;
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;
@@ -2099,7 +2099,7 @@ public partial class htx : ccxt.htx
                         // isolated margin only allows filtering by symbol3
                         if (((symbol != null)) && ((market != null)))
                         {
-                            messageHash = add(messageHash, ("." + this.safeString(market, "id", "")));
+                            messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(market, "id", ""))));
                             channel = messageHash;
                         } else
                         {
@@ -2125,7 +2125,7 @@ public partial class htx : ccxt.htx
                 // inverse futures account
                 if ((currencyCode != null))
                 {
-                    messageHash = add(messageHash, ("." + this.safeString(currencyCode, "id", "")));
+                    messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(currencyCode, "id", ""))));
                     channel = messageHash;
                 } else
                 {
@@ -2137,7 +2137,7 @@ public partial class htx : ccxt.htx
                 // inverse swaps account
                 if ((market != null))
                 {
-                    messageHash = add(messageHash, ("." + this.safeString(market, "id", "")));
+                    messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(market, "id", ""))));
                     channel = messageHash;
                 } else
                 {
@@ -2347,7 +2347,7 @@ public partial class htx : ccxt.htx
                 {
                     return;
                 }
-                messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("." + currencyId.ToLower()))));
+                messageHash = ((object)(messageHash == null ? null : messageHash + ("." + currencyId.ToLower())));
                 subscription = this.safeDict(client.subscriptions, messageHash);
             }
             string? subType = this.safeString(subscription, "subType");

@@ -1129,7 +1129,7 @@ public partial class bydfi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, this.toArray(symbols)));
     }
 
     /**
@@ -2387,7 +2387,7 @@ public partial class bydfi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, this.toArray(symbols)));
     }
 
     /**
@@ -2668,7 +2668,7 @@ public partial class bydfi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols);
+        IList<object> positions = this.parsePositions(data, this.toArray(symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

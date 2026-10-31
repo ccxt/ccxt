@@ -142,7 +142,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market((marketIds != null && 0 < marketIds.Count ? marketIds[0] : null));
-            messageHash = (messageHash + ((":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)))));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + ((market.ContainsKey("symbol") ? market["symbol"] : null))))));
         }
         subscribe["product_ids"] = marketIds;
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -215,7 +215,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
         {
@@ -295,7 +295,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -333,7 +333,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             await this.loadMarkets();
         }
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
@@ -525,7 +525,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -559,7 +559,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -1831,7 +1831,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         // symbols are required
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubs = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1871,14 +1871,14 @@ public partial class krakenfutures : ccxt.krakenfutures
         object messageHash = unifiedElementName;
         if (!withSymbol)
         {
-            messageHash = add(messageHash, "s");
+            messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
         } else
         {
-            messageHash = add(messageHash, (":" + (symbol)));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + (symbol)))));
         }
         if ((subChannelName != null))
         {
-            messageHash = add(messageHash, ("#" + (subChannelName)));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + (subChannelName)))));
         }
         return ((string?)((object)(messageHash)));
     }

@@ -807,7 +807,7 @@ public partial class coinsph : Exchange
         });
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         bool hasSymbolParam = (inOp(parameters, "symbol"));
@@ -1071,7 +1071,7 @@ public partial class coinsph : Exchange
         {
             tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols, parameters));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols), parameters));
     }
 
     /**

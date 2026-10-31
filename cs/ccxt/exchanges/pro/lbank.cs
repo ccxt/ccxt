@@ -470,7 +470,7 @@ public partial class lbank : ccxt.lbank
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
-        IList<object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 

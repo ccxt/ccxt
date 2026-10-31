@@ -282,7 +282,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string name = "tickers";
         string topic = name;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -348,7 +348,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string name = "bbos";
         string topic = name;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -455,7 +455,7 @@ public partial class modetrade : ccxt.modetrade
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -1149,7 +1149,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
