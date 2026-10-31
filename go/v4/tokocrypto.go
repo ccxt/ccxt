@@ -3212,7 +3212,6 @@ func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	if this.Markets() == nil {
 

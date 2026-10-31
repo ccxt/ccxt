@@ -7055,7 +7055,6 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 		"orderId":  id,
 		"category": marketType,
 	}
-	var isTrigger *bool = nil
 	isTrigger, paramsTrigger := this.HandleParamBool2(paramsValue, "trigger", "stop", false)
 	if isTrigger != nil && *isTrigger == true {
 		request["orderFilter"] = "StopOrder"
@@ -8838,7 +8837,6 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 
 	r := <-this.IsUnifiedEnabledAsync()

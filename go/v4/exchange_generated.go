@@ -11538,8 +11538,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11155, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11155
+	listRecv11157, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11157
 	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

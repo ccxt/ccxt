@@ -4199,7 +4199,6 @@ func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
@@ -4823,7 +4822,6 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
 	}
-	var hedged *bool = nil
 	hedged, paramsHedged := this.HandleParamBool(paramsMarginMode, "hedged", false)
 	if hedged != nil && *hedged == true {
 		if this.SafeString(paramsHedged, "posSide") == nil {

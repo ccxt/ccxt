@@ -3138,7 +3138,6 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagResolved *string = nil
 	tagResolved, paramsTag := this.HandleParamString(params, "tag")
 	if this.Markets() == nil {
 

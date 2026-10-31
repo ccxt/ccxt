@@ -2837,7 +2837,6 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		"market": market["id"],
 		"side":   side,
 	}
-	var cost *string = nil
 	cost, paramsCost := this.HandleParamString(params, "cost")
 	if cost != nil {
 		if (side != "buy") || (typeVar != "market") {
