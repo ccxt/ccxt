@@ -11208,6 +11208,16 @@ function ternaryArmType (printer, node, depth = 0) {
         && printedJavaIsString (printer, arm.left)) {
         return { type: LITERAL_STRING_TYPE, cast: false };
     }
+    if (ts.isIdentifier (arm) && arm.text !== 'undefined') {
+        try {
+            if (printer.printNode (arm, 0) === arm.text && printer.javaDeclaredTypeOf (arm) === LITERAL_STRING_TYPE) {
+                return { type: LITERAL_STRING_TYPE, cast: false };
+            }
+        } catch (e) {
+            return undefined;
+        }
+        return undefined;
+    }
     if (ts.isCallExpression (arm) && ts.isPropertyAccessExpression (arm.expression)) {
         const callee = arm.expression;
         const name = String (callee.name.text);
@@ -11226,6 +11236,10 @@ function ternaryArmType (printer, node, depth = 0) {
         }
         // String-declared base calls only; safeCurrencyCode is Object-declared in Java
         if (name !== 'safeCurrencyCode' && dataflowThisCallType (printer, arm) === LITERAL_STRING_TYPE) {
+            return { type: LITERAL_STRING_TYPE, cast: false };
+        }
+        // a venue method the printer itself retyped to String (bybit getAmount/getPrice/getCost)
+        if (internalReturnLocalType (printer, arm)?.type === LITERAL_STRING_TYPE) {
             return { type: LITERAL_STRING_TYPE, cast: false };
         }
     }
