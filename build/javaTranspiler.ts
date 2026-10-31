@@ -27,7 +27,6 @@ import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmet
 import { nativeJavaJ31Arithmetic, nativeJavaJ32DivModNeg, nativeJavaJ37DivModNeg } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
-import { j01wsNativeOps, j01wsSelfTest } from './hx10w3-J01.js'; // hx10 wave-3 J01
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
 import { installJ10Types } from './java-local-types.js';
@@ -1125,6 +1124,7 @@ function maskJavaComments (content: string): string {
 
 // SS-04: hand-written BaseExchange fields whose Java declaration is `public String`
 // (mirror of THIS_MEMBER_TYPES['…'] === 'String' in build/java-local-types.js)
+const WS_FUTURE_TYPE = 'io.github.ccxt.ws.Future';
 const JS_STRING_MEMBER_FIELDS = new Set([
     'id', 'version', 'name', 'secret', 'apiKey', 'password', 'uid', 'login', 'url', 'hostname',
 ]);
@@ -4190,6 +4190,12 @@ class NewTranspiler {
     // the hash local is already declared String (WsClient.future/reusableFuture take
     // `String`). A field/param not declared in the file proves nothing -> keep the cast.
     provablyStringLocal (content: string, name: string, pos: number): boolean {
+        return this.provablyTypedLocal (content, name, pos, 'String');
+    }
+
+    // the same nearest-preceding-declaration proof for any declared Java type: ws locals the printer
+    // declares `io.github.ccxt.ws.Future` (a read out of client.futures) need no checkcast at their uses
+    provablyTypedLocal (content: string, name: string, pos: number, type: string): boolean {
         const masked = maskJavaComments(content);
         const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const before = masked.slice(0, pos);
@@ -4198,18 +4204,18 @@ class NewTranspiler {
         const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
         const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
         const window = masked.slice(windowStart, pos);
-        const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
+        const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char|io\\.github\\.ccxt\\.ws\\.Future)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
         let last = null;
         let m;
         while ((m = decl.exec(window)) !== null) {
             last = m;
         }
-        if (last === null || last[1] !== 'String') {
+        if (last === null || last[1] !== type) {
             return false;
         }
         const rest = window.slice(last.index + last[0].length);
         const value = /^\s*=\s*([^\n;]*)/.exec(rest);
-        if (value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
+        if (type === 'String' && value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
             return false;
         }
         return true;
@@ -4256,9 +4262,6 @@ class NewTranspiler {
         // ── Pattern 12: Map casts for client.subscriptions/futures access ──
         content = content.replace(/\(\(Object\)client\)\.subscriptions/gm, '((java.util.Map)client.subscriptions)');
         content = content.replace(/\(\(Object\)client\)\.futures/gm, '((java.util.Map)client.futures)');
-        // Direct access without cast
-        content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
-        content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
 
         // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
         // helper's put branch and a plain put agree; the generated text stays as the base prints it.
@@ -4316,13 +4319,16 @@ class NewTranspiler {
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
         // When future is Object-typed (from safeValue etc), cast to Future first
+        // a `future` the file declares io.github.ccxt.ws.Future (nearest declaration in the method) needs no cast
+        const wsFutureLocal = (name: string, offset: number, _text: string): string =>
+            this.provablyTypedLocal (content, name, offset, WS_FUTURE_TYPE) ? name : `((${WS_FUTURE_TYPE})${name})`;
         content = content.replace(/(?<!\w)(future)\.getFuture\(\)\.join\(\)/gm,
-            '((io.github.ccxt.ws.Future)future).getFuture().join()');
+            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
         content = content.replace(/(?<!\w)(future)\.join\(\)/gm,
-            '((io.github.ccxt.ws.Future)future).getFuture().join()');
+            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
         // (future).join() pattern
         content = content.replace(/\(future\)\.join\(\)/gm,
-            '((io.github.ccxt.ws.Future)future).getFuture().join()');
+            (m: string, offset: number) => `${wsFutureLocal ('future', offset + 1, content)}.getFuture().join()`);
         // client.future(...).join() → client.future(...).getFuture().join()
         content = content.replace(/client\.(future|reusableFuture)\(([^)]+)\)\.join\(\)/gm,
             'client.$1($2).getFuture().join()');
@@ -4357,13 +4363,13 @@ class NewTranspiler {
         // ── Pattern: future.resolve(...) on Object-typed future variable ──
         // future.resolve(x) where future is Object → cast
         content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm,
-            '((io.github.ccxt.ws.Future)future).resolve($1)');
+            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
         // future.reject(x) on Object
         content = content.replace(/(?<!\w)future\.reject\(([^)]+)\)/gm,
-            '((io.github.ccxt.ws.Future)future).reject($1)');
+            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.reject(${args})`);
         // promise.resolve(x) where promise is Object → cast
         content = content.replace(/(?<!\w)promise\.resolve\(([^)]*)\)/gm,
-            '((io.github.ccxt.ws.Future)promise).resolve($1)');
+            (m: string, args: string, offset: number) => `${wsFutureLocal ('promise', offset, content)}.resolve(${args})`);
 
         // ── Dynamic method dispatch for Object-typed variables ──
         // Dynamic method calls on Object-typed variables — use balanced paren matching
@@ -5078,7 +5084,7 @@ class NewTranspiler {
         javaSource = nativeJavaJ36MultiplySubtract(javaSource) // hx4 J36 post-J37
         javaSource = nativeJavaJ38(javaSource) // hx4 J38
         javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
-        javaSource = hx11w8CacheFieldCasts(j01wsNativeOps(javaSource)) // hx10 wave-3 J01
+        javaSource = hx11w8CacheFieldCasts(javaSource)
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -5987,7 +5993,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01wsSelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7703,7 +7709,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaJ41(content); // hx4 J41
     content = nativeJavaJ43(content); // hx4 J43
     content = nativeJavaJ44(content); // hx4 J44
-    content = hx11w8CacheFieldCasts(j01wsNativeOps(content)); // hx10 wave-3 J01
+    content = hx11w8CacheFieldCasts(content);
     return content;
 }
 
