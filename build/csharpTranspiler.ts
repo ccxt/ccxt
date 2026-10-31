@@ -3,7 +3,6 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { hx10C08PromiseAll, hx10C08SnippetChecks, hx11w8PromiseAllSlots } from './hx10w5-C08.js' // hx10 wave5 C08: mixed-Task promiseAll
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
@@ -19,7 +18,6 @@ import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } fr
 import { hx10w3C02CandidateReads, w3checks } from './hx10w3-C02.js'
 import { c06w3ParseJson, c06w3Checks } from './hx10w3-C06.js' // hx10w3 C06: parseJson on a string-declared call
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
-import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
@@ -2756,6 +2754,327 @@ function csharpNativeCoreConversion (helper: string, value: string, content: str
     return ''
 }
 
+// A typed-core `return` whose operand already has the dictionary type the To* funnel materialises
+// prints bare. Proofs come from emitted declaration text only (this file, cs/ccxt/base, cs/ccxt/api).
+// the two dictionary shapes the funnels materialise; every other target stays untouched
+const CSHARP_RET_TARGETS = [ 'Dictionary<string, object>', 'List<Dictionary<string, object>>' ]
+const CSHARP_RET_ROOT = resolve (__dirname, '..', 'cs', 'ccxt')
+
+const CSHARP_RET_API_METHOD = /^\s*public async Task<(.+)> (\w+) \(object parameters = null\)/
+const CSHARP_RET_SIGNATURE = /^\s*(?:public|private|protected|internal)\s+(?:static\s+|async\s+|virtual\s+|override\s+|new\s+|sealed\s+)*([\w<>,.?\[\]\s]+?)\s+([A-Za-z_]\w*)\s*\(/
+// one local declaration; `var` counts as an occurrence but can never prove a type
+const CSHARP_RET_DECLARATION = /^\s*(var|object|string\??|bool\??|double\??|Int64\??|int\??|I?List<[\w<>,.? ]*>|I?Dictionary<[\w<>,.? ]*>|ccxt\.[\w.<>?]+)\s+([A-Za-z_]\w*)\s*(?:=[^=]|;)/
+const CSHARP_RET_FOREACH = /^\s*foreach\s*\(\s*([\w<>,.?\s]+?)\s+([A-Za-z_]\w*)\s+in\b/
+const CSHARP_RET_IDENTIFIER = /^[A-Za-z_]\w*$/
+const CSHARP_RET_CALL = /^(await\s+)?(this|base)\.([A-Za-z_]\w*)\s*\(/
+const CSHARP_RET_BARE_CALL = /^(await\s+)?([A-Za-z_]\w*)\s*\(/
+
+const csharpRetApiTables = new Map<string, Map<string, string> | undefined> ()
+const csharpRetSameFileSignatures = new Map<string, Map<string, Set<string>>> ()
+let csharpRetBaseSignatures: Map<string, Set<string>> | undefined
+
+// the venue id the content is emitted into: the generated class carries it
+function csharpRetVenue (content: string): string {
+    const match = /^\s*public (?:partial )?class (\w+)/m.exec (content)
+    return (match === null) ? '' : match[1]
+}
+
+// implicit-API endpoints: the generated wrapper's own `Task<T>` is what the compiler sees
+function csharpRetApiTable (venue: string, prediction: boolean): Map<string, string> | undefined {
+    if (venue === '') {
+        return undefined
+    }
+    const key = (prediction ? 'prediction:' : 'root:') + venue
+    if (csharpRetApiTables.has (key)) {
+        return csharpRetApiTables.get (key)
+    }
+    const predictionFile = join (CSHARP_RET_ROOT, 'api', 'prediction', venue + '.cs')
+    const rootFile = join (CSHARP_RET_ROOT, 'api', venue + '.cs')
+    const candidates = prediction ? [ predictionFile, rootFile ] : [ rootFile, predictionFile ]
+    let table: Map<string, string> | undefined
+    for (const file of candidates) {
+        let text
+        try {
+            text = fs.readFileSync (file, 'utf8')
+        } catch (e) {
+            continue // hand-written venue or a checkout without the generated api tree
+        }
+        table = new Map ()
+        for (const line of text.split ('\n')) {
+            const match = CSHARP_RET_API_METHOD.exec (line)
+            if ((match !== null) && (match[1] !== 'object')) {
+                table.set (match[2], match[1])
+            }
+        }
+        break
+    }
+    csharpRetApiTables.set (key, table)
+    return table
+}
+
+function csharpRetBaseIndex (): Map<string, Set<string>> {
+    if (csharpRetBaseSignatures !== undefined) {
+        return csharpRetBaseSignatures
+    }
+    const index = new Map<string, Set<string>> ()
+    let files: string[] = []
+    try {
+        files = fs.readdirSync (join (CSHARP_RET_ROOT, 'base')).filter ((f) => f.endsWith ('.cs'))
+    } catch (e) {
+        files = []
+    }
+    for (const file of files) {
+        let text
+        try {
+            text = fs.readFileSync (join (CSHARP_RET_ROOT, 'base', file), 'utf8')
+        } catch (e) {
+            continue
+        }
+        // a generated base file is rewritten during this same build: reading it here would make
+        // the proof depend on the pass order, so only the hand-written files are evidence
+        if (text.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') !== -1) {
+            continue
+        }
+        for (const line of text.split ('\n')) {
+            const match = CSHARP_RET_SIGNATURE.exec (line)
+            if (match !== null) {
+                const types = index.get (match[2])
+                if (types === undefined) {
+                    index.set (match[2], new Set ([ match[1].trim () ]))
+                } else {
+                    types.add (match[1].trim ())
+                }
+            }
+        }
+    }
+    csharpRetBaseSignatures = index
+    return index
+}
+
+function csharpRetSameFileIndex (content: string): Map<string, Set<string>> {
+    const cached = csharpRetSameFileSignatures.get (content)
+    if (cached !== undefined) {
+        return cached
+    }
+    const index = new Map<string, Set<string>> ()
+    for (const line of content.split ('\n')) {
+        const match = CSHARP_RET_SIGNATURE.exec (line)
+        if (match !== null) {
+            const types = index.get (match[2])
+            if (types === undefined) {
+                index.set (match[2], new Set ([ match[1].trim () ]))
+            } else {
+                types.add (match[1].trim ())
+            }
+        }
+    }
+    if (csharpRetSameFileSignatures.size > 64) {
+        csharpRetSameFileSignatures.clear ()
+    }
+    csharpRetSameFileSignatures.set (content, index)
+    return index
+}
+
+// every declared C# return type of `name` the emitted text proves; >1 distinct spelling is unproven
+function csharpRetDeclaredReturnTypes (content: string, name: string): string[] {
+    const types = new Set<string> ()
+    const sameFile = csharpRetSameFileIndex (content)
+    if (sameFile.has (name)) {
+        for (const type of sameFile.get (name) as Set<string>) {
+            types.add (type)
+        }
+        return [ ...types ]
+    }
+    // a pascalized call site reads the camelCase declaration (typeCores runs before the rename)
+    const lower = name.charAt (0).toLowerCase () + name.slice (1)
+    if (sameFile.has (lower)) {
+        for (const type of sameFile.get (lower) as Set<string>) {
+            types.add (type)
+        }
+        return [ ...types ]
+    }
+    const base = csharpRetBaseIndex ()
+    if (base.has (name)) {
+        for (const type of base.get (name) as Set<string>) {
+            types.add (type)
+        }
+    }
+    return [ ...types ]
+}
+
+function csharpRetUnwrapTask (type: string): string {
+    const match = /^Task<(.+)>$/.exec (type)
+    return (match === null) ? type : match[1]
+}
+
+function csharpRetSplitParams (plist: string): string[] {
+    const out: string[] = []
+    let depth = 0
+    let current = ''
+    for (const ch of plist) {
+        if ((ch === '<') || (ch === '(') || (ch === '[')) {
+            depth += 1
+        } else if ((ch === '>') || (ch === ')') || (ch === ']')) {
+            depth -= 1
+        }
+        if ((ch === ',') && (depth === 0)) {
+            out.push (current)
+            current = ''
+            continue
+        }
+        current += ch
+    }
+    out.push (current)
+    return out.filter ((p) => p.trim () !== '')
+}
+
+// name -> every binding the method text declares (one binding per name per method in C#,
+// except sibling blocks, whose duplicate makes the name unprovable)
+function csharpRetMethodBindings (methodLines: string[]): Map<string, string[]> {
+    const bindings = new Map<string, string[]> ()
+    const add = (name: string, type: string) => {
+        const known = bindings.get (name)
+        if (known === undefined) {
+            bindings.set (name, [ type ])
+        } else {
+            known.push (type)
+        }
+    }
+    for (let i = 0; i < methodLines.length; i++) {
+        const line = methodLines[i]
+        const trimmed = line.trimStart ()
+        if ((i > 0) && (trimmed.startsWith ('//') || trimmed.startsWith ('*'))) {
+            continue
+        }
+        const declaration = CSHARP_RET_DECLARATION.exec (line)
+        if (declaration !== null) {
+            add (declaration[2], declaration[1].trim ())
+            continue
+        }
+        const loop = CSHARP_RET_FOREACH.exec (line)
+        if (loop !== null) {
+            add (loop[2], loop[1].trim ())
+        }
+    }
+    // parameters of the enclosing signature line
+    const signature = (methodLines.length > 0) ? methodLines[0] : ''
+    const open = signature.indexOf ('(')
+    const close = signature.lastIndexOf (')')
+    if ((open !== -1) && (close > open)) {
+        for (const param of csharpRetSplitParams (signature.substring (open + 1, close))) {
+            const decl = param.split ('=')[0].trim ().split (/\s+/)
+            if (decl.length >= 2) {
+                add (decl[decl.length - 1], decl.slice (0, -1).join (' '))
+            }
+        }
+    }
+    return bindings
+}
+
+/**
+ * True when wrapping `expr` in the dictionary helper that materialises `targetType` would only
+ * rename the type the expression already has, so the return can print bare.
+ */
+function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: string, methodLines: string[], prediction = false): boolean {
+    if (CSHARP_RET_TARGETS.indexOf (targetType) === -1) {
+        return false
+    }
+    const value = expr.trim ()
+    if (value === '') {
+        return false
+    }
+    // `null` fits every reference-typed return: the helper hands it back unchanged
+    if (value === 'null') {
+        return true
+    }
+    if (value.startsWith ('new ' + targetType)) {
+        return true
+    }
+    const call = CSHARP_RET_CALL.exec (value) ?? CSHARP_RET_BARE_CALL.exec (value)
+    if (call !== null) {
+        const awaited = call[1] !== undefined
+        const name = (call.length === 4) ? call[3] : call[2]
+        if (awaited) {
+            const api = csharpRetApiTable (csharpRetVenue (content), prediction)
+            if ((api !== undefined) && api.has (name)) {
+                return api.get (name) === targetType
+            }
+        }
+        const declared = csharpRetDeclaredReturnTypes (content, name)
+        if (declared.length !== 1) {
+            return false
+        }
+        return (awaited ? csharpRetUnwrapTask (declared[0]) : declared[0]) === targetType
+    }
+    if (CSHARP_RET_IDENTIFIER.test (value)) {
+        const bindings = csharpRetMethodBindings (methodLines)
+        const types = bindings.get (value)
+        return (types !== undefined) && (types.length === 1) && (types[0] === targetType)
+    }
+    return false
+}
+
+
+// the suffixed C# literal a numeric core parameter takes for a plain numeric literal argument:
+// `1L` -> Int64 / Int64?, `0d` -> double / double?. '' when the operand is not such a literal
+function csharpNumericLiteralFor (helper: string, argument: string): string {
+    const literal = /^(-?)(\d+)(\.\d+)?$/.exec (argument)
+    if (literal === null) {
+        return ''
+    }
+    if ((helper === 'ToDoubleArg') || (helper === 'ToDoubleArgRequired')) {
+        return argument + 'd'
+    }
+    if (((helper === 'ToInt64Arg') || (helper === 'ToInt64ArgRequired')) && (literal[3] === undefined)) {
+        return argument + 'L'
+    }
+    return ''
+}
+
+// --self-test: each return/argument identity accepts only its own declared shape
+function csharpReturnIdentitySelfTest (): string[] {
+    const pad = '    '
+    const wrap = (lines: string[]) => [ 'public class Test {', pad + 'public virtual Dictionary<string, object> helper(object value = null)', pad + '{', pad + pad + 'return null;', pad + '}', pad + 'public async override Task<Dictionary<string, object>> f(object parameters = null)', pad + '{' ].concat (lines, [ pad + '}', '}' ]).join ('\n')
+    const text = wrap ([
+        pad + pad + 'object boxed = null;',
+        pad + pad + 'Dictionary<string, object> row = new Dictionary<string, object>() {};',
+        pad + pad + 'IDictionary<string, object> iface = this.safeDict(parameters, "k");',
+        pad + pad + 'foreach (var entry in new List<object>() {})',
+        pad + pad + '{',
+        pad + pad + pad + 'object entryCopy = entry;',
+        pad + pad + '}',
+    ])
+    const methodLines = text.split ('\n')
+    const dictionary = 'Dictionary<string, object>'
+    const dictList = 'List<Dictionary<string, object>>'
+    const cases: [string, string, string, boolean][] = [
+        [ 'null', 'null', dictionary, true ],
+        [ 'new-dict', 'new Dictionary<string, object>() {}', dictionary, true ],
+        [ 'new-dictlist', 'new List<Dictionary<string, object>>() {}', dictList, true ],
+        [ 'local-typed', 'row', dictionary, true ],
+        [ 'local-boxed', 'boxed', dictionary, false ],
+        [ 'local-interface', 'iface', dictionary, false ],
+        [ 'foreach-var', 'entry', dictionary, false ],
+        [ 'wrong-target', 'null', 'Int64', false ],
+        [ 'unindexed-call', 'this.unknownHelper(parameters)', dictionary, false ],
+        [ 'typed-call', 'this.helper(parameters)', dictionary, true ],
+        [ 'awaited-typed', 'await this.f(parameters)', dictionary, true ],
+    ]
+    const problems: string[] = []
+    for (const [ name, expr, target, expected ] of cases) {
+        const got = csharpReturnIsAlreadyTyped (expr, target, text, methodLines)
+        if (got !== expected) {
+            problems.push ('[return identity] ' + name + ' expected ' + String (expected) + ' got ' + String (got))
+        }
+    }
+    if ((csharpNumericLiteralFor ('ToDoubleArgRequired', '-1') !== '-1d') || (csharpNumericLiteralFor ('ToInt64Arg', '1') !== '1L')
+        || (csharpNumericLiteralFor ('ToDoubleArg', '1') !== '1d') || (csharpNumericLiteralFor ('ToInt64Arg', '1.5') !== '')
+        || (csharpNumericLiteralFor ('ToInt64Arg', 'since') !== '') || (csharpNumericLiteralFor ('ToInt64Arg', 'null') !== '')) {
+        problems.push ('[numeric literal argument] expected the suffixed literal')
+    }
+    return problems
+}
+
 // --self-test: each rule accepts only its own declared shape
 function csharpTypedCoreConversionSelfTest (): string[] {
     const problems: string[] = []
@@ -3788,8 +4107,8 @@ class NewTranspiler {
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 const calledCore = typedCallRe.exec (expr);
                 const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
-                // CP04: the return already carries the core's own dictionary type
-                if (isTyped && (cp04ReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
+                // the return already carries the core's own dictionary type
+                if (isTyped && (csharpReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
                     tailOk[j] = true;
                     j = lastLine;
                     continue;
@@ -3919,7 +4238,7 @@ class NewTranspiler {
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 if (this.syncCoreReturnIsAlreadyTyped (expr)
-                        || cp04ReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)
+                        || csharpReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)
                         || this.callReturnsDeclaredType (expr, SYNC_TYPED_CORES[methodName], this.isPrediction)) {
                     j = lastLine;
                     continue;
@@ -6169,14 +6488,14 @@ class NewTranspiler {
                         changed = true;
                         continue;
                     }
-                    // CP04: a null literal converts to `Int64?`/`double?` on its own
-                    if (cp04NumericArgPassThrough (helper, trimmed)) {
+                    // a null literal converts to `Int64?`/`double?` on its own
+                    if ((trimmed === 'null') && ((helper === 'ToInt64Arg') || (helper === 'ToDoubleArg'))) {
                         continue;
                     }
-                    // M73: a plain numeric literal prints as the suffixed C# literal (`0d`, `1L`)
-                    const m73literal = m73NumericLiteralArg (helper, trimmed);
-                    if (m73literal !== '') {
-                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + m73literal;
+                    // a plain numeric literal prints as the target's own suffixed C# literal (`0d`, `1L`)
+                    const numericLiteral = csharpNumericLiteralFor (helper, trimmed);
+                    if (numericLiteral !== '') {
+                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + numericLiteral;
                         changed = true;
                         continue;
                     }
@@ -9270,7 +9589,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10C05SelfTest (), ...w3checks (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10C05SelfTest (), ...w3checks (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9865,7 +10184,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01w3Out)))); // hx4 C34..C36
     const w3c02Out = hx10w3C02CandidateReads (hx4Out); // hx10w3 C02
     const c06w3Out = c06w3ParseJson (w3c02Out); // hx10w3 C06
-    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, hx11w8PromiseAllSlots (hx10C08PromiseAll (c06w3Out)))); // hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx11w8 parse, tuple-slot
+    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, c06w3Out)); // hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx11w8 parse, tuple-slot
 }
 
 function nativeC07HelperCalls (content: string): string {
