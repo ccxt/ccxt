@@ -1753,6 +1753,17 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_integer2` without the box (no default): first key yielding an integer.
+    pub fn safe_integer2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
+        self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
+    }
+
+    /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
+    pub fn safe_integer_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<i64> {
+        let Value::Arr(ks) = keys else { return None };
+        ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
+    }
+
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
     /// to i64. Used to convert seconds → milliseconds for timestamps.
     pub fn safe_integer_product(
